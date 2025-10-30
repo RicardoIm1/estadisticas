@@ -41,6 +41,7 @@
       padding: 2.5rem;
       border-radius: 22px;
       background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(6px);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
       border: 1px solid rgba(255, 255, 255, 0.15);
       overflow: hidden; /* Oculta overflow del contenedor principal */
@@ -548,6 +549,41 @@
     document.getElementById('footerText').innerHTML =
       `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
 
+    // ========== FUNCIÓN PARA FORMATEAR FECHAS ==========
+    function formatearFecha(fechaString) {
+      if (!fechaString) return '-';
+      
+      try {
+        // Si ya es una fecha válida en formato simple
+        if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
+          const fecha = new Date(fechaString + 'T00:00:00');
+          return fecha.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          });
+        }
+        
+        // Si viene con hora (formato completo)
+        const fecha = new Date(fechaString);
+        
+        // Verificar si es una fecha válida
+        if (isNaN(fecha.getTime())) {
+          return '-';
+        }
+        
+        // Formatear a DD/MM/YYYY
+        return fecha.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      } catch (error) {
+        console.error('Error formateando fecha:', fechaString, error);
+        return '-';
+      }
+    }
+
     // ========== estadoSistema.js ==========
     let intensidadUso = 0;
     let respiracionInterval;
@@ -792,7 +828,7 @@
           <td>${index + 1}</td>
           <td>${registro.folio || '-'}</td>
           <td>${registro.nombre || ''}</td>
-          <td>${registro.fechaDefuncion || ''}</td>
+          <td>${formatearFecha(registro.fechaDefuncion)}</td>
           <td>${registro.area || ''}</td>
           <td>
             <div class="acciones-tabla">
@@ -823,7 +859,19 @@
             document.getElementById('id').value = registro.id;
             document.getElementById('folio').value = registro.folio || '';
             document.getElementById('nombre').value = registro.nombre || '';
-            document.getElementById('fechaDefuncion').value = registro.fechaDefuncion || '';
+            
+            // Formatear la fecha para el input date (necesita formato YYYY-MM-DD)
+            if (registro.fechaDefuncion) {
+              const fecha = new Date(registro.fechaDefuncion);
+              if (!isNaN(fecha.getTime())) {
+                document.getElementById('fechaDefuncion').value = fecha.toISOString().split('T')[0];
+              } else {
+                document.getElementById('fechaDefuncion').value = '';
+              }
+            } else {
+              document.getElementById('fechaDefuncion').value = '';
+            }
+            
             document.getElementById('area').value = registro.area || '';
             document.getElementById('edad').value = registro.edad || '';
             document.getElementById('sexo').value = registro.sexo || '';
