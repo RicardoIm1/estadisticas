@@ -37,28 +37,28 @@
     .glass {
       width: 95%;
       max-width: 1600px;
-      max-height: 90vh; /* Limita altura para evitar overflow */
+      height: 90vh; /* Altura fija para calcular mejor */
       padding: 2.5rem;
       border-radius: 22px;
       background: rgba(255, 255, 255, 0.12);
       backdrop-filter: blur(6px);
       box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      overflow: hidden; /* Oculta scroll interno */
+      overflow: hidden; /* Oculta overflow del contenedor principal */
       display: flex;
       flex-direction: column;
     }
 
-    /* === ESTRUCTURA FLEX INTERNA === */
+    /* === ESTRUCTURA FLEX INTERNA CORREGIDA === */
     .contenedor-flex {
       display: flex;
       flex-direction: row;
       gap: 1.5rem;
-      align-items: flex-start;
+      align-items: stretch; /* Cambiado a stretch para que ocupen toda la altura */
       flex-wrap: nowrap;
-      height: 100%;
+      height: calc(100% - 100px); /* Resta espacio del header y estado */
       box-sizing: border-box;
-      overflow: hidden;
+      overflow: hidden; /* Oculta overflow del contenedor flex */
       border-radius: 16px;
       flex: 1; /* Ocupa espacio disponible */
     }
@@ -70,8 +70,9 @@
       gap: 1rem;
       padding: 1.5rem;
       box-sizing: border-box;
-      height: 100%;
-      overflow-y: auto;
+      height: 100%; /* Ocupa toda la altura disponible */
+      overflow-y: auto; /* Scroll vertical cuando sea necesario */
+      overflow-x: hidden; /* Sin scroll horizontal */
       background: rgba(255, 255, 255, 0.08);
       border-radius: 12px;
       border: 1px solid rgba(255, 255, 255, 0.15);
@@ -79,12 +80,38 @@
 
     .tabla-wrapper {
       flex: 0 0 65%;
-      height: 100%;
-      overflow-y: auto;
+      height: 100%; /* Ocupa toda la altura disponible */
+      overflow-y: auto; /* Scroll vertical cuando sea necesario */
+      overflow-x: auto; /* Scroll horizontal si la tabla es muy ancha */
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 12px;
       background: rgba(255, 255, 255, 0.08);
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    /* === HEADER Y ESTADO === */
+    .header {
+      text-align: center;
+      margin-bottom: 1rem; /* Reducido margen inferior */
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      flex-shrink: 0; /* Evita que se encoja */
+    }
+
+    #estadoTexto {
+      margin-bottom: 1rem;
+      flex-shrink: 0; /* Evita que se encoja */
+      min-height: 24px; /* Altura mínima */
+    }
+
+    .header h1 {
+      font-weight: 300;
+      font-size: 2.2rem;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, #fff, #ffdd00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
 
     /* === ESTILOS DE SCROLLBAR ELEGANTE === */
@@ -108,24 +135,6 @@
     .formulario::-webkit-scrollbar-thumb:hover,
     .tabla-wrapper::-webkit-scrollbar-thumb:hover {
       background: rgba(255, 255, 255, 0.3);
-    }
-
-    /* === HEADER === */
-    .header {
-      text-align: center;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .header h1 {
-      font-weight: 300;
-      font-size: 2.2rem;
-      letter-spacing: 1px;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(90deg, #fff, #ffdd00);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
     }
 
     /* === ELEMENTOS DE FORMULARIO === */
@@ -185,12 +194,13 @@
       flex: 1;
     }
 
-    /* === BOTONES === */
+    /* === BOTONES EN FORMULARIO === */
     .botones {
       display: flex;
       gap: 0.8rem;
-      margin-top: auto;
+      margin-top: auto; /* Empuja los botones hacia abajo */
       flex-wrap: wrap;
+      flex-shrink: 0; /* Evita que se encojan */
     }
 
     .botones button {
@@ -206,10 +216,6 @@
       justify-content: center;
       gap: 0.5rem;
       min-width: 120px;
-    }
-
-    #estadoTexto {
-      margin-bottom: 1rem;
     }
 
     #btn-guardar {
@@ -236,6 +242,7 @@
     .tabla-wrapper table {
       width: 100%;
       border-collapse: collapse;
+      min-width: 600px; /* Ancho mínimo para evitar compresión */
     }
 
     .tabla-wrapper th,
@@ -244,6 +251,7 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
       text-align: left;
       color: white;
+      white-space: nowrap; /* Evita salto de línea */
     }
 
     .tabla-wrapper thead {
@@ -316,6 +324,17 @@
       border-color: rgba(220, 53, 69, 0.4);
     }
 
+    /* === FOOTER === */
+    footer {
+      text-align: center;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.8rem;
+      opacity: 0.7;
+      flex-shrink: 0; /* Evita que se encoja */
+    }
+
     /* === MODAL === */
     .modal-backdrop {
       position: fixed;
@@ -366,16 +385,6 @@
       color: white;
     }
 
-    /* === FOOTER === */
-    footer {
-      text-align: center;
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.1);
-      font-size: 0.8rem;
-      opacity: 0.7;
-    }
-
     /* === RESPONSIVE === */
     @media (max-width: 968px) {
       .contenedor-flex {
@@ -385,13 +394,13 @@
       .formulario, .tabla-wrapper {
         flex: 1 1 100%;
         width: 100%;
-      }
-      .tabla-wrapper {
-        max-height: 500px;
+        height: 400px; /* Altura fija en móvil */
       }
       .glass {
         width: 95%;
         padding: 1.5rem;
+        height: auto; /* Altura automática en móvil */
+        min-height: 90vh;
       }
     }
 
@@ -516,7 +525,7 @@
           </table>
         </div>
       </div>
-      <br>
+      
       <footer>
         <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
       </footer>
@@ -775,11 +784,6 @@
 
       // Ordenar registros por fecha más reciente primero
       const registrosOrdenados = [...registros].sort((a, b) => {
-        // Si tienes campo de fecha de creación/modificación, úsalo aquí
-        // Por ejemplo, si tienes un campo 'fechaCreacion':
-        // return new Date(b.fechaCreacion) - new Date(a.fechaCreacion);
-        
-        // O usar fechaDefuncion si es la más relevante
         return new Date(b.fechaDefuncion) - new Date(a.fechaDefuncion);
       });
 
