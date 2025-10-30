@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Estadísticas y Archivo Clínico</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <!-- <link href="estilos.css" rel="stylesheet"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  /* ===========================
+     Reset y estilos base
+     =========================== */
+ * { margin:0; padding:0; box-sizing:border-box; }
+  body, html { font-family:'Poppins',sans-serif; height:100%; overflow:hidden; background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf); }
+  #particlesCanvas { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-1; } 
+
+  /* ===========================
+     Layout
+     =========================== */
+  .sidebar {
+    position: fixed; top:0; left:0; width:220px; height:100%; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border-right:1px solid rgba(255,255,255,0.2); display:flex; flex-direction:column; padding:2rem 1rem; color:white;
+  }
+  .sidebar h2 { margin-bottom:2rem; font-size:1.2rem; font-weight:600; text-align:center; }
+  .sidebar button { margin:0.5rem 0; padding:0.6rem 0.8rem; border:none; border-radius:8px; background: rgba(255,255,255,0.15); color:white; cursor:pointer; transition:0.3s; width:100%; font-weight:600; }
+  .sidebar button:hover { background: rgba(255,255,255,0.3); transform:translateX(4px); }
+  .usuario{text-align:center;}
+
+  #dashboard { margin-left:240px; padding:2rem; display:flex; flex-direction:column; gap:2rem; height:100%; overflow-y:auto; }
+
+  .grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+
+  .celda { background: rgba(255,255,255,0.15); border-radius:15px; padding:1rem; text-align:center; animation:pulse 6s infinite; border:1px solid rgba(255,255,255,0.1); cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease; }
+  .celda:hover { transform: translateY(-3px); box-shadow:0 4px 8px rgba(0,0,0,0.2); }
+  .celda h3 { font-size:1rem; margin-bottom:0.3rem; }
+  .celda p { font-size:0.85rem; opacity:0.8; }
+
+  @keyframes pulse {0%,100%{box-shadow:0 4px 15px rgba(0,0,0,0.1);}50%{box-shadow:0 8px 25px rgba(0,0,0,0.2);}}
+
+  .filters { display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
+  select { padding:0.5rem 0.8rem; border-radius:8px; border:none; font-weight:600; }
+
+  footer { text-align:center; padding-top:1rem; font-size:0.8rem; color:rgba(255,255,255,0.7); }
+
+  /* Mobile */
+  @media(max-width:768px){ #dashboard{margin-left:0;} .sidebar{position:relative;width:100%;flex-direction:row;overflow-x:auto;} .sidebar button{flex:none;width:auto;margin:0 0.5rem;} }
+</style>
+</head>
+<body>
+  <canvas id="particlesCanvas"></canvas>
+
+  <div class="container">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="header">
+        <div class="logo">
+          <img src="img/logo-hrpv.png" alt="Logo" width="150">
+    <!-- <h1>Estadísticas y Archivo Clínico</h1>-->
+        </div>
+        <div class="usuario">
+          <i class="fas fa-user-circle"></i>
+          <span>Hola, Ricardo</span>
+        </div>
+      </div> 
+      <h2>Panel Estadísticas y Archivo Clínico</h2>
+      <button onclick="mostrar('caja.html')">Caja</button>
+      <button onclick="mostrar('canva.html')">Canva</button>
+      <button onclick="mostrar('curp.html')">Curp</button>
+      <button onclick="mostrar('def_gen.html')">Defunciones Generales</button>
+      <button onclick="mostrar('indicadores.html')">Indicadores</button>
+      <button onclick="mostrar('instruc_depurar.html')">Lineamientos para Depurar</button>
+      <button onclick="mostrar('login.html')">Login</button>
+      <button onclick="mostrar('validacion_egresos.html')">Validación Egresos</button>
+      <button onclick="mostrar('validacion_lesiones.html')">Validación Lesiones</button>
+      <button onclick="mostrar('validacion_urgencias.html')">Validación Urgencias</button>
+    </div>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+      <div class="glass" id="dashboard">
+        <!-- Aquí va el contenido dinámico -->
+        <iframe id="contenido" src="caja.html" style="width: 100%; height: 90%; border: none; border-radius: 15px"></iframe>
+        <footer>
+          <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
+        </footer>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Función para mostrar contenido en el iframe
+    function mostrar(archivo) {
+      document.getElementById('contenido').src = archivo;
+    }
+
+    function setEstado(estado) {
+      const dashboard = document.getElementById('dashboard');
+      const estadoTexto = document.getElementById('estadoTexto');
+      dashboard.classList.remove('loading', 'success', 'error');
+      dashboard.classList.add(estado);
+
+      switch (estado) {
+        case 'loading':
+          estadoTexto.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando sistema...';
+          break;
+        case 'success':
+          estadoTexto.innerHTML = '<i class="fas fa-check-circle"></i> Sistema operativo con éxito ✅';
+          break;
+        case 'error':
+          estadoTexto.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error detectado ❌';
+          break;
+      }
+    }
+
+    // Footer dinámico
+    document.getElementById('footerText').innerHTML =
+      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+  </script>
+  <script>
+// Verificar sesión al cargar
+function verificarSesion() {
+  const usuario = localStorage.getItem('usuario');
+  const rol = localStorage.getItem('rol');
+  
+  if (!usuario) {
+    window.location.href = 'index.html';
+    return;
+  }
+  
+  console.log('Usuario logueado:', usuario, 'Rol:', rol);
+  // Mostrar info del usuario en la interfaz
+}
+
+// Cerrar sesión
+function cerrarSesion() {
+  localStorage.removeItem('usuario');
+  localStorage.removeItem('rol');
+  localStorage.removeItem('loginTime');
+  window.location.href = 'index.html';
+}
+
+window.addEventListener('load', verificarSesion);
+</script>
+
+  <style>
+    /* Estilos para el layout sidebar + contenido */
+    .container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: 250px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      backdrop-filter: blur(15px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .sidebar h2 {
+      color: white;
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+
+    .sidebar button {
+      display: block;
+      width: 100%;
+      margin-bottom: 0.5rem;
+      padding: 0.8rem;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar button:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: translateX(5px);
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 1rem;
+    }
+
+    .glass {
+      height: 100%;
+    }
+  </style>
+</body>
+</html>

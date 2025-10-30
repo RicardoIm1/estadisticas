@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Estadísticas y Archivo Clínico</title>
+    <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="img/favicon.ico" type="image/x-icon" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      /* === RESET Y BASE === */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        color: white;
+        background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
+      }
+
+      /* === CONTENEDOR PRINCIPAL === */
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 1rem;
+      }
+
+      .glass {
+        width: 100%;
+        max-width: 420px;
+        padding: 2.5rem;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        /*         backdrop-filter: blur(0.10px);       */
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        transition: all 0.5s ease;
+        animation: breathe 4s infinite ease-in-out;
+      }
+
+      /* Definición de la animación de respiración */
+      @keyframes breathe {
+        0%,
+        100% {
+          transform: scale(1);
+          opacity: 0.8;
+          /* ELIMINA ESTA LÍNEA: box-shadow: 0 0 20px rgba(255, 255, 255, 0.2); */
+        }
+        50% {
+          transform: scale(1.02);
+          opacity: 1;
+          /* ELIMINA ESTA LÍNEA: box-shadow: 0 0 30px rgba(255, 255, 255, 0.4); */
+        }
+      }
+
+      /* Estados del panel */
+      .glass.loading {
+        background: rgba(0, 123, 255, 0.15);
+        box-shadow: 0 8px 32px rgba(0, 123, 255, 0.25);
+      }
+      .glass.success {
+        background: rgba(40, 167, 69, 0.2);
+        box-shadow: 0 8px 32px rgba(40, 167, 69, 0.25);
+      }
+      .glass.error {
+        background: rgba(240, 50, 60, 0.45); /* Cambia 0.25 por 0.45 */
+        box-shadow: 0 6px 20px rgba(240, 50, 60, 0.5); /* Cambia 0.25 por 0.5 */
+      }
+
+      /* === HEADER === */
+      .header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      .logo {
+        display: block;
+        margin: 0 auto 1rem;
+      }
+
+      .header h3 {
+        font-weight: 400;
+        font-size: 1.2rem;
+        opacity: 0.9;
+      }
+
+      /* === FORMULARIO === */
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+      }
+
+      label {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        opacity: 0.9;
+      }
+
+      input {
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.4);
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      /* === BOTONES === */
+      .botones-vertical {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-top: 1rem;
+      }
+
+      button {
+        padding: 0.8rem;
+        border-radius: 8px;
+        border: none;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+      }
+
+      button[type="submit"] {
+        background: #4a90e2;
+        color: white;
+      }
+
+      button[type="submit"]:hover {
+        background: #3a7bc8;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      button[type="reset"] {
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+      }
+
+      button[type="reset"]:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      /* === MENSAJES === */
+      #message {
+        text-align: center;
+        padding: 0.8rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+        font-size: 0.9rem;
+        transition: all 0.5s ease; /* Agregar esta línea */
+      }
+
+      /* === FOOTER === */
+      footer {
+        text-align: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        font-size: 0.8rem;
+        opacity: 0.7;
+      }
+
+      /* === RESPONSIVE === */
+      @media (max-width: 480px) {
+        .glass {
+          padding: 2rem 1.5rem;
+        }
+
+        .header h3 {
+          font-size: 1.1rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glass">
+      <div class="header">
+        <img class="logo" src="img/logo-hrpv.png" alt="Logo" width="120" />
+        <h3>Estadísticas y Archivo Clínico</h3>
+      </div>
+
+      <div id="message"></div>
+
+      <form id="formularioLogin">
+        <div class="form-group">
+          <label for="username"><i class="fas fa-user"></i> Usuario</label>
+          <input
+            type="text"
+            id="usuario"
+            name="usuario"
+            placeholder="ej. j.ramirez"
+            required
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="password"><i class="fas fa-key"></i> Contraseña</label>
+          <input
+            type="password"
+            id="clave"
+            name="clave"
+            placeholder="••••••••"
+            required
+          />
+        </div>
+
+        <div class="botones-vertical">
+          <button type="submit">
+            <i class="fas fa-sign-in-alt"></i> Iniciar sesión
+          </button>
+          <button type="reset"><i class="fas fa-broom"></i> Limpiar</button>
+        </div>
+      </form>
+
+      <footer>
+        <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
+      </footer>
+    </div>
+
+    <script>
+      // ========== SISTEMA DE ESTADO ==========
+      let intensidadUso = 0;
+      let respiracionInterval;
+
+      function iniciarRespiracion() {
+        const dashboard = document.querySelector(".glass");
+        if (!dashboard) return;
+
+        clearInterval(respiracionInterval);
+
+        let fase = 0;
+        respiracionInterval = setInterval(() => {
+          fase += 0.02;
+          const intensidad = Math.min(0.15 + intensidadUso / 80, 0.4);
+          const escala = 1 + Math.sin(fase) * intensidad * 0.02;
+          dashboard.style.transform = `scale(${escala})`;
+        }, 500);
+      }
+
+      function setEstado(estado, mensaje = null) {
+        const dashboard = document.querySelector(".glass");
+        const messageDiv = document.getElementById("message");
+        if (!dashboard) return;
+
+        intensidadUso = Math.min(intensidadUso + 1, 10);
+        iniciarRespiracion();
+        setTimeout(
+          () => (intensidadUso = Math.max(intensidadUso - 1, 0)),
+          8000
+        );
+
+        dashboard.classList.remove("loading", "success", "error");
+        dashboard.classList.add(estado);
+
+        if (messageDiv) {
+          const iconos = {
+            loading:
+              '<i class="fas fa-sync fa-spin"></i> Validando credenciales...',
+            success: '<i class="fas fa-check-circle"></i> Acceso exitoso',
+            error: '<i class="fas fa-exclamation-circle"></i> ',
+          };
+          messageDiv.innerHTML = mensaje
+            ? iconos[estado] + mensaje
+            : iconos[estado];
+          messageDiv.style.color = estado === "error" ? "#f87171" : "white";
+          messageDiv.style.opacity = "1";
+        }
+
+        if (estado !== "success") {
+          setTimeout(() => {
+            dashboard.classList.remove("loading", "success", "error");
+          }, 5000);
+        }
+      }
+
+      // ========== LÓGICA DEL LOGIN CON JSONP ==========
+      document.getElementById(
+        "footerText"
+      ).innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+
+      const form = document.getElementById("formularioLogin");
+      const scriptUrl =
+        "https://script.google.com/macros/s/AKfycbywX2f0VrdTz2UKXY9u_lX4DwMrVJj-_XHQtjFfT9kx6E_3NsBqhTCqwJ923SzpeRzu/exec";
+
+      // ✅ Función global para manejar la respuesta del LOGIN
+      window.manejarLogin = function (resultado) {
+        console.log("🔍 Respuesta REAL de Google Sheets:", resultado);
+
+        // Remover el script después de usarlo
+        const oldScript = document.getElementById("jsonp-script");
+        if (oldScript) oldScript.remove();
+
+        if (resultado.success) {
+          const usuario = document.getElementById("usuario").value;
+          setEstado(
+            "success",
+            `¡Bienvenido ${usuario}! (Rol: ${resultado.rol})`
+          );
+
+          // ✅ Guardar sesión en localStorage
+          localStorage.setItem("usuario", usuario);
+          localStorage.setItem("rol", resultado.rol);
+          localStorage.setItem("loginTime", new Date().getTime());
+
+          setTimeout(() => {
+            // Redirigir según el rol
+            if (resultado.rol === "admin") {
+              window.location.href = "panel.html";
+            } else if (resultado.rol === "lector") {
+              window.location.href = "indicadores.html";
+            } else {
+              window.location.href = "index.html";
+            }
+          }, 2000);
+        } else {
+          setEstado("error", resultado.error || "Credenciales incorrectas");
+          console.error("❌ Error de login:", resultado.error);
+        }
+      };
+
+      // ✅ Función global para verificar el servidor
+      window.verificarServidorCallback = function (res) {
+        console.log("✅ Servidor activo:", res);
+        // Remover el script después de usarlo
+        const script = document.getElementById("server-check-script");
+        if (script) script.remove();
+      };
+
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        setEstado("loading");
+
+        const usuario = document.getElementById("usuario").value.trim();
+        const clave = document.getElementById("clave").value;
+
+        if (!usuario || !clave) {
+          setEstado("error", "Usuario y contraseña son requeridos");
+          return;
+        }
+
+        console.log("📤 Enviando credenciales:", { usuario, clave });
+
+        // ✅ JSONP - Crear script dinámico (GET)
+        const script = document.createElement("script");
+        script.id = "jsonp-script";
+
+        // Parámetros por URL (GET)
+        const params = new URLSearchParams({
+          usuario: usuario,
+          clave: clave,
+          callback: "manejarLogin", // ✅ Nombre de función global
+          ip: "web", // Para logs
+        });
+
+        script.src = `${scriptUrl}?${params.toString()}`;
+        console.log("🔗 URL llamada:", script.src);
+
+        document.head.appendChild(script);
+
+        // Timeout por si falla
+        setTimeout(() => {
+          const scriptElement = document.getElementById("jsonp-script");
+          if (scriptElement) {
+            scriptElement.remove();
+            setEstado("error", "Timeout - No response from server");
+          }
+        }, 10000);
+      });
+
+      form.addEventListener("reset", () => {
+        const messageDiv = document.getElementById("message");
+        messageDiv.innerHTML = "";
+        messageDiv.style.opacity = "0";
+      });
+
+      // ✅ Verificar sesión existente
+      function verificarSesion() {
+        const usuario = localStorage.getItem("usuario");
+        const loginTime = localStorage.getItem("loginTime");
+        const ahora = new Date().getTime();
+
+        // Si hay sesión y no ha expirado (24 horas)
+        if (usuario && loginTime && ahora - loginTime < 24 * 60 * 60 * 1000) {
+          console.log("Sesión activa para:", usuario);
+          // Opcional: redirigir automáticamente
+          // window.location.href = 'dashboard.html';
+        } else {
+          // Limpiar sesión expirada
+          localStorage.removeItem("usuario");
+          localStorage.removeItem("rol");
+          localStorage.removeItem("loginTime");
+        }
+      }
+
+      // ✅ Verificar servidor al cargar (CORREGIDO)
+      function verificarServidor() {
+        try {
+          const script = document.createElement("script");
+          script.id = "server-check-script";
+          // ✅ Usar nombre de función global, no función anónima
+          script.src = `${scriptUrl}?callback=verificarServidorCallback`;
+          document.head.appendChild(script);
+
+          // Limpiar después de 3 segundos si no responde
+          setTimeout(() => {
+            const oldScript = document.getElementById("server-check-script");
+            if (oldScript) oldScript.remove();
+          }, 3000);
+        } catch (error) {
+          console.log("❌ No se pudo conectar al servidor:", error);
+        }
+      }
+
+      window.addEventListener("load", function () {
+        iniciarRespiracion();
+        verificarSesion();
+        verificarServidor();
+      });
+
+      // ✅ Función para cerrar sesión (usar en otras páginas)
+      window.cerrarSesion = function () {
+        localStorage.removeItem("usuario");
+        localStorage.removeItem("rol");
+        localStorage.removeItem("loginTime");
+        window.location.href = "index.html";
+      };
+    </script>
+  </body>
+</html>
