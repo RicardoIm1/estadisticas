@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Validaciones de Egresos</title>
+    <style>
+      html {
+      height: 90%;
+      margin: 1rem;
+      display: flex;
+      flex-direction: column;
+    }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f4ec;
+        color: #333;
+        margin: 0;
+        padding: 1rem;
+      }
+
+      h2 {
+        text-align: center;
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        border-bottom: 3px solid #3498db;
+        display: inline-block;
+        padding-bottom: 0.3rem;
+      }
+
+      .table-container {
+        width: 90%;
+        overflow-x: auto; /* 👈 Scroll horizontal en móviles */
+        -webkit-overflow-scrolling: touch;
+        border-radius: 10px;
+        background: white;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        padding: 1.5rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 900px; /* 👈 fuerza a que la tabla se mantenga clara */
+      }
+
+      thead {
+        background: #3498db;
+        color: white;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+      }
+
+      th,
+      td {
+        padding: 0.9rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+        vertical-align: top;
+      }
+
+      th {
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 0.85rem;
+        letter-spacing: 0.5px;
+      }
+
+      tbody tr:nth-child(even) {
+        background: #f9f9f9;
+      }
+
+      tbody tr:hover {
+        background: #eef6fb;
+        transition: background 0.3s;
+      }
+
+      td {
+        font-size: 0.95rem;
+        line-height: 1.4;
+      }
+
+      /* 👇 En móviles mantenemos el scroll horizontal, no rompemos la tabla */
+      @media (max-width: 768px) {
+        body {
+          padding: 0.5rem;
+        }
+        th,
+        td {
+          font-size: 0.9rem;
+          padding: 0.6rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h2>VALIDACIONES DE EGRESOS</h2>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>TEMA</th>
+            <th>OBSERVACIÓN</th>
+            <th>CÓMO SE RESUELVE</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td data-label="TEMA">
+              Abortos no declarados<br /><small>(AbortosNoDeclarados)</small>
+            </td>
+            <td data-label="OBSERVACIÓN">
+              Son registros que tienen como código CIE10 en la afección
+              principal, el rango de claves O00 – O07, pero la variable "Tipo de
+              atención obstétrica" (tipo_atencion_obstetrica) no fue llenada y
+              se muestra como "-1 No aplica".
+            </td>
+            <td data-label="COMO SE RESUELVE">
+              Revisar cada caso y cambiar:<br />Tipo de atención obstétrica: “1
+              – Aborto”<br />Mujer en edad fértil: "2 - Puerperio"<br />Extracción
+              y expulsión: “1 – Sí”<br />Edad gestacional: En el rango de 1 a 21
+              semanas.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Afección principal codificada con clave U049<br /><small
+                >(AfeccionPrincipal_U049)</small
+              >
+            </td>
+            <td>
+              Registros que tienen como código CIE10 de afección principal U049.
+            </td>
+            <td>Recodificar la afección.</td>
+          </tr>
+          <tr>
+            <td>
+              Afección principal psiquiatría<br /><small
+                >(AfeccionesNoPsiquiátricas)</small
+              >
+            </td>
+            <td>
+              Son registros de Unidades Médicas psiquiátricas, donde la afección
+              principal no es de este tipo, la observación surge porque son años
+              de estancia con afecciones como una fractura.
+            </td>
+            <td>Recodificar la afección.</td>
+          </tr>
+          <tr>
+            <td>
+              Causa externa sin folio de la Lesión<br /><small
+                >(CausaExternaSinFolioLesionCURP)</small
+              >
+            </td>
+            <td>
+              Son registros de Egresos hospitalarios que ameritan el llenado de
+              la hoja de Lesiones dada la afección principal del egreso, que
+              está codificada en el capítulo XIX de la CIE10 y no se encontró en
+              el subsistema de Lesiones. La búsqueda se hizo por CURP, sin
+              importar la Unidad Médica o el nivel de atención de esta y con la
+              misma afección principal en ambas hojas (Egresos y Lesiones).
+            </td>
+            <td>
+              Solicitar al médico que atendió el egreso, el llenado de la hoja
+              de la lesión.<br />Favor de compartir este archivo con el
+              responsable de Lesiones de su entidad.
+            </td>
+          </tr>
+          <tr>
+            <td>Cirugías repetidas<br /><small>(CirugiasRepetidas)</small></td>
+            <td>
+              Son registros que tienen como procedimientos dos cirugías del
+              mismo código. La búsqueda se hizo por CLUES, Folio, fecha del
+              egreso, afección principal, número del procedimiento diferente y
+              código CIE9MC del procedimiento igual.
+            </td>
+            <td>
+              Eliminar uno de los dos registros, poner mucha atención con
+              cesáreas, OTB, histerectomía, apendicetomía, colecistectomía.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Condición del Nacido Vivo<br /><small
+                >(CondicionNacidoVivo)</small
+              >
+            </td>
+            <td>
+              Son registros de productos nacidos vivos, pero la condición del
+              nacido vivo al egresar la madre, está anotada como “No
+              especificado”.
+            </td>
+            <td>
+              Cambiar el valor de la variable “Condición nacido vivo” por lo que
+              corresponda:<br />1- Alta con la madre<br />2- Hospitalizado<br />3-
+              Muerto
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Días estancia fuera del promedio, registros obstétricos<br /><small
+                >(DiasEstanciaFueraPromedioObstetricia)</small
+              >
+            </td>
+            <td>
+              Se tomaron en cuenta registros con afecciones obstétricas y donde
+              los días estancia estuvieran fuera del promedio.
+            </td>
+            <td>
+              Si la atención obstétrica (aborto o parto) se complicó, la
+              afección principal reseleccionada deberá ser esta complicación y
+              no omitir en la comorbilidad la atención obstétrica.<br />Favor de
+              revisar la fecha del ingreso, suele ser que por un “dedazo” se
+              haya tenido este número de días estancia.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Días estancia fuera del promedio, registros otros<br /><small
+                >(DiasEstanciaFueraPromedioOtras)</small
+              >
+            </td>
+            <td>
+              Se tomaron en cuenta registros con afecciones que no son
+              obstétricas o mentales y con días estancia fuera del promedio.
+            </td>
+            <td>
+              Favor de revisar la fecha del ingreso, suele ser que por un
+              “dedazo” se haya tenido este número de días estancia.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Registros categorizados según la Lista Mexicana como “Mal
+              definidos”.<br /><small>(MalDefinidas)</small>
+            </td>
+            <td>
+              Son registros de egresos que tienen más de cero días de estancia y
+              están codificados en el capítulo “XVIII Síntomas, signos y
+              hallazgos anormales clínicos y de laboratorio, no clasificados en
+              otra parte”, los códigos de estos registros comienzan con la letra
+              “R”.
+            </td>
+            <td>
+              Recodificar estos registros, no es viable que una persona haya
+              estado hospitalizada 3 días por fiebre y no se le diagnosticó
+              algo.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Métodos de Planificación familiar como “Otros”<br /><small
+                >(MétodosDePF_Otros)</small
+              >
+            </td>
+            <td>
+              Son registros que tienen valor "11 - Otro" en el campo
+              planificacion_familiar, pero el texto que están escribiendo
+              corresponde a alguna de las opciones de esta variable.
+            </td>
+            <td>
+              Solicitar al médico que, si fuera el caso, marque la opción que
+              corresponda, después editar el registro en la aplicación.<br />Si
+              lo que anotó el médico es “Implante doble varilla” o algo similar,
+              dejarlo así.<br />Recordar que las siguientes leyendas significan
+              <ul>
+                <li>“0 – Ninguno”:</li> 
+                <li>No sabe,</li> 
+                <li>Histerectomía,</li> 
+                <li>No ha decidido,</li> 
+                <li>Vasectomía,</li>
+                <li>Ritmo, Sin especificar.</li>
+              </ul>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Número de abortos de una paciente muy grande de acuerdo a su
+              edad<br /><small>(NumeroAbortosMayor)</small>
+            </td>
+            <td>
+              Son registros de egresos de pacientes que tienen menos de 30 años
+              con más de 15 abortos.
+            </td>
+            <td>Cambiar el número de abortos en el registro.</td>
+          </tr>
+          <tr>
+            <td>
+              Número de cesáreas de una paciente muy grande de acuerdo a su
+              edad<br /><small>(NumeroCesáreasMayor)</small>
+            </td>
+            <td>
+              Son registros de egresos de pacientes que tienen menos de 30 años
+              con más de 15 cesáreas.
+            </td>
+            <td>Cambiar el número de cesáreas en el registro.</td>
+          </tr>
+          <tr>
+            <td>
+              Otras causas de afección principal en el grupo “Contacto con los
+              Servicios de Salud”<br /><small>(OtrasCausasContactoSS)</small>
+            </td>
+            <td>
+              Son registros de egresos que tienen más de cero días de estancia y
+              están codificados en el capítulo “XXI Factores que influyen en el
+              estado de salud y contacto con los servicios de salud”, estos
+              códigos comienzan con la letra “Z”.<br />
+              Hay consultas médicas que tienen 10 días de estancia o quimioterapias a adultos
+              (no siendo leucemia) de más de un día de estancia.
+            </td>
+            <td>Recodificar estos registros o eliminarlos.<br />Las consultas médicas se registran en SIS.</td>
+          </tr>
+          <tr>
+            <td>
+              Pacientes con edad mayor a 99 años<br /><small
+                >(EdadMayor99)</small
+              >
+            </td>
+            <td>Son registros de pacientes que tienen más de 100 años.</td>
+            <td>
+              Revisar los registros de pacientes con más de 102 años, suelen ser
+              registros de niños, si es así, corregir la fecha de nacimiento o
+              CURP. En caso de ser una persona mayor, dejar el registro como
+              está.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Partos no declarados<br /><small>(PartosNoDeclarados)</small>
+            </td>
+            <td>
+              Son registros que tienen como código CIE10 en la afección
+              principal, el rango de claves O80 – O84, pero la variable "Tipo de
+              atención obstétrica" (tipo_atencion_obstetrica) no fue llenada y
+              se muestra como "-1 No aplica".
+            </td>
+            <td>
+              Revisar cada caso y cambiar:<br />Tipo de atención obstétrica: “2
+              – Parto”<br />Mujer en edad fértil: "2 - Puerperio"<br />Extracción
+              y expulsión: “1 – Sí”<br />Edad gestacional: En el rango de 22 a
+              45 semanas.<br />Agregar también la información del producto.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Procedimientos Dentales en hospitalización<br /><small
+                >(ProcedimientosDentales)</small
+              >
+            </td>
+            <td>
+              Son registros que tienen como procedimientos, extracciones de
+              dientes o curaciones de caries, estos procedimientos suelen ser
+              ambulatorios, por lo tanto no requieren el uso de una cama en área
+              de hospitalización.
+            </td>
+            <td>
+              Eliminar estos registros de Egresos, ya que su registro es en el
+              SIS.
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Procedimientos Quirúrgicos realizados fuera del quirófano<br /><small
+                >(ProcQuirurgicosFueraQuirofano)</small
+              >
+            </td>
+            <td>
+              Se presentan registros de procedimientos de tipo Quirúrgicos que
+              se hicieron fuera del quirófano.
+            </td>
+            <td>
+              Dar especial atención en los siguientes grupos de procedimientos
+              para que hagan el cambio a “Dentro del quirófano”:<br />
+              470 APENDICECTOMÍA<br />
+              471 APENDICECTOMÍA INCIDENTAL<br />
+              512 COLECISTECTOMÍA<br />
+              530 REPARACIÓN UNILATERAL DE HERNIA INGUINAL<br />
+              531 REPARACIÓN BILATERAL DE HERNIA INGUINAL<br />
+              541 LAPAROTOMÍA<br />
+              654 SALPINGOOFORECTOMÍA UNILATERAL<br />
+              655 OOFORECTOMÍA BILATERAL<br />
+              662 DESTRUCCIÓN U OCLUSIÓN ENDOSCÓPICA BILATERAL DE LAS TROMPAS DE
+              FALOPIO<br />
+              663 OTRA DESTRUCCIÓN U OCLUSIÓN BILATERAL DE LAS TROMPAS DE
+              FALOPIO<br />
+              664 SALPINGECTOMÍA UNILATERAL TOTAL<br />
+              666 OTRA SALPINGECTOMÍA<br />
+              667 REPARACIÓN DE TROMPA DE FALOPIO<br />
+              741X CESÁREA CLÁSICA BAJA
+            </td>
+          </tr>
+          <tr>
+            <td>
+              Registros repetidos<br /><small>(RegistrosRepetidos)</small>
+            </td>
+            <td>
+              Son registros que aparecen al menos dos veces con la misma llave:
+              CLUES + fecha ingreso + fecha egreso + nombre del paciente +
+              primer apellido paciente + afección principal + días estancia.<br />Lo
+              que está queriendo decir es que el mismo paciente entró al área de
+              hospitalización y egresó dos veces (al menos) en las mismas fechas
+              de ingreso y egreso con la misma afección principal.
+            </td>
+            <td>Favor de eliminar uno de los dos registros.</td>
+          </tr>
+          <tr>
+            <td>
+              Tiempo dentro del Quirófano<br /><small>(TiempoQuirofano)</small>
+            </td>
+            <td>
+              Registros que tienen tiempo de quirófano mayor a 48 horas o No
+              especificado.
+            </td>
+            <td>
+              Solicitar al responsable médico que hizo la cirugía, que anote el
+              tiempo aproximado que duró dicho procedimiento.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

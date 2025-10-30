@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas de Médicos</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .description {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .search-box {
+            flex-grow: 1;
+            position: relative;
+        }
+        
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .search-box input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+        }
+        
+        .sort-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-size: 0.9rem;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        thead {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        th {
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+        
+        th:hover {
+            background-color: #2980b9;
+        }
+        
+        th::after {
+            content: '↕';
+            position: absolute;
+            right: 10px;
+            opacity: 0.7;
+        }
+        
+        th.asc::after {
+            content: '↑';
+        }
+        
+        th.desc::after {
+            content: '↓';
+        }
+        
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        tbody tr:hover {
+            background-color: #e8f4fc;
+        }
+        
+        .total-row {
+            font-weight: bold;
+            background-color: #2c3e50 !important;
+            color: white;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eaeaea;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .stat-card {
+            flex: 1;
+            min-width: 200px;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #3498db;
+        }
+        
+        .stat-label {
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        /* Estilos para resaltar por número */
+        .number-high {
+            background-color: rgba(231, 76, 60, 0.2) !important;
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .number-medium {
+            background-color: rgba(241, 196, 15, 0.2) !important;
+            border-left: 4px solid #f1c40f;
+        }
+        
+        .number-low {
+            background-color: rgba(46, 204, 113, 0.2) !important;
+            border-left: 4px solid #2ecc71;
+        }
+        
+        .legend {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+        }
+        
+        .high-color {
+            background-color: rgba(231, 76, 60, 0.2);
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .medium-color {
+            background-color: rgba(241, 196, 15, 0.2);
+            border-left: 4px solid #f1c40f;
+        }
+        
+        .low-color {
+            background-color: rgba(46, 204, 113, 0.2);
+            border-left: 4px solid #2ecc71;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .sort-buttons {
+                justify-content: center;
+            }
+            
+            th, td {
+                padding: 10px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Estadísticas de Médicos</h1>
+            <p class="description">Lista de médicos con sus respectivos números</p>
+        </header>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color high-color"></div>
+                <span>Número alto (15+)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color medium-color"></div>
+                <span>Número medio (5-14)</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color low-color"></div>
+                <span>Número bajo (1-4)</span>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Buscar médico...">
+            </div>
+            <div class="sort-buttons">
+                <button id="sortName">Ordenar por Nombre</button>
+                <button id="sortNumber">Ordenar por Número</button>
+            </div>
+        </div>
+        
+        <table id="doctorsTable">
+            <thead>
+                <tr>
+                    <th data-sort="name">Médico</th>
+                    <th data-sort="number">Número</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- Los datos se cargarán con JavaScript -->
+            </tbody>
+        </table>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value" id="totalDoctors">0</div>
+                <div class="stat-label">Total de Médicos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalNumbers">0</div>
+                <div class="stat-label">Total de Números</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="averageNumbers">0</div>
+                <div class="stat-label">Promedio por Médico</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de los médicos
+        const doctorsData = [
+            { name: "ADRIAN PONCE TARULA", number: 7 },
+            { name: "CARLOS MELENDREZ ALMIRALLA", number: 14 },
+            { name: "DIEGO ALONSO ROCHA SEGURA", number: 34 },
+            { name: "EDUARDO JOSE ELCOCK SARAWATARI", number: 13 },
+            { name: "EFRAIN VARGAS GARCIA", number: 2 },
+            { name: "ERICK DE JESUS DIAZ PELAYO", number: 2 },
+            { name: "FERNANDO MARQUEZ VELA", number: 6 },
+            { name: "FRANCISCO JAVIER SOLANO GARCIA", number: 1 },
+            { name: "GERARDO CALVILLO ARECHIGA", number: 2 },
+            { name: "JOSE DE JESUS NAVARRO SANCHEZ", number: 4 },
+            { name: "JUAN MANUEL LOPEZ DIAZ", number: 1 },
+            { name: "KURT KASTEN PAREDES", number: 3 },
+            { name: "OSCAR GONZALEZ GONZALEZ", number: 1 },
+            { name: "ROSALIO JIMENEZ DUARTE", number: 2 },
+            { name: "SERGIO ROSALES HERNANDEZ", number: 1 },
+            { name: "SOTERO GUTIERREZ PEÑA", number: 20 },
+            { name: "SUSANA GOMEZ SOSA", number: 1 }
+        ];
+
+        // Variables globales
+        let currentSort = { column: 'number', direction: 'desc' }; // Ordenar por número descendente por defecto
+        let filteredData = [...doctorsData];
+
+        // Función para determinar la clase de color según el número
+        function getNumberClass(number) {
+            if (number >= 15) {
+                return 'number-high';
+            } else if (number >= 5) {
+                return 'number-medium';
+            } else {
+                return 'number-low';
+            }
+        }
+
+        // Función para formatear números con separadores de miles
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+
+        // Función para renderizar la tabla
+        function renderTable(data) {
+            const tableBody = document.getElementById('tableBody');
+            tableBody.innerHTML = '';
+            
+            // Calcular total
+            const total = data.reduce((sum, doctor) => sum + doctor.number, 0);
+            
+            // Renderizar filas de médicos
+            data.forEach(doctor => {
+                const row = document.createElement('tr');
+                row.className = getNumberClass(doctor.number);
+                row.innerHTML = `
+                    <td>${doctor.name}</td>
+                    <td>${formatNumber(doctor.number)}</td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // Agregar fila de total
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'total-row';
+            totalRow.innerHTML = `
+                <td>TOTAL</td>
+                <td>${formatNumber(total)}</td>
+            `;
+            tableBody.appendChild(totalRow);
+            
+            // Actualizar estadísticas
+            updateStats(data.length, total);
+        }
+
+        // Función para actualizar las estadísticas
+        function updateStats(count, total) {
+            document.getElementById('totalDoctors').textContent = count;
+            document.getElementById('totalNumbers').textContent = formatNumber(total);
+            document.getElementById('averageNumbers').textContent = (total / count).toFixed(1);
+        }
+
+        // Función para ordenar los datos
+        function sortData(column, direction) {
+            filteredData.sort((a, b) => {
+                let aValue = a[column];
+                let bValue = b[column];
+                
+                if (column === 'name') {
+                    // Ordenamiento alfabético para nombres
+                    aValue = aValue.toLowerCase();
+                    bValue = bValue.toLowerCase();
+                }
+                
+                if (direction === 'asc') {
+                    return aValue > bValue ? 1 : -1;
+                } else {
+                    return aValue < bValue ? 1 : -1;
+                }
+            });
+            
+            renderTable(filteredData);
+            
+            // Actualizar indicadores de ordenamiento en los encabezados
+            document.querySelectorAll('th').forEach(th => {
+                th.classList.remove('asc', 'desc');
+                if (th.dataset.sort === column) {
+                    th.classList.add(direction);
+                }
+            });
+        }
+
+        // Función para filtrar los datos
+        function filterData(searchTerm) {
+            if (searchTerm === '') {
+                filteredData = [...doctorsData];
+            } else {
+                filteredData = doctorsData.filter(doctor => 
+                    doctor.name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            sortData(currentSort.column, currentSort.direction);
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', () => {
+            // Renderizar tabla inicial (ordenada por número descendente)
+            sortData('number', 'desc');
+            
+            // Configurar eventos de búsqueda
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                filterData(e.target.value);
+            });
+            
+            // Configurar eventos de ordenamiento
+            document.getElementById('sortName').addEventListener('click', () => {
+                currentSort.direction = currentSort.column === 'name' && currentSort.direction === 'asc' ? 'desc' : 'asc';
+                currentSort.column = 'name';
+                sortData('name', currentSort.direction);
+            });
+            
+            document.getElementById('sortNumber').addEventListener('click', () => {
+                currentSort.direction = currentSort.column === 'number' && currentSort.direction === 'asc' ? 'desc' : 'asc';
+                currentSort.column = 'number';
+                sortData('number', currentSort.direction);
+            });
+            
+            // Configurar ordenamiento al hacer clic en los encabezados de la tabla
+            document.querySelectorAll('th[data-sort]').forEach(th => {
+                th.addEventListener('click', () => {
+                    const column = th.dataset.sort;
+                    currentSort.direction = currentSort.column === column && currentSort.direction === 'asc' ? 'desc' : 'asc';
+                    currentSort.column = column;
+                    sortData(column, currentSort.direction);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
