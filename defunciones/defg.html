@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,27 +7,60 @@
   <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
   <link rel="icon" href="img/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <link href="../main_css/estilos.css" rel="stylesheet">
   <style>
-    html {
-      zoom: 0.8; /* Reduce al 80% */
+    /* === RESET Y BASE === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
-    /* =======================
-     ESTRUCTURA PRINCIPAL
-     ======================= */
+    html, body {
+      height: 100%;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
+      overflow: hidden; /* Elimina scroll global */
+      color: white;
+    }
+
+    /* === CONTENEDOR PRINCIPAL CENTRADO === */
+    .main-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem;
+      overflow: auto; /* Scroll solo si es necesario */
+    }
+
+    /* === PANEL GLASS PRINCIPAL === */
+    .glass {
+      width: 95%;
+      max-width: 1600px;
+      max-height: 90vh; /* Limita altura para evitar overflow */
+      padding: 2.5rem;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(6px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      overflow: hidden; /* Oculta scroll interno */
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* === ESTRUCTURA FLEX INTERNA === */
     .contenedor-flex {
       display: flex;
       flex-direction: row;
       gap: 1.5rem;
       align-items: flex-start;
       flex-wrap: nowrap;
-      height: calc(100vh - 200px);
+      height: 100%;
       box-sizing: border-box;
-      overflow-y: auto;
-      overflow-x: hidden;
-      scroll-behavior: smooth;
+      overflow: hidden;
       border-radius: 16px;
+      flex: 1; /* Ocupa espacio disponible */
     }
 
     .formulario {
@@ -47,7 +79,7 @@
 
     .tabla-wrapper {
       flex: 0 0 65%;
-      max-height: 100%;
+      height: 100%;
       overflow-y: auto;
       border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 12px;
@@ -55,9 +87,48 @@
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     }
 
-    /* =======================
-     ELEMENTOS DE FORMULARIO
-     ======================= */
+    /* === ESTILOS DE SCROLLBAR ELEGANTE === */
+    .formulario::-webkit-scrollbar,
+    .tabla-wrapper::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .formulario::-webkit-scrollbar-track,
+    .tabla-wrapper::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    .formulario::-webkit-scrollbar-thumb,
+    .tabla-wrapper::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+    }
+
+    .formulario::-webkit-scrollbar-thumb:hover,
+    .tabla-wrapper::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    /* === HEADER === */
+    .header {
+      text-align: center;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .header h1 {
+      font-weight: 300;
+      font-size: 2.2rem;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(90deg, #fff, #ffdd00);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    /* === ELEMENTOS DE FORMULARIO === */
     .bloque {
       display: flex;
       flex-direction: column;
@@ -110,13 +181,11 @@
       gap: 0.8rem;
     }
 
-    .bloque-horizontal>div {
+    .bloque-horizontal > div {
       flex: 1;
     }
 
-    /* =======================
-     BOTONES
-     ======================= */
+    /* === BOTONES === */
     .botones {
       display: flex;
       gap: 0.8rem;
@@ -163,9 +232,7 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    /* =======================
-     TABLA
-     ======================= */
+    /* === TABLA === */
     .tabla-wrapper table {
       width: 100%;
       border-collapse: collapse;
@@ -183,8 +250,7 @@
       position: sticky;
       top: 0;
       background: rgba(255, 255, 255, 0.15);
-      /*     backdrop-filter: blur(10px);
- */
+      backdrop-filter: blur(10px);
       z-index: 1;
     }
 
@@ -201,9 +267,7 @@
       background: rgba(255, 255, 255, 0.05);
     }
 
-    /* =======================
-     ACCIONES EN TABLA
-     ======================= */
+    /* === ACCIONES EN TABLA === */
     .acciones-tabla {
       display: flex;
       gap: 0.5rem;
@@ -233,17 +297,7 @@
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
-    /* =======================
-     GLASS Y ESTADOS
-     ======================= */
-    .glass {
-      margin: 4rem auto;
-      padding: 2rem;
-      width: 85%;
-      max-width: none;
-      /* Permite que estilos.css maneje el ancho */
-    }
-
+    /* === ESTADOS DEL PANEL === */
     .glass.loading {
       background: rgba(0, 123, 255, 0.2);
       box-shadow: 0 12px 40px rgba(0, 123, 255, 0.4);
@@ -262,29 +316,7 @@
       border-color: rgba(220, 53, 69, 0.4);
     }
 
-    /* =======================
-     HEADER
-     ======================= */
-    .header {
-      text-align: center;
-      margin-bottom: 1.5rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .header h1 {
-      font-weight: 300;
-      font-size: 2.2rem;
-      letter-spacing: 1px;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(90deg, #fff, #ffdd00);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    /* =======================
-     MODAL
-     ======================= */
+    /* === MODAL === */
     .modal-backdrop {
       position: fixed;
       top: 0;
@@ -292,8 +324,7 @@
       width: 100%;
       height: 100%;
       background: rgba(0, 0, 0, 0.6);
-      /*     backdrop-filter: blur(8px);
- */
+      backdrop-filter: blur(8px);
       display: none;
       justify-content: center;
       align-items: center;
@@ -335,38 +366,29 @@
       color: white;
     }
 
-    /* =======================
-     RESPONSIVE
-     ======================= */
-
-    @media (min-width: 1200px) {
-      .glass {
-        margin: 6rem auto;
-      }
+    /* === FOOTER === */
+    footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      font-size: 0.8rem;
+      opacity: 0.7;
     }
 
-    @media (min-width: 1600px) {
-      .glass {
-        margin: 8rem auto;
-      }
-    }
-
+    /* === RESPONSIVE === */
     @media (max-width: 968px) {
       .contenedor-flex {
         flex-direction: column;
         height: auto;
       }
-
-      .formulario,
-      .tabla-wrapper {
+      .formulario, .tabla-wrapper {
         flex: 1 1 100%;
         width: 100%;
       }
-
       .tabla-wrapper {
         max-height: 500px;
       }
-
       .glass {
         width: 95%;
         padding: 1.5rem;
@@ -378,120 +400,129 @@
         flex-direction: column;
         gap: 1rem;
       }
-
       .botones {
         flex-direction: column;
       }
-
       .header h1 {
         font-size: 1.8rem;
       }
+      .main-container {
+        padding: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .glass {
+        padding: 1rem;
+      }
+      .header h1 {
+        font-size: 1.5rem;
+      }
     }
   </style>
-
 </head>
-
 <body>
-  <div class="glass">
-    <div class="header">
-      <h1><i class="fas fa-notes-medical"></i> Registro de Defunciones</h1>
-      <p style="opacity: 0.8; font-size: 0.9rem;">Defunciones Generales</p>
-    </div>
-
-    <div id="estadoTexto">Prro</div>
-
-    <div class="contenedor-flex">
-      <form id="crud-form" class="formulario">
-        <input type="hidden" id="id">
-
-        <div class="bloque">
-          <label for="folio"><i class="fas fa-file-alt"></i> Folio</label>
-          <input id="folio" placeholder="Ingrese el folio">
-        </div>
-
-        <div class="bloque">
-          <label for="nombre"><i class="fas fa-user"></i> Nombre *</label>
-          <input id="nombre" required placeholder="Nombre completo">
-        </div>
-
-        <div class="bloque">
-          <label for="fechaDefuncion"><i class="fas fa-calendar-alt"></i> Fecha de Defunción</label>
-          <input id="fechaDefuncion" type="date">
-        </div>
-
-        <div class="bloque-horizontal">
-          <div class="bloque">
-            <label for="area"><i class="fas fa-map-marker-alt"></i> Área</label>
-            <input id="area" placeholder="Área">
-          </div>
-          <div class="bloque">
-            <label for="edad"><i class="fas fa-birthday-cake"></i> Edad</label>
-            <input id="edad" type="number" placeholder="Edad">
-          </div>
-          <div class="bloque">
-            <label for="sexo"><i class="fas fa-venus-mars"></i> Sexo</label>
-            <select id="sexo">
-              <option value="">Seleccione</option>
-              <option value="Masculino">Masculino</option>
-              <option value="Femenino">Femenino</option>
-              <option value="Intersexual">Intersexual</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="bloque">
-          <label for="diagnostico"><i class="fas fa-stethoscope"></i> Diagnóstico</label>
-          <textarea id="diagnostico" placeholder="Diagnóstico principal" rows="3"></textarea>
-        </div>
-
-        <div class="bloque">
-          <label for="observaciones"><i class="fas fa-clipboard-list"></i> Observaciones</label>
-          <textarea id="observaciones" placeholder="Observaciones adicionales" rows="3"></textarea>
-        </div>
-
-        <div class="bloque-horizontal">
-          <div class="bloque">
-            <label for="expediente"><i class="fas fa-folder"></i> Expediente</label>
-            <input id="expediente" placeholder="N° de expediente">
-          </div>
-          <div class="bloque">
-            <label for="medico"><i class="fas fa-user-md"></i> Médico</label>
-            <input id="medico" placeholder="Médico tratante">
-          </div>
-        </div>
-
-        <div class="botones">
-          <button type="submit" id="btn-guardar"><i class="fas fa-save"></i> Guardar</button>
-          <button type="button" id="btn-limpiar"><i class="fas fa-broom"></i> Limpiar</button>
-          <button type="button" id="btn-cancelar" style="display:none;"><i class="fas fa-times"></i> Cancelar</button>
-        </div>
-      </form>
-
-      <div class="tabla-wrapper">
-        <table>
-          <thead>
-            <tr>
-              <th>N°</th>
-              <th>Folio</th>
-              <th>Nombre</th>
-              <th>Fecha</th>
-              <th>Área</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-registros">
-            <tr>
-              <td colspan="6" style="text-align:center; padding: 2rem;">Cargando registros...</td>
-            </tr>
-          </tbody>
-        </table>
+  <div class="main-container">
+    <div class="glass">
+      <div class="header">
+        <h1><i class="fas fa-notes-medical"></i> Registro de Defunciones</h1>
+        <p style="opacity: 0.8; font-size: 0.9rem;">Defunciones Generales</p>
       </div>
-    </div><br>
-    <footer>
-      <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
-    </footer>
+      
+      <div id="estadoTexto">Sistema listo</div>
+    
+      <div class="contenedor-flex">
+        <form id="crud-form" class="formulario">
+          <input type="hidden" id="id">
+          
+          <div class="bloque">
+            <label for="folio"><i class="fas fa-file-alt"></i> Folio</label>
+            <input id="folio" placeholder="Ingrese el folio">
+          </div>
+          
+          <div class="bloque">
+            <label for="nombre"><i class="fas fa-user"></i> Nombre *</label>
+            <input id="nombre" required placeholder="Nombre completo">
+          </div>
+          
+          <div class="bloque">
+            <label for="fechaDefuncion"><i class="fas fa-calendar-alt"></i> Fecha de Defunción</label>
+            <input id="fechaDefuncion" type="date">
+          </div>
+    
+          <div class="bloque-horizontal">
+            <div class="bloque">
+              <label for="area"><i class="fas fa-map-marker-alt"></i> Área</label>
+              <input id="area" placeholder="Área">
+            </div>
+            <div class="bloque">
+              <label for="edad"><i class="fas fa-birthday-cake"></i> Edad</label>
+              <input id="edad" type="number" placeholder="Edad">
+            </div>
+            <div class="bloque">
+              <label for="sexo"><i class="fas fa-venus-mars"></i> Sexo</label>
+              <select id="sexo">
+                <option value="">Seleccione</option>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Intersexual">Intersexual</option>
+              </select>
+            </div>
+          </div>
+    
+          <div class="bloque">
+            <label for="diagnostico"><i class="fas fa-stethoscope"></i> Diagnóstico</label>
+            <textarea id="diagnostico" placeholder="Diagnóstico principal" rows="3"></textarea>
+          </div>
+          
+          <div class="bloque">
+            <label for="observaciones"><i class="fas fa-clipboard-list"></i> Observaciones</label>
+            <textarea id="observaciones" placeholder="Observaciones adicionales" rows="3"></textarea>
+          </div>
+    
+          <div class="bloque-horizontal">
+            <div class="bloque">
+              <label for="expediente"><i class="fas fa-folder"></i> Expediente</label>
+              <input id="expediente" placeholder="N° de expediente">
+            </div>
+            <div class="bloque">
+              <label for="medico"><i class="fas fa-user-md"></i> Médico</label>
+              <input id="medico" placeholder="Médico tratante">
+            </div>
+          </div>
+    
+          <div class="botones">
+            <button type="submit" id="btn-guardar"><i class="fas fa-save"></i> Guardar</button>
+            <button type="button" id="btn-limpiar"><i class="fas fa-broom"></i> Limpiar</button>
+            <button type="button" id="btn-cancelar" style="display:none;"><i class="fas fa-times"></i> Cancelar</button>
+          </div>
+        </form>
+    
+        <div class="tabla-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>N°</th>
+                <th>Folio</th>
+                <th>Nombre</th>
+                <th>Fecha</th>
+                <th>Área</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-registros">
+              <tr><td colspan="6" style="text-align:center; padding: 2rem;">Cargando registros...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <br>
+      <footer>
+        <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
+      </footer>
+    </div>
   </div>
-
+  
   <!-- Modal para confirmar eliminación -->
   <div class="modal-backdrop" id="modalEliminar">
     <div class="modal">
@@ -506,9 +537,10 @@
 
   <script>
     // Footer dinámico
-    /*   document.getElementById('footerText').innerHTML =
+    document.getElementById('footerText').innerHTML =
       `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-     */// ========== estadoSistema.js ==========
+
+    // ========== estadoSistema.js ==========
     let intensidadUso = 0;
     let respiracionInterval;
 
@@ -582,11 +614,11 @@
       try {
         console.log('🔄 Cargando registros...');
         setEstado('loading', '🔄 Cargando registros...');
-
+        
         const response = await fetch(GAS_URL);
         const text = await response.text();
         const data = JSON.parse(text);
-
+        
         if (data.success) {
           mostrarTabla(data.rows);
           setEstado('success', `✅ ${data.rows.length} registros cargados`);
@@ -603,7 +635,7 @@
     // Guardar registro - MÉTODO QUE FUNCIONA (con formulario)
     async function guardar(e) {
       e.preventDefault();
-
+      
       const id = document.getElementById('id').value;
       const datos = {
         folio: document.getElementById('folio').value,
@@ -655,12 +687,12 @@
 
         setEstado('success', '✅ Enviando datos... Revisa la nueva pestaña');
         limpiarForm();
-
+        
         // Recargar después de 3 segundos
         setTimeout(() => {
           cargarRegistros();
         }, 3000);
-
+        
       } catch (error) {
         console.error('❌ Error:', error);
         setEstado('error', '❌ Error: ' + error.message);
@@ -672,7 +704,7 @@
       idParaEliminar = id;
       const modal = document.getElementById('modalEliminar');
       const modalContent = modal.querySelector('.modal');
-
+      
       modal.style.display = 'flex';
       setTimeout(() => {
         modalContent.classList.add('show');
@@ -684,7 +716,7 @@
 
       try {
         setEstado('loading', '🗑️ Eliminando registro...');
-
+        
         // Crear formulario para eliminar
         const form = document.createElement('form');
         form.method = 'POST';
@@ -708,11 +740,11 @@
 
         setEstado('success', '✅ Eliminando registro...');
         cerrarModal();
-
+        
         setTimeout(() => {
           cargarRegistros();
         }, 2000);
-
+        
       } catch (error) {
         console.error('❌ Error eliminando:', error);
         setEstado('error', '❌ Error eliminando: ' + error.message);
@@ -723,7 +755,7 @@
     function cerrarModal() {
       const modal = document.getElementById('modalEliminar');
       const modalContent = modal.querySelector('.modal');
-
+      
       modalContent.classList.remove('show');
       setTimeout(() => {
         modal.style.display = 'none';
@@ -746,7 +778,7 @@
         // Si tienes campo de fecha de creación/modificación, úsalo aquí
         // Por ejemplo, si tienes un campo 'fechaCreacion':
         // return new Date(b.fechaCreacion) - new Date(a.fechaCreacion);
-
+        
         // O usar fechaDefuncion si es la más relevante
         return new Date(b.fechaDefuncion) - new Date(a.fechaDefuncion);
       });
@@ -754,22 +786,22 @@
       registrosOrdenados.forEach((registro, index) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td>${index + 1}</td>
-      <td>${registro.folio || '-'}</td>
-      <td>${registro.nombre || ''}</td>
-      <td>${registro.fechaDefuncion || ''}</td>
-      <td>${registro.area || ''}</td>
-      <td>
-        <div class="acciones-tabla">
-          <button class="btn-editar" onclick="editar('${registro.id}')" title="Editar registro">
-            <i class="fas fa-edit"></i>
-          </button>
-          <button class="btn-eliminar" onclick="solicitarEliminar('${registro.id}')" title="Eliminar registro">
-            <i class="fas fa-trash"></i>
-          </button>
-        </div>
-      </td>
-    `;
+          <td>${index + 1}</td>
+          <td>${registro.folio || '-'}</td>
+          <td>${registro.nombre || ''}</td>
+          <td>${registro.fechaDefuncion || ''}</td>
+          <td>${registro.area || ''}</td>
+          <td>
+            <div class="acciones-tabla">
+              <button class="btn-editar" onclick="editar('${registro.id}')" title="Editar registro">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-eliminar" onclick="solicitarEliminar('${registro.id}')" title="Eliminar registro">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        `;
         tbody.appendChild(tr);
       });
     }
@@ -778,10 +810,10 @@
     async function editar(id) {
       try {
         setEstado('loading', '📝 Cargando datos para editar...');
-
+        
         const response = await fetch(GAS_URL);
         const data = await response.json();
-
+        
         if (data.success) {
           const registro = data.rows.find(r => r.id === id);
           if (registro) {
@@ -796,11 +828,11 @@
             document.getElementById('expediente').value = registro.expediente || '';
             document.getElementById('medico').value = registro.medico || '';
             document.getElementById('observaciones').value = registro.observaciones || '';
-
+            
             // Cambiar texto del botón
             document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
             document.getElementById('btn-cancelar').style.display = 'block';
-
+            
             setEstado('success', '✏️ Modo edición activado');
             document.querySelector('.formulario').scrollIntoView({ behavior: 'smooth' });
           }
@@ -826,25 +858,25 @@
     }
 
     // Inicialización
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
       console.log('🚀 Iniciando aplicación...');
-
+      
       document.getElementById('crud-form').addEventListener('submit', guardar);
       document.getElementById('btn-limpiar').addEventListener('click', limpiarForm);
       document.getElementById('btn-cancelar').addEventListener('click', cancelarEdicion);
       document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarConfirmado);
       document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarModal);
-
+      
       // Cerrar modal al hacer clic fuera
-      document.getElementById('modalEliminar').addEventListener('click', function (e) {
+      document.getElementById('modalEliminar').addEventListener('click', function(e) {
         if (e.target === this) {
           cerrarModal();
         }
       });
-
+      
       // Iniciar respiración
       iniciarRespiracion();
-
+      
       // Cargar datos
       cargarRegistros();
     });
@@ -853,7 +885,5 @@
     window.editar = editar;
     window.solicitarEliminar = solicitarEliminar;
   </script>
-
 </body>
-
 </html>
