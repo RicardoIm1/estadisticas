@@ -11,7 +11,21 @@
 </head>
 <body>
   <canvas id="particlesCanvas"></canvas>
-
+  <header style="background: #2c3e50; padding: 1rem; color: white;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <!-- Aquí se mostrará el usuario -->
+            <span id="user-info"></span>
+        </div>
+        <div>
+            <!-- Botón de cerrar sesión -->
+            <button onclick="cerrarSesion()" 
+                    style="background: #e74c3c; color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer;">
+                🚪 Cerrar Sesión
+            </button>
+        </div>
+    </div>
+  </header>
   <div class="glass" id="dashboard">
     <div class="header">
       <div class="logo">
@@ -96,36 +110,52 @@
       `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
 </script>
 <script>
-// Verificar si el usuario está logueado
-function verificarAutenticacion() {
-    const usuario = localStorage.getItem('usuario');
-    const rol = localStorage.getItem('rol');
-    
-    if (!usuario) {
-        window.location.href = 'index.html';
-        return;
+    // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
+    function verificarAutenticacion() {
+        const usuario = localStorage.getItem('usuario');
+        const rol = localStorage.getItem('rol');
+        const loginTime = localStorage.getItem('loginTime');
+        
+        if (!usuario || !rol || !loginTime) {
+            console.log('❌ No hay sesión activa');
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        // Verificar expiración (24 horas)
+        const ahora = new Date().getTime();
+        const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+        
+        if (horasTranscurridas > 24) {
+            console.log('⏰ Sesión expirada');
+            localStorage.clear();
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+        
+        // Mostrar en el header
+        const userElement = document.getElementById('user-info');
+        if (userElement) {
+            userElement.innerHTML = `${usuario} (${rol})`;
+        }
+    }
+
+    // Cerrar sesión
+    function cerrarSesion() {
+        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('rol'); 
+            localStorage.removeItem('loginTime');
+            window.location.href = 'index.html';
+        }
     }
     
-    // Mostrar información del usuario
-    console.log('Usuario:', usuario, 'Rol:', rol);
+    // Verificar al cargar la página
+    window.addEventListener('load', verificarAutenticacion);
     
-    // Mostrar en la interfaz
-    const userElement = document.getElementById('user-info');
-    if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-    }
-}
-
-// Cerrar sesión
-function cerrarSesion() {
-    localStorage.removeItem('usuario');
-    localStorage.removeItem('rol'); 
-    localStorage.removeItem('loginTime');
-    window.location.href = 'index.html';
-}
-
-// Verificar al cargar la página
-window.addEventListener('load', verificarAutenticacion);
-</script>
-</body>
+    // Hacer función global
+    window.cerrarSesion = cerrarSesion;
+    </script></body>
 </html>
