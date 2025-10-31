@@ -168,38 +168,78 @@
     document.getElementById('footerText').innerHTML =
       `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
   </script>
-  <script>
-// Verificar si el usuario está logueado
-function verificarAutenticacion() {
-    const usuario = localStorage.getItem('usuario');
-    const rol = localStorage.getItem('rol');
-    
-    if (!usuario) {
-        window.location.href = 'index.html';
-        return;
-    }
-    
-    // Mostrar información del usuario
-    console.log('Usuario:', usuario, 'Rol:', rol);
-    
-    // Mostrar en la interfaz
-    const userElement = document.getElementById('user-info');
-    if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-    }
-}
+  <script><script>
+  // Verificar si el usuario está logueado
+  function verificarAutenticacion() {
+      const usuario = localStorage.getItem('usuario');
+      const rol = localStorage.getItem('rol');
+      const loginTime = localStorage.getItem('loginTime');
+      
+      // ✅ Validación más estricta
+      if (!usuario || !rol || !loginTime) {
+          console.log('❌ No hay sesión activa');
+          window.location.href = 'index.html';
+          return;
+      }
+      
+      // ✅ Verificar que no sea una sesión "falsa"
+      if (usuario === 'undefined' || rol === 'undefined') {
+          console.log('❌ Sesión inválida');
+          localStorage.clear();
+          window.location.href = 'index.html';
+          return;
+      }
+      
+      // ✅ Verificar expiración (24 horas)
+      const ahora = new Date().getTime();
+      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+      
+      if (horasTranscurridas > 24) {
+          console.log('⏰ Sesión expirada');
+          localStorage.clear();
+          window.location.href = 'index.html';
+          return;
+      }
+      
+      console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+      
+      // Mostrar en la interfaz
+      const userElement = document.getElementById('user-info');
+      if (userElement) {
+          userElement.innerHTML = `${usuario} (${rol})`;
+      }
+      
+      return true; // ✅ Sesión válida
+  }
 
-// Cerrar sesión
-function cerrarSesion() {
-    localStorage.removeItem('usuario');
-    localStorage.removeItem('rol'); 
-    localStorage.removeItem('loginTime');
-    window.location.href = 'index.html';
-}
+  // Cerrar sesión
+  function cerrarSesion() {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+          localStorage.removeItem('usuario');
+          localStorage.removeItem('rol'); 
+          localStorage.removeItem('loginTime');
+          window.location.href = 'index.html';
+      }
+  }
+  
+  // ✅ BLOQUEAR ACCESO DIRECTO A ARCHIVOS
+  function verificarOrigen() {
+      // Si intentan acceder directamente al archivo, redirigir
+      if (window === window.top) {
+          console.log('🔒 Acceso directo bloqueado');
+          verificarAutenticacion();
+      }
+  }
+  
+  // Verificar al cargar la página
+  window.addEventListener('load', function() {
+      verificarAutenticacion();
+      verificarOrigen();
+  });
 
-// Verificar al cargar la página
-window.addEventListener('load', verificarAutenticacion);
-</script>
+  // Hacer función global para botones de logout
+  window.cerrarSesion = cerrarSesion;
+</script></script>
 
 </body>
 </html>
