@@ -7,15 +7,15 @@
     <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
     <link rel="icon" href="img/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link href="../main_css/estilos.css" rel="stylesheet">
+  <link href="./main_css/estilos.css" rel="stylesheet">
 </head>
 <body>
   <canvas id="particlesCanvas"></canvas>
-
+  
   <div class="glass" id="dashboard">
     <div class="header">
       <div class="logo">
-        <img src="./img/logo-hrpv.png" alt="Logo" width="200">
+        <img src="img/logo-hrpv.png" alt="Logo" width="200">
         <h1>Estadísticas y Archivo Clínico</h1>
     </div>
       <div class="usuario">
@@ -63,12 +63,6 @@
       </a>
     </div>
 
-    <div class="status">
-      <h3>Estado del sistema</h3>
-      <p id="estadoTexto">Todos los sistemas funcionando correctamente</p>
-    </div>
-
-
     <footer>
       <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
     </footer>
@@ -100,37 +94,52 @@
       `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
 </script>
 <script>
-// Verificar si el usuario está logueado
-function verificarAutenticacion() {
-    const usuario = localStorage.getItem('usuario');
-    const rol = localStorage.getItem('rol');
-    
-    if (!usuario) {
-        window.location.href = 'index.html';
-        return;
+    // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
+    function verificarAutenticacion() {
+        const usuario = localStorage.getItem('usuario');
+        const rol = localStorage.getItem('rol');
+        const loginTime = localStorage.getItem('loginTime');
+        
+        if (!usuario || !rol || !loginTime) {
+            console.log('❌ No hay sesión activa');
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        // Verificar expiración (24 horas)
+        const ahora = new Date().getTime();
+        const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+        
+        if (horasTranscurridas > 24) {
+            console.log('⏰ Sesión expirada');
+            localStorage.clear();
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+        
+        // Mostrar en el header
+        const userElement = document.getElementById('user-info');
+        if (userElement) {
+            userElement.innerHTML = `${usuario} (${rol})`;
+        }
+    }
+
+    // Cerrar sesión
+    function cerrarSesion() {
+        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('rol'); 
+            localStorage.removeItem('loginTime');
+            window.location.href = 'index.html';
+        }
     }
     
-    // Mostrar información del usuario
-    console.log('Usuario:', usuario, 'Rol:', rol);
+    // Verificar al cargar la página
+    window.addEventListener('load', verificarAutenticacion);
     
-    // Mostrar en la interfaz
-    const userElement = document.getElementById('user-info');
-    if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-    }
-}
-
-// Cerrar sesión
-function cerrarSesion() {
-    localStorage.removeItem('usuario');
-    localStorage.removeItem('rol'); 
-    localStorage.removeItem('loginTime');
-    window.location.href = 'index.html';
-}
-
-// Verificar al cargar la página
-window.addEventListener('load', verificarAutenticacion);
-</script>
-
-</body>
+    // Hacer función global
+    window.cerrarSesion = cerrarSesion;
+    </script></body>
 </html>
