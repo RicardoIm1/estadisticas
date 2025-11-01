@@ -95,39 +95,43 @@
 </script>
 <script>
   // ========== CERRAR SESIÓN SIMPLE ==========
-function cerrarSesion() {
-    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        // Limpiar TODO
-        localStorage.clear();
-        
-        // Redirección DIRECTA sin lógica adicional
-        window.location.href = 'https://ricardoim1.github.io/index.html';
-    }
-}
+  function cerrarSesion() {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+          // Limpiar TODO
+          localStorage.clear();
+          
+          // ✅ REDIRECCIÓN RELATIVA - Esto sí funciona en GitHub Pages
+          window.location.href = '../index.html';
+      }
+  }
 
-// ========== VERIFICACIÓN SIMPLE ==========
-function verificarAutenticacion() {
-    const usuario = localStorage.getItem('usuario');
-    
-    // Solo verificar si hay usuario, si no, a login
-    if (!usuario) {
-        // Pero solo si NO estamos ya en el login
-        if (!window.location.href.includes('index.html')) {
-            window.location.href = 'index.html';
-        }
-        return;
-    }
-    
-    // Mostrar usuario si existe
-    const userElement = document.getElementById('user-info');
-    if (userElement) {
-        userElement.innerHTML = `${usuario} (${localStorage.getItem('rol')})`;
-    }
-}
+  // ========== VERIFICACIÓN SIMPLE ==========
+  function verificarAutenticacion() {
+      const usuario = localStorage.getItem('usuario');
+      
+      console.log('🔍 Verificando usuario:', usuario);
+      
+      // Solo verificar si hay usuario, si no, a login
+      if (!usuario) {
+          // Pero solo si NO estamos ya en el login
+          const currentPage = window.location.pathname;
+          if (!currentPage.includes('index.html')) {
+              console.log('❌ No hay usuario - Redirigiendo...');
+              window.location.href = '../index.html';
+          }
+          return;
+      }
+      
+      // Mostrar usuario si existe
+      const userElement = document.getElementById('user-info');
+      if (userElement) {
+          userElement.innerHTML = `${usuario} (${localStorage.getItem('rol')})`;
+      }
+  }
 
-// Inicializar
-window.addEventListener('load', verificarAutenticacion);
-window.cerrarSesion = cerrarSesion;
+  // Inicializar
+  window.addEventListener('load', verificarAutenticacion);
+  window.cerrarSesion = cerrarSesion;
 </script>
-  </body>
+</body>
 </html>
