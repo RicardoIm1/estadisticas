@@ -94,57 +94,40 @@
       `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
 </script>
 <script>
-    // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
-    function verificarAutenticacion() {
-        const usuario = localStorage.getItem('usuario');
-        const rol = localStorage.getItem('rol');
-        const loginTime = localStorage.getItem('loginTime');
+  // ========== CERRAR SESIÓN SIMPLE ==========
+function cerrarSesion() {
+    if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        // Limpiar TODO
+        localStorage.clear();
         
-        if (!usuario || !rol || !loginTime) {
-            console.log('❌ No hay sesión activa');
-            window.location.href = 'index.html';
-            return;
-        }
-        
-        // Verificar expiración (24 horas)
-        const ahora = new Date().getTime();
-        const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
-        
-        if (horasTranscurridas > 24) {
-            console.log('⏰ Sesión expirada');
-            localStorage.clear();
-            window.location.href = 'index.html';
-            return;
-        }
-        
-        console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
-        
-        // Mostrar en el header
-        const userElement = document.getElementById('user-info');
-        if (userElement) {
-            userElement.innerHTML = `${usuario} (${rol})`;
-        }
+        // Redirección DIRECTA sin lógica adicional
+        window.location.href = 'https://ricardoim1.github.io/index.html';
     }
+}
 
-    // Cerrar sesión
-    function cerrarSesion() {
-        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-            localStorage.clear();
-            
-            // ✅ Redirección inteligente al login principal
-            const baseUrl = window.location.origin + window.location.pathname;
-            const loginUrl = baseUrl.substring(0, baseUrl.lastIndexOf('/')) + '/index.html';
-            
-            setTimeout(() => {
-                window.location.href = loginUrl;
-            }, 100);
-        }
-    }  
-    // Verificar al cargar la página
-    window.addEventListener('load', verificarAutenticacion);
+// ========== VERIFICACIÓN SIMPLE ==========
+function verificarAutenticacion() {
+    const usuario = localStorage.getItem('usuario');
     
-    // Hacer función global
-    window.cerrarSesion = cerrarSesion;
-    </script>
+    // Solo verificar si hay usuario, si no, a login
+    if (!usuario) {
+        // Pero solo si NO estamos ya en el login
+        if (!window.location.href.includes('index.html')) {
+            window.location.href = 'index.html';
+        }
+        return;
+    }
+    
+    // Mostrar usuario si existe
+    const userElement = document.getElementById('user-info');
+    if (userElement) {
+        userElement.innerHTML = `${usuario} (${localStorage.getItem('rol')})`;
+    }
+}
+
+// Inicializar
+window.addEventListener('load', verificarAutenticacion);
+window.cerrarSesion = cerrarSesion;
+</script>
   </body>
 </html>
