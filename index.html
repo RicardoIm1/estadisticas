@@ -91,6 +91,7 @@
       document.getElementById('footerText').innerHTML =
         `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
   </script>
+
   <script>
     // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
     function verificarAutenticacion() {
@@ -124,21 +125,56 @@
         }
     }
 
-    // Cerrar sesión
-    function cerrarSesion() {
-        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-            localStorage.removeItem('usuario');
-            localStorage.removeItem('rol'); 
-            localStorage.removeItem('loginTime');
-            window.location.href = 'index.html';
+        // Cerrar sesión
+        function cerrarSesion() {
+          if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            localStorage.clear();
+
+            // ✅ Ajusta la ruta de redirección al LOGIN REAL
+            // Si el login está en la raíz del proyecto:
+            window.location.href = '/login.html';
+            // o, si estás dentro de una subcarpeta (por ejemplo, /panel/):
+            // window.location.href = '../login.html';
+          }
         }
-    }
-    
-    // Verificar al cargar la página
-    window.addEventListener('load', verificarAutenticacion);
-    
-    // Hacer función global
-    window.cerrarSesion = cerrarSesion;
+       
+        // Verificar al cargar la página
+        window.addEventListener('load', verificarAutenticacion);
+        
+        // Hacer función global
+        window.cerrarSesion = cerrarSesion;
+
+        function verificarAutenticacion() {
+          const usuario = localStorage.getItem('usuario');
+          const rol = localStorage.getItem('rol');
+          const loginTime = localStorage.getItem('loginTime');
+
+          // ✅ Si no hay sesión activa, manda al login sin parpadeo
+          if (!usuario || !rol || !loginTime) {
+            console.warn('❌ No hay sesión activa');
+            window.location.replace('/login.html');
+            return;
+          }
+
+          // Verificar expiración (24 horas)
+          const ahora = Date.now();
+          const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+
+          if (horasTranscurridas > 24) {
+            console.warn('⏰ Sesión expirada');
+            localStorage.clear();
+            window.location.replace('/login.html');
+            return;
+          }
+
+          console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+
+          const userElement = document.getElementById('user-info');
+          if (userElement) {
+            userElement.innerHTML = `${usuario} (${rol})`;
+          }
+        }
+
     </script>
   </body>
 </html>
