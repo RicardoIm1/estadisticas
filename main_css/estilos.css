@@ -8,61 +8,62 @@
 /* === BASE GENERAL === */
 html, body {
   height: 100%;
+  width: 100%;
   font-family: 'Poppins', sans-serif;
   background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
-  overflow-x: hidden;
+  background-attachment: fixed;
+  overflow: hidden; /* ✅ evita scroll global */
 }
 
 body {
   display: flex;
   justify-content: center;
-  align-items: center; /* ✅ centrado vertical y horizontal */
-  min-height: 100vh;
-  padding: 2rem; /* ✅ aire en todos los lados */
+  align-items: center;
+  padding: 1.5rem;
   color: white;
   font-size: 0.9rem;
-  background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
-  background-attachment: fixed; /* ✅ mantiene el fondo estable */
 }
 
-h5{
-  color:#2c3e50;
+/* === TITULARES === */
+h5 {
+  color: #2c3e50;
   font-size: 1.2rem;
   text-transform: uppercase;
-/*     opacity: 0.7; */
 }
 
 /* === PANEL PRINCIPAL (GLASS) === */
 .glass {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  justify-content: flex-start;
 
-  /* 🔸 Ajuste automático del ancho */
-  width: fit-content;
-  min-width: 60%;       /* evita que sea demasiado angosto */
-  max-width: 95vw;      /* nunca supera el ancho visible */
-
+  width: 90%;
+  max-width: 1600px;
+  height: 90vh; /* ✅ cabe dentro de la pantalla */
   margin: auto;
-  padding: 2rem 3rem;
-  border-radius: 22px;
+  padding: 2rem 2.5rem;
 
-  /* Efecto glass refinado */
+  border-radius: 22px;
   background: rgba(255,255,255,0.12);
   backdrop-filter: blur(10px);
   box-shadow: 0 8px 25px rgba(0,0,0,0.25);
   border: 1px solid rgba(255,255,255,0.15);
 
-  overflow: hidden;
-  transition: width 0.3s ease, padding 0.3s ease;
-
-  align-self: center;
+  overflow-y: auto;   /* ✅ scroll vertical solo dentro */
+  overflow-x: hidden; /* ❌ evita desplazamiento lateral */
+  transition: all 0.3s ease;
 }
 
+/* Scroll estilizado */
+.glass::-webkit-scrollbar {
+  width: 8px;
+}
+.glass::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.2);
+  border-radius: 8px;
+}
 
-/* .glass::-webkit-scrollbar { display: none; }
- */
-/* === ESTADOS DEL PANEL === */
+/* === ESTADOS VISUALES === */
 .glass.loading { background: rgba(0,123,255,0.15); box-shadow: 0 6px 20px rgba(0,123,255,0.25); }
 .glass.success { background: rgba(70,227,99,0.2); box-shadow: 0 6px 20px rgba(40,167,69,0.25); }
 .glass.error   { background: rgba(240,50,60,0.25); box-shadow: 0 6px 20px rgba(220,53,69,0.25); }
@@ -73,6 +74,8 @@ h5{
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
+  grid-auto-rows: minmax(90px, auto);
+  grid-auto-flow: dense;
 }
 
 /* === HEADER === */
@@ -83,6 +86,9 @@ h5{
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid rgba(255,255,255,0.15);
+  flex-wrap: wrap;
+  gap: 1rem;
+  text-align: center;
 }
 
 .logo, .usuario {
@@ -102,7 +108,7 @@ h5{
   color: #ffdd00;
 }
 
-/* === CELDAS HÍBRIDAS === */
+/* === CELDAS === */
 .celda {
   background: rgba(255,255,255,0.1);
   border-radius: 12px;
@@ -121,7 +127,8 @@ h5{
 }
 
 .celda h3 { font-size: 1.05rem; margin-bottom: 0.3rem; }
-.celda p { opacity: 0.85; font-size: 0.85rem; }
+.celda p  { opacity: 0.85; font-size: 0.85rem; color: rgb(0,255,89); }
+.celda .icon { display: block; font-size: 1.6rem; margin-bottom: 0.4rem; color: #ffdd00; }
 
 /* === TEXTO Y LISTAS === */
 span, .frecuencia, .senalado { color: rgb(0,255,89); }
@@ -159,6 +166,11 @@ button:hover {
   box-shadow: 0 3px 10px rgba(0,0,0,0.1);
 }
 
+button:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
 /* === FOOTER === */
 footer {
   text-align: center;
@@ -169,99 +181,77 @@ footer {
   opacity: 0.7;
 }
 
+/* === BOTÓN SALIR === */
+.btn-salir-ultra {
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.4rem 0.9rem;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 300;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+}
+
+.btn-salir-ultra:hover {
+  color: rgba(255, 255, 255, 1);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(240, 50, 60, 0.05);
+  transform: translateY(-1px);
+}
+
+.btn-salir-ultra:active {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(0);
+  transition: all 0.1s ease;
+}
+
 /* === RESPONSIVIDAD === */
-@media (max-width: 768px) {
-  .glass {
-    width: 95%;
-    min-width: unset; /* ✅ deja que fluya */
-    padding: 1.5rem;
-    border-radius: 18px;
-  }
-}
 
-
-@media (max-width: 480px) {
-  .logo h1 { font-size: 1.1rem; }
-  .usuario span { font-size: 0.8rem; }
-}
-
-/* === PANTALLAS GRANDES === */
-/* === PANTALLAS GRANDES === */
-@media (min-width: 1280px) {
-  .glass {
-    width: auto;              /* ✅ ancho natural según contenido */
-    max-width: 1200px;        /* ✅ límite elegante */
-  }
-  .grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
-}
-
-@media (min-width: 1600px) {
-  .glass {
-    width: auto;
-    max-width: 1300px;        /* ✅ control del ancho visual */
-  }
-}
-
-@media (min-width: 2000px) {
-  .glass {
-    width: auto;
-    max-width: 1400px;
-  }
-}
-
-
+/* 📱 Pequeños */
 @media (max-width: 768px) {
   body {
-    padding: 1rem;
+    padding: 0.8rem;
   }
 
   .glass {
-    width: 100%;
-    padding: 1.5rem;
+    width: 95%;
+    height: 92vh;
+    padding: 1.2rem;
     border-radius: 18px;
   }
 
-  .grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .header {
+    flex-direction: column;
+    text-align: center;
   }
 
-  .logo img {
-    width: 150px;
+  .logo h1 {
+    font-size: 1rem;
   }
 
-  h1 {
+  .celda h3 {
+    font-size: 0.9rem;
+  }
+
+  .celda p {
     font-size: 1.2rem;
   }
 }
 
-
-.btn-salir-ultra {
-    background: transparent;
-    color: rgba(255, 255, 255, 0.7);
-    /* border: 1px solid rgba(240, 50, 60, 0.1); */
-    border: 1px solid rgba(255, 255, 255, 0.2);  /* Blanco translúcido */
-    padding: 0.4rem 0.9rem;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    font-weight: 300;
-    letter-spacing: 0.5px;
-    transition: all 0.3s ease;
+/* 💻 Grandes */
+@media (min-width: 1280px) {
+  .glass {
+    width: 90%;
+    max-width: 1800px;
+  }
 }
 
-.btn-salir-ultra:hover {
-    color: rgba(255, 255, 255, 1);
-    /* border-color: rgba(240, 50, 60, 0.3); */
-    border-color: rgba(255, 255, 255, 0.4);  /* Blanco más visible */
-    background: rgba(240, 50, 60, 0.05);
-    transform: translateY(-1px);
-}
-
-.btn-salir-ultra:active {
-    background: rgba(240, 50, 60, 0.1);
-/*     border-color: rgba(240, 50, 60, 0.4); */
-    background: rgba(255, 255, 255, 0.15);
-    transform: translateY(0);
-    transition: all 0.1s ease;
+@media (min-width: 1600px) {
+  .glass {
+    width: 85%;
+    max-width: 2000px;
+  }
 }
