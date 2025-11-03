@@ -76,3 +76,23 @@ function setEstado(estado, mensaje = null) {
         }
     }, 5000);
 }
+
+// ==== Sincroniza la respiración del fondo ====
+function iniciarRespiracionFondo() {
+  const body = document.body;
+  if (!body) return;
+
+  let faseFondo = 0;
+  setInterval(() => {
+    faseFondo += 0.02;
+    const intensidad = Math.min(0.15 + intensidadUso / 80, 0.4);
+    const brillo = 1 + Math.sin(faseFondo) * intensidad * 0.15;
+    const saturacion = 1 + Math.sin(faseFondo + Math.PI / 2) * intensidad * 0.2;
+
+    body.style.transition = 'filter 1s ease';
+    body.style.filter = `brightness(${brillo}) saturate(${saturacion})`;
+  }, 500);
+}
+
+// Inicia respiración del fondo al cargar
+window.addEventListener('load', iniciarRespiracionFondo);
