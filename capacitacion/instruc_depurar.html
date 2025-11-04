@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,7 +16,8 @@
       box-sizing: border-box;
     }
 
-    html, body {
+    html,
+    body {
       height: 100%;
       width: 100%;
       font-family: 'Poppins', sans-serif;
@@ -62,7 +64,8 @@
       margin-bottom: 1rem;
     }
 
-    .logo, .usuario {
+    .logo,
+    .usuario {
       display: flex;
       align-items: center;
       gap: 0.6rem;
@@ -171,6 +174,7 @@
     }
   </style>
 </head>
+
 <body>
 
   <div class="glass">
@@ -208,19 +212,58 @@
       <section class="seccion depuracion">
         <h2>Depuración (Traspaso Ordinario)</h2>
         <div class="grid">
-          <div class="celda"><h3>1. Selección</h3><p>Expedientes con más de 10 años para destrucción definitiva</p></div>
-          <div class="celda"><h3>2. Expedientes especiales</h3><p>Marcar con sello "INDEPURABLE" los de interés clínico, epidemiológico o legal</p></div>
-          <div class="celda"><h3>3. Identificación</h3><p>Nombre completo del paciente en lugar visible</p></div>
-          <div class="celda"><h3>4. Preparación</h3><p>Retirar grapas, sujetadores metálicos y excluir radiografías o ultrasonidos</p></div>
-          <div class="celda"><h3>5. Agrupación</h3><p>Agrupar expedientes por año en cajas (solo expedientes del mismo año)</p></div>
-          <div class="celda"><h3>6. Numeración</h3><p>Numerar expedientes en cada caja, junto con nombre visible del paciente</p></div>
-          <div class="celda"><h3>7. Documentación</h3><p>Elaborar listado de expedientes con peso y medidas de cada caja</p></div>
-          <div class="celda"><h3>8. Digitalización</h3><p>Documentos del 2018 en adelante deben digitalizarse</p></div>
-          <div class="celda"><h3>9. Foliado</h3><p>Foliar con tinta roja cada cara de hoja con información</p></div>
-          <div class="celda"><h3>10. Costura</h3><p>Coser con hilaza cada expediente para mantener su contenido</p></div>
-          <div class="celda"><h3>11. Numeración consecutiva</h3><p>Asignar un número consecutivo a cada expediente</p></div>
-          <div class="celda"><h3>12. Empaquetado</h3><p>Llenar cajas totalmente y reforzarlas con cinta adhesiva</p></div>
-          <div class="celda"><h3>13. Identificación de cajas</h3><p>Cada caja debe identificarse con formato de portada</p></div>
+          <div class="celda">
+            <h3>1. Selección</h3>
+            <p>Expedientes con más de 10 años para destrucción definitiva</p>
+          </div>
+          <div class="celda">
+            <h3>2. Expedientes especiales</h3>
+            <p>Marcar con sello "INDEPURABLE" los de interés clínico, epidemiológico o legal</p>
+          </div>
+          <div class="celda">
+            <h3>3. Identificación</h3>
+            <p>Nombre completo del paciente en lugar visible</p>
+          </div>
+          <div class="celda">
+            <h3>4. Preparación</h3>
+            <p>Retirar grapas, sujetadores metálicos y excluir radiografías o ultrasonidos</p>
+          </div>
+          <div class="celda">
+            <h3>5. Agrupación</h3>
+            <p>Agrupar expedientes por año en cajas (solo expedientes del mismo año)</p>
+          </div>
+          <div class="celda">
+            <h3>6. Numeración</h3>
+            <p>Numerar expedientes en cada caja, junto con nombre visible del paciente</p>
+          </div>
+          <div class="celda">
+            <h3>7. Documentación</h3>
+            <p>Elaborar listado de expedientes con peso y medidas de cada caja</p>
+          </div>
+          <div class="celda">
+            <h3>8. Digitalización</h3>
+            <p>Documentos del 2018 en adelante deben digitalizarse</p>
+          </div>
+          <div class="celda">
+            <h3>9. Foliado</h3>
+            <p>Foliar con tinta roja cada cara de hoja con información</p>
+          </div>
+          <div class="celda">
+            <h3>10. Costura</h3>
+            <p>Coser con hilaza cada expediente para mantener su contenido</p>
+          </div>
+          <div class="celda">
+            <h3>11. Numeración consecutiva</h3>
+            <p>Asignar un número consecutivo a cada expediente</p>
+          </div>
+          <div class="celda">
+            <h3>12. Empaquetado</h3>
+            <p>Llenar cajas totalmente y reforzarlas con cinta adhesiva</p>
+          </div>
+          <div class="celda">
+            <h3>13. Identificación de cajas</h3>
+            <p>Cada caja debe identificarse con formato de portada</p>
+          </div>
         </div>
       </section>
     </main>
@@ -229,6 +272,31 @@
       © 2025 | Hospital Regional de Puerto Vallarta
     </footer>
   </div>
+  <script>
+    function doGet() {
+      return HtmlService.createHtmlOutputFromFile('gantt_estadisticas')
+        .setTitle('Ruta Crítica - HRPV')
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    }
 
+    function obtenerTareas() {
+      const ss = SpreadsheetApp.openById('1Cebej75-OMGRosg6kQ1nyqBYWsFuSgyNxaihazw2QHo');
+      const sheet = ss.getSheetByName('Control_Estadisticas');
+      const data = sheet.getDataRange().getValues();
+      const headers = data.shift();
+
+      return data.map(r => ({
+        id: r[0],
+        name: r[1],
+        start: r[2],
+        end: r[3],
+        progress: r[4],
+        dependencies: r[5] || null,
+        custom_class: r[6] === 1 ? "critical" : ""
+      }));
+    }
+
+  </script>
 </body>
+
 </html>
