@@ -82,6 +82,38 @@
     <div class="loading">Cargando tareas...</div>
   </div>
 
+      <footer>
+      <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
+    </footer>
+  </div>
+
+  
+    <script>
+      
+      function setEstado(estado) {
+        const dashboard = document.getElementById('dashboard');
+        const estadoTexto = document.getElementById('estadoTexto');
+        dashboard.classList.remove('loading', 'success', 'error');
+        dashboard.classList.add(estado);
+
+        switch (estado) {
+          case 'loading':
+            estadoTexto.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando sistema...';
+            break;
+          case 'success':
+            estadoTexto.innerHTML = '<i class="fas fa-check-circle"></i> Sistema operativo con éxito ✅';
+            break;
+          case 'error':
+            estadoTexto.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error detectado ❌';
+            break;
+        }
+      }
+
+      // Footer dinámico
+      document.getElementById('footerText').innerHTML =
+        `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+  </script>
+
   <script>
     let gantt;
     // REEMPLAZA CON TU URL DE GAS
@@ -172,5 +204,90 @@
     // Carga automática
     document.addEventListener("DOMContentLoaded", cargarTareas);
   </script>
+
+  <script>
+    // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
+    function verificarAutenticacion() {
+        const usuario = localStorage.getItem('usuario');
+        const rol = localStorage.getItem('rol');
+        const loginTime = localStorage.getItem('loginTime');
+        
+        if (!usuario || !rol || !loginTime) {
+            console.log('❌ No hay sesión activa');
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        // Verificar expiración (24 horas)
+        const ahora = new Date().getTime();
+        const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+        
+        if (horasTranscurridas > 24) {
+            console.log('⏰ Sesión expirada');
+            localStorage.clear();
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+        
+        // Mostrar en el header
+        const userElement = document.getElementById('user-info');
+        if (userElement) {
+            userElement.innerHTML = `${usuario} (${rol})`;
+        }
+    }
+
+        // Cerrar sesión
+        function cerrarSesion() {
+          if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            localStorage.clear();
+
+            // ✅ Ajusta la ruta de redirección al LOGIN REAL
+            // Si el login está en la raíz del proyecto:
+            window.location.href = '/estadisticas/login.html';
+            // o, si estás dentro de una subcarpeta (por ejemplo, /panel/):
+            // window.location.href = '../login.html';
+          }
+        }
+       
+        // Verificar al cargar la página
+        window.addEventListener('load', verificarAutenticacion);
+        
+        // Hacer función global
+        window.cerrarSesion = cerrarSesion;
+
+        function verificarAutenticacion() {
+          const usuario = localStorage.getItem('usuario');
+          const rol = localStorage.getItem('rol');
+          const loginTime = localStorage.getItem('loginTime');
+
+          // ✅ Si no hay sesión activa, manda al login sin parpadeo
+          if (!usuario || !rol || !loginTime) {
+            console.warn('❌ No hay sesión activa');
+            window.location.replace('/login.html');
+            return;
+          }
+
+          // Verificar expiración (24 horas)
+          const ahora = Date.now();
+          const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+
+          if (horasTranscurridas > 24) {
+            console.warn('⏰ Sesión expirada');
+            localStorage.clear();
+            window.location.replace('estadisticas/login.html');
+            return;
+          }
+
+          console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+
+          const userElement = document.getElementById('user-info');
+          if (userElement) {
+            userElement.innerHTML = `${usuario} (${rol})`;
+          }
+        }
+
+    </script>
 </body>
 </html>
