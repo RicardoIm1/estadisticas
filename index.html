@@ -191,27 +191,30 @@
   </script>
 
   <script>
-    // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
+    // ========== VERIFICACIÓN DE SESIÓN CORREGIDA ==========
     function verificarAutenticacion() {
       const usuario = localStorage.getItem('usuario');
       const rol = localStorage.getItem('rol');
       const loginTime = localStorage.getItem('loginTime');
 
+      console.log('🔍 Verificando sesión:', { usuario, rol, loginTime });
+
+      // ✅ Si NO hay sesión activa, redirigir AL LOGIN CORRECTO
       if (!usuario || !rol || !loginTime) {
-        console.log('❌ No hay sesión activa');
-        window.location.href = 'index.html';
-        return;
+        console.warn('❌ No hay sesión activa - Redirigiendo a login');
+        window.location.href = '/estadisticas/login.html';
+        return false;
       }
 
       // Verificar expiración (24 horas)
-      const ahora = new Date().getTime();
+      const ahora = Date.now();
       const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
 
       if (horasTranscurridas > 24) {
-        console.log('⏰ Sesión expirada');
+        console.warn('⏰ Sesión expirada - Redirigiendo a login');
         localStorage.clear();
-        window.location.href = 'index.html';
-        return;
+        window.location.href = '/estadisticas/login.html';
+        return false;
       }
 
       console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
@@ -221,76 +224,42 @@
       if (userElement) {
         userElement.innerHTML = `${usuario} (${rol})`;
       }
+
+      return true;
     }
 
     // Cerrar sesión
     function cerrarSesion() {
       if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
         localStorage.clear();
-
-        // ✅ Ajusta la ruta de redirección al LOGIN REAL
-        // Si el login está en la raíz del proyecto:
-        window.location.href = '/estadisticas/login.html';
-        // o, si estás dentro de una subcarpeta (por ejemplo, /panel/):
-        // window.location.href = '../login.html';
-      }
-    }
-
-    // Verificar al cargar la página
-    window.addEventListener('load', verificarAutenticacion);
-
-    // Hacer función global
-    window.cerrarSesion = cerrarSesion;
-
-    function verificarAutenticacion() {
-      const usuario = localStorage.getItem('usuario');
-      const rol = localStorage.getItem('rol');
-      const loginTime = localStorage.getItem('loginTime');
-
-      // ✅ Si no hay sesión activa, manda al login sin parpadeo
-      if (!usuario || !rol || !loginTime) {
-        console.warn('❌ No hay sesión activa');
-        window.location.replace('/login.html');
-        return;
-      }
-
-      // Verificar expiración (24 horas)
-      const ahora = Date.now();
-      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
-
-      if (horasTranscurridas > 24) {
-        console.warn('⏰ Sesión expirada');
-        localStorage.clear();
-        window.location.replace('estadisticas/login.html');
-        return;
-      }
-
-      console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
-
-      const userElement = document.getElementById('user-info');
-      if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-      }
-    }
-
-    // ✅ En tu index.html - Verificar sesión al cargar
-    function verificarSesionEnHome() {
-      const usuario = localStorage.getItem("usuario");
-      const loginTime = localStorage.getItem("loginTime");
-      const ahora = new Date().getTime();
-
-      // Si NO hay sesión válida, redirigir a login
-      if (!usuario || !loginTime || ahora - loginTime > 24 * 60 * 60 * 1000) {
-        localStorage.removeItem("usuario");
-        localStorage.removeItem("rol");
-        localStorage.removeItem("loginTime");
+        // ✅ Redirigir al login CORRECTO
         window.location.href = '/estadisticas/login.html';
       }
     }
 
-    // Ejecutar cuando cargue el home
-    document.addEventListener('DOMContentLoaded', verificarSesionEnHome);
+    // Verificar al cargar la página - VERSIÓN MEJORADA
+    document.addEventListener('DOMContentLoaded', function () {
+      console.log('📍 Página cargada:', window.location.href);
 
+      // Verificar sesión inmediatamente
+      if (!verificarAutenticacion()) {
+        console.log('🚨 Redirección en proceso...');
+        // Detener cualquier ejecución adicional
+        return;
+      }
+
+      // Solo ejecutar esto si la sesión es válida
+      console.log('✅ Sesión válida, continuando...');
+
+      // Hacer función global
+      window.cerrarSesion = cerrarSesion;
+    });
+
+    // También verificar en window.load por si acaso
+    window.addEventListener('load', function () {
+      console.log('🔄 Window loaded - Verificando sesión nuevamente');
+      verificarAutenticacion();
+    });
   </script>
 </body>
 
