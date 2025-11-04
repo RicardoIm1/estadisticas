@@ -73,108 +73,73 @@
       padding: 20px;
     }
 
-    .config {
-      background: rgba(255,255,255,0.1);
+    .debug {
+      background: rgba(0,0,0,0.3);
       padding: 15px;
       border-radius: 8px;
-      margin-bottom: 20px;
-    }
-
-    .config input {
-      padding: 8px;
-      border: none;
-      border-radius: 4px;
-      width: 300px;
-      margin-right: 10px;
-    }
-
-    .config button {
-      padding: 8px 15px;
-      background: #3498db;
-      border: none;
-      border-radius: 4px;
-      color: white;
-      cursor: pointer;
+      margin: 10px 0;
+      font-family: monospace;
+      font-size: 12px;
+      max-height: 200px;
+      overflow-y: auto;
     }
   </style>
 </head>
 <body>
   <h1>Ruta Crítica - Proceso Mensual de Información Estadística</h1>
   
-  <div class="config">
-    <label for="gasUrl">URL de Google Apps Script:</label>
-    <input type="text" id="gasUrl" placeholder="https://script.google.com/macros/s/AKfycbzxTdglvRSt_fwD7u6jn3S79aJcGuGCfIkI38qMsb5Cm1ENYZswIxNPVN1YqaTjG3Pc/exec">
-    <button onclick="guardarURL()">Guardar URL</button>
-  </div>
-
   <button class="refresh" onclick="cargarTareas()">🔄 Actualizar</button>
   <div id="gantt">
-    <div class="loading">Configura la URL de GAS para comenzar</div>
+    <div class="loading">Cargando tareas...</div>
   </div>
+  
+  <div id="debug" style="display: none;"></div>
 
   <script>
     let gantt;
-    
-    // Obtener URL guardada o usar una por defecto
-    function obtenerGASURL() {
-      const guardada = localStorage.getItem('gasGanttURL');
-      if (guardada) {
-        document.getElementById('gasUrl').value = guardada;
-      }
-      return guardada;
-    }
+    // REEMPLAZA CON TU URL DE GAS
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyw9l05roDfp_ygXuMvRXplxJhJ2htrSAih5JVmfje4f_2-aqTosktS_JZgVCSBBQ8U/exec";
 
-    function guardarURL() {
-      const url = document.getElementById('gasUrl').value;
-      if (url) {
-        localStorage.setItem('gasGanttURL', url);
-        alert('URL guardada correctamente');
-        cargarTareas();
-      }
-    }
-
-    // Método principal usando JSONP (sin CORS)
     function cargarTareas() {
       const container = document.getElementById("gantt");
-      const gasUrl = obtenerGASURL();
-      
-      if (!gasUrl) {
-        container.innerHTML = '<div class="error">Por favor, ingresa la URL de Google Apps Script</div>';
-        return;
-      }
+      const debug = document.getElementById("debug");
       
       container.innerHTML = '<div class="loading">Cargando tareas...</div>';
+      debug.style.display = 'block';
+      debug.innerHTML = '<div class="loading">Solicitando datos...</div>';
       
-      // JSONP - la solución más confiable sin CORS
+      // JSONP - sin problemas de CORS
       const callbackName = 'ganttCallback_' + Date.now();
       
       window[callbackName] = function(data) {
-        // Limpiar callback
-        delete window[callbackName];
-        document.head.removeChild(script);
+        debug.innerHTML = `<div class="debug">Datos recibidos: ${JSON.stringify(data, null, 2)}</div>`;
         
-        // Procesar datos
+        // Limpiar
+        delete window[callbackName];
+        if (script.parentNode) {
+          document.head.removeChild(script);
+        }
+        
+        // Procesar respuesta
         if (data && data.error) {
           mostrarError(new Error(data.error));
+        } else if (!data || data.length === 0) {
+          mostrarError(new Error('No se encontraron tareas. La hoja puede estar vacía o el formato es incorrecto.'));
         } else {
           renderGantt(data);
         }
       };
       
-      // Crear script para JSONP
       const script = document.createElement('script');
-      script.src = `${gasUrl}?callback=${callbackName}`;
+      script.src = `${GAS_URL}?callback=${callbackName}`;
       
-      // Timeout por si falla
+      // Timeout
       setTimeout(() => {
         if (window[callbackName]) {
           mostrarError(new Error('Timeout: No se pudo conectar con el servidor'));
           delete window[callbackName];
-          if (script.parentNode) {
-            document.head.removeChild(script);
-          }
         }
-      }, 15000);
+      }, 10000);
       
       document.head.appendChild(script);
     }
@@ -183,7 +148,7 @@
       const container = document.getElementById("gantt");
       
       if (!tasks || tasks.length === 0) {
-        container.innerHTML = '<div class="error">No hay tareas registradas en la hoja.</div>';
+        container.innerHTML = '<div class="error">No hay tareas para mostrar</div>';
         return;
       }
 
@@ -201,6 +166,7 @@
               <p style="margin:5px 0;"><b>Fin:</b> ${task.end}</p>
               <p style="margin:5px 0;"><b>Avance:</b> ${task.progress}%</p>
               ${task.dependencies ? `<p style="margin:5px 0;"><b>Dependencias:</b> ${task.dependencies}</p>` : ''}
+              ${task.custom_class ? `<p style="margin:5px 0;"><b>Estado:</b> Ruta Crítica</p>` : ''}
             </div>`;
         }
       });
@@ -210,21 +176,19 @@
       const container = document.getElementById("gantt");
       container.innerHTML = `
         <div class="error">
-          <p><strong>Error al cargar las tareas:</strong> ${error.message}</p>
-          <p>Verifica que:</p>
+          <p><strong>Error:</strong> ${error.message}</p>
+          <p>Posibles soluciones:</p>
           <ul style="text-align: left; display: inline-block;">
-            <li>La URL de GAS sea correcta</li>
-            <li>La aplicación esté desplegada como "Web app"</li>
-            <li>El acceso sea "Anyone"</li>
+            <li>Verifica que la hoja "Control_Estadisticas" exista</li>
+            <li>Verifica que haya datos en las columnas A-G</li>
+            <li>Ejecuta la función "probarDatos()" en GAS</li>
+            <li>Verifica que las fechas estén en formato válido</li>
           </ul>
         </div>`;
-      console.error('Error:', error);
     }
 
-    // Carga inicial
-    document.addEventListener("DOMContentLoaded", function() {
-      obtenerGASURL();
-    });
+    // Carga automática
+    document.addEventListener("DOMContentLoaded", cargarTareas);
   </script>
 </body>
 </html>
