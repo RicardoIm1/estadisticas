@@ -1,52 +1,184 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Panel Estadísticas y Archivo Clínico</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-    <!-- <link href="estilos.css" rel="stylesheet"> -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <!-- <link href="estilos.css" rel="stylesheet"> -->
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  /* ===========================
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ===========================
      Reset y estilos base
      =========================== */
- * { margin:0; padding:0; box-sizing:border-box; }
-  body, html { font-family:'Poppins',sans-serif; height:100%; overflow:hidden; background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf); }
-  #particlesCanvas { position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:-1; } 
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-  /* ===========================
+    body,
+    html {
+      font-family: 'Poppins', sans-serif;
+      height: 100%;
+      overflow: hidden;
+      background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
+    }
+
+    #particlesCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: -1;
+    }
+
+    /* ===========================
      Layout
      =========================== */
-  .sidebar {
-    position: fixed; top:0; left:0; width:220px; height:100%; background: rgba(255,255,255,0.1); backdrop-filter: blur(15px); border-right:1px solid rgba(255,255,255,0.2); display:flex; flex-direction:column; padding:2rem 1rem; color:white;
-  }
-  .sidebar h2 { margin-bottom:2rem; font-size:1.2rem; font-weight:600; text-align:center; }
-  .sidebar button { margin:0.5rem 0; padding:0.6rem 0.8rem; border:none; border-radius:8px; background: rgba(255,255,255,0.15); color:white; cursor:pointer; transition:0.3s; width:100%; font-weight:600; }
-  .sidebar button:hover { background: rgba(255,255,255,0.3); transform:translateX(4px); }
-  .usuario{text-align:center;}
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 220px;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(15px);
+      border-right: 1px solid rgba(255, 255, 255, 0.2);
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 1rem;
+      color: white;
+    }
 
-  #dashboard { margin-left:240px; padding:2rem; display:flex; flex-direction:column; gap:2rem; height:100%; overflow-y:auto; }
+    .sidebar h2 {
+      margin-bottom: 2rem;
+      font-size: 1.2rem;
+      font-weight: 600;
+      text-align: center;
+    }
 
-  .grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(180px,1fr)); gap:1rem; }
+    .sidebar button {
+      margin: 0.5rem 0;
+      padding: 0.6rem 0.8rem;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      width: 100%;
+      font-weight: 600;
+    }
 
-  .celda { background: rgba(255,255,255,0.15); border-radius:15px; padding:1rem; text-align:center; animation:pulse 6s infinite; border:1px solid rgba(255,255,255,0.1); cursor:pointer; transition:transform 0.2s ease, box-shadow 0.2s ease; }
-  .celda:hover { transform: translateY(-3px); box-shadow:0 4px 8px rgba(0,0,0,0.2); }
-  .celda h3 { font-size:1rem; margin-bottom:0.3rem; }
-  .celda p { font-size:0.85rem; opacity:0.8; }
+    .sidebar button:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: translateX(4px);
+    }
 
-  @keyframes pulse {0%,100%{box-shadow:0 4px 15px rgba(0,0,0,0.1);}50%{box-shadow:0 8px 25px rgba(0,0,0,0.2);}}
+    .usuario {
+      text-align: center;
+    }
 
-  .filters { display:flex; gap:1rem; margin-bottom:1rem; flex-wrap:wrap; }
-  select { padding:0.5rem 0.8rem; border-radius:8px; border:none; font-weight:600; }
+    #dashboard {
+      margin-left: 240px;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+      height: 100%;
+      overflow-y: auto;
+    }
 
-  footer { text-align:center; padding-top:1rem; font-size:0.8rem; color:rgba(255,255,255,0.7); }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+    }
 
-  /* Mobile */
-  @media(max-width:768px){ #dashboard{margin-left:0;} .sidebar{position:relative;width:100%;flex-direction:row;overflow-x:auto;} .sidebar button{flex:none;width:auto;margin:0 0.5rem;} }
-</style>
-    <style>
+    .celda {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 15px;
+      padding: 1rem;
+      text-align: center;
+      animation: pulse 6s infinite;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .celda:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .celda h3 {
+      font-size: 1rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .celda p {
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+
+    @keyframes pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      50% {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      }
+    }
+
+    .filters {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    select {
+      padding: 0.5rem 0.8rem;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+    }
+
+    footer {
+      text-align: center;
+      padding-top: 1rem;
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Mobile */
+    @media(max-width:768px) {
+      #dashboard {
+        margin-left: 0;
+      }
+
+      .sidebar {
+        position: relative;
+        width: 100%;
+        flex-direction: row;
+        overflow-x: auto;
+      }
+
+      .sidebar button {
+        flex: none;
+        width: auto;
+        margin: 0 0.5rem;
+      }
+    }
+  </style>
+  <style>
     /* Estilos para el layout sidebar + contenido */
     .container {
       display: flex;
@@ -98,6 +230,7 @@
   </style>
 
 </head>
+
 <body>
   <canvas id="particlesCanvas"></canvas>
 
@@ -106,14 +239,13 @@
     <div class="sidebar">
       <div class="header">
         <div class="logo">
-          <img src="img/logo-hrpv.png" alt="Logo" width="150">
-    <!-- <h1>Estadísticas y Archivo Clínico</h1>-->
+          <a href="/estadisticas"> <img src="img/logo-hrpv.png" alt="Logo" width="120"></a>
         </div>
         <div class="usuario">
           <i class="fas fa-user-circle"></i>
           <span>Hola, Ricardo</span>
         </div>
-      </div> 
+      </div>
       <h2>Panel Estadísticas y Archivo Clínico</h2>
       <button onclick="mostrar('caja/index.html')">Caja</button>
       <button onclick="mostrar('capacitacion/canva.html')">Canva</button>
@@ -131,7 +263,8 @@
     <div class="main-content">
       <div class="glass" id="dashboard">
         <!-- Aquí va el contenido dinámico -->
-        <iframe id="contenido" src="./caja/" style="width: 100%; height: 90%; border: none; border-radius: 15px"></iframe>
+        <iframe id="contenido" src="./caja/"
+          style="width: 100%; height: 90%; border: none; border-radius: 15px"></iframe>
         <footer>
           <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
         </footer>
@@ -169,77 +302,78 @@
       `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
   </script>
   <script>
-  // Verificar si el usuario está logueado
-  function verificarAutenticacion() {
+    // Verificar si el usuario está logueado
+    function verificarAutenticacion() {
       const usuario = localStorage.getItem('usuario');
       const rol = localStorage.getItem('rol');
       const loginTime = localStorage.getItem('loginTime');
-      
+
       // ✅ Validación más estricta
       if (!usuario || !rol || !loginTime) {
-          console.log('❌ No hay sesión activa');
-          window.location.href = 'index.html';
-          return;
+        console.log('❌ No hay sesión activa');
+        window.location.href = 'index.html';
+        return;
       }
-      
+
       // ✅ Verificar que no sea una sesión "falsa"
       if (usuario === 'undefined' || rol === 'undefined') {
-          console.log('❌ Sesión inválida');
-          localStorage.clear();
-          window.location.href = 'index.html';
-          return;
+        console.log('❌ Sesión inválida');
+        localStorage.clear();
+        window.location.href = 'index.html';
+        return;
       }
-      
+
       // ✅ Verificar expiración (24 horas)
       const ahora = new Date().getTime();
       const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
-      
+
       if (horasTranscurridas > 24) {
-          console.log('⏰ Sesión expirada');
-          localStorage.clear();
-          window.location.href = 'index.html';
-          return;
+        console.log('⏰ Sesión expirada');
+        localStorage.clear();
+        window.location.href = 'index.html';
+        return;
       }
-      
+
       console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
-      
+
       // Mostrar en la interfaz
       const userElement = document.getElementById('user-info');
       if (userElement) {
-          userElement.innerHTML = `${usuario} (${rol})`;
+        userElement.innerHTML = `${usuario} (${rol})`;
       }
-      
-      return true; // ✅ Sesión válida
-  }
 
-  // Cerrar sesión
-  function cerrarSesion() {
+      return true; // ✅ Sesión válida
+    }
+
+    // Cerrar sesión
+    function cerrarSesion() {
       if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-          localStorage.removeItem('usuario');
-          localStorage.removeItem('rol'); 
-          localStorage.removeItem('loginTime');
-          window.location.href = 'index.html';
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('rol');
+        localStorage.removeItem('loginTime');
+        window.location.href = 'index.html';
       }
-  }
-  
-  // ✅ BLOQUEAR ACCESO DIRECTO A ARCHIVOS
-  function verificarOrigen() {
+    }
+
+    // ✅ BLOQUEAR ACCESO DIRECTO A ARCHIVOS
+    function verificarOrigen() {
       // Si intentan acceder directamente al archivo, redirigir
       if (window === window.top) {
-          console.log('🔒 Acceso directo bloqueado');
-          verificarAutenticacion();
+        console.log('🔒 Acceso directo bloqueado');
+        verificarAutenticacion();
       }
-  }
-  
-  // Verificar al cargar la página
-  window.addEventListener('load', function() {
+    }
+
+    // Verificar al cargar la página
+    window.addEventListener('load', function () {
       verificarAutenticacion();
       verificarOrigen();
-  });
+    });
 
-  // Hacer función global para botones de logout
-  window.cerrarSesion = cerrarSesion;
-</script>
+    // Hacer función global para botones de logout
+    window.cerrarSesion = cerrarSesion;
+  </script>
 
 </body>
+
 </html>
