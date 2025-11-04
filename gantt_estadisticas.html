@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ruta Crítica - Estadísticas HRPV</title>
 
-  <!-- Librería Frappe Gantt -->
   <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
 
@@ -73,68 +72,111 @@
       text-align: center;
       padding: 20px;
     }
+
+    .config {
+      background: rgba(255,255,255,0.1);
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    .config input {
+      padding: 8px;
+      border: none;
+      border-radius: 4px;
+      width: 300px;
+      margin-right: 10px;
+    }
+
+    .config button {
+      padding: 8px 15px;
+      background: #3498db;
+      border: none;
+      border-radius: 4px;
+      color: white;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <h1>Ruta Crítica - Proceso Mensual de Información Estadística</h1>
+  
+  <div class="config">
+    <label for="gasUrl">URL de Google Apps Script:</label>
+    <input type="text" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec">
+    <button onclick="guardarURL()">Guardar URL</button>
+  </div>
+
   <button class="refresh" onclick="cargarTareas()">🔄 Actualizar</button>
   <div id="gantt">
-    <div class="loading">Cargando tareas...</div>
+    <div class="loading">Configura la URL de GAS para comenzar</div>
   </div>
 
   <script>
     let gantt;
-    // REEMPLAZA ESTA URL CON LA URL DE TU DESPLIEGUE GAS
-    const GAS_URL = "https://script.google.com/macros/s/TU_SCRIPT_ID/exec";
+    
+    // Obtener URL guardada o usar una por defecto
+    function obtenerGASURL() {
+      const guardada = localStorage.getItem('gasGanttURL');
+      if (guardada) {
+        document.getElementById('gasUrl').value = guardada;
+      }
+      return guardada;
+    }
 
-    // Método 1: Usando Fetch con modo 'no-cors' (más simple)
-    async function cargarTareas() {
-      const container = document.getElementById("gantt");
-      container.innerHTML = '<div class="loading">Cargando tareas...</div>';
-      
-      try {
-        // Usamos un proxy CORS público como fallback
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-        const response = await fetch(proxyUrl + GAS_URL);
-        
-        if (!response.ok) {
-          throw new Error(`Error HTTP: ${response.status}`);
-        }
-        
-        const tasks = await response.json();
-        renderGantt(tasks);
-      } catch (error) {
-        console.error('Error con fetch:', error);
-        // Fallback: método JSONP
-        cargarConJSONP();
+    function guardarURL() {
+      const url = document.getElementById('gasUrl').value;
+      if (url) {
+        localStorage.setItem('gasGanttURL', url);
+        alert('URL guardada correctamente');
+        cargarTareas();
       }
     }
 
-    // Método 2: JSONP (sin CORS)
-    function cargarConJSONP() {
+    // Método principal usando JSONP (sin CORS)
+    function cargarTareas() {
       const container = document.getElementById("gantt");
-      container.innerHTML = '<div class="loading">Cargando con método alternativo...</div>';
+      const gasUrl = obtenerGASURL();
+      
+      if (!gasUrl) {
+        container.innerHTML = '<div class="error">Por favor, ingresa la URL de Google Apps Script</div>';
+        return;
+      }
+      
+      container.innerHTML = '<div class="loading">Cargando tareas...</div>';
+      
+      // JSONP - la solución más confiable sin CORS
+      const callbackName = 'ganttCallback_' + Date.now();
+      
+      window[callbackName] = function(data) {
+        // Limpiar callback
+        delete window[callbackName];
+        document.head.removeChild(script);
+        
+        // Procesar datos
+        if (data && data.error) {
+          mostrarError(new Error(data.error));
+        } else {
+          renderGantt(data);
+        }
+      };
       
       // Crear script para JSONP
       const script = document.createElement('script');
-      const callbackName = 'jsonpCallback_' + Date.now();
-      
-      window[callbackName] = function(data) {
-        renderGantt(data);
-        delete window[callbackName];
-        document.head.removeChild(script);
-      };
-      
-      script.src = `${GAS_URL}?callback=${callbackName}`;
-      document.head.appendChild(script);
+      script.src = `${gasUrl}?callback=${callbackName}`;
       
       // Timeout por si falla
       setTimeout(() => {
         if (window[callbackName]) {
-          mostrarError(new Error('Timeout al cargar datos'));
+          mostrarError(new Error('Timeout: No se pudo conectar con el servidor'));
           delete window[callbackName];
+          if (script.parentNode) {
+            document.head.removeChild(script);
+          }
         }
-      }, 10000);
+      }, 15000);
+      
+      document.head.appendChild(script);
     }
 
     function renderGantt(tasks) {
@@ -168,15 +210,21 @@
       const container = document.getElementById("gantt");
       container.innerHTML = `
         <div class="error">
-          <p>Error al cargar las tareas: ${error.message}</p>
-          <p>Verifica que la URL de GAS sea correcta y que la aplicación esté desplegada.</p>
-          <p>URL actual: ${GAS_URL}</p>
+          <p><strong>Error al cargar las tareas:</strong> ${error.message}</p>
+          <p>Verifica que:</p>
+          <ul style="text-align: left; display: inline-block;">
+            <li>La URL de GAS sea correcta</li>
+            <li>La aplicación esté desplegada como "Web app"</li>
+            <li>El acceso sea "Anyone"</li>
+          </ul>
         </div>`;
       console.error('Error:', error);
     }
 
-    // Carga automática al abrir
-    document.addEventListener("DOMContentLoaded", cargarTareas);
+    // Carga inicial
+    document.addEventListener("DOMContentLoaded", function() {
+      obtenerGASURL();
+    });
   </script>
 </body>
 </html>
