@@ -16,6 +16,9 @@
       color: #fff;
       margin: 0;
       padding: 2rem;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
 
     h1 {
@@ -26,13 +29,33 @@
       text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
     }
 
-    #gantt {
+    #gantt-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
       background: rgba(255, 255, 255, 0.1);
       border-radius: 16px;
       padding: 20px;
       box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
       margin-top: 20px;
+    }
+
+    #gantt-chart {
+      flex: 1;
       min-height: 500px;
+    }
+
+    #gantt-footer {
+      margin-top: 20px;
+      padding: 15px;
+      text-align: center;
+      border-top: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    #gantt-footer p {
+      margin: 0;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.9rem;
     }
 
     .critical .bar {
@@ -66,60 +89,46 @@
       text-align: center;
       padding: 20px;
       font-style: italic;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .error {
       color: #ff6b6b;
       text-align: center;
       padding: 20px;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
     }
   </style>
 </head>
 
 <body>
-  <h1>Ruta Crítica</h1>
-
+  <h1>Ruta Crítica - Proceso Mensual de Información Estadística</h1>
   <button class="refresh" onclick="cargarTareas()">🔄 Actualizar</button>
-  <div id="gantt">
-    <div class="loading">Cargando tareas...</div>
-    <footer>
+
+  <div id="gantt-container">
+    <div id="gantt-chart">
+      <div class="loading">Cargando tareas...</div>
+    </div>
+
+    <footer id="gantt-footer">
       <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
     </footer>
   </div>
 
   <script>
-
-    function setEstado(estado) {
-      const dashboard = document.getElementById('dashboard');
-      const estadoTexto = document.getElementById('estadoTexto');
-      dashboard.classList.remove('loading', 'success', 'error');
-      dashboard.classList.add(estado);
-
-      switch (estado) {
-        case 'loading':
-          estadoTexto.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando sistema...';
-          break;
-        case 'success':
-          estadoTexto.innerHTML = '<i class="fas fa-check-circle"></i> Sistema operativo con éxito ✅';
-          break;
-        case 'error':
-          estadoTexto.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error detectado ❌';
-          break;
-      }
-    }
-
-    // Footer dinámico
-    document.getElementById('footerText').innerHTML =
-      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-  </script>
-
-  <script>
     let gantt;
     // REEMPLAZA CON TU URL DE GAS
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbyw9l05roDfp_ygXuMvRXplxJhJ2htrSAih5JVmfje4f_2-aqTosktS_JZgVCSBBQ8U/exec";
+    const GAS_URL = "https://script.google.com/macros/s/TU_SCRIPT_ID/exec";
 
     function cargarTareas() {
-      const container = document.getElementById("gantt");
+      const container = document.getElementById("gantt-chart");
 
       container.innerHTML = '<div class="loading">Cargando tareas...</div>';
 
@@ -158,7 +167,7 @@
     }
 
     function renderGantt(tasks) {
-      const container = document.getElementById("gantt");
+      const container = document.getElementById("gantt-chart");
 
       if (!tasks || tasks.length === 0) {
         container.innerHTML = '<div class="error">No hay tareas para mostrar</div>';
@@ -167,7 +176,7 @@
 
       container.innerHTML = '';
 
-      gantt = new Gantt("#gantt", tasks, {
+      gantt = new Gantt("#gantt-chart", tasks, {
         view_mode: "Month",
         language: 'es',
         date_format: 'YYYY-MM-DD',
@@ -183,10 +192,13 @@
             </div>`;
         }
       });
+
+      // Actualizar el año del footer
+      document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
     }
 
     function mostrarError(error) {
-      const container = document.getElementById("gantt");
+      const container = document.getElementById("gantt-chart");
       container.innerHTML = `
         <div class="error">
           <p><strong>Error:</strong> ${error.message}</p>
@@ -201,92 +213,11 @@
     }
 
     // Carga automática
-    document.addEventListener("DOMContentLoaded", cargarTareas);
-  </script>
-
-  <script>
-    // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
-    function verificarAutenticacion() {
-      const usuario = localStorage.getItem('usuario');
-      const rol = localStorage.getItem('rol');
-      const loginTime = localStorage.getItem('loginTime');
-
-      if (!usuario || !rol || !loginTime) {
-        console.log('❌ No hay sesión activa');
-        window.location.href = 'index.html';
-        return;
-      }
-
-      // Verificar expiración (24 horas)
-      const ahora = new Date().getTime();
-      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
-
-      if (horasTranscurridas > 24) {
-        console.log('⏰ Sesión expirada');
-        localStorage.clear();
-        window.location.href = 'index.html';
-        return;
-      }
-
-      console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
-
-      // Mostrar en el header
-      const userElement = document.getElementById('user-info');
-      if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-      }
-    }
-
-    // Cerrar sesión
-    function cerrarSesion() {
-      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        localStorage.clear();
-
-        // ✅ Ajusta la ruta de redirección al LOGIN REAL
-        // Si el login está en la raíz del proyecto:
-        window.location.href = '/estadisticas/login.html';
-        // o, si estás dentro de una subcarpeta (por ejemplo, /panel/):
-        // window.location.href = '../login.html';
-      }
-    }
-
-    // Verificar al cargar la página
-    window.addEventListener('load', verificarAutenticacion);
-
-    // Hacer función global
-    window.cerrarSesion = cerrarSesion;
-
-    function verificarAutenticacion() {
-      const usuario = localStorage.getItem('usuario');
-      const rol = localStorage.getItem('rol');
-      const loginTime = localStorage.getItem('loginTime');
-
-      // ✅ Si no hay sesión activa, manda al login sin parpadeo
-      if (!usuario || !rol || !loginTime) {
-        console.warn('❌ No hay sesión activa');
-        window.location.replace('/login.html');
-        return;
-      }
-
-      // Verificar expiración (24 horas)
-      const ahora = Date.now();
-      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
-
-      if (horasTranscurridas > 24) {
-        console.warn('⏰ Sesión expirada');
-        localStorage.clear();
-        window.location.replace('estadisticas/login.html');
-        return;
-      }
-
-      console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
-
-      const userElement = document.getElementById('user-info');
-      if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-      }
-    }
-
+    document.addEventListener("DOMContentLoaded", function () {
+      cargarTareas();
+      // Actualizar año del footer
+      document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+    });
   </script>
 </body>
 
