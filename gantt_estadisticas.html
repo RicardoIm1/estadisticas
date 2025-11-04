@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ruta Crítica - Estadísticas HRPV</title>
+
+  <!-- Librería Frappe Gantt -->
+  <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
+
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
+      color: #fff;
+      margin: 0;
+      padding: 2rem;
+      overflow-x: hidden;
+    }
+
+    h1 {
+      text-align: center;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+      color: #f1f1f1;
+      text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+    }
+
+    #gantt {
+      background: rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.3);
+    }
+
+    .task-bar.critical {
+      fill: #e74c3c !important;
+    }
+  </style>
+</head>
+<body>
+  <h1>Ruta Crítica - Proceso Mensual de Información Estadística</h1>
+  <div id="gantt"></div>
+
+  <script>
+    const tasks = [
+      {
+        id: "A1",
+        name: "Recepción de reportes",
+        start: "2025-11-03",
+        end: "2025-11-03",
+        progress: 100,
+        custom_class: "critical"
+      },
+      {
+        id: "B1",
+        name: "Validación y codificación CIE",
+        start: "2025-11-04",
+        end: "2025-11-04",
+        progress: 70,
+        dependencies: "A1",
+        custom_class: "critical"
+      },
+      {
+        id: "C1",
+        name: "Captura en sistema SINBA",
+        start: "2025-11-05",
+        end: "2025-11-06",
+        progress: 40,
+        dependencies: "B1",
+        custom_class: "critical"
+      },
+      {
+        id: "C2",
+        name: "Concentrado por servicio",
+        start: "2025-11-06",
+        end: "2025-11-07",
+        progress: 20,
+        dependencies: "C1",
+        custom_class: "critical"
+      },
+      {
+        id: "D1",
+        name: "Elaboración del informe mensual",
+        start: "2025-11-07",
+        end: "2025-11-08",
+        progress: 0,
+        dependencies: "C2",
+        custom_class: "critical"
+      },
+      {
+        id: "D2",
+        name: "Revisión y firma de responsables",
+        start: "2025-11-08",
+        end: "2025-11-08",
+        progress: 0,
+        dependencies: "D1",
+        custom_class: "critical"
+      },
+      {
+        id: "E1",
+        name: "Supervisión y retroalimentación",
+        start: "2025-11-04",
+        end: "2025-11-05",
+        progress: 50,
+        dependencies: "B1"
+      },
+      {
+        id: "F1",
+        name: "Envío digital y respaldo",
+        start: "2025-11-09",
+        end: "2025-11-09",
+        progress: 0,
+        dependencies: "D2",
+        custom_class: "critical"
+      }
+    ];
+
+    const gantt = new Gantt("#gantt", tasks, {
+      view_mode: "Day",
+      date_format: "YYYY-MM-DD",
+      custom_popup_html: function(task) {
+        return `
+          <div style="padding:10px;">
+            <h4>${task.name}</h4>
+            <p><b>Inicio:</b> ${task.start}</p>
+            <p><b>Fin:</b> ${task.end}</p>
+            <p><b>Avance:</b> ${task.progress}%</p>
+          </div>`;
+      }
+    });
+  </script>
+</body>
+</html>
