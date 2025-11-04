@@ -4,298 +4,88 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lineamientos de Archivo Clínico</title>
-  <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
-  <link rel="icon" href="img/favicon.ico" type="image/x-icon">
+  <title>Ruta Crítica - Estadísticas HRPV</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.1/dist/frappe-gantt.css">
 
   <style>
-    /* === RESET Y BASE === */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html,
     body {
-      height: 100%;
-      width: 100%;
       font-family: 'Poppins', sans-serif;
-      background: linear-gradient(145deg, #2d4059, #3c5a77, #729bbd);
-      background-attachment: fixed;
-      overflow-y: auto;
-      color: white;
-      font-size: clamp(0.85rem, 0.9vw, 1rem);
-    }
-
-    body {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
-      padding: 4vh 2vw;
-    }
-
-    /* === CONTENEDOR PRINCIPAL === */
-    .glass {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      width: min(92%, 1600px);
-      min-height: 75vh;
-      border-radius: 16px;
-      background: rgba(255, 255, 255, 0.08) url('depuracion_arch.png') no-repeat center 96%;
-      background-size: 220px;
-      background-blend-mode: overlay;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
-      backdrop-filter: blur(18px);
+      background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
+      color: #fff;
+      margin: 0;
       padding: 2rem;
-      transition: all 0.3s ease;
     }
 
-    /* === ENCABEZADO === */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-      padding-bottom: 0.3rem;
-      margin-bottom: 1rem;
-    }
-
-    .logo,
-    .usuario {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-
-    .logo h1 {
-      font-size: clamp(1rem, 1.6vw, 1.6rem);
+    h1 {
+      text-align: center;
       font-weight: 600;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      margin-bottom: 1.5rem;
+      color: #f1f1f1;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.4);
     }
 
-    .logo-icon {
-      font-size: 2.3rem;
-      color: #ffdd00;
-      filter: drop-shadow(0 0 3px rgba(255, 255, 0, 0.3));
-    }
-
-    .usuario span {
-      font-size: 1rem;
-      opacity: 0.9;
-    }
-
-    /* === CONTENIDO === */
-    .main-contenido {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-    }
-
-    .seccion {
-      margin-bottom: 2rem;
-    }
-
-    .seccion h2 {
-      font-size: 1.4rem;
-      color: #f0f3f5;
-      margin-bottom: 0.8rem;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-      border-left: 3px solid #b4f7c2;
-      padding-left: 0.6rem;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1rem;
-    }
-
-    .celda {
+    #gantt {
       background: rgba(255, 255, 255, 0.1);
-      border-radius: 12px;
-      padding: 1rem;
-      text-align: center;
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .task-bar.critical {
+      fill: #e74c3c !important;
+    }
+
+    .refresh {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background: #1abc9c;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      color: white;
+      font-size: 1rem;
+      transition: 0.3s;
     }
 
-    .celda:hover {
-      transform: translateY(-3px) scale(1.02);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .celda h3 {
-      font-size: 1.05rem;
-      margin-bottom: 0.3rem;
-    }
-
-    .celda p {
-      font-size: 0.9rem;
-      opacity: 0.9;
-      color: #b4f7c2;
-    }
-
-    /* === FOOTER === */
-    .footer {
-      text-align: center;
-      font-size: clamp(0.75rem, 0.9vw, 0.85rem);
-      color: rgba(255, 255, 255, 0.75);
-      border-top: 1px solid rgba(255, 255, 255, 0.15);
-      padding: 0.8rem 0 0 0;
-      margin-top: 1rem;
-    }
-
-    /* === RESPONSIVIDAD === */
-    @media (max-width: 768px) {
-      body {
-        padding: 2vh 1vw;
-      }
-
-      .glass {
-        width: 95%;
-        padding: 1.2rem;
-        background-size: 150px;
-      }
-
-      .header {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .grid {
-        grid-template-columns: 1fr;
-      }
+    .refresh:hover {
+      background: #16a085;
     }
   </style>
 </head>
 
 <body>
+  <h1>Ruta Crítica - Proceso Mensual de Información Estadística</h1>
+  <button class="refresh" onclick="cargarTareas()">🔄 Actualizar</button>
+  <div id="gantt"></div>
 
-  <div class="glass">
-    <header class="header">
-      <div class="logo">
-        <span class="logo-icon">📂</span>
-        <h1>Archivo Clínico</h1>
-      </div>
-      <div class="usuario">
-        <span>Lineamientos para depuración</span>
-      </div>
-    </header>
-
-    <main class="main-contenido">
-      <!-- Clasificación -->
-      <section class="seccion clasificacion">
-        <h2>Clasificación de archivo</h2>
-        <div class="grid">
-          <div class="celda">
-            <h3>Archivo activo</h3>
-            <p>Los últimos 5 años</p>
-          </div>
-          <div class="celda">
-            <h3>Archivo pasivo</h3>
-            <p>Resguardo por 5 años</p>
-          </div>
-          <div class="celda">
-            <h3>Archivo para depurar</h3>
-            <p>Expedientes con más de 10 años desde la última atención</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- Depuración -->
-      <section class="seccion depuracion">
-        <h2>Depuración (Traspaso Ordinario)</h2>
-        <div class="grid">
-          <div class="celda">
-            <h3>1. Selección</h3>
-            <p>Expedientes con más de 10 años para destrucción definitiva</p>
-          </div>
-          <div class="celda">
-            <h3>2. Expedientes especiales</h3>
-            <p>Marcar con sello "INDEPURABLE" los de interés clínico, epidemiológico o legal</p>
-          </div>
-          <div class="celda">
-            <h3>3. Identificación</h3>
-            <p>Nombre completo del paciente en lugar visible</p>
-          </div>
-          <div class="celda">
-            <h3>4. Preparación</h3>
-            <p>Retirar grapas, sujetadores metálicos y excluir radiografías o ultrasonidos</p>
-          </div>
-          <div class="celda">
-            <h3>5. Agrupación</h3>
-            <p>Agrupar expedientes por año en cajas (solo expedientes del mismo año)</p>
-          </div>
-          <div class="celda">
-            <h3>6. Numeración</h3>
-            <p>Numerar expedientes en cada caja, junto con nombre visible del paciente</p>
-          </div>
-          <div class="celda">
-            <h3>7. Documentación</h3>
-            <p>Elaborar listado de expedientes con peso y medidas de cada caja</p>
-          </div>
-          <div class="celda">
-            <h3>8. Digitalización</h3>
-            <p>Documentos del 2018 en adelante deben digitalizarse</p>
-          </div>
-          <div class="celda">
-            <h3>9. Foliado</h3>
-            <p>Foliar con tinta roja cada cara de hoja con información</p>
-          </div>
-          <div class="celda">
-            <h3>10. Costura</h3>
-            <p>Coser con hilaza cada expediente para mantener su contenido</p>
-          </div>
-          <div class="celda">
-            <h3>11. Numeración consecutiva</h3>
-            <p>Asignar un número consecutivo a cada expediente</p>
-          </div>
-          <div class="celda">
-            <h3>12. Empaquetado</h3>
-            <p>Llenar cajas totalmente y reforzarlas con cinta adhesiva</p>
-          </div>
-          <div class="celda">
-            <h3>13. Identificación de cajas</h3>
-            <p>Cada caja debe identificarse con formato de portada</p>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer">
-      © 2025 | Hospital Regional de Puerto Vallarta
-    </footer>
-  </div>
   <script>
-    function doGet() {
-      return HtmlService.createHtmlOutputFromFile('gantt_estadisticas')
-        .setTitle('Ruta Crítica - HRPV')
-        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    let gantt;
+
+    function cargarTareas() {
+      google.script.run
+        .withSuccessHandler(renderGantt)
+        .obtenerTareas();
     }
 
-    function obtenerTareas() {
-      const ss = SpreadsheetApp.openById('1Cebej75-OMGRosg6kQ1nyqBYWsFuSgyNxaihazw2QHo');
-      const sheet = ss.getSheetByName('Control_Estadisticas');
-      const data = sheet.getDataRange().getValues();
-      const headers = data.shift();
-
-      return data.map(r => ({
-        id: r[0],
-        name: r[1],
-        start: r[2],
-        end: r[3],
-        progress: r[4],
-        dependencies: r[5] || null,
-        custom_class: r[6] === 1 ? "critical" : ""
-      }));
+    function renderGantt(tasks) {
+      document.getElementById("gantt").innerHTML = "";
+      gantt = new Gantt("#gantt", tasks, {
+        view_mode: "Day",
+        date_format: "YYYY-MM-DD",
+        custom_popup_html: task => `
+          <div style="padding:10px;">
+            <h4>${task.name}</h4>
+            <p><b>Inicio:</b> ${task.start}</p>
+            <p><b>Fin:</b> ${task.end}</p>
+            <p><b>Avance:</b> ${task.progress}%</p>
+          </div>`
+      });
     }
 
+    document.addEventListener("DOMContentLoaded", cargarTareas);
   </script>
 </body>
 
