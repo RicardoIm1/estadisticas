@@ -16,7 +16,6 @@
       color: #fff;
       margin: 0;
       padding: 2rem;
-      overflow-x: hidden;
     }
 
     h1 {
@@ -37,99 +36,65 @@
     .task-bar.critical {
       fill: #e74c3c !important;
     }
+
+    .refresh {
+      display: block;
+      margin: 20px auto;
+      padding: 10px 20px;
+      background: #1abc9c;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: white;
+      font-size: 1rem;
+      transition: 0.3s;
+    }
+
+    .refresh:hover {
+      background: #16a085;
+    }
   </style>
 </head>
 <body>
   <h1>Ruta Crítica - Proceso Mensual de Información Estadística</h1>
+  <button class="refresh" onclick="cargarTareas()">🔄 Actualizar</button>
   <div id="gantt"></div>
 
   <script>
-    const tasks = [
-      {
-        id: "A1",
-        name: "Recepción de reportes",
-        start: "2025-11-03",
-        end: "2025-11-03",
-        progress: 100,
-        custom_class: "critical"
-      },
-      {
-        id: "B1",
-        name: "Validación y codificación CIE",
-        start: "2025-11-04",
-        end: "2025-11-04",
-        progress: 70,
-        dependencies: "A1",
-        custom_class: "critical"
-      },
-      {
-        id: "C1",
-        name: "Captura en sistema SINBA",
-        start: "2025-11-05",
-        end: "2025-11-06",
-        progress: 40,
-        dependencies: "B1",
-        custom_class: "critical"
-      },
-      {
-        id: "C2",
-        name: "Concentrado por servicio",
-        start: "2025-11-06",
-        end: "2025-11-07",
-        progress: 20,
-        dependencies: "C1",
-        custom_class: "critical"
-      },
-      {
-        id: "D1",
-        name: "Elaboración del informe mensual",
-        start: "2025-11-07",
-        end: "2025-11-08",
-        progress: 0,
-        dependencies: "C2",
-        custom_class: "critical"
-      },
-      {
-        id: "D2",
-        name: "Revisión y firma de responsables",
-        start: "2025-11-08",
-        end: "2025-11-08",
-        progress: 0,
-        dependencies: "D1",
-        custom_class: "critical"
-      },
-      {
-        id: "E1",
-        name: "Supervisión y retroalimentación",
-        start: "2025-11-04",
-        end: "2025-11-05",
-        progress: 50,
-        dependencies: "B1"
-      },
-      {
-        id: "F1",
-        name: "Envío digital y respaldo",
-        start: "2025-11-09",
-        end: "2025-11-09",
-        progress: 0,
-        dependencies: "D2",
-        custom_class: "critical"
-      }
-    ];
+    let gantt;
 
-    const gantt = new Gantt("#gantt", tasks, {
-      view_mode: "Day",
-      date_format: "YYYY-MM-DD",
-      custom_popup_html: function(task) {
-        return `
+    // Llama al backend GAS y obtiene los datos de la hoja
+    function cargarTareas() {
+      google.script.run
+        .withSuccessHandler(renderGantt)
+        .obtenerTareas();
+    }
+
+    // Renderiza el diagrama con los datos recibidos
+    function renderGantt(tasks) {
+      const container = document.getElementById("gantt");
+      container.innerHTML = "";
+
+      if (!tasks || tasks.length === 0) {
+        container.innerHTML = "<p>No hay tareas registradas en la hoja.</p>";
+        return;
+      }
+
+      gantt = new Gantt("#gantt", tasks, {
+        view_mode: "Day",
+        date_format: "YYYY-MM-DD",
+        custom_popup_html: task => `
           <div style="padding:10px;">
             <h4>${task.name}</h4>
             <p><b>Inicio:</b> ${task.start}</p>
             <p><b>Fin:</b> ${task.end}</p>
             <p><b>Avance:</b> ${task.progress}%</p>
-          </div>`;
-      }
-    });
+          </div>`
+      });
+    }
+
+    // Carga automática al abrir
+    document.addEventListener("DOMContentLoaded", cargarTareas);
   </script>
 </body>
 </html>
