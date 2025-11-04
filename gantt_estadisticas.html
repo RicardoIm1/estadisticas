@@ -84,15 +84,57 @@
 
   <script>
     let gantt;
+    // REEMPLAZA ESTA URL CON LA URL DE TU DESPLIEGUE GAS
+    const GAS_URL = "https://script.google.com/macros/s/TU_SCRIPT_ID/exec";
 
-    function cargarTareas() {
+    // Método 1: Usando Fetch con modo 'no-cors' (más simple)
+    async function cargarTareas() {
       const container = document.getElementById("gantt");
       container.innerHTML = '<div class="loading">Cargando tareas...</div>';
       
-      google.script.run
-        .withSuccessHandler(renderGantt)
-        .withFailureHandler(mostrarError)
-        .obtenerTareas();
+      try {
+        // Usamos un proxy CORS público como fallback
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const response = await fetch(proxyUrl + GAS_URL);
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
+        }
+        
+        const tasks = await response.json();
+        renderGantt(tasks);
+      } catch (error) {
+        console.error('Error con fetch:', error);
+        // Fallback: método JSONP
+        cargarConJSONP();
+      }
+    }
+
+    // Método 2: JSONP (sin CORS)
+    function cargarConJSONP() {
+      const container = document.getElementById("gantt");
+      container.innerHTML = '<div class="loading">Cargando con método alternativo...</div>';
+      
+      // Crear script para JSONP
+      const script = document.createElement('script');
+      const callbackName = 'jsonpCallback_' + Date.now();
+      
+      window[callbackName] = function(data) {
+        renderGantt(data);
+        delete window[callbackName];
+        document.head.removeChild(script);
+      };
+      
+      script.src = `${GAS_URL}?callback=${callbackName}`;
+      document.head.appendChild(script);
+      
+      // Timeout por si falla
+      setTimeout(() => {
+        if (window[callbackName]) {
+          mostrarError(new Error('Timeout al cargar datos'));
+          delete window[callbackName];
+        }
+      }, 10000);
     }
 
     function renderGantt(tasks) {
@@ -103,17 +145,9 @@
         return;
       }
 
-      // Validar que las tareas tengan fechas válidas
-      const validTasks = tasks.filter(task => task.start && task.end);
-      
-      if (validTasks.length === 0) {
-        container.innerHTML = '<div class="error">No hay tareas con fechas válidas.</div>';
-        return;
-      }
-
       container.innerHTML = '';
 
-      gantt = new Gantt("#gantt", validTasks, {
+      gantt = new Gantt("#gantt", tasks, {
         view_mode: "Month",
         language: 'es',
         date_format: 'YYYY-MM-DD',
@@ -126,19 +160,18 @@
               <p style="margin:5px 0;"><b>Avance:</b> ${task.progress}%</p>
               ${task.dependencies ? `<p style="margin:5px 0;"><b>Dependencias:</b> ${task.dependencies}</p>` : ''}
             </div>`;
-        },
-        on_click: function(task) {
-          console.log("Tarea clickeada:", task);
-        },
-        on_date_change: function(task, start, end) {
-          console.log("Fecha cambiada:", task, start, end);
-        },
+        }
       });
     }
 
     function mostrarError(error) {
       const container = document.getElementById("gantt");
-      container.innerHTML = `<div class="error">Error al cargar las tareas: ${error.message}</div>`;
+      container.innerHTML = `
+        <div class="error">
+          <p>Error al cargar las tareas: ${error.message}</p>
+          <p>Verifica que la URL de GAS sea correcta y que la aplicación esté desplegada.</p>
+          <p>URL actual: ${GAS_URL}</p>
+        </div>`;
       console.error('Error:', error);
     }
 
