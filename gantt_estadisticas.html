@@ -20,10 +20,8 @@
       display: flex;
       flex-direction: column;
       height: 100vh;
-      /* ← ALTURA COMPLETA */
       overflow: hidden;
-      /* ← SIN SCROLL EN BODY */
-        margin-bottom: 10px; /* ← SOLO ESTA LÍNEA NUEVA */
+      margin-bottom: 10px;
     }
 
     .header-container {
@@ -32,7 +30,6 @@
       align-items: center;
       margin-bottom: 1.5rem;
       flex-shrink: 0;
-      /* ← FIJO */
     }
 
     .header-container h4 {
@@ -78,24 +75,19 @@
       padding: 15px;
       box-shadow: 0 4px 25px rgba(0, 0, 0, 0.3);
       min-height: 0;
-      /* ← CRÍTICO para flex scroll */
       overflow: hidden;
-      /* ← CONTIENE EL SCROLL */
     }
 
     #gantt-chart {
       flex: 1;
       min-height: 0;
-      /* ← CRÍTICO */
       overflow: auto;
-      /* ← SCROLL AQUÍ */
       position: relative;
     }
 
     /* FORZAR SCROLL EN EL SVG DE GANTT */
     #gantt-chart svg.gantt {
       min-height: 600px;
-      /* ← ALTURA MÍNIMA PARA SCROLL */
       display: block;
     }
 
@@ -105,7 +97,6 @@
       text-align: center;
       border-top: 1px solid rgba(255, 255, 255, 0.2);
       flex-shrink: 0;
-      /* ← FIJO */
     }
 
     /* Gantt ultra compacto */
@@ -182,7 +173,6 @@
 
   <script>
     let gantt;
-    // REEMPLAZA CON TU URL DE GAS
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyw9l05roDfp_ygXuMvRXplxJhJ2htrSAih5JVmfje4f_2-aqTosktS_JZgVCSBBQ8U/exec";
 
     function cargarTareas() {
@@ -190,17 +180,14 @@
 
       container.innerHTML = '<div class="loading">Cargando tareas...</div>';
 
-      // JSONP - sin problemas de CORS
       const callbackName = 'ganttCallback_' + Date.now();
 
       window[callbackName] = function (data) {
-        // Limpiar
         delete window[callbackName];
         if (script.parentNode) {
           document.head.removeChild(script);
         }
 
-        // Procesar respuesta
         if (data && data.error) {
           mostrarError(new Error(data.error));
         } else if (!data || data.length === 0) {
@@ -213,7 +200,6 @@
       const script = document.createElement('script');
       script.src = `${GAS_URL}?callback=${callbackName}`;
 
-      // Timeout
       setTimeout(() => {
         if (window[callbackName]) {
           mostrarError(new Error('Timeout: No se pudo conectar con el servidor'));
@@ -240,18 +226,38 @@
         date_format: 'YYYY-MM-DD',
         custom_popup_html: function (task) {
           return `
-            <div style="padding:10px; background:white; color:black; border-radius:15px; box-shadow:0 2px 10px rgba(0,0,0,0.2);">
-              <h4 style="margin:0 0 10px 0;">${task.name}</h4>
-              <p style="margin:5px 0;"><b>Inicio:</b> ${task.start}</p>
-              <p style="margin:5px 0;"><b>Fin:</b> ${task.end}</p>
-              <p style="margin:5px 0;"><b>Avance:</b> ${task.progress}%</p>
-              ${task.dependencies ? `<p style="margin:5px 0;"><b>Dependencias:</b> ${task.dependencies}</p>` : ''}
-              ${task.custom_class ? `<p style="margin:5px 0;"><b>Estado:</b> Ruta Crítica</p>` : ''}
+            <div style="
+              padding: 12px; 
+              background: white; 
+              color: black; 
+              border-radius: 16px; 
+              box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+              border: 1px solid rgba(0,0,0,0.1);
+            ">
+              <h4 style="margin:0 0 8px 0; font-size: 14px; color: #2c3e50;">${task.name}</h4>
+              <p style="margin:4px 0; font-size: 12px;"><b>Inicio:</b> ${task.start}</p>
+              <p style="margin:4px 0; font-size: 12px;"><b>Fin:</b> ${task.end}</p>
+              <p style="margin:4px 0; font-size: 12px;"><b>Avance:</b> ${task.progress}%</p>
+              ${task.dependencies ? `<p style="margin:4px 0; font-size: 12px;"><b>Dependencias:</b> ${task.dependencies}</p>` : ''}
+              ${task.custom_class ? `<p style="margin:4px 0; font-size: 12px; color: #e74c3c;"><b>Estado:</b> Ruta Crítica</p>` : ''}
             </div>`;
         }
       });
 
-      // Actualizar el año del footer
+      // FORZAR ALTURA DEL SVG PARA SCROLL
+      setTimeout(() => {
+        const svg = container.querySelector('svg.gantt');
+        if (svg) {
+          const rowHeight = 24;
+          const headerHeight = 25;
+          const minHeight = 400;
+          const calculatedHeight = Math.max(minHeight, (tasks.length * rowHeight) + headerHeight + 50);
+
+          svg.style.minHeight = calculatedHeight + 'px';
+          console.log('📏 SVG height set to:', calculatedHeight + 'px');
+        }
+      }, 100);
+
       document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
     }
 
@@ -273,54 +279,8 @@
     // Carga automática
     document.addEventListener("DOMContentLoaded", function () {
       cargarTareas();
-      // Actualizar año del footer
       document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
     });
-
-    function renderGantt(tasks) {
-      const container = document.getElementById("gantt-chart");
-
-      if (!tasks || tasks.length === 0) {
-        container.innerHTML = '<div class="error">No hay tareas para mostrar</div>';
-        return;
-      }
-
-      container.innerHTML = '';
-
-      gantt = new Gantt("#gantt-chart", tasks, {
-        view_mode: "Month",
-        language: 'es',
-        date_format: 'YYYY-MM-DD',
-        custom_popup_html: function (task) {
-          return `
-        <div style="padding:10px; background:white; color:black; border-radius:5px; box-shadow:0 2px 10px rgba(0,0,0,0.2);">
-          <h4 style="margin:0 0 10px 0;">${task.name}</h4>
-          <p style="margin:5px 0;"><b>Inicio:</b> ${task.start}</p>
-          <p style="margin:5px 0;"><b>Fin:</b> ${task.end}</p>
-          <p style="margin:5px 0;"><b>Avance:</b> ${task.progress}%</p>
-          ${task.dependencies ? `<p style="margin:5px 0;"><b>Dependencias:</b> ${task.dependencies}</p>` : ''}
-          ${task.custom_class ? `<p style="margin:5px 0;"><b>Estado:</b> Ruta Crítica</p>` : ''}
-        </div>`;
-        }
-      });
-
-      // ✅ FORZAR ALTURA DEL SVG PARA SCROLL
-      setTimeout(() => {
-        const svg = container.querySelector('svg.gantt');
-        if (svg) {
-          // Calcular altura basada en número de tareas
-          const rowHeight = 24; // igual que en CSS
-          const headerHeight = 25; // igual que en CSS
-          const minHeight = 400; // altura mínima
-          const calculatedHeight = Math.max(minHeight, (tasks.length * rowHeight) + headerHeight + 50);
-
-          svg.style.minHeight = calculatedHeight + 'px';
-          console.log('📏 SVG height set to:', calculatedHeight + 'px');
-        }
-      }, 100);
-
-      document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-    }
   </script>
 </body>
 
