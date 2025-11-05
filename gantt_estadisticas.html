@@ -444,16 +444,16 @@
           <i class="fa-solid fa-filter"></i> FILTROS
         </div>
         <div class="filter-controls">
-          <button class="filter-btn active" onclick="aplicarFiltro('todas')">
+          <button class="filter-btn active" data-filter="todas" onclick="aplicarFiltro('todas', this)">
             <i class="fa-solid fa-layer-group"></i> Todas
           </button>
-          <button class="filter-btn" onclick="aplicarFiltro('completadas')">
+          <button class="filter-btn" data-filter="completadas" onclick="aplicarFiltro('completadas', this)">
             <i class="fa-solid fa-check-circle"></i> Completadas
           </button>
-          <button class="filter-btn" onclick="aplicarFiltro('pendientes')">
+          <button class="filter-btn" data-filter="pendientes" onclick="aplicarFiltro('pendientes', this)">
             <i class="fa-solid fa-clock"></i> Pendientes
           </button>
-          <button class="filter-btn critical" onclick="aplicarFiltro('criticas')">
+          <button class="filter-btn critical" data-filter="criticas" onclick="aplicarFiltro('criticas', this)">
             <i class="fa-solid fa-fire"></i> Críticas
           </button>
         </div>
@@ -568,14 +568,14 @@
     }
 
     // ========== FILTROS ==========
-    function aplicarFiltro(tipo) {
+    function aplicarFiltro(tipo, elemento) {
       filtroActual = tipo;
       
       // Actualizar botones activos
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
       });
-      event.target.classList.add('active');
+      elemento.classList.add('active');
       
       if (tareasOriginales.length === 0) return;
       
@@ -663,9 +663,13 @@
       const callbackName = 'ganttCallback_' + Date.now();
 
       window[callbackName] = function (data) {
+        console.log('📊 Datos recibidos:', data);
+        
+        // Limpiar callback
         delete window[callbackName];
-        if (script.parentNode) {
-          document.head.removeChild(script);
+        const scriptElement = document.querySelector(`script[src*="${callbackName}"]`);
+        if (scriptElement && scriptElement.parentNode) {
+          scriptElement.parentNode.removeChild(scriptElement);
         }
 
         if (data && data.error) {
@@ -674,7 +678,8 @@
           mostrarError(new Error('No se encontraron tareas. La hoja puede estar vacía o el formato es incorrecto.'));
         } else {
           tareasOriginales = data;
-          aplicarFiltro(filtroActual);
+          // Aplicar filtro inicial sin evento
+          aplicarFiltroInicial();
         }
       };
 
@@ -689,6 +694,27 @@
       }, 10000);
 
       document.head.appendChild(script);
+    }
+
+    // Función para aplicar filtro inicial sin evento
+    function aplicarFiltroInicial() {
+      let tareasFiltradas;
+      switch(filtroActual) {
+        case 'completadas':
+          tareasFiltradas = tareasOriginales.filter(t => t.progress === 100);
+          break;
+        case 'pendientes':
+          tareasFiltradas = tareasOriginales.filter(t => t.progress < 100);
+          break;
+        case 'criticas':
+          tareasFiltradas = tareasOriginales.filter(t => t.custom_class === 'critical');
+          break;
+        default:
+          tareasFiltradas = tareasOriginales;
+      }
+      
+      renderGantt(tareasFiltradas);
+      actualizarEstadisticas(tareasFiltradas);
     }
 
     function renderGantt(tasks) {
