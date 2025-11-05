@@ -520,9 +520,64 @@
     let gantt;
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwySGHSlPskFLu2iz7E3_bNLO394GQpXQ615vpZhXcIZbgxo-TTgXPvwxuqbiMGUc12/exec";
 
-    // Función mejorada con fetch + timeout
-    async function cargarTareas() {
-      const container = document.getElementById("gantt-chart");
+function cargarTareas() {
+  const container = document.getElementById("gantt-chart");
+  console.log('🔄 Cargando tareas desde GAS...');
+
+  container.innerHTML = `
+    <div class="loading">
+      <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+      Cargando datos en tiempo real...
+    </div>
+  `;
+
+  const callbackName = 'ganttCallback_' + Date.now();
+  console.log('📞 Usando callback:', callbackName);
+
+  window[callbackName] = function(data) {
+    console.log('✅ Datos recibidos via JSONP:', data);
+    
+    // Limpiar callback
+    delete window[callbackName];
+    const script = document.querySelector(`script[src*="${callbackName}"]`);
+    if (script) script.remove();
+
+    if (data && data.error) {
+      mostrarError(new Error(data.error));
+    } else if (!data || data.length === 0) {
+      mostrarError(new Error('No hay tareas para mostrar.'));
+    } else {
+      console.log('🎨 Renderizando', data.length, 'tareas');
+      renderGantt(data);
+      actualizarEstadisticas(data);
+    }
+  };
+
+  // Crear script JSONP
+  const script = document.createElement('script');
+  script.src = `${GAS_URL}?callback=${callbackName}&v=${Date.now()}`;
+  console.log('🔗 URL JSONP:', script.src);
+  
+  script.onerror = function() {
+    console.error('❌ Error cargando script JSONP');
+    mostrarError(new Error('Error de conexión con el servidor.'));
+    delete window[callbackName];
+  };
+
+  document.head.appendChild(script);
+
+  // Timeout
+  setTimeout(() => {
+    if (window[callbackName]) {
+      console.log('⏰ Timeout - No se recibió respuesta');
+      mostrarError(new Error('Timeout: El servidor no respondió.'));
+      delete window[callbackName];
+      
+      const scriptElement = document.querySelector(`script[src*="${callbackName}"]`);
+      if (scriptElement) scriptElement.remove();
+    }
+  }, 15000);
+}      const container = document.getElementById("gantt-chart");
       console.log('🔄 Iniciando carga de tareas...');
 
       container.innerHTML = `
