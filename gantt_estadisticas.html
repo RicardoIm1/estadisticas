@@ -640,38 +640,73 @@
       svg.style.transformOrigin = '0 0';
     }
 
+     // ========== CARGAR Y RENDERIZAR GANTT ==========
     function cargarTareas() {
       const container = document.getElementById("gantt-chart");
-      console.log('🔄 Cargando tareas desde GAS...');
 
       container.innerHTML = `
         <div class="loading">
           <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-          Cargando datos en tiempo real...
+          Cargando tareas...
         </div>
       `;
 
       const callbackName = 'ganttCallback_' + Date.now();
-      console.log('📞 Usando callback:', callbackName);
 
       window[callbackName] = function (data) {
-        console.log('✅ Datos recibidos via JSONP:', data);
-
+        console.log('📊 Datos recibidos:', data);
+        
         // Limpiar callback
         delete window[callbackName];
-        const script = document.querySelector(`script[src*="${callbackName}"]`);
-        if (script) script.remove();
+        const scriptElement = document.querySelector(`script[src*="${callbackName}"]`);
+        if (scriptElement && scriptElement.parentNode) {
+          scriptElement.parentNode.removeChild(scriptElement);
+        }
 
         if (data && data.error) {
           mostrarError(new Error(data.error));
         } else if (!data || data.length === 0) {
-          mostrarError(new Error('No hay tareas para mostrar.'));
+          mostrarError(new Error('No se encontraron tareas. La hoja puede estar vacía o el formato es incorrecto.'));
         } else {
-          console.log('🎨 Renderizando', data.length, 'tareas');
-          renderGantt(data);
-          actualizarEstadisticas(data);
+          tareasOriginales = data;
+          // Aplicar filtro inicial sin evento
+          aplicarFiltroInicial();
         }
       };
+
+      const script = document.createElement('script');
+      script.src = `${GAS_URL}?callback=${callbackName}`;
+
+      setTimeout(() => {
+        if (window[callbackName]) {
+          mostrarError(new Error('Timeout: No se pudo conectar con el servidor'));
+          delete window[callbackName];
+        }
+      }, 10000);
+
+      document.head.appendChild(script);
+    }
+
+    // Función para aplicar filtro inicial sin evento
+    function aplicarFiltroInicial() {
+      let tareasFiltradas;
+      switch(filtroActual) {
+        case 'completadas':
+          tareasFiltradas = tareasOriginales.filter(t => t.progress === 100);
+          break;
+        case 'pendientes':
+          tareasFiltradas = tareasOriginales.filter(t => t.progress < 100);
+          break;
+        case 'criticas':
+          tareasFiltradas = tareasOriginales.filter(t => t.custom_class === 'critical');
+          break;
+        default:
+          tareasFiltradas = tareasOriginales;
+      }
+      
+      renderGantt(tareasFiltradas);
+      actualizarEstadisticas(tareasFiltradas);
+    }
 
       // Crear script JSONP
       const script = document.createElement('script');
