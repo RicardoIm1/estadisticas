@@ -71,12 +71,36 @@
       color: var(--color-accent);
     }
 
+    /* Panel de controles avanzados */
+    .controls-panel {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 1.5rem;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .control-label {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+
     /* Controles de vista */
     .view-controls {
       display: flex;
       gap: 8px;
-      margin-bottom: 1rem;
-      padding: 0 10px;
     }
 
     .view-btn {
@@ -90,6 +114,7 @@
       font-weight: 500;
       transition: all 0.3s ease;
       backdrop-filter: blur(10px);
+      white-space: nowrap;
     }
 
     .view-btn:hover {
@@ -107,6 +132,107 @@
     .view-btn i {
       margin-right: 6px;
       font-size: 0.9rem;
+    }
+
+    /* Filtros y controles adicionales */
+    .filter-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .filter-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.8);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .filter-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .filter-btn.active {
+      background: var(--color-success);
+      color: white;
+      border-color: var(--color-success);
+    }
+
+    .filter-btn.critical {
+      background: rgba(231, 76, 60, 0.2);
+      border-color: rgba(231, 76, 60, 0.5);
+    }
+
+    .filter-btn.critical.active {
+      background: var(--color-error);
+      border-color: var(--color-error);
+    }
+
+    /* Zoom controls */
+    .zoom-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .zoom-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.8);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .zoom-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .zoom-btn:active {
+      transform: translateY(0);
+    }
+
+    /* Date navigation */
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .date-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.8);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .date-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .today-btn {
+      background: rgba(46, 204, 113, 0.2);
+      border-color: rgba(46, 204, 113, 0.5);
+    }
+
+    .today-btn:hover {
+      background: rgba(46, 204, 113, 0.3);
     }
 
     #gantt-container {
@@ -218,6 +344,35 @@
     .error {
       color: var(--color-error);
     }
+
+    /* Stats panel */
+    .stats-panel {
+      display: flex;
+      gap: 20px;
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+
+    .stat-label {
+      font-size: 0.8rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
   </style>
 </head>
 
@@ -242,17 +397,85 @@
       </div>
     </div>
 
-    <!-- Controles de vista -->
-    <div class="view-controls">
-      <button class="view-btn active" onclick="cambiarVista('Day')">
-        <i class="fa-solid fa-calendar-day"></i> Vista Diaria
-      </button>
-      <button class="view-btn" onclick="cambiarVista('Week')">
-        <i class="fa-solid fa-calendar-week"></i> Vista Semanal
-      </button>
-      <button class="view-btn" onclick="cambiarVista('Month')">
-        <i class="fa-solid fa-calendar-alt"></i> Vista Mensual
-      </button>
+    <!-- Panel de controles avanzados -->
+    <div class="controls-panel">
+      <!-- Vistas de tiempo -->
+      <div class="control-group">
+        <div class="control-label">
+          <i class="fa-solid fa-calendar"></i> VISTA DE TIEMPO
+        </div>
+        <div class="view-controls">
+          <button class="view-btn" onclick="cambiarVista('Day')">
+            <i class="fa-solid fa-calendar-day"></i> Día
+          </button>
+          <button class="view-btn" onclick="cambiarVista('Week')">
+            <i class="fa-solid fa-calendar-week"></i> Semana
+          </button>
+          <button class="view-btn active" onclick="cambiarVista('Month')">
+            <i class="fa-solid fa-calendar-alt"></i> Mes
+          </button>
+          <button class="view-btn" onclick="cambiarVista('Quarter')">
+            <i class="fa-solid fa-calendar"></i> Trimestre
+          </button>
+        </div>
+      </div>
+
+      <!-- Navegación de fecha -->
+      <div class="control-group">
+        <div class="control-label">
+          <i class="fa-solid fa-arrows-left-right"></i> NAVEGACIÓN
+        </div>
+        <div class="date-nav">
+          <button class="date-btn" onclick="navegarFecha('prev')">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <button class="date-btn today-btn" onclick="irAHoy()">
+            <i class="fa-solid fa-bullseye"></i> Hoy
+          </button>
+          <button class="date-btn" onclick="navegarFecha('next')">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="control-group">
+        <div class="control-label">
+          <i class="fa-solid fa-filter"></i> FILTROS
+        </div>
+        <div class="filter-controls">
+          <button class="filter-btn active" onclick="aplicarFiltro('todas')">
+            <i class="fa-solid fa-layer-group"></i> Todas
+          </button>
+          <button class="filter-btn" onclick="aplicarFiltro('completadas')">
+            <i class="fa-solid fa-check-circle"></i> Completadas
+          </button>
+          <button class="filter-btn" onclick="aplicarFiltro('pendientes')">
+            <i class="fa-solid fa-clock"></i> Pendientes
+          </button>
+          <button class="filter-btn critical" onclick="aplicarFiltro('criticas')">
+            <i class="fa-solid fa-fire"></i> Críticas
+          </button>
+        </div>
+      </div>
+
+      <!-- Zoom -->
+      <div class="control-group">
+        <div class="control-label">
+          <i class="fa-solid fa-magnifying-glass"></i> ZOOM
+        </div>
+        <div class="zoom-controls">
+          <button class="zoom-btn" onclick="ajustarZoom('out')">
+            <i class="fa-solid fa-minus"></i>
+          </button>
+          <button class="zoom-btn" onclick="ajustarZoom('reset')">
+            <i class="fa-solid fa-expand"></i> 100%
+          </button>
+          <button class="zoom-btn" onclick="ajustarZoom('in')">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+      </div>
     </div>
 
     <div id="gantt-container">
@@ -260,6 +483,30 @@
         <div class="loading">
           <i class="fa-solid fa-spinner fa-spin-pulse"></i>
           Cargando tareas...
+        </div>
+      </div>
+
+      <!-- Panel de estadísticas -->
+      <div class="stats-panel">
+        <div class="stat-item">
+          <div class="stat-value" id="stat-total">0</div>
+          <div class="stat-label">Total Tareas</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-completadas">0</div>
+          <div class="stat-label">Completadas</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-pendientes">0</div>
+          <div class="stat-label">Pendientes</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-criticas">0</div>
+          <div class="stat-label">Ruta Crítica</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-progreso">0%</div>
+          <div class="stat-label">Progreso General</div>
         </div>
       </div>
 
@@ -271,9 +518,13 @@
 
   <script>
     let gantt;
-    let vistaActual = 'Month'; // Vista por defecto
+    let vistaActual = 'Month';
+    let filtroActual = 'todas';
+    let nivelZoom = 1;
+    let tareasOriginales = [];
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyw9l05roDfp_ygXuMvRXplxJhJ2htrSAih5JVmfje4f_2-aqTosktS_JZgVCSBBQ8U/exec";
 
+    // ========== CONTROLES DE VISTA ==========
     function cambiarVista(vista) {
       vistaActual = vista;
       
@@ -283,15 +534,106 @@
       });
       event.target.classList.add('active');
       
-      // Si el Gantt ya está cargado, cambiar la vista
       if (gantt) {
         gantt.change_view_mode(vista);
-        
-        // Ajustar altura después de cambiar vista
-        setTimeout(() => {
-          ajustarAlturaGantt();
-        }, 300);
+        setTimeout(() => ajustarAlturaGantt(), 300);
       }
+    }
+
+    // ========== NAVEGACIÓN DE FECHA ==========
+    function navegarFecha(direccion) {
+      if (!gantt) return;
+      
+      const incrementos = {
+        'Day': 1,
+        'Week': 7,
+        'Month': 30,
+        'Quarter': 90
+      };
+      
+      const incremento = incrementos[vistaActual] || 30;
+      const actualScroll = gantt.gantt.scroll_x;
+      const nuevoScroll = direccion === 'next' 
+        ? actualScroll + (incremento * 50)
+        : actualScroll - (incremento * 50);
+      
+      gantt.gantt.scroll_x = Math.max(0, nuevoScroll);
+      gantt.refresh(gantt.tasks);
+    }
+
+    function irAHoy() {
+      if (!gantt) return;
+      gantt.gantt.scroll_x = 0;
+      gantt.refresh(gantt.tasks);
+    }
+
+    // ========== FILTROS ==========
+    function aplicarFiltro(tipo) {
+      filtroActual = tipo;
+      
+      // Actualizar botones activos
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      if (tareasOriginales.length === 0) return;
+      
+      let tareasFiltradas;
+      switch(tipo) {
+        case 'completadas':
+          tareasFiltradas = tareasOriginales.filter(t => t.progress === 100);
+          break;
+        case 'pendientes':
+          tareasFiltradas = tareasOriginales.filter(t => t.progress < 100);
+          break;
+        case 'criticas':
+          tareasFiltradas = tareasOriginales.filter(t => t.custom_class === 'critical');
+          break;
+        default:
+          tareasFiltradas = tareasOriginales;
+      }
+      
+      renderGantt(tareasFiltradas);
+      actualizarEstadisticas(tareasFiltradas);
+    }
+
+    // ========== ZOOM ==========
+    function ajustarZoom(accion) {
+      const container = document.getElementById('gantt-chart');
+      const svg = container.querySelector('svg.gantt');
+      
+      if (!svg) return;
+      
+      switch(accion) {
+        case 'in':
+          nivelZoom = Math.min(2, nivelZoom + 0.1);
+          break;
+        case 'out':
+          nivelZoom = Math.max(0.5, nivelZoom - 0.1);
+          break;
+        case 'reset':
+          nivelZoom = 1;
+          break;
+      }
+      
+      svg.style.transform = `scale(${nivelZoom})`;
+      svg.style.transformOrigin = '0 0';
+    }
+
+    // ========== ESTADÍSTICAS ==========
+    function actualizarEstadisticas(tareas) {
+      const total = tareas.length;
+      const completadas = tareas.filter(t => t.progress === 100).length;
+      const pendientes = tareas.filter(t => t.progress < 100).length;
+      const criticas = tareas.filter(t => t.custom_class === 'critical').length;
+      const progreso = total > 0 ? Math.round((completadas / total) * 100) : 0;
+      
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-completadas').textContent = completadas;
+      document.getElementById('stat-pendientes').textContent = pendientes;
+      document.getElementById('stat-criticas').textContent = criticas;
+      document.getElementById('stat-progreso').textContent = `${progreso}%`;
     }
 
     function ajustarAlturaGantt() {
@@ -307,6 +649,7 @@
       }
     }
 
+    // ========== CARGAR Y RENDERIZAR GANTT ==========
     function cargarTareas() {
       const container = document.getElementById("gantt-chart");
 
@@ -330,7 +673,8 @@
         } else if (!data || data.length === 0) {
           mostrarError(new Error('No se encontraron tareas. La hoja puede estar vacía o el formato es incorrecto.'));
         } else {
-          renderGantt(data);
+          tareasOriginales = data;
+          aplicarFiltro(filtroActual);
         }
       };
 
@@ -354,19 +698,18 @@
         container.innerHTML = `
           <div class="error">
             <i class="fa-solid fa-triangle-exclamation"></i>
-            No hay tareas para mostrar
+            No hay tareas para mostrar con el filtro actual
           </div>
         `;
+        actualizarEstadisticas([]);
         return;
       }
 
-      // Guardar tareas para ajustes de altura
       window.tareasActuales = tasks;
-
       container.innerHTML = '';
 
       gantt = new Gantt("#gantt-chart", tasks, {
-        view_mode: vistaActual, // Usar la vista actual
+        view_mode: vistaActual,
         language: 'es',
         date_format: 'YYYY-MM-DD',
         custom_popup_html: function (task) {
@@ -414,11 +757,11 @@
         }
       });
 
-      // Ajustar altura inicial
       setTimeout(() => {
         ajustarAlturaGantt();
       }, 100);
 
+      actualizarEstadisticas(tasks);
       document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
     }
 
@@ -444,13 +787,11 @@
       const rol = localStorage.getItem('rol');
       const loginTime = localStorage.getItem('loginTime');
 
-      // Si NO hay sesión activa, redirigir AL LOGIN
       if (!usuario || !rol || !loginTime) {
         window.location.href = '/estadisticas/login.html';
         return false;
       }
 
-      // Verificar expiración (24 horas)
       const ahora = Date.now();
       const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
 
@@ -460,7 +801,6 @@
         return false;
       }
 
-      // Mostrar en el header
       const userElement = document.getElementById('user-info');
       if (userElement) {
         userElement.innerHTML = `${usuario} (${rol})`;
@@ -469,7 +809,6 @@
       return true;
     }
 
-    // Cerrar sesión
     function cerrarSesion() {
       if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
         localStorage.clear();
@@ -477,20 +816,12 @@
       }
     }
 
-    // Inicialización
+    // ========== INICIALIZACIÓN ==========
     document.addEventListener('DOMContentLoaded', function () {
-      // Verificar sesión
-      if (!verificarAutenticacion()) {
-        return;
-      }
-
-      // Cargar datos del Gantt
+      if (!verificarAutenticacion()) return;
+      
       cargarTareas();
-      
-      // Actualizar footer
       document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-      
-      // Hacer función global
       window.cerrarSesion = cerrarSesion;
     });
   </script>
