@@ -555,6 +555,87 @@
       }
     }
 
+     // ========== NAVEGACIÓN DE FECHA ==========
+    function navegarFecha(direccion) {
+      if (!gantt) return;
+      
+      const incrementos = {
+        'Day': 1,
+        'Week': 7,
+        'Month': 30,
+        'Quarter': 90
+      };
+      
+      const incremento = incrementos[vistaActual] || 30;
+      const actualScroll = gantt.gantt.scroll_x;
+      const nuevoScroll = direccion === 'next' 
+        ? actualScroll + (incremento * 50)
+        : actualScroll - (incremento * 50);
+      
+      gantt.gantt.scroll_x = Math.max(0, nuevoScroll);
+      gantt.refresh(gantt.tasks);
+    }
+
+    function irAHoy() {
+      if (!gantt) return;
+      gantt.gantt.scroll_x = 0;
+      gantt.refresh(gantt.tasks);
+    }
+
+    // ========== FILTROS ==========
+    function aplicarFiltro(tipo) {
+      filtroActual = tipo;
+      
+      // Actualizar botones activos
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      if (tareasOriginales.length === 0) return;
+      
+      let tareasFiltradas;
+      switch(tipo) {
+        case 'completadas':
+          tareasFiltradas = tareasOriginales.filter(t => t.progress === 100);
+          break;
+        case 'pendientes':
+          tareasFiltradas = tareasOriginales.filter(t => t.progress < 100);
+          break;
+        case 'criticas':
+          tareasFiltradas = tareasOriginales.filter(t => t.custom_class === 'critical');
+          break;
+        default:
+          tareasFiltradas = tareasOriginales;
+      }
+      
+      renderGantt(tareasFiltradas);
+      actualizarEstadisticas(tareasFiltradas);
+    }
+
+    // ========== ZOOM ==========
+    function ajustarZoom(accion) {
+      const container = document.getElementById('gantt-chart');
+      const svg = container.querySelector('svg.gantt');
+      
+      if (!svg) return;
+      
+      switch(accion) {
+        case 'in':
+          nivelZoom = Math.min(2, nivelZoom + 0.1);
+          break;
+        case 'out':
+          nivelZoom = Math.max(0.5, nivelZoom - 0.1);
+          break;
+        case 'reset':
+          nivelZoom = 1;
+          break;
+      }
+      
+      svg.style.transform = `scale(${nivelZoom})`;
+      svg.style.transformOrigin = '0 0';
+    }
+
     function cargarTareas() {
       const container = document.getElementById("gantt-chart");
       console.log('🔄 Cargando tareas desde GAS...');
@@ -745,3 +826,4 @@
 
 
 </html>
+
