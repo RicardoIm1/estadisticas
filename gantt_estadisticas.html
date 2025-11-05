@@ -521,6 +521,39 @@
   <script>
     let gantt;
     const GAS_URL = "https://script.google.com/macros/s/AKfycbwySGHSlPskFLu2iz7E3_bNLO394GQpXQ615vpZhXcIZbgxo-TTgXPvwxuqbiMGUc12/exec";
+    
+    function cambiarVista(vista) {
+      vistaActual = vista;
+      
+      // Actualizar botones activos
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // Si el Gantt ya está cargado, cambiar la vista
+      if (gantt) {
+        gantt.change_view_mode(vista);
+        
+        // Ajustar altura después de cambiar vista
+        setTimeout(() => {
+          ajustarAlturaGantt();
+        }, 300);
+      }
+    }
+
+    function ajustarAlturaGantt() {
+      const container = document.getElementById("gantt-chart");
+      const svg = container.querySelector('svg.gantt');
+      if (svg && window.tareasActuales) {
+        const rowHeight = 28;
+        const headerHeight = 30;
+        const minHeight = 450;
+        const calculatedHeight = Math.max(minHeight, (window.tareasActuales.length * rowHeight) + headerHeight + 60);
+        
+        svg.style.minHeight = calculatedHeight + 'px';
+      }
+    }
 
     function cargarTareas() {
       const container = document.getElementById("gantt-chart");
@@ -709,5 +742,6 @@
     window.cerrarSesion = cerrarSesion;
   </script>
 </body>
+
 
 </html>
