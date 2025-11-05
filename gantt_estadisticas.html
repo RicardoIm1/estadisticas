@@ -320,7 +320,8 @@
       fill: rgba(255, 255, 255, 0.1);
     }
 
-    .loading, .error {
+    .loading,
+    .error {
       text-align: center;
       padding: 40px 20px;
       display: flex;
@@ -331,7 +332,8 @@
       color: white;
     }
 
-    .loading i, .error i {
+    .loading i,
+    .error i {
       font-size: 2rem;
       margin-bottom: 1rem;
       opacity: 0.8;
@@ -518,181 +520,85 @@
 
   <script>
     let gantt;
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbwySGHSlPskFLu2iz7E3_bNLO394GQpXQ615vpZhXcIZbgxo-TTgXPvwxuqbiMGUc12/exec";
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbxmCWPl3PUhh_w4CDXibO33d5UdJEbCjmNoJGfCE8j7iCpa8c7qda8PTy6OHSIkdoX/exec";
 
-function cargarTareas() {
-  const container = document.getElementById("gantt-chart");
-  console.log('🔄 Cargando tareas desde GAS...');
-
-  container.innerHTML = `
-    <div class="loading">
-      <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-      Cargando datos en tiempo real...
-    </div>
-  `;
-
-  const callbackName = 'ganttCallback_' + Date.now();
-  console.log('📞 Usando callback:', callbackName);
-
-  window[callbackName] = function(data) {
-    console.log('✅ Datos recibidos via JSONP:', data);
-    
-    // Limpiar callback
-    delete window[callbackName];
-    const script = document.querySelector(`script[src*="${callbackName}"]`);
-    if (script) script.remove();
-
-    if (data && data.error) {
-      mostrarError(new Error(data.error));
-    } else if (!data || data.length === 0) {
-      mostrarError(new Error('No hay tareas para mostrar.'));
-    } else {
-      console.log('🎨 Renderizando', data.length, 'tareas');
-      renderGantt(data);
-      actualizarEstadisticas(data);
-    }
-  };
-
-  // Crear script JSONP
-  const script = document.createElement('script');
-  script.src = `${GAS_URL}?callback=${callbackName}&v=${Date.now()}`;
-  console.log('🔗 URL JSONP:', script.src);
-  
-  script.onerror = function() {
-    console.error('❌ Error cargando script JSONP');
-    mostrarError(new Error('Error de conexión con el servidor.'));
-    delete window[callbackName];
-  };
-
-  document.head.appendChild(script);
-
-  // Timeout
-  setTimeout(() => {
-    if (window[callbackName]) {
-      console.log('⏰ Timeout - No se recibió respuesta');
-      mostrarError(new Error('Timeout: El servidor no respondió.'));
-      delete window[callbackName];
-      
-      const scriptElement = document.querySelector(`script[src*="${callbackName}"]`);
-      if (scriptElement) scriptElement.remove();
-    }
-  }, 15000);
-}      const container = document.getElementById("gantt-chart");
-      console.log('🔄 Iniciando carga de tareas...');
+    function cargarTareas() {
+      const container = document.getElementById("gantt-chart");
+      console.log('🔄 Cargando tareas desde GAS...');
 
       container.innerHTML = `
         <div class="loading">
           <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-          Cargando tareas...
+          Cargando datos en tiempo real...
         </div>
       `;
 
-      try {
-        // Usar fetch en lugar de JSONP
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000);
-        
-        console.log('📡 Haciendo fetch a:', GAS_URL);
-        
-        const response = await fetch(GAS_URL, {
-          method: 'GET',
-          signal: controller.signal,
-          mode: 'no-cors' // ← Importante para evitar CORS
-        });
-        
-        clearTimeout(timeoutId);
-        
-        if (!response.ok) {
-          throw new Error(`Error HTTP: ${response.status}`);
-        }
-        
-        const data = await response.json();
-        console.log('✅ Datos recibidos:', data);
-        
-        if (!data || data.length === 0) {
-          mostrarError(new Error('No se encontraron tareas.'));
-        } else {
-          renderGantt(data);
-          actualizarEstadisticas(data);
-        }
-        
-      } catch (error) {
-        console.error('❌ Error en fetch:', error);
-        
-        // Fallback a JSONP si fetch falla
-        if (error.name === 'TypeError' || error.name === 'AbortError') {
-          console.log('🔄 Intentando con JSONP...');
-          cargarConJSONP();
-        } else {
-          mostrarError(error);
-        }
-      }
-    }
+      const callbackName = 'ganttCallback_' + Date.now();
+      console.log('📞 Usando callback:', callbackName);
 
-    // Fallback JSONP
-    function cargarConJSONP() {
-      const callbackName = 'jsonpCallback_' + Date.now();
-      const container = document.getElementById("gantt-chart");
+      window[callbackName] = function (data) {
+        console.log('✅ Datos recibidos via JSONP:', data);
 
-      window[callbackName] = function(data) {
-        console.log('📊 JSONP - Datos recibidos:', data);
-        
+        // Limpiar callback
         delete window[callbackName];
-        const script = document.getElementById('jsonp-script');
+        const script = document.querySelector(`script[src*="${callbackName}"]`);
         if (script) script.remove();
 
         if (data && data.error) {
           mostrarError(new Error(data.error));
         } else if (!data || data.length === 0) {
-          mostrarError(new Error('No se encontraron tareas.'));
+          mostrarError(new Error('No hay tareas para mostrar.'));
         } else {
+          console.log('🎨 Renderizando', data.length, 'tareas');
           renderGantt(data);
           actualizarEstadisticas(data);
         }
       };
 
+      // Crear script JSONP
       const script = document.createElement('script');
-      script.id = 'jsonp-script';
       script.src = `${GAS_URL}?callback=${callbackName}&v=${Date.now()}`;
-      
-      console.log('🔗 JSONP URL:', script.src);
-      
-      script.onerror = function() {
+      console.log('🔗 URL JSONP:', script.src);
+
+      script.onerror = function () {
         console.error('❌ Error cargando script JSONP');
-        mostrarError(new Error('No se pudo conectar con el servidor'));
+        mostrarError(new Error('Error de conexión con el servidor.'));
         delete window[callbackName];
       };
 
       document.head.appendChild(script);
 
+      // Timeout
       setTimeout(() => {
         if (window[callbackName]) {
-          console.log('⏰ JSONP Timeout');
-          mostrarError(new Error('Timeout: No se pudo conectar con el servidor'));
+          console.log('⏰ Timeout - No se recibió respuesta');
+          mostrarError(new Error('Timeout: El servidor no respondió.'));
           delete window[callbackName];
+
+          const scriptElement = document.querySelector(`script[src*="${callbackName}"]`);
+          if (scriptElement) scriptElement.remove();
         }
       }, 15000);
     }
 
     function actualizarEstadisticas(tasks) {
       console.log('📈 Actualizando estadísticas con:', tasks);
-      
+
       const total = tasks.length;
       const completadas = tasks.filter(t => t.progress === 100).length;
       const pendientes = tasks.filter(t => t.progress < 100).length;
       const criticas = tasks.filter(t => t.custom_class === 'critical').length;
       const progreso = total > 0 ? Math.round((completadas / total) * 100) : 0;
-      
-      console.log('📊 Stats calculadas:', {total, completadas, pendientes, criticas, progreso});
-      
-      // Actualizar DOM
+
+      console.log('📊 Stats:', { total, completadas, pendientes, criticas, progreso });
+
       document.getElementById('stat-total').textContent = total;
       document.getElementById('stat-completadas').textContent = completadas;
       document.getElementById('stat-pendientes').textContent = pendientes;
       document.getElementById('stat-criticas').textContent = criticas;
       document.getElementById('stat-progreso').textContent = `${progreso}%`;
-      
-      console.log('✅ Estadísticas actualizadas en DOM');
+
+      console.log('✅ Estadísticas actualizadas');
     }
 
     function renderGantt(tasks) {
@@ -778,7 +684,7 @@ function cargarTareas() {
     function mostrarError(error) {
       const container = document.getElementById("gantt-chart");
       console.error('🚨 Mostrando error:', error);
-      
+
       container.innerHTML = `
         <div class="error">
           <i class="fa-solid fa-triangle-exclamation"></i>
@@ -797,7 +703,11 @@ function cargarTareas() {
       cargarTareas();
       document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
     });
-</script>
+
+    // Hacer funciones globales
+    window.cargarTareas = cargarTareas;
+    window.cerrarSesion = cerrarSesion;
+  </script>
 </body>
 
 </html>
