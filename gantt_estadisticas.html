@@ -559,7 +559,7 @@
       }
     }
 
-     // ========== NAVEGACIÓN DE FECHA ==========
+    // ========== NAVEGACIÓN DE FECHA ==========
     function navegarFecha(direccion) {
       if (!gantt) return;
       
@@ -587,14 +587,14 @@
     }
 
     // ========== FILTROS ==========
-    function aplicarFiltro(tipo) {
+    function aplicarFiltro(tipo, elemento) {
       filtroActual = tipo;
       
       // Actualizar botones activos
       document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.classList.remove('active');
       });
-      event.target.classList.add('active');
+      elemento.classList.add('active');
       
       if (tareasOriginales.length === 0) return;
       
@@ -640,7 +640,7 @@
       svg.style.transformOrigin = '0 0';
     }
 
-     // ========== CARGAR Y RENDERIZAR GANTT ==========
+    // ========== CARGAR Y RENDERIZAR GANTT ==========
     function cargarTareas() {
       const container = document.getElementById("gantt-chart");
 
@@ -674,40 +674,6 @@
         }
       };
 
-      const script = document.createElement('script');
-      script.src = `${GAS_URL}?callback=${callbackName}`;
-
-      setTimeout(() => {
-        if (window[callbackName]) {
-          mostrarError(new Error('Timeout: No se pudo conectar con el servidor'));
-          delete window[callbackName];
-        }
-      }, 10000);
-
-      document.head.appendChild(script);
-    }
-
-    // Función para aplicar filtro inicial sin evento
-    function aplicarFiltroInicial() {
-      let tareasFiltradas;
-      switch(filtroActual) {
-        case 'completadas':
-          tareasFiltradas = tareasOriginales.filter(t => t.progress === 100);
-          break;
-        case 'pendientes':
-          tareasFiltradas = tareasOriginales.filter(t => t.progress < 100);
-          break;
-        case 'criticas':
-          tareasFiltradas = tareasOriginales.filter(t => t.custom_class === 'critical');
-          break;
-        default:
-          tareasFiltradas = tareasOriginales;
-      }
-      
-      renderGantt(tareasFiltradas);
-      actualizarEstadisticas(tareasFiltradas);
-    }
-
       // Crear script JSONP
       const script = document.createElement('script');
       script.src = `${GAS_URL}?callback=${callbackName}&v=${Date.now()}`;
@@ -732,6 +698,27 @@
           if (scriptElement) scriptElement.remove();
         }
       }, 15000);
+    }
+
+    // Función para aplicar filtro inicial sin evento
+    function aplicarFiltroInicial() {
+      let tareasFiltradas;
+      switch(filtroActual) {
+        case 'completadas':
+          tareasFiltradas = tareasOriginales.filter(t => t.progress === 100);
+          break;
+        case 'pendientes':
+          tareasFiltradas = tareasOriginales.filter(t => t.progress < 100);
+          break;
+        case 'criticas':
+          tareasFiltradas = tareasOriginales.filter(t => t.custom_class === 'critical');
+          break;
+        default:
+          tareasFiltradas = tareasOriginales;
+      }
+      
+      renderGantt(tareasFiltradas);
+      actualizarEstadisticas(tareasFiltradas);
     }
 
     function actualizarEstadisticas(tasks) {
@@ -771,7 +758,7 @@
       container.innerHTML = '';
 
       gantt = new Gantt("#gantt-chart", tasks, {
-        view_mode: "Month",
+        view_mode: vistaActual,
         language: 'es',
         date_format: 'YYYY-MM-DD',
         custom_popup_html: function (task) {
@@ -850,6 +837,13 @@
       `;
     }
 
+    // ========== FUNCIÓN FALTANTE ==========
+    function cerrarSesion() {
+      if (confirm('¿Estás seguro de que deseas salir?')) {
+        window.location.href = 'index.html'; // Ajusta esta URL según tu estructura
+      }
+    }
+
     // Inicialización
     document.addEventListener("DOMContentLoaded", function () {
       console.log('🚀 DOM cargado - Iniciando aplicación');
@@ -862,8 +856,4 @@
     window.cerrarSesion = cerrarSesion;
   </script>
 </body>
-
-
 </html>
-
-
