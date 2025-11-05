@@ -211,32 +211,68 @@
     </div>
 
     <script>
-        document.getElementById('reporteForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = {
-                fecha: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-                persona: document.getElementById('persona').value,
-                tarea: document.getElementById('tarea').value,
-                documentos: document.getElementById('documentos').value,
-                observaciones: document.getElementById('observaciones').value
-            };
+    // URL de tu GAS para guardar reportes
+    const GAS_URL = "https://script.google.com/macros/s/TU_SCRIPT_ID/exec";
 
-            console.log('📤 Enviando reporte:', formData);
+    document.getElementById('reporteForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const submitBtn = this.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        
+        // Deshabilitar botón
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+        
+        const formData = {
+            fecha: new Date().toLocaleDateString('es-MX'), // Formato local
+            persona: document.getElementById('persona').value,
+            tarea: document.getElementById('tarea').value,
+            documentos: document.getElementById('documentos').value,
+            observaciones: document.getElementById('observaciones').value
+        };
+
+        console.log('📤 Enviando reporte:', formData);
+        
+        try {
+            // Enviar a Google Apps Script
+            const response = await fetch(GAS_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
             
-            // Simular envío (aquí conectarías con Google Apps Script)
-            setTimeout(() => {
+            const result = await response.json();
+            console.log('📥 Respuesta:', result);
+            
+            if (result.success) {
+                // ÉXITO
                 document.getElementById('successMessage').style.display = 'block';
                 document.getElementById('reporteForm').reset();
                 
                 setTimeout(() => {
                     document.getElementById('successMessage').style.display = 'none';
                 }, 3000);
-            }, 1000);
-        });
+                
+            } else {
+                // ERROR
+                alert('Error: ' + (result.error || 'No se pudo guardar'));
+            }
+            
+        } catch (error) {
+            console.error('❌ Error de conexión:', error);
+            alert('Error de conexión. Intenta nuevamente.');
+        } finally {
+            // Rehabilitar botón
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
 
-        // Auto-focus en el primer campo
-        document.getElementById('persona').focus();
-    </script>
+    // Auto-focus
+    document.getElementById('persona').focus();
+</script>
 </body>
 </html>
