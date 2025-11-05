@@ -520,7 +520,8 @@
     let gantt;
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyw9l05roDfp_ygXuMvRXplxJhJ2htrSAih5JVmfje4f_2-aqTosktS_JZgVCSBBQ8U/exec";
 
-    function cargarTareas() {
+    // Función mejorada con fetch + timeout
+    async function cargarTareas() {
       const container = document.getElementById("gantt-chart");
       console.log('🔄 Iniciando carga de tareas...');
 
@@ -531,39 +532,87 @@
         </div>
       `;
 
-      const callbackName = 'ganttCallback_' + Date.now();
-      console.log('📞 Callback:', callbackName);
-
-      window[callbackName] = function (data) {
-        console.log('📊 Datos recibidos:', data);
+      try {
+        // Usar fetch en lugar de JSONP
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
         
-        // Limpiar callback
-        delete window[callbackName];
-        const scriptElement = document.querySelector(`script[src*="${callbackName}"]`);
-        if (scriptElement) {
-          scriptElement.remove();
+        console.log('📡 Haciendo fetch a:', GAS_URL);
+        
+        const response = await fetch(GAS_URL, {
+          method: 'GET',
+          signal: controller.signal,
+          mode: 'no-cors' // ← Importante para evitar CORS
+        });
+        
+        clearTimeout(timeoutId);
+        
+        if (!response.ok) {
+          throw new Error(`Error HTTP: ${response.status}`);
         }
+        
+        const data = await response.json();
+        console.log('✅ Datos recibidos:', data);
+        
+        if (!data || data.length === 0) {
+          mostrarError(new Error('No se encontraron tareas.'));
+        } else {
+          renderGantt(data);
+          actualizarEstadisticas(data);
+        }
+        
+      } catch (error) {
+        console.error('❌ Error en fetch:', error);
+        
+        // Fallback a JSONP si fetch falla
+        if (error.name === 'TypeError' || error.name === 'AbortError') {
+          console.log('🔄 Intentando con JSONP...');
+          cargarConJSONP();
+        } else {
+          mostrarError(error);
+        }
+      }
+    }
+
+    // Fallback JSONP
+    function cargarConJSONP() {
+      const callbackName = 'jsonpCallback_' + Date.now();
+      const container = document.getElementById("gantt-chart");
+
+      window[callbackName] = function(data) {
+        console.log('📊 JSONP - Datos recibidos:', data);
+        
+        delete window[callbackName];
+        const script = document.getElementById('jsonp-script');
+        if (script) script.remove();
 
         if (data && data.error) {
           mostrarError(new Error(data.error));
         } else if (!data || data.length === 0) {
           mostrarError(new Error('No se encontraron tareas.'));
         } else {
-          console.log('✅ Renderizando', data.length, 'tareas');
           renderGantt(data);
           actualizarEstadisticas(data);
         }
       };
 
       const script = document.createElement('script');
-      script.src = `${GAS_URL}?callback=${callbackName}&v=${Date.now()}`; // ← Cache buster
-      console.log('🔗 URL llamada:', script.src);
+      script.id = 'jsonp-script';
+      script.src = `${GAS_URL}?callback=${callbackName}&v=${Date.now()}`;
+      
+      console.log('🔗 JSONP URL:', script.src);
+      
+      script.onerror = function() {
+        console.error('❌ Error cargando script JSONP');
+        mostrarError(new Error('No se pudo conectar con el servidor'));
+        delete window[callbackName];
+      };
 
       document.head.appendChild(script);
 
       setTimeout(() => {
         if (window[callbackName]) {
-          console.log('⏰ Timeout - Callback no ejecutado');
+          console.log('⏰ JSONP Timeout');
           mostrarError(new Error('Timeout: No se pudo conectar con el servidor'));
           delete window[callbackName];
         }
@@ -571,7 +620,7 @@
     }
 
     function actualizarEstadisticas(tasks) {
-      console.log('📈 Actualizando estadísticas con:', tasks.length, 'tareas');
+      console.log('📈 Actualizando estadísticas con:', tasks);
       
       const total = tasks.length;
       const completadas = tasks.filter(t => t.progress === 100).length;
@@ -579,16 +628,120 @@
       const criticas = tasks.filter(t => t.custom_class === 'critical').length;
       const progreso = total > 0 ? Math.round((completadas / total) * 100) : 0;
       
-      console.log('📊 Stats:', {total, completadas, pendientes, criticas, progreso});
+      console.log('📊 Stats calculadas:', {total, completadas, pendientes, criticas, progreso});
       
+      // Actualizar DOM
       document.getElementById('stat-total').textContent = total;
       document.getElementById('stat-completadas').textContent = completadas;
       document.getElementById('stat-pendientes').textContent = pendientes;
       document.getElementById('stat-criticas').textContent = criticas;
       document.getElementById('stat-progreso').textContent = `${progreso}%`;
+      
+      console.log('✅ Estadísticas actualizadas en DOM');
     }
 
-    // ... el resto de tus funciones renderGantt, etc.
+    function renderGantt(tasks) {
+      const container = document.getElementById("gantt-chart");
+      console.log('🎨 Renderizando Gantt con:', tasks.length, 'tareas');
+
+      if (!tasks || tasks.length === 0) {
+        container.innerHTML = `
+          <div class="error">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            No hay tareas para mostrar
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+
+      gantt = new Gantt("#gantt-chart", tasks, {
+        view_mode: "Month",
+        language: 'es',
+        date_format: 'YYYY-MM-DD',
+        custom_popup_html: function (task) {
+          return `
+            <div style="
+              padding: 16px; 
+              background: white; 
+              color: #2c3e50; 
+              border-radius: 12px; 
+              box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+              border: 1px solid rgba(0,0,0,0.1);
+              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+              max-width: 300px;
+            ">
+              <h4 style="margin:0 0 12px 0; font-size: 16px; color: #2c3e50; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 8px;">
+                ${task.name}
+              </h4>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <p style="margin:0; font-size: 13px; display: flex; justify-content: space-between;">
+                  <span style="font-weight: 500;">Inicio:</span>
+                  <span>${task.start}</span>
+                </p>
+                <p style="margin:0; font-size: 13px; display: flex; justify-content: space-between;">
+                  <span style="font-weight: 500;">Fin:</span>
+                  <span>${task.end}</span>
+                </p>
+                <p style="margin:0; font-size: 13px; display: flex; justify-content: space-between;">
+                  <span style="font-weight: 500;">Avance:</span>
+                  <span>${task.progress}%</span>
+                </p>
+                ${task.dependencies ? `
+                <p style="margin:0; font-size: 13px; display: flex; justify-content: space-between;">
+                  <span style="font-weight: 500;">Dependencias:</span>
+                  <span>${task.dependencies}</span>
+                </p>
+                ` : ''}
+                ${task.custom_class ? `
+                <p style="margin:0; font-size: 13px; display: flex; justify-content: space-between; color: #e74c3c;">
+                  <span style="font-weight: 600;">Estado:</span>
+                  <span>Ruta Crítica</span>
+                </p>
+                ` : ''}
+              </div>
+            </div>`;
+        }
+      });
+
+      // Ajustar altura
+      setTimeout(() => {
+        const svg = container.querySelector('svg.gantt');
+        if (svg && tasks) {
+          const rowHeight = 28;
+          const headerHeight = 30;
+          const minHeight = 450;
+          const calculatedHeight = Math.max(minHeight, (tasks.length * rowHeight) + headerHeight + 60);
+          svg.style.minHeight = calculatedHeight + 'px';
+        }
+      }, 100);
+
+      console.log('✅ Gantt renderizado');
+    }
+
+    function mostrarError(error) {
+      const container = document.getElementById("gantt-chart");
+      console.error('🚨 Mostrando error:', error);
+      
+      container.innerHTML = `
+        <div class="error">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <p><strong>Error:</strong> ${error.message}</p>
+          <p>URL: ${GAS_URL}</p>
+          <button onclick="cargarTareas()" style="margin-top: 10px; padding: 8px 16px; background: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            Reintentar
+          </button>
+        </div>
+      `;
+    }
+
+    // Inicialización
+    document.addEventListener("DOMContentLoaded", function () {
+      console.log('🚀 DOM cargado - Iniciando aplicación');
+      cargarTareas();
+      document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+    });
 </script>
 </body>
 
