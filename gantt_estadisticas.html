@@ -518,140 +518,11 @@
 
   <script>
     let gantt;
-    let vistaActual = 'Month';
-    let filtroActual = 'todas';
-    let nivelZoom = 1;
-    let tareasOriginales = [];
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyw9l05roDfp_ygXuMvRXplxJhJ2htrSAih5JVmfje4f_2-aqTosktS_JZgVCSBBQ8U/exec";
 
-    // ========== CONTROLES DE VISTA ==========
-    function cambiarVista(vista) {
-      vistaActual = vista;
-      
-      // Actualizar botones activos
-      document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      event.target.classList.add('active');
-      
-      if (gantt) {
-        gantt.change_view_mode(vista);
-        setTimeout(() => ajustarAlturaGantt(), 300);
-      }
-    }
-
-    // ========== NAVEGACIÓN DE FECHA ==========
-    function navegarFecha(direccion) {
-      if (!gantt) return;
-      
-      const incrementos = {
-        'Day': 1,
-        'Week': 7,
-        'Month': 30,
-        'Quarter': 90
-      };
-      
-      const incremento = incrementos[vistaActual] || 30;
-      const actualScroll = gantt.gantt.scroll_x;
-      const nuevoScroll = direccion === 'next' 
-        ? actualScroll + (incremento * 50)
-        : actualScroll - (incremento * 50);
-      
-      gantt.gantt.scroll_x = Math.max(0, nuevoScroll);
-      gantt.refresh(gantt.tasks);
-    }
-
-    function irAHoy() {
-      if (!gantt) return;
-      gantt.gantt.scroll_x = 0;
-      gantt.refresh(gantt.tasks);
-    }
-
-    // ========== FILTROS ==========
-    function aplicarFiltro(tipo, elemento) {
-      filtroActual = tipo;
-      
-      // Actualizar botones activos
-      document.querySelectorAll('.filter-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      elemento.classList.add('active');
-      
-      if (tareasOriginales.length === 0) return;
-      
-      let tareasFiltradas;
-      switch(tipo) {
-        case 'completadas':
-          tareasFiltradas = tareasOriginales.filter(t => t.progress === 100);
-          break;
-        case 'pendientes':
-          tareasFiltradas = tareasOriginales.filter(t => t.progress < 100);
-          break;
-        case 'criticas':
-          tareasFiltradas = tareasOriginales.filter(t => t.custom_class === 'critical');
-          break;
-        default:
-          tareasFiltradas = tareasOriginales;
-      }
-      
-      renderGantt(tareasFiltradas);
-      actualizarEstadisticas(tareasFiltradas);
-    }
-
-    // ========== ZOOM ==========
-    function ajustarZoom(accion) {
-      const container = document.getElementById('gantt-chart');
-      const svg = container.querySelector('svg.gantt');
-      
-      if (!svg) return;
-      
-      switch(accion) {
-        case 'in':
-          nivelZoom = Math.min(2, nivelZoom + 0.1);
-          break;
-        case 'out':
-          nivelZoom = Math.max(0.5, nivelZoom - 0.1);
-          break;
-        case 'reset':
-          nivelZoom = 1;
-          break;
-      }
-      
-      svg.style.transform = `scale(${nivelZoom})`;
-      svg.style.transformOrigin = '0 0';
-    }
-
-    // ========== ESTADÍSTICAS ==========
-    function actualizarEstadisticas(tareas) {
-      const total = tareas.length;
-      const completadas = tareas.filter(t => t.progress === 100).length;
-      const pendientes = tareas.filter(t => t.progress < 100).length;
-      const criticas = tareas.filter(t => t.custom_class === 'critical').length;
-      const progreso = total > 0 ? Math.round((completadas / total) * 100) : 0;
-      
-      document.getElementById('stat-total').textContent = total;
-      document.getElementById('stat-completadas').textContent = completadas;
-      document.getElementById('stat-pendientes').textContent = pendientes;
-      document.getElementById('stat-criticas').textContent = criticas;
-      document.getElementById('stat-progreso').textContent = `${progreso}%`;
-    }
-
-    function ajustarAlturaGantt() {
-      const container = document.getElementById("gantt-chart");
-      const svg = container.querySelector('svg.gantt');
-      if (svg && window.tareasActuales) {
-        const rowHeight = 28;
-        const headerHeight = 30;
-        const minHeight = 450;
-        const calculatedHeight = Math.max(minHeight, (window.tareasActuales.length * rowHeight) + headerHeight + 60);
-        
-        svg.style.minHeight = calculatedHeight + 'px';
-      }
-    }
-
-    // ========== CARGAR Y RENDERIZAR GANTT ==========
     function cargarTareas() {
       const container = document.getElementById("gantt-chart");
+      console.log('🔄 Iniciando carga de tareas...');
 
       container.innerHTML = `
         <div class="loading">
@@ -661,6 +532,7 @@
       `;
 
       const callbackName = 'ganttCallback_' + Date.now();
+      console.log('📞 Callback:', callbackName);
 
       window[callbackName] = function (data) {
         console.log('📊 Datos recibidos:', data);
@@ -668,189 +540,56 @@
         // Limpiar callback
         delete window[callbackName];
         const scriptElement = document.querySelector(`script[src*="${callbackName}"]`);
-        if (scriptElement && scriptElement.parentNode) {
-          scriptElement.parentNode.removeChild(scriptElement);
+        if (scriptElement) {
+          scriptElement.remove();
         }
 
         if (data && data.error) {
           mostrarError(new Error(data.error));
         } else if (!data || data.length === 0) {
-          mostrarError(new Error('No se encontraron tareas. La hoja puede estar vacía o el formato es incorrecto.'));
+          mostrarError(new Error('No se encontraron tareas.'));
         } else {
-          tareasOriginales = data;
-          // Aplicar filtro inicial sin evento
-          aplicarFiltroInicial();
+          console.log('✅ Renderizando', data.length, 'tareas');
+          renderGantt(data);
+          actualizarEstadisticas(data);
         }
       };
 
       const script = document.createElement('script');
-      script.src = `${GAS_URL}?callback=${callbackName}`;
+      script.src = `${GAS_URL}?callback=${callbackName}&v=${Date.now()}`; // ← Cache buster
+      console.log('🔗 URL llamada:', script.src);
+
+      document.head.appendChild(script);
 
       setTimeout(() => {
         if (window[callbackName]) {
+          console.log('⏰ Timeout - Callback no ejecutado');
           mostrarError(new Error('Timeout: No se pudo conectar con el servidor'));
           delete window[callbackName];
         }
-      }, 10000);
-
-      document.head.appendChild(script);
+      }, 15000);
     }
 
-    // Función para aplicar filtro inicial sin evento
-    function aplicarFiltroInicial() {
-      let tareasFiltradas;
-      switch(filtroActual) {
-        case 'completadas':
-          tareasFiltradas = tareasOriginales.filter(t => t.progress === 100);
-          break;
-        case 'pendientes':
-          tareasFiltradas = tareasOriginales.filter(t => t.progress < 100);
-          break;
-        case 'criticas':
-          tareasFiltradas = tareasOriginales.filter(t => t.custom_class === 'critical');
-          break;
-        default:
-          tareasFiltradas = tareasOriginales;
-      }
+    function actualizarEstadisticas(tasks) {
+      console.log('📈 Actualizando estadísticas con:', tasks.length, 'tareas');
       
-      renderGantt(tareasFiltradas);
-      actualizarEstadisticas(tareasFiltradas);
-    }
-
-    function renderGantt(tasks) {
-      const container = document.getElementById("gantt-chart");
-
-      if (!tasks || tasks.length === 0) {
-        container.innerHTML = `
-          <div class="error">
-            <i class="fa-solid fa-triangle-exclamation"></i>
-            No hay tareas para mostrar con el filtro actual
-          </div>
-        `;
-        actualizarEstadisticas([]);
-        return;
-      }
-
-      window.tareasActuales = tasks;
-      container.innerHTML = '';
-
-      gantt = new Gantt("#gantt-chart", tasks, {
-        view_mode: vistaActual,
-        language: 'es',
-        date_format: 'YYYY-MM-DD',
-        custom_popup_html: function (task) {
-          return `
-            <div style="
-              padding: 16px; 
-              background: white; 
-              color: #2c3e50; 
-              border-radius: 12px; 
-              box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-              border: 1px solid rgba(0,0,0,0.1);
-              font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-              max-width: 300px;
-            ">
-              <h4 style="margin:0 0 12px 0; font-size: 16px; color: #2c3e50; font-weight: 600; border-bottom: 1px solid #eee; padding-bottom: 8px;">
-                ${task.name}
-              </h4>
-              <div style="display: flex; flex-direction: column; gap: 6px;">
-                <p style="margin:0; font-size: 13px; display: flex; justify-content: space-between;">
-                  <span style="font-weight: 500;">Inicio:</span>
-                  <span>${task.start}</span>
-                </p>
-                <p style="margin:0; font-size: 13px; display: flex; justify-content: space-between;">
-                  <span style="font-weight: 500;">Fin:</span>
-                  <span>${task.end}</span>
-                </p>
-                <p style="margin:0; font-size: 13px; display: flex; justify-content: space-between;">
-                  <span style="font-weight: 500;">Avance:</span>
-                  <span>${task.progress}%</span>
-                </p>
-                ${task.dependencies ? `
-                <p style="margin:0; font-size: 13px; display: flex; justify-content: space-between;">
-                  <span style="font-weight: 500;">Dependencias:</span>
-                  <span>${task.dependencies}</span>
-                </p>
-                ` : ''}
-                ${task.custom_class ? `
-                <p style="margin:0; font-size: 13px; display: flex; justify-content: space-between; color: #e74c3c;">
-                  <span style="font-weight: 600;">Estado:</span>
-                  <span>Ruta Crítica</span>
-                </p>
-                ` : ''}
-              </div>
-            </div>`;
-        }
-      });
-
-      setTimeout(() => {
-        ajustarAlturaGantt();
-      }, 100);
-
-      actualizarEstadisticas(tasks);
-      document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-    }
-
-    function mostrarError(error) {
-      const container = document.getElementById("gantt-chart");
-      container.innerHTML = `
-        <div class="error">
-          <i class="fa-solid fa-triangle-exclamation"></i>
-          <p><strong>Error:</strong> ${error.message}</p>
-          <p>Posibles soluciones:</p>
-          <ul style="text-align: left; display: inline-block; margin-top: 10px;">
-            <li>Verifica que la hoja "Control_Estadisticas" exista</li>
-            <li>Verifica que haya datos en las columnas A-G</li>
-            <li>Ejecuta la función "probarDatos()" en GAS</li>
-            <li>Verifica que las fechas estén en formato válido</li>
-          </ul>
-        </div>`;
-    }
-
-    // ========== VERIFICACIÓN DE SESIÓN ==========
-    function verificarAutenticacion() {
-      const usuario = localStorage.getItem('usuario');
-      const rol = localStorage.getItem('rol');
-      const loginTime = localStorage.getItem('loginTime');
-
-      if (!usuario || !rol || !loginTime) {
-        window.location.href = '/estadisticas/login.html';
-        return false;
-      }
-
-      const ahora = Date.now();
-      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
-
-      if (horasTranscurridas > 24) {
-        localStorage.clear();
-        window.location.href = '/estadisticas/login.html';
-        return false;
-      }
-
-      const userElement = document.getElementById('user-info');
-      if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-      }
-
-      return true;
-    }
-
-    function cerrarSesion() {
-      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        localStorage.clear();
-        window.location.href = '/estadisticas/login.html';
-      }
-    }
-
-    // ========== INICIALIZACIÓN ==========
-    document.addEventListener('DOMContentLoaded', function () {
-      if (!verificarAutenticacion()) return;
+      const total = tasks.length;
+      const completadas = tasks.filter(t => t.progress === 100).length;
+      const pendientes = tasks.filter(t => t.progress < 100).length;
+      const criticas = tasks.filter(t => t.custom_class === 'critical').length;
+      const progreso = total > 0 ? Math.round((completadas / total) * 100) : 0;
       
-      cargarTareas();
-      document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-      window.cerrarSesion = cerrarSesion;
-    });
-  </script>
+      console.log('📊 Stats:', {total, completadas, pendientes, criticas, progreso});
+      
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-completadas').textContent = completadas;
+      document.getElementById('stat-pendientes').textContent = pendientes;
+      document.getElementById('stat-criticas').textContent = criticas;
+      document.getElementById('stat-progreso').textContent = `${progreso}%`;
+    }
+
+    // ... el resto de tus funciones renderGantt, etc.
+</script>
 </body>
 
 </html>
