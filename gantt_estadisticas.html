@@ -71,6 +71,44 @@
       color: var(--color-accent);
     }
 
+    /* Controles de vista */
+    .view-controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 1rem;
+      padding: 0 10px;
+    }
+
+    .view-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.8);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+    }
+
+    .view-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .view-btn.active {
+      background: var(--color-accent);
+      color: white;
+      border-color: var(--color-accent);
+      box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+    }
+
+    .view-btn i {
+      margin-right: 6px;
+      font-size: 0.9rem;
+    }
+
     #gantt-container {
       flex: 1;
       display: flex;
@@ -204,6 +242,19 @@
       </div>
     </div>
 
+    <!-- Controles de vista -->
+    <div class="view-controls">
+      <button class="view-btn active" onclick="cambiarVista('Day')">
+        <i class="fa-solid fa-calendar-day"></i> Vista Diaria
+      </button>
+      <button class="view-btn" onclick="cambiarVista('Week')">
+        <i class="fa-solid fa-calendar-week"></i> Vista Semanal
+      </button>
+      <button class="view-btn" onclick="cambiarVista('Month')">
+        <i class="fa-solid fa-calendar-alt"></i> Vista Mensual
+      </button>
+    </div>
+
     <div id="gantt-container">
       <div id="gantt-chart">
         <div class="loading">
@@ -220,7 +271,41 @@
 
   <script>
     let gantt;
+    let vistaActual = 'Month'; // Vista por defecto
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyw9l05roDfp_ygXuMvRXplxJhJ2htrSAih5JVmfje4f_2-aqTosktS_JZgVCSBBQ8U/exec";
+
+    function cambiarVista(vista) {
+      vistaActual = vista;
+      
+      // Actualizar botones activos
+      document.querySelectorAll('.view-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // Si el Gantt ya está cargado, cambiar la vista
+      if (gantt) {
+        gantt.change_view_mode(vista);
+        
+        // Ajustar altura después de cambiar vista
+        setTimeout(() => {
+          ajustarAlturaGantt();
+        }, 300);
+      }
+    }
+
+    function ajustarAlturaGantt() {
+      const container = document.getElementById("gantt-chart");
+      const svg = container.querySelector('svg.gantt');
+      if (svg && window.tareasActuales) {
+        const rowHeight = 28;
+        const headerHeight = 30;
+        const minHeight = 450;
+        const calculatedHeight = Math.max(minHeight, (window.tareasActuales.length * rowHeight) + headerHeight + 60);
+        
+        svg.style.minHeight = calculatedHeight + 'px';
+      }
+    }
 
     function cargarTareas() {
       const container = document.getElementById("gantt-chart");
@@ -275,10 +360,13 @@
         return;
       }
 
+      // Guardar tareas para ajustes de altura
+      window.tareasActuales = tasks;
+
       container.innerHTML = '';
 
       gantt = new Gantt("#gantt-chart", tasks, {
-        view_mode: "Month",
+        view_mode: vistaActual, // Usar la vista actual
         language: 'es',
         date_format: 'YYYY-MM-DD',
         custom_popup_html: function (task) {
@@ -326,17 +414,9 @@
         }
       });
 
-      // FORZAR ALTURA DEL SVG PARA SCROLL
+      // Ajustar altura inicial
       setTimeout(() => {
-        const svg = container.querySelector('svg.gantt');
-        if (svg) {
-          const rowHeight = 28;
-          const headerHeight = 30;
-          const minHeight = 450;
-          const calculatedHeight = Math.max(minHeight, (tasks.length * rowHeight) + headerHeight + 60);
-
-          svg.style.minHeight = calculatedHeight + 'px';
-        }
+        ajustarAlturaGantt();
       }, 100);
 
       document.getElementById('footerText').textContent = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
