@@ -104,6 +104,7 @@
         <div class="buscador-wrapper">
           <input type="text" id="buscador" placeholder="🔍 Buscar por cualquier campo..." class="input-busqueda">
         </div>
+
         <table>
           <thead>
             <tr>
@@ -122,306 +123,305 @@
           </tbody>
         </table>
       </div>
+
+      <footer>
+        <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
+      </footer>
     </div>
 
-    <footer>
-      <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
-    </footer>
-  </div>
-
-  <!-- Modal para confirmar eliminación -->
-  <div class="modal-backdrop" id="modalEliminar">
-    <div class="modal">
-      <h3><i class="fas fa-exclamation-triangle"></i> ¿Confirmar eliminación?</h3>
-      <p>Esta acción no se puede deshacer. ¿Está seguro de que desea eliminar este registro?</p>
-      <div class="modal-buttons">
-        <button class="btn-confirm" id="btnConfirmarEliminar"><i class="fas fa-trash"></i> Eliminar</button>
-        <button class="btn-cancel" id="btnCancelarEliminar"><i class="fas fa-times"></i> Cancelar</button>
+    <!-- Modal para confirmar eliminación -->
+    <div class="modal-backdrop" id="modalEliminar">
+      <div class="modal">
+        <h3><i class="fas fa-exclamation-triangle"></i> ¿Confirmar eliminación?</h3>
+        <p>Esta acción no se puede deshacer. ¿Está seguro de que desea eliminar este registro?</p>
+        <div class="modal-buttons">
+          <button class="btn-confirm" id="btnConfirmarEliminar"><i class="fas fa-trash"></i> Eliminar</button>
+          <button class="btn-cancel" id="btnCancelarEliminar"><i class="fas fa-times"></i> Cancelar</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    // Footer dinámico
-    document.getElementById('footerText').innerHTML =
-      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+    <script>
+      // Footer dinámico
+      document.getElementById('footerText').innerHTML =
+        `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
 
-    // ========== FUNCIÓN PARA FORMATEAR FECHAS ==========
-    function formatearFecha(fechaString) {
-      if (!fechaString) return '-';
+      // ========== FUNCIÓN PARA FORMATEAR FECHAS ==========
+      function formatearFecha(fechaString) {
+        if (!fechaString) return '-';
 
-      try {
-        // Si ya es una fecha válida en formato simple
-        if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
-          const fecha = new Date(fechaString + 'T00:00:00');
+        try {
+          // Si ya es una fecha válida en formato simple
+          if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
+            const fecha = new Date(fechaString + 'T00:00:00');
+            return fecha.toLocaleDateString('es-ES', {
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            });
+          }
+
+          // Si viene con hora (formato completo)
+          const fecha = new Date(fechaString);
+
+          // Verificar si es una fecha válida
+          if (isNaN(fecha.getTime())) {
+            return '-';
+          }
+
+          // Formatear a DD/MM/YYYY
           return fecha.toLocaleDateString('es-ES', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
           });
-        }
-
-        // Si viene con hora (formato completo)
-        const fecha = new Date(fechaString);
-
-        // Verificar si es una fecha válida
-        if (isNaN(fecha.getTime())) {
+        } catch (error) {
+          console.error('Error formateando fecha:', fechaString, error);
           return '-';
         }
-
-        // Formatear a DD/MM/YYYY
-        return fecha.toLocaleDateString('es-ES', {
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric'
-        });
-      } catch (error) {
-        console.error('Error formateando fecha:', fechaString, error);
-        return '-';
-      }
-    }
-
-    // ========== estadoSistema.js ==========
-    let intensidadUso = 0;
-    let respiracionInterval;
-
-    function iniciarRespiracion() {
-      const dashboard = document.querySelector('.glass');
-      if (!dashboard) return;
-
-      clearInterval(respiracionInterval);
-      let fase = 0;
-      respiracionInterval = setInterval(() => {
-        fase += 0.04 + Math.random() * 0.02;
-        const intensidad = Math.min(0.2 + intensidadUso / 50, 0.7);
-        const escala = 1 + Math.sin(fase) * intensidad * 0.05;
-        dashboard.style.transform = `scale(${escala})`;
-      }, 100);
-    }
-
-    function setEstado(estado, mensaje = null) {
-      const dashboard = document.querySelector('.glass');
-      const estadoTexto = document.querySelector('#estadoTexto');
-
-      if (!dashboard) {
-        console.warn('⚠️ No se encontró el contenedor .glass');
-        return;
       }
 
-      intensidadUso = Math.min(intensidadUso + 1, 20);
-      /* iniciarRespiracion(); */
-      setTimeout(() => (intensidadUso = Math.max(intensidadUso - 1, 0)), 10000);
+      // ========== estadoSistema.js ==========
+      let intensidadUso = 0;
+      let respiracionInterval;
 
-      dashboard.style.transition = 'background 0.5s ease, box-shadow 0.8s ease, border 0.5s ease';
-      dashboard.classList.remove('loading', 'success', 'error');
+      function iniciarRespiracion() {
+        const dashboard = document.querySelector('.glass');
+        if (!dashboard) return;
 
-      switch (estado) {
-        case 'loading':
-          dashboard.classList.add('loading');
-          break;
-        case 'success':
-          dashboard.classList.add('success');
-          break;
-        case 'error':
-          dashboard.classList.add('error');
-          break;
+        clearInterval(respiracionInterval);
+        let fase = 0;
+        respiracionInterval = setInterval(() => {
+          fase += 0.04 + Math.random() * 0.02;
+          const intensidad = Math.min(0.2 + intensidadUso / 50, 0.7);
+          const escala = 1 + Math.sin(fase) * intensidad * 0.05;
+          dashboard.style.transform = `scale(${escala})`;
+        }, 100);
       }
 
-      if (estadoTexto) {
-        const iconos = {
-          loading: '<i class="fas fa-sync fa-spin"></i> Procesando...',
-          success: '<i class="fas fa-check-circle"></i> Éxito ✅',
-          error: '<i class="fas fa-exclamation-circle"></i> Error ❌'
-        };
-        estadoTexto.innerHTML = mensaje || iconos[estado] || 'Listo';
-        estadoTexto.style.opacity = '1';
-      }
+      function setEstado(estado, mensaje = null) {
+        const dashboard = document.querySelector('.glass');
+        const estadoTexto = document.querySelector('#estadoTexto');
 
-      // 🔄 Restaurar a cristalino en 5 s
-      setTimeout(() => {
-        dashboard.style.transition = 'background 5s ease, box-shadow 5s ease, border 5s ease';
-        dashboard.classList.remove('loading', 'success', 'error');
-      }, 5000);
-    }
-
-    // ========== app.js ==========
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzTd3NQZuEKXIrIjI9qTRBolbeB9RlJ0d0RETuPunYQqE2Xz4860uiwAqGKiXXg3mfK/exec";
-
-    // Variables globales
-    let idParaEliminar = null;
-
-    // Función para cargar datos
-    async function cargarRegistros() {
-      try {
-        console.log('🔄 Cargando registros...');
-        setEstado('loading', '🔄 Cargando registros...');
-
-        const response = await fetch(GAS_URL);
-        const text = await response.text();
-        const data = JSON.parse(text);
-
-        if (data.success) {
-          mostrarTabla(data.rows);
-          setEstado('success', `✅ ${data.rows.length} registros cargados`);
-        } else {
-          throw new Error(data.error || 'Error del servidor');
+        if (!dashboard) {
+          console.warn('⚠️ No se encontró el contenedor .glass');
+          return;
         }
-      } catch (error) {
-        console.error('❌ Error:', error);
-        setEstado('error', '❌ Error: ' + error.message);
-        document.getElementById('tabla-registros').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #ff6b6b;">Error cargando datos</td></tr>';
+
+        intensidadUso = Math.min(intensidadUso + 1, 20);
+        /* iniciarRespiracion(); */
+        setTimeout(() => (intensidadUso = Math.max(intensidadUso - 1, 0)), 10000);
+
+        dashboard.style.transition = 'background 0.5s ease, box-shadow 0.8s ease, border 0.5s ease';
+        dashboard.classList.remove('loading', 'success', 'error');
+
+        switch (estado) {
+          case 'loading':
+            dashboard.classList.add('loading');
+            break;
+          case 'success':
+            dashboard.classList.add('success');
+            break;
+          case 'error':
+            dashboard.classList.add('error');
+            break;
+        }
+
+        if (estadoTexto) {
+          const iconos = {
+            loading: '<i class="fas fa-sync fa-spin"></i> Procesando...',
+            success: '<i class="fas fa-check-circle"></i> Éxito ✅',
+            error: '<i class="fas fa-exclamation-circle"></i> Error ❌'
+          };
+          estadoTexto.innerHTML = mensaje || iconos[estado] || 'Listo';
+          estadoTexto.style.opacity = '1';
+        }
+
+        // 🔄 Restaurar a cristalino en 5 s
+        setTimeout(() => {
+          dashboard.style.transition = 'background 5s ease, box-shadow 5s ease, border 5s ease';
+          dashboard.classList.remove('loading', 'success', 'error');
+        }, 5000);
       }
-    }
 
-    // Guardar registro - MÉTODO QUE FUNCIONA (con formulario)
-    async function guardar(e) {
-      e.preventDefault();
+      // ========== app.js ==========
+      const GAS_URL = "https://script.google.com/macros/s/AKfycbzTd3NQZuEKXIrIjI9qTRBolbeB9RlJ0d0RETuPunYQqE2Xz4860uiwAqGKiXXg3mfK/exec";
 
-      const id = document.getElementById('id').value;
-      const datos = {
-        folio: document.getElementById('folio').value,
-        nombre: document.getElementById('nombre').value,
-        fechaDefuncion: document.getElementById('fechaDefuncion').value,
-        area: document.getElementById('area').value,
-        edad: document.getElementById('edad').value,
-        sexo: document.getElementById('sexo').value,
-        diagnostico: document.getElementById('diagnostico').value,
-        expediente: document.getElementById('expediente').value,
-        medico: document.getElementById('medico').value,
-        observaciones: document.getElementById('observaciones').value
-      };
+      // Variables globales
+      let idParaEliminar = null;
 
-      if (!datos.nombre) {
-        setEstado('error', '❌ El nombre es obligatorio');
-        return;
+      // Función para cargar datos
+      async function cargarRegistros() {
+        try {
+          console.log('🔄 Cargando registros...');
+          setEstado('loading', '🔄 Cargando registros...');
+
+          const response = await fetch(GAS_URL);
+          const text = await response.text();
+          const data = JSON.parse(text);
+
+          if (data.success) {
+            mostrarTabla(data.rows);
+            setEstado('success', `✅ ${data.rows.length} registros cargados`);
+          } else {
+            throw new Error(data.error || 'Error del servidor');
+          }
+        } catch (error) {
+          console.error('❌ Error:', error);
+          setEstado('error', '❌ Error: ' + error.message);
+          document.getElementById('tabla-registros').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #ff6b6b;">Error cargando datos</td></tr>';
+        }
       }
 
-      console.log('💾 Enviando datos:', datos);
-      setEstado('loading', '💾 Guardando registro...');
+      // Guardar registro - MÉTODO QUE FUNCIONA (con formulario)
+      async function guardar(e) {
+        e.preventDefault();
 
-      try {
-        // Crear formulario que se abre en nueva pestaña (método que funciona)
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = GAS_URL;
-        form.target = '_blank';
-        form.style.display = 'none';
-
-        // Agregar campos individuales
-        const campos = {
-          action: id ? 'updateData' : 'createData',
-          ...datos
+        const id = document.getElementById('id').value;
+        const datos = {
+          folio: document.getElementById('folio').value,
+          nombre: document.getElementById('nombre').value,
+          fechaDefuncion: document.getElementById('fechaDefuncion').value,
+          area: document.getElementById('area').value,
+          edad: document.getElementById('edad').value,
+          sexo: document.getElementById('sexo').value,
+          diagnostico: document.getElementById('diagnostico').value,
+          expediente: document.getElementById('expediente').value,
+          medico: document.getElementById('medico').value,
+          observaciones: document.getElementById('observaciones').value
         };
 
-        if (id) campos.id = id;
+        if (!datos.nombre) {
+          setEstado('error', '❌ El nombre es obligatorio');
+          return;
+        }
 
-        Object.keys(campos).forEach(key => {
-          const input = document.createElement('input');
-          input.name = key;
-          input.value = campos[key] || '';
-          form.appendChild(input);
+        console.log('💾 Enviando datos:', datos);
+        setEstado('loading', '💾 Guardando registro...');
+
+        try {
+          // Crear formulario que se abre en nueva pestaña (método que funciona)
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = GAS_URL;
+          form.target = '_blank';
+          form.style.display = 'none';
+
+          // Agregar campos individuales
+          const campos = {
+            action: id ? 'updateData' : 'createData',
+            ...datos
+          };
+
+          if (id) campos.id = id;
+
+          Object.keys(campos).forEach(key => {
+            const input = document.createElement('input');
+            input.name = key;
+            input.value = campos[key] || '';
+            form.appendChild(input);
+          });
+
+          document.body.appendChild(form);
+          form.submit();
+          document.body.removeChild(form);
+
+          setEstado('success', '✅ Enviando datos... Revisa la nueva pestaña');
+          limpiarForm();
+
+          // Recargar después de 3 segundos
+          setTimeout(() => {
+            cargarRegistros();
+          }, 3000);
+
+        } catch (error) {
+          console.error('❌ Error:', error);
+          setEstado('error', '❌ Error: ' + error.message);
+        }
+      }
+
+      // Eliminar registro - CON MODAL ELEGANTE
+      function solicitarEliminar(id) {
+        idParaEliminar = id;
+        const modal = document.getElementById('modalEliminar');
+        const modalContent = modal.querySelector('.modal');
+
+        modal.style.display = 'flex';
+        setTimeout(() => {
+          modalContent.classList.add('show');
+        }, 10);
+      }
+
+      async function eliminarConfirmado() {
+        if (!idParaEliminar) return;
+
+        try {
+          setEstado('loading', '🗑️ Eliminando registro...');
+
+          // Crear formulario para eliminar
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = GAS_URL;
+          form.target = '_blank';
+          form.style.display = 'none';
+
+          const inputAction = document.createElement('input');
+          inputAction.name = 'action';
+          inputAction.value = 'deleteData';
+          form.appendChild(inputAction);
+
+          const inputId = document.createElement('input');
+          inputId.name = 'id';
+          inputId.value = idParaEliminar;
+          form.appendChild(inputId);
+
+          document.body.appendChild(form);
+          form.submit();
+          document.body.removeChild(form);
+
+          setEstado('success', '✅ Eliminando registro...');
+          cerrarModal();
+
+          setTimeout(() => {
+            cargarRegistros();
+          }, 2000);
+
+        } catch (error) {
+          console.error('❌ Error eliminando:', error);
+          setEstado('error', '❌ Error eliminando: ' + error.message);
+          cerrarModal();
+        }
+      }
+
+      function cerrarModal() {
+        const modal = document.getElementById('modalEliminar');
+        const modalContent = modal.querySelector('.modal');
+
+        modalContent.classList.remove('show');
+        setTimeout(() => {
+          modal.style.display = 'none';
+          idParaEliminar = null;
+        }, 300);
+      }
+
+      // Mostrar tabla
+      function mostrarTabla(registros) {
+        const tbody = document.getElementById('tabla-registros');
+        tbody.innerHTML = '';
+
+        if (!registros || registros.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No hay registros</td></tr>';
+          return;
+        }
+
+        // Ordenar registros por fecha más reciente primero
+        const registrosOrdenados = [...registros].sort((a, b) => {
+          return new Date(b.fechaDefuncion) - new Date(a.fechaDefuncion);
         });
 
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-
-        setEstado('success', '✅ Enviando datos... Revisa la nueva pestaña');
-        limpiarForm();
-
-        // Recargar después de 3 segundos
-        setTimeout(() => {
-          cargarRegistros();
-        }, 3000);
-
-      } catch (error) {
-        console.error('❌ Error:', error);
-        setEstado('error', '❌ Error: ' + error.message);
-      }
-    }
-
-    // Eliminar registro - CON MODAL ELEGANTE
-    function solicitarEliminar(id) {
-      idParaEliminar = id;
-      const modal = document.getElementById('modalEliminar');
-      const modalContent = modal.querySelector('.modal');
-
-      modal.style.display = 'flex';
-      setTimeout(() => {
-        modalContent.classList.add('show');
-      }, 10);
-    }
-
-    async function eliminarConfirmado() {
-      if (!idParaEliminar) return;
-
-      try {
-        setEstado('loading', '🗑️ Eliminando registro...');
-
-        // Crear formulario para eliminar
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = GAS_URL;
-        form.target = '_blank';
-        form.style.display = 'none';
-
-        const inputAction = document.createElement('input');
-        inputAction.name = 'action';
-        inputAction.value = 'deleteData';
-        form.appendChild(inputAction);
-
-        const inputId = document.createElement('input');
-        inputId.name = 'id';
-        inputId.value = idParaEliminar;
-        form.appendChild(inputId);
-
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-
-        setEstado('success', '✅ Eliminando registro...');
-        cerrarModal();
-
-        setTimeout(() => {
-          cargarRegistros();
-        }, 2000);
-
-      } catch (error) {
-        console.error('❌ Error eliminando:', error);
-        setEstado('error', '❌ Error eliminando: ' + error.message);
-        cerrarModal();
-      }
-    }
-
-    function cerrarModal() {
-      const modal = document.getElementById('modalEliminar');
-      const modalContent = modal.querySelector('.modal');
-
-      modalContent.classList.remove('show');
-      setTimeout(() => {
-        modal.style.display = 'none';
-        idParaEliminar = null;
-      }, 300);
-    }
-
-    // Mostrar tabla
-    function mostrarTabla(registros) {
-      const tbody = document.getElementById('tabla-registros');
-      tbody.innerHTML = '';
-
-      if (!registros || registros.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No hay registros</td></tr>';
-        return;
-      }
-
-      // Ordenar registros por fecha más reciente primero
-      const registrosOrdenados = [...registros].sort((a, b) => {
-        return new Date(b.fechaDefuncion) - new Date(a.fechaDefuncion);
-      });
-
-      registrosOrdenados.forEach((registro, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
+        registrosOrdenados.forEach((registro, index) => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
           <td>${index + 1}</td>
           <td>${registro.folio || '-'}</td>
           <td>${registro.nombre || ''}</td>
@@ -438,150 +438,150 @@
             </div>
           </td>
         `;
-        tbody.appendChild(tr);
-      });
-    }
+          tbody.appendChild(tr);
+        });
+      }
 
-    // Editar registro
-    async function editar(id) {
-      try {
-        setEstado('loading', '📝 Cargando datos para editar...');
+      // Editar registro
+      async function editar(id) {
+        try {
+          setEstado('loading', '📝 Cargando datos para editar...');
 
-        const response = await fetch(GAS_URL);
-        const data = await response.json();
+          const response = await fetch(GAS_URL);
+          const data = await response.json();
 
-        if (data.success) {
-          const registro = data.rows.find(r => r.id === id);
-          if (registro) {
-            document.getElementById('id').value = registro.id;
-            document.getElementById('folio').value = registro.folio || '';
-            document.getElementById('nombre').value = registro.nombre || '';
+          if (data.success) {
+            const registro = data.rows.find(r => r.id === id);
+            if (registro) {
+              document.getElementById('id').value = registro.id;
+              document.getElementById('folio').value = registro.folio || '';
+              document.getElementById('nombre').value = registro.nombre || '';
 
-            // Formatear la fecha para el input date (necesita formato YYYY-MM-DD)
-            if (registro.fechaDefuncion) {
-              const fecha = new Date(registro.fechaDefuncion);
-              if (!isNaN(fecha.getTime())) {
-                document.getElementById('fechaDefuncion').value = fecha.toISOString().split('T')[0];
+              // Formatear la fecha para el input date (necesita formato YYYY-MM-DD)
+              if (registro.fechaDefuncion) {
+                const fecha = new Date(registro.fechaDefuncion);
+                if (!isNaN(fecha.getTime())) {
+                  document.getElementById('fechaDefuncion').value = fecha.toISOString().split('T')[0];
+                } else {
+                  document.getElementById('fechaDefuncion').value = '';
+                }
               } else {
                 document.getElementById('fechaDefuncion').value = '';
               }
-            } else {
-              document.getElementById('fechaDefuncion').value = '';
+
+              document.getElementById('area').value = registro.area || '';
+              document.getElementById('edad').value = registro.edad || '';
+              document.getElementById('sexo').value = registro.sexo || '';
+              document.getElementById('diagnostico').value = registro.diagnostico || '';
+              document.getElementById('expediente').value = registro.expediente || '';
+              document.getElementById('medico').value = registro.medico || '';
+              document.getElementById('observaciones').value = registro.observaciones || '';
+
+              // Cambiar texto del botón
+              document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
+              document.getElementById('btn-cancelar').style.display = 'block';
+
+              setEstado('success', '✏️ Modo edición activado');
+              document.querySelector('.formulario').scrollIntoView({ behavior: 'smooth' });
             }
-
-            document.getElementById('area').value = registro.area || '';
-            document.getElementById('edad').value = registro.edad || '';
-            document.getElementById('sexo').value = registro.sexo || '';
-            document.getElementById('diagnostico').value = registro.diagnostico || '';
-            document.getElementById('expediente').value = registro.expediente || '';
-            document.getElementById('medico').value = registro.medico || '';
-            document.getElementById('observaciones').value = registro.observaciones || '';
-
-            // Cambiar texto del botón
-            document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
-            document.getElementById('btn-cancelar').style.display = 'block';
-
-            setEstado('success', '✏️ Modo edición activado');
-            document.querySelector('.formulario').scrollIntoView({ behavior: 'smooth' });
           }
+        } catch (error) {
+          setEstado('error', '❌ Error cargando registro para editar');
         }
-      } catch (error) {
-        setEstado('error', '❌ Error cargando registro para editar');
       }
-    }
 
-    // Cancelar edición
-    function cancelarEdicion() {
-      limpiarForm();
-      setEstado('success', '❌ Edición cancelada');
-    }
+      // Cancelar edición
+      function cancelarEdicion() {
+        limpiarForm();
+        setEstado('success', '❌ Edición cancelada');
+      }
 
-    // Limpiar formulario
-    function limpiarForm() {
-      document.getElementById('crud-form').reset();
-      document.getElementById('id').value = '';
-      document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-save"></i> Guardar';
-      document.getElementById('btn-cancelar').style.display = 'none';
-      setEstado('success', '🧹 Formulario limpiado');
-    }
+      // Limpiar formulario
+      function limpiarForm() {
+        document.getElementById('crud-form').reset();
+        document.getElementById('id').value = '';
+        document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-save"></i> Guardar';
+        document.getElementById('btn-cancelar').style.display = 'none';
+        setEstado('success', '🧹 Formulario limpiado');
+      }
 
-    // Inicialización
-    document.addEventListener('DOMContentLoaded', function () {
-      console.log('🚀 Iniciando aplicación...');
+      // Inicialización
+      document.addEventListener('DOMContentLoaded', function () {
+        console.log('🚀 Iniciando aplicación...');
 
-      document.getElementById('crud-form').addEventListener('submit', guardar);
-      document.getElementById('btn-limpiar').addEventListener('click', limpiarForm);
-      document.getElementById('btn-cancelar').addEventListener('click', cancelarEdicion);
-      document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarConfirmado);
-      document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarModal);
+        document.getElementById('crud-form').addEventListener('submit', guardar);
+        document.getElementById('btn-limpiar').addEventListener('click', limpiarForm);
+        document.getElementById('btn-cancelar').addEventListener('click', cancelarEdicion);
+        document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarConfirmado);
+        document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarModal);
 
-      // Cerrar modal al hacer clic fuera
-      document.getElementById('modalEliminar').addEventListener('click', function (e) {
-        if (e.target === this) {
-          cerrarModal();
-        }
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('modalEliminar').addEventListener('click', function (e) {
+          if (e.target === this) {
+            cerrarModal();
+          }
+        });
+
+        // Cargar datos
+        cargarRegistros();
       });
 
-      // Cargar datos
-      cargarRegistros();
-    });
+      // Funciones globales para los botones
+      window.editar = editar;
+      window.solicitarEliminar = solicitarEliminar;
+    </script>
 
-    // Funciones globales para los botones
-    window.editar = editar;
-    window.solicitarEliminar = solicitarEliminar;
-  </script>
+    <script>
+      // Verificar si el usuario está logueado
+      function verificarAutenticacion() {
+        const usuario = localStorage.getItem('usuario');
+        const rol = localStorage.getItem('rol');
 
-  <script>
-    // Verificar si el usuario está logueado
-    function verificarAutenticacion() {
-      const usuario = localStorage.getItem('usuario');
-      const rol = localStorage.getItem('rol');
+        if (!usuario) {
+          window.location.href = '/estadisticas/login.html';
+          return;
+        }
 
-      if (!usuario) {
-        window.location.href = '/estadisticas/login.html';
-        return;
+        // Mostrar información del usuario
+        console.log('Usuario:', usuario, 'Rol:', rol);
+
+        // Mostrar en la interfaz
+        const userElement = document.getElementById('user-info');
+        if (userElement) {
+          userElement.innerHTML = `${usuario} (${rol})`;
+        }
       }
 
-      // Mostrar información del usuario
-      console.log('Usuario:', usuario, 'Rol:', rol);
-
-      // Mostrar en la interfaz
-      const userElement = document.getElementById('user-info');
-      if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
+      // Cerrar sesión
+      function cerrarSesion() {
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('rol');
+        localStorage.removeItem('loginTime');
+        window.location.href = 'index.html';
       }
-    }
 
-    // Cerrar sesión
-    function cerrarSesion() {
-      localStorage.removeItem('usuario');
-      localStorage.removeItem('rol');
-      localStorage.removeItem('loginTime');
-      window.location.href = 'index.html';
-    }
+      // Verificar al cargar la página
+      window.addEventListener('load', verificarAutenticacion);
+    </script>
 
-    // Verificar al cargar la página
-    window.addEventListener('load', verificarAutenticacion);
-  </script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        const buscador = document.getElementById("buscador");
+        const filas = document.getElementById("tabla-registros");
 
-  <script>
-  document.addEventListener("DOMContentLoaded", () => {
-    const buscador = document.getElementById("buscador");
-    const filas = document.getElementById("tabla-registros");
+        if (!buscador || !filas) return;
 
-    if (!buscador || !filas) return;
+        buscador.addEventListener("keyup", function () {
+          const valor = this.value.toLowerCase().trim();
+          const registros = filas.querySelectorAll("tr");
 
-    buscador.addEventListener("keyup", function () {
-      const valor = this.value.toLowerCase().trim();
-      const registros = filas.querySelectorAll("tr");
-
-      registros.forEach(fila => {
-        const textoFila = fila.textContent.toLowerCase();
-        fila.style.display = textoFila.includes(valor) ? "" : "none";
+          registros.forEach(fila => {
+            const textoFila = fila.textContent.toLowerCase();
+            fila.style.display = textoFila.includes(valor) ? "" : "none";
+          });
+        });
       });
-    });
-  });
-</script>
+    </script>
 
 </body>
 
