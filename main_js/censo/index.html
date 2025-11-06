@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SINBA-SIS-65-P (CENSO)</title>
+<style>
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: #f2f6f8;
+    margin: 2rem;
+  }
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+  }
+  form {
+    max-width: 700px;
+    margin: auto;
+    background: white;
+    padding: 2rem;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: bold;
+  }
+  input, select, textarea {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 0.25rem;
+  }
+  button {
+    margin-top: 2rem;
+    width: 100%;
+    padding: 1rem;
+    background: #2c3e50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #1a252f;
+  }
+</style>
+</head>
+<body>
+<h1>Registro Diario SINBA-SIS-65-P</h1>
+
+<form id="formCenso">
+  <label>Unidad:</label>
+  <input type="text" name="unidad" required>
+
+  <label>Camas ocupadas:</label>
+  <input type="number" name="camas_ocupadas">
+
+  <label>Camas desocupadas:</label>
+  <input type="number" name="camas_desocupadas">
+
+  <label>Fecha:</label>
+  <input type="date" name="fecha">
+
+  <label>Servicio / Sala:</label>
+  <input type="text" name="servicio">
+
+  <label>Nombre del paciente:</label>
+  <input type="text" name="nombre">
+
+  <label>Expediente:</label>
+  <input type="text" name="expediente">
+
+  <label>Ingreso:</label>
+  <select name="ingreso">
+    <option value="">Selecciona</option>
+    <option value="Consulta externa">Consulta externa</option>
+    <option value="Urgencias">Urgencias</option>
+    <option value="Otra unidad">Otra unidad</option>
+  </select>
+
+  <label>Egreso:</label>
+  <select name="egreso">
+    <option value="">Selecciona</option>
+    <option value="Vivo">Vivo</option>
+    <option value="Muerto">Muerto</option>
+  </select>
+
+  <label>Observaciones:</label>
+  <textarea name="observaciones"></textarea>
+
+  <button type="submit">Guardar en Google Sheets</button>
+</form>
+
+<script>
+  const URL_SCRIPT = 'https://script.google.com/macros/s/AKfycbxuNkEWsMKBuaaHAK5iaqqqh1TGM9RKwb2MctM5JK6s0BK1a0JRgblNythZylOjC8dl/exec'; // ⚠️ cambia esto
+
+  document.getElementById('formCenso').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const datos = Object.fromEntries(new FormData(this).entries());
+    const callbackName = 'callback_' + Date.now();
+
+    window[callbackName] = function(respuesta) {
+      alert(respuesta.mensaje || 'Respuesta recibida');
+      delete window[callbackName];
+    };
+
+    const params = new URLSearchParams(datos);
+    params.append('callback', callbackName);
+
+    const script = document.createElement('script');
+    script.src = `${URL_SCRIPT}?${params.toString()}`;
+    document.body.appendChild(script);
+  });
+</script>
+
+</body>
+</html>
