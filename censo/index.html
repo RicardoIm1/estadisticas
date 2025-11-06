@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SINBA-SIS-65-P | Censo Diario</title>
   <link rel="stylesheet" href="../main_css/estilos.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <script src="estadoSistema.js"></script>
   <style>
-    /* === Diseño responsivo del formulario === */
+    /* === Ajustes visuales === */
     .formulario {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -19,7 +20,7 @@
       flex-direction: column;
     }
 
-    .campo label {
+    label {
       font-weight: 600;
       margin-bottom: 0.3rem;
     }
@@ -33,22 +34,22 @@
       width: 100%;
       border-collapse: collapse;
       text-align: left;
+      color: white;
     }
 
-    th,
-    td {
+    th, td {
       padding: 0.6rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+      border-bottom: 1px solid rgba(255,255,255,0.2);
     }
 
     th {
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255,255,255,0.1);
       font-weight: 600;
       text-transform: uppercase;
     }
 
     tr:nth-child(even) {
-      background: rgba(255, 255, 255, 0.05);
+      background: rgba(255,255,255,0.05);
     }
 
     .cargando {
@@ -56,12 +57,6 @@
       padding: 1rem;
       font-style: italic;
       color: #ccc;
-    }
-
-    @media (max-width: 600px) {
-      .titulo-app {
-        font-size: 1.2rem;
-      }
     }
   </style>
 </head>
@@ -74,7 +69,7 @@
 
   <main class="glass card sombra contenedor-central">
     <form id="formCenso" class="formulario">
-      <h2 class="titulo-seccion">Datos del Paciente</h2>
+      <h2 class="titulo-seccion" style="grid-column:1/-1;">Datos del Paciente</h2>
 
       <div class="campo">
         <label for="unidad">Unidad</label>
@@ -102,7 +97,7 @@
       </div>
 
       <div class="campo">
-        <label for="expediente">No. de expediente</label>
+        <label for="expediente">Expediente</label>
         <input type="text" id="expediente" name="expediente">
       </div>
 
@@ -146,10 +141,12 @@
       </div>
 
       <button type="submit" class="boton-principal" style="grid-column: 1 / -1;">💾 Guardar registro</button>
-      <p id="mensaje" class="mensaje-estado" style="grid-column: 1 / -1;"></p>
     </form>
 
-    <!-- === TABLA DE REGISTROS === -->
+    <!-- Indicador de estado -->
+    <div id="message" class="mensaje-estado" style="text-align:center;margin-top:1rem;"></div>
+
+    <!-- === TABLA === -->
     <div class="tabla-wrapper glass card sombra">
       <h2 class="titulo-seccion">Registros guardados</h2>
       <div id="contenedorTabla" class="cargando">Cargando registros...</div>
@@ -161,25 +158,26 @@
   </footer>
 
   <script>
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwg5Dc5QtmcbzRhtjSFXAffylxAtkaRFJSdj7ep-laoYSaU6fnKmBrUzO83rt43RHG9/exec"; // ⚠️ reemplaza
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwg5Dc5QtmcbzRhtjSFXAffylxAtkaRFJSdj7ep-laoYSaU6fnKmBrUzO83rt43RHG9/exec"; // ⚠️ Reemplaza
     const tablaContenedor = document.getElementById("contenedorTabla");
 
-    // === Guardar registro ===
-    document.getElementById("formCenso").addEventListener("submit", function (e) {
+    // === GUARDAR REGISTRO ===
+    document.getElementById("formCenso").addEventListener("submit", function(e) {
       e.preventDefault();
       const datos = Object.fromEntries(new FormData(this).entries());
       datos.action = "save";
 
+      setEstado("loading", "Guardando registro...");
+
       const callbackName = "callback_" + Date.now();
 
-      window[callbackName] = function (respuesta) {
-        const mensaje = document.getElementById("mensaje");
-        mensaje.textContent = respuesta.mensaje;
-        mensaje.className = "mensaje-estado " + (respuesta.exito ? "exito" : "error");
-
+      window[callbackName] = function(respuesta) {
         if (respuesta.exito) {
+          setEstado("success", "Registro guardado exitosamente");
           document.getElementById("formCenso").reset();
-          cargarRegistros(); // refrescar tabla
+          cargarRegistros();
+        } else {
+          setEstado("error", respuesta.mensaje || "Error al guardar");
         }
         delete window[callbackName];
       };
@@ -192,13 +190,15 @@
       document.body.appendChild(script);
     });
 
-    // === Cargar registros existentes ===
+    // === CARGAR REGISTROS ===
     function cargarRegistros() {
+      setEstado("loading", "Actualizando tabla...");
       const callbackName = "callback_" + Date.now();
 
-      window[callbackName] = function (data) {
+      window[callbackName] = function(data) {
         if (!data || !data.length) {
-          tablaContenedor.innerHTML = "<p class='cargando'>Sin registros.</p>";
+          tablaContenedor.innerHTML = "<p class='cargando'>Sin registros aún.</p>";
+          setEstado("success", "Sin registros");
           return;
         }
 
@@ -223,6 +223,7 @@
         html += "</tbody></table>";
         tablaContenedor.innerHTML = html;
 
+        setEstado("success", "Registros actualizados");
         delete window[callbackName];
       };
 
@@ -237,5 +238,4 @@
       new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
   </script>
 </body>
-
 </html>
