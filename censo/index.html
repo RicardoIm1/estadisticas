@@ -3,14 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro Diario SINBA-SIS-65-P</title>
+  <title>SINBA-SIS-65-P | Censo Diario</title>
   <link rel="stylesheet" href="../main_css/estilos.css">
 </head>
 <body class="fondo-gradiente">
 
-  <div class="contenedor-formulario card sombra">
-    <h1 class="titulo-principal">📋 Registro Diario de Movimiento de Pacientes</h1>
+  <!-- === HEADER === -->
+  <header class="header glass sombra">
+    <h1 class="titulo-app">🏥 SINBA-SIS-65-P</h1>
+    <p class="subtitulo-header">Registro diario de movimiento de pacientes</p>
+  </header>
+
+  <!-- === CONTENIDO PRINCIPAL === -->
+  <main class="glass card sombra contenedor-central">
     <form id="formCenso" class="formulario">
+      <h2 class="titulo-seccion">Datos del Paciente</h2>
 
       <div class="fila">
         <div class="campo">
@@ -46,14 +53,14 @@
       </div>
 
       <div class="campo">
-        <label for="nombre">Nombre completo del paciente</label>
+        <label for="nombre">Nombre completo</label>
         <input type="text" id="nombre" name="nombre" required>
       </div>
 
-      <h2 class="subtitulo">Ingreso</h2>
+      <h2 class="titulo-seccion">Ingreso</h2>
       <div class="fila">
         <div class="campo">
-          <label for="ingreso_tipo">Tipo de ingreso</label>
+          <label for="ingreso_tipo">Origen</label>
           <select id="ingreso_tipo" name="ingreso_tipo">
             <option value="">Selecciona</option>
             <option value="Consulta externa">Consulta externa</option>
@@ -67,7 +74,7 @@
         </div>
       </div>
 
-      <h2 class="subtitulo">Egreso</h2>
+      <h2 class="titulo-seccion">Egreso</h2>
       <div class="fila">
         <div class="campo">
           <label for="egreso_tipo">Condición</label>
@@ -88,14 +95,19 @@
         <textarea id="observaciones" name="observaciones" rows="3"></textarea>
       </div>
 
-      <button type="submit" class="boton-principal">Guardar registro</button>
+      <button type="submit" class="boton-principal">💾 Guardar registro</button>
+      <p id="mensaje" class="mensaje-estado"></p>
     </form>
+  </main>
 
-    <p id="mensaje" class="mensaje-estado"></p>
-  </div>
+  <!-- === FOOTER === -->
+  <footer class="footer glass sombra">
+    <p>Hospital Regional de Puerto Vallarta · SINBA-SIS-65-P · <span id="fechaFooter"></span></p>
+  </footer>
 
   <script>
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbxS6giWNNx--aSaW7OR2EvNOORS9Y8HDCiLZn1u3UjSujCiG6WgUn56pYUD29ESnfYc/exec"; // ⚠️ Reemplaza
+    // === Script JSONP ===
+    const URL_SCRIPT = "https://script.google.com/macros/s/TU_DEPLOY_ID/exec"; // ⚠️ reemplaza
 
     document.getElementById("formCenso").addEventListener("submit", function(e) {
       e.preventDefault();
@@ -104,14 +116,17 @@
 
       window[callbackName] = function(respuesta) {
         const mensaje = document.getElementById("mensaje");
+        mensaje.textContent = respuesta.mensaje;
+        mensaje.className = "mensaje-estado " + (respuesta.exito ? "exito" : "error");
+
         if (respuesta.exito) {
-          mensaje.textContent = "✅ " + respuesta.mensaje;
-          mensaje.classList.add("exito");
           document.getElementById("formCenso").reset();
-        } else {
-          mensaje.textContent = "❌ " + respuesta.mensaje;
-          mensaje.classList.add("error");
+          // animación de confirmación (si tienes una clase para eso)
+          const boton = document.querySelector(".boton-principal");
+          boton.classList.add("exito-animado");
+          setTimeout(() => boton.classList.remove("exito-animado"), 1500);
         }
+
         delete window[callbackName];
       };
 
@@ -122,7 +137,11 @@
       script.src = `${URL_SCRIPT}?${params.toString()}`;
       document.body.appendChild(script);
     });
-  </script>
 
+    // === Fecha del footer ===
+    document.getElementById("fechaFooter").textContent = new Date().toLocaleDateString("es-MX", {
+      day: "2-digit", month: "long", year: "numeric"
+    });
+  </script>
 </body>
 </html>
