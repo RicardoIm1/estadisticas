@@ -524,20 +524,39 @@
         const idxFecha = 0;
         const idxHoraCols = [8, 9, 10, 11, 12, 16];
 
-        let html = "<table><thead><tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr></thead><tbody>";
-        // Muestra el registro más reciente al inicio
+        // 🔒 Índices de columnas a ocultar (Unidad=1, Sala=4, Observaciones=15, Registro TS=16)
+        const ocultarIdx = [1, 4, 15, 16];
+
+        let html = "<table><thead><tr>" +
+          headers
+            .map((h, i) => ocultarIdx.includes(i) ? "" : `<th>${h}</th>`)
+            .join("") +
+          "</tr></thead><tbody>";
+
+        // 📌 Mostrar el registro más reciente al inicio
         data = data.reverse();
 
         data.forEach(fila => {
           html += "<tr>";
+
           fila.forEach((celda, i) => {
+            if (ocultarIdx.includes(i)) return; // 👈 salta columnas ocultas
+
             let valor = celda;
             if (i === idxFecha) valor = formatearFecha(celda);
             if (idxHoraCols.includes(i)) valor = formatearHora(celda);
+
             html += `<td>${valor || ""}</td>`;
           });
+
           html += "</tr>";
         });
+
+        html += "</tbody></table>";
+        tablaContenedor.innerHTML = html;
+        setEstado("success");
+        delete window[cb];
+
 
         html += "</tbody></table>";
 
