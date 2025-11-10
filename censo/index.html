@@ -457,19 +457,22 @@
   </script>
 
   <script>
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbw0UcGKKcRTNacnJHAhJz-nTIyeIgJ7G42hg44OkAp317M8oGYenD8iFrqX6A63QBKP/exec"; // tu WebApp JSONP
+    const URL_SCRIPT = "https://script.google.com/macros/s/TU_DEPLOY_ID/exec"; // tu WebApp JSONP
     const form = document.getElementById("formCenso");
+    const tablaContenedor = document.getElementById("contenedorTabla");
+
+    // === setEstado: animaciones de carga/éxito/error ===
+    function setEstado(estado) {
+      const glass = document.querySelector('.glass'); // tu contenedor animado
+      if (!glass) return;
+      glass.classList.remove('loading', 'success', 'error');
+      if (estado) glass.classList.add(estado);
+    }
 
     // Inicializa fecha
     if (document.getElementById("fecha")) document.getElementById("fecha").valueAsDate = new Date();
 
-    // --- Función mínima de estado ---
-    function setEstado(estado) {
-      // reemplaza con animación o visualización real
-      console.log("Estado:", estado);
-    }
-
-    // --- Validación de horas ---
+    // === Validar horas de ingreso/egreso ===
     function validarHoras() {
       if (!form) return { ok: true };
       const ingreso = [
@@ -488,7 +491,7 @@
       return { ok: true };
     }
 
-    // --- Guardar registro (JSONP) ---
+    // === Enviar registro via JSONP ===
     function guardarRegistro() {
       const v = validarHoras();
       if (!v.ok) { setEstado("error"); return; }
@@ -499,16 +502,16 @@
       datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
       datos.action = "save";
 
-      // Callback único
+      setEstado("loading");
+
       const cb = "cb_" + Date.now();
       window[cb] = function (resp) {
         if (resp.exito) {
           setEstado("success");
           form.reset();
           if (document.getElementById("fecha")) document.getElementById("fecha").valueAsDate = new Date();
-          // poner folio en input si llegó
           if (resp.foliador) document.getElementById("foliador").value = resp.foliador;
-          cargarRegistros(); // refresca tabla
+          cargarRegistros();
         } else {
           setEstado("error");
           alert("Error: " + (resp.mensaje || "No se pudo guardar."));
@@ -525,26 +528,24 @@
       document.body.appendChild(s);
     }
 
-    // --- Botón Guardar ---
+    // === Asignar al botón ===
     document.getElementById("btnGuardar")?.addEventListener("click", e => {
       e.preventDefault();
       guardarRegistro();
     });
 
-    // --- Funciones para cargar registros ---
+    // === Cargar registros ===
     function formatearFecha(fechaISO) {
       if (!fechaISO) return "";
-      try {
-        const d = new Date(fechaISO);
-        const dia = String(d.getDate()).padStart(2, "0");
-        const mes = String(d.getMonth() + 1).padStart(2, "0");
-        const anio = d.getFullYear();
-        return `${dia}/${mes}/${anio}`;
-      } catch { return fechaISO; }
+      const d = new Date(fechaISO);
+      if (isNaN(d)) return fechaISO;
+      return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
     }
 
     function formatearHora(valor) {
       if (!valor) return "";
+      const d = new Date(valor);
+      if (!isNaN(d)) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
       if (/^\d{1,2}:\d{2}$/.test(valor)) return valor;
       return "";
     }
@@ -553,7 +554,6 @@
       setEstado("loading");
       const cb = "cb_get_" + Date.now();
       window[cb] = function (data) {
-        const tablaContenedor = document.getElementById("contenedorTabla");
         if (!data || !data.length) {
           if (tablaContenedor) tablaContenedor.innerHTML = "<p class='tiny'>Sin registros aún.</p>";
           setEstado("success");
@@ -567,9 +567,9 @@
           "Servicio destino", "Foliador", "Observaciones", "Registro TS"
         ];
 
-        const ocultarIdx = [1, 4, 16];
         const idxFecha = 0;
         const idxHoraCols = [8, 9, 10, 11, 12, 16];
+        const ocultarIdx = [1, 4, 16];
 
         let html = "<table><thead><tr>" +
           headers.map((h, i) => ocultarIdx.includes(i) ? "" : `<th>${h}</th>`).join("") +
@@ -599,9 +599,48 @@
       document.body.appendChild(s);
     }
 
+    // === Formato HH:MM ===
+    document.querySelectorAll('input[id^="hora_"]').forEach(input => {
+      input.addEventListener('input', e => {
+        let v = e.target.value.replace(/\D/g, '');
+        if (v.length > 4) v = v.slice(0, 4);
+        if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2);
+        e.target.value = v;
+      });
+      input.addEventListener('blur', e => {
+        const val = e.target.value;
+        if (!val) return;
+        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(val)) {
+          e.target.classList.add('error-hora');
+          setTimeout(() => e.target.classList.remove('error-hora'), 1500);
+          e.target.value = '';
+        } else e.target.value = val.padStart(5, '0');
+      });
+    });
+
+    // Inicializar valores guardados
+    window.addEventListener("DOMContentLoaded", () => {
+      const campoFecha = document.getElementById("fecha");
+      const campoServicio = document.getElementById("servicio");
+      const fechaGuardada = localStorage.getItem("ultima_fecha");
+      const servicioGuardado = localStorage.getItem("ultimo_servicio");
+
+      if (campoFecha) {
+        if (fechaGuardada) campoFecha.value = fechaGuardada;
+        else campoFecha.valueAsDate = new Date();
+        campoFecha.addEventListener("change", () => localStorage.setItem("ultima_fecha", campoFecha.value));
+      }
+
+      if (campoServicio) {
+        if (servicioGuardado) campoServicio.value = servicioGuardado;
+        campoServicio.addEventListener("change", () => localStorage.setItem("ultimo_servicio", campoServicio.value));
+      }
+    });
+
     // Carga inicial de registros
     cargarRegistros();
   </script>
+
 
 
 </body>
