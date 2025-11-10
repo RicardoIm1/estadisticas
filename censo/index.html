@@ -495,6 +495,26 @@
         datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
         datos.action = "save";
 
+        // === GENERAR FOLIO DESDE BACKEND SI HAY EGRESO ===
+        const horaVivo = form.hora_egreso_vivo?.value.trim();
+        const horaMuerto = form.hora_egreso_muerto?.value.trim();
+        const foliador = form.foliador;
+        const usuarioCURP = localStorage.getItem('usuario_curp') || '';
+
+        if ((horaVivo || horaMuerto) && !foliador.value) {
+          try {
+            const folioGenerado = await new Promise((resolve, reject) => {
+              google.script.run
+                .withSuccessHandler(f => resolve(f))
+                .withFailureHandler(err => reject(err))
+                .obtenerFolioDiarioBackend(usuarioCURP);
+            });
+            foliador.value = folioGenerado;
+          } catch (err) {
+            console.error("Error al obtener foliador:", err);
+          }
+        }
+
         const cb = "cb_" + Date.now();
         window[cb] = function (resp) {
           if (resp && resp.exito) {
