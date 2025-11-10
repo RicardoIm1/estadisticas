@@ -573,25 +573,6 @@
 
     cargarRegistros();
 
-    // === Persistencia de campos seleccionados ===
-    const campoFecha = document.getElementById("fecha");
-    const campoServicio = document.getElementById("servicio");
-
-    window.addEventListener("DOMContentLoaded", () => {
-      try {
-        const fechaGuardada = localStorage.getItem("ultima_fecha");
-        const servicioGuardado = localStorage.getItem("ultimo_servicio");
-        if (campoFecha) {
-          if (fechaGuardada) campoFecha.value = fechaGuardada;
-          else campoFecha.valueAsDate = new Date();
-        }
-        if (campoServicio && servicioGuardado) campoServicio.value = servicioGuardado;
-      } catch (e) { /* no crítico */ }
-    });
-
-    if (campoFecha) campoFecha.addEventListener("change", () => localStorage.setItem("ultima_fecha", campoFecha.value));
-    if (campoServicio) campoServicio.addEventListener("change", () => localStorage.setItem("ultimo_servicio", campoServicio.value));
-
     // === FORMATO DE HORA 24H (HH:MM) ===
     document.querySelectorAll('input[id^="hora_"]').forEach(input => {
       input.addEventListener('input', e => {
@@ -616,7 +597,31 @@
       });
     });
 
+    window.addEventListener("DOMContentLoaded", () => {
+      const campoFecha = document.getElementById("fecha");
+      const campoServicio = document.getElementById("servicio");
 
+      // Recupera valores guardados
+      const fechaGuardada = localStorage.getItem("ultima_fecha");
+      const servicioGuardado = localStorage.getItem("ultimo_servicio");
+
+      if (campoFecha) {
+        if (fechaGuardada) campoFecha.value = fechaGuardada;
+        else campoFecha.valueAsDate = new Date();
+
+        campoFecha.addEventListener("change", () =>
+          localStorage.setItem("ultima_fecha", campoFecha.value)
+        );
+      }
+
+      if (campoServicio) {
+        if (servicioGuardado) campoServicio.value = servicioGuardado;
+
+        campoServicio.addEventListener("change", () =>
+          localStorage.setItem("ultimo_servicio", campoServicio.value)
+        );
+      }
+    });
   </script>
 </body>
 
