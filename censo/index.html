@@ -1,66 +1,27 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>SINBA-SIS-65-P | Censo Diario</title>
-  <link rel="stylesheet" href="../main_css/estilos.css">
+  <link rel="stylesheet" href="./main_css/estilos.css">
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
   <script src="estadoSistema.js"></script>
   <style>
-    /* === Ajustes visuales === */
-    .formulario {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1rem;
-    }
-
-    .campo {
-      display: flex;
-      flex-direction: column;
-    }
-
-    label {
-      font-weight: 600;
-      margin-bottom: 0.3rem;
-    }
-
-    .tabla-wrapper {
-      margin-top: 2rem;
-      overflow-x: auto;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      text-align: left;
-      color: white;
-    }
-
-    th, td {
-      padding: 0.6rem;
-      border-bottom: 1px solid rgba(255,255,255,0.2);
-    }
-
-    th {
-      background: rgba(255,255,255,0.1);
-      font-weight: 600;
-      text-transform: uppercase;
-    }
-
-    tr:nth-child(even) {
-      background: rgba(255,255,255,0.05);
-    }
-
-    .cargando {
-      text-align: center;
-      padding: 1rem;
-      font-style: italic;
-      color: #ccc;
-    }
+    .formulario { display: grid; grid-template-columns: repeat(auto-fit,minmax(260px,1fr)); gap: 1rem; }
+    .campo { display:flex; flex-direction:column; }
+    label { font-weight:600; margin-bottom:.25rem; }
+    .tabla-wrapper { margin-top:1.2rem; overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; color:white; }
+    th,td { padding:.5rem; border-bottom:1px solid rgba(255,255,255,0.08); }
+    th { text-transform:uppercase; background:rgba(255,255,255,0.04); font-weight:700; font-size:.75rem; }
+    .tiny { font-size:.85rem; opacity:.85; }
+    .mensaje-estado { text-align:center; margin-top: .6rem; min-height:1.6rem; }
+    input[readonly] { background: rgba(255,255,255,0.03); color: #fff; }
+    .grid-row { display:grid; grid-template-columns: repeat(3, 1fr); gap:.6rem; }
+    @media (max-width:720px) { .grid-row { grid-template-columns: 1fr; } }
   </style>
 </head>
-
 <body class="fondo-gradiente">
   <header class="header glass sombra">
     <h1 class="titulo-app">🏥 SINBA-SIS-65-P</h1>
@@ -68,85 +29,125 @@
   </header>
 
   <main class="glass card sombra contenedor-central">
-    <form id="formCenso" class="formulario">
-      <h2 class="titulo-seccion" style="grid-column:1/-1;">Datos del Paciente</h2>
+    <form id="formCenso" class="formulario" autocomplete="off">
+      <h2 class="titulo-seccion" style="grid-column:1/-1">Datos del Paciente</h2>
 
+      <!-- Unidad (siempre fija) -->
       <div class="campo">
         <label for="unidad">Unidad</label>
-        <input type="text" id="unidad" name="unidad" required>
+        <input id="unidad" name="unidad" readonly value="HOSPITAL REGIONAL PUERTO VALLARTA">
       </div>
 
       <div class="campo">
         <label for="fecha">Fecha</label>
-        <input type="date" id="fecha" name="fecha" required>
+        <input id="fecha" name="fecha" type="date" required>
       </div>
 
+      <!-- Servicio (select) -->
       <div class="campo">
         <label for="servicio">Servicio</label>
-        <input type="text" id="servicio" name="servicio">
+        <select id="servicio" name="servicio" required>
+          <option value="">— Selecciona —</option>
+          <option>GINECOLOGIA</option>
+          <option>MEDICINA INTERNA</option>
+          <option>CIRUGIA GENERAL</option>
+          <option>TRAUMATOLOGIA Y ORTOPEDIA</option>
+          <option>PEDIATRIA</option>
+          <option>UCIN</option>
+        </select>
+      </div>
+
+      <!-- Pase de (select) -->
+      <div class="campo">
+        <label for="pase_de">Pase de</label>
+        <select id="pase_de" name="pase_de">
+          <option value="">— Selecciona —</option>
+          <option>GINECOLOGIA</option>
+          <option>MEDICINA INTERNA</option>
+          <option>CIRUGIA GENERAL</option>
+          <option>TRAUMATOLOGIA Y ORTOPEDIA</option>
+          <option>PEDIATRIA</option>
+          <option>UCIN</option>
+        </select>
       </div>
 
       <div class="campo">
         <label for="sala">Sala</label>
-        <input type="text" id="sala" name="sala">
+        <input id="sala" name="sala" type="text">
       </div>
 
       <div class="campo">
-        <label for="numero_cama">Número de cama</label>
-        <input type="text" id="numero_cama" name="numero_cama">
+        <label for="numero_cama">No. cama</label>
+        <input id="numero_cama" name="numero_cama" type="text">
       </div>
 
       <div class="campo">
         <label for="expediente">Expediente</label>
-        <input type="text" id="expediente" name="expediente">
+        <input id="expediente" name="expediente" type="text">
       </div>
 
-      <div class="campo">
+      <div class="campo" style="grid-column:1/-1">
         <label for="nombre">Nombre completo</label>
-        <input type="text" id="nombre" name="nombre" required>
+        <input id="nombre" name="nombre" type="text" required>
+      </div>
+
+      <h3 style="grid-column:1/-1; margin-top:.4rem; font-size:1rem">Ingreso (marcar la hora correspondiente)</h3>
+      <div class="campo">
+        <label for="hora_ingreso_consulta_externa">Consulta externa (HH:MM)</label>
+        <input id="hora_ingreso_consulta_externa" name="hora_ingreso_consulta_externa" type="time">
       </div>
 
       <div class="campo">
-        <label for="ingreso_tipo">Ingreso</label>
-        <select id="ingreso_tipo" name="ingreso_tipo">
-          <option value="">Selecciona</option>
-          <option value="Consulta externa">Consulta externa</option>
-          <option value="Urgencias">Urgencias</option>
-          <option value="Otra unidad">Otra unidad</option>
+        <label for="hora_ingreso_urgencias">Urgencias (HH:MM)</label>
+        <input id="hora_ingreso_urgencias" name="hora_ingreso_urgencias" type="time">
+      </div>
+
+      <div class="campo">
+        <label for="hora_ingreso_otra_unidad">Otra unidad (HH:MM)</label>
+        <input id="hora_ingreso_otra_unidad" name="hora_ingreso_otra_unidad" type="time">
+      </div>
+
+      <h3 style="grid-column:1/-1; margin-top:.4rem; font-size:1rem">Egreso</h3>
+      <div class="campo">
+        <label for="hora_egreso_vivo">Vivo (HH:MM)</label>
+        <input id="hora_egreso_vivo" name="hora_egreso_vivo" type="time">
+      </div>
+
+      <div class="campo">
+        <label for="hora_egreso_muerto">Muerto (HH:MM)</label>
+        <input id="hora_egreso_muerto" name="hora_egreso_muerto" type="time">
+      </div>
+
+      <!-- Servicio destino -->
+      <div class="campo">
+        <label for="servicio_destino">Servicio destino</label>
+        <select id="servicio_destino" name="servicio_destino">
+          <option value="">— Selecciona —</option>
+          <option>GINECOLOGIA</option>
+          <option>MEDICINA INTERNA</option>
+          <option>CIRUGIA GENERAL</option>
+          <option>TRAUMATOLOGIA Y ORTOPEDIA</option>
+          <option>PEDIATRIA</option>
+          <option>UCIN</option>
         </select>
       </div>
 
       <div class="campo">
-        <label for="hora_ingreso">Hora ingreso</label>
-        <input type="time" id="hora_ingreso" name="hora_ingreso">
+        <label for="foliador">Foliador</label>
+        <input id="foliador" name="foliador" type="text">
       </div>
 
-      <div class="campo">
-        <label for="egreso_tipo">Egreso</label>
-        <select id="egreso_tipo" name="egreso_tipo">
-          <option value="">Selecciona</option>
-          <option value="Vivo">Vivo</option>
-          <option value="Muerto">Muerto</option>
-        </select>
-      </div>
-
-      <div class="campo">
-        <label for="hora_egreso">Hora egreso</label>
-        <input type="time" id="hora_egreso" name="hora_egreso">
-      </div>
-
-      <div class="campo" style="grid-column: 1 / -1;">
+      <div class="campo" style="grid-column:1/-1">
         <label for="observaciones">Observaciones</label>
         <textarea id="observaciones" name="observaciones" rows="2"></textarea>
       </div>
 
-      <button type="submit" class="boton-principal" style="grid-column: 1 / -1;">💾 Guardar registro</button>
+      <button type="submit" class="boton-principal" style="grid-column:1/-1">💾 Guardar registro</button>
     </form>
 
-    <!-- Indicador de estado -->
-    <div id="message" class="mensaje-estado" style="text-align:center;margin-top:1rem;"></div>
+    <!-- Indicador de estado (estadoSistema.js maneja el visual) -->
+    <div id="message" class="mensaje-estado"></div>
 
-    <!-- === TABLA === -->
     <div class="tabla-wrapper glass card sombra">
       <h2 class="titulo-seccion">Registros guardados</h2>
       <div id="contenedorTabla" class="cargando">Cargando registros...</div>
@@ -158,84 +159,128 @@
   </footer>
 
   <script>
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwg5Dc5QtmcbzRhtjSFXAffylxAtkaRFJSdj7ep-laoYSaU6fnKmBrUzO83rt43RHG9/exec"; // ⚠️ Reemplaza
-    const tablaContenedor = document.getElementById("contenedorTabla");
+    // URL del Web App (debes publicar el GAS y pegar aquí)
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwFZfgIcaHfTuz-H-KrVHSPlR-p20xN0ZhwCYnBfmxmv-ZP5eljWES2A-KMt6LXVK07/exec"; // <- reemplaza
 
-    // === GUARDAR REGISTRO ===
-    document.getElementById("formCenso").addEventListener("submit", function(e) {
+    const tablaContenedor = document.getElementById("contenedorTabla");
+    const form = document.getElementById("formCenso");
+
+    // Auto set fecha a hoy
+    document.getElementById("fecha").valueAsDate = new Date();
+
+    // Validación: solo una hora de ingreso y solo una de egreso
+    function validarHoras() {
+      const ingreso = [
+        document.getElementById("hora_ingreso_consulta_externa").value,
+        document.getElementById("hora_ingreso_urgencias").value,
+        document.getElementById("hora_ingreso_otra_unidad").value
+      ].filter(Boolean);
+
+      if (ingreso.length > 1) return { ok:false, mensaje: "Solo una hora de INGRESO debe tener valor." };
+
+      const egreso = [
+        document.getElementById("hora_egreso_vivo").value,
+        document.getElementById("hora_egreso_muerto").value
+      ].filter(Boolean);
+
+      if (egreso.length > 1) return { ok:false, mensaje: "Solo una hora de EGRESO debe tener valor." };
+
+      return { ok:true };
+    }
+
+    form.addEventListener("submit", function(e) {
       e.preventDefault();
-      const datos = Object.fromEntries(new FormData(this).entries());
+
+      const v = validarHoras();
+      if (!v.ok) {
+        // Mostrar estado de error visual (sin alert)
+        setEstado("error");
+        return;
+      }
+
+      // Construir datos
+      const fd = new FormData(form);
+      const datos = {};
+      fd.forEach((v,k) => datos[k] = v);
+
+      // Forzar unidad (en cliente también)
+      datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
       datos.action = "save";
 
-      setEstado("loading", "Guardando registro...");
-
-      const callbackName = "callback_" + Date.now();
-
-      window[callbackName] = function(respuesta) {
-        if (respuesta.exito) {
-          setEstado("success", "Registro guardado exitosamente");
-          document.getElementById("formCenso").reset();
+      // JSONP callback name
+      const cb = "cb_" + Date.now();
+      window[cb] = function(resp) {
+        if (resp && resp.exito) {
+          setEstado("success");
+          form.reset();
+          // restaurar fecha a hoy después del reset
+          document.getElementById("fecha").valueAsDate = new Date();
           cargarRegistros();
         } else {
-          setEstado("error", respuesta.mensaje || "Error al guardar");
+          setEstado("error");
+          console.error("Error al guardar:", resp && resp.mensaje);
         }
-        delete window[callbackName];
+        // limpiar
+        setTimeout(()=>{ try{ delete window[cb]; }catch(e){} },1000);
       };
 
+      // Arme query params (incluye callback)
       const params = new URLSearchParams(datos);
-      params.append("callback", callbackName);
+      params.append("callback", cb);
 
-      const script = document.createElement("script");
-      script.src = `${URL_SCRIPT}?${params.toString()}`;
-      document.body.appendChild(script);
+      // Mostrar loading (solo visual)
+      setEstado("loading");
+
+      // JSONP insert
+      const s = document.createElement("script");
+      s.src = `${URL_SCRIPT}?${params.toString()}`;
+      s.onerror = function(){ setEstado("error"); };
+      document.body.appendChild(s);
     });
 
-    // === CARGAR REGISTROS ===
+    // Cargar registros
     function cargarRegistros() {
-      setEstado("loading", "Actualizando tabla...");
-      const callbackName = "callback_" + Date.now();
-
-      window[callbackName] = function(data) {
+      setEstado("loading");
+      const cb = "cb_get_" + Date.now();
+      window[cb] = function(data) {
         if (!data || !data.length) {
-          tablaContenedor.innerHTML = "<p class='cargando'>Sin registros aún.</p>";
-          setEstado("success", "Sin registros");
+          tablaContenedor.innerHTML = "<p class='cargando tiny'>Sin registros aún.</p>";
+          setEstado("success");
+          delete window[cb];
           return;
         }
 
-        const headers = ["Fecha", "Unidad", "Servicio", "Sala", "Cama", "Expediente", "Nombre", "Ingreso", "Egreso", "Observaciones"];
-        let html = "<table><thead><tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr></thead><tbody>";
+        // HEADER visual (más amigable)
+        const headers = [
+          "Fecha","Unidad","Servicio","Pase de","Sala","Cama","Expediente","Nombre",
+          "Ingreso (consulta)","Ingreso (urgencias)","Ingreso (otra)","Egreso (vivo)","Egreso (muerto)",
+          "Servicio destino","Foliador","Observaciones","Registro TS"
+        ];
 
+        let html = "<table><thead><tr>" + headers.map(h=>`<th>${h}</th>`).join("") + "</tr></thead><tbody>";
         data.forEach(r => {
-          html += `<tr>
-            <td>${r[0] || ""}</td>
-            <td>${r[1] || ""}</td>
-            <td>${r[3] || ""}</td>
-            <td>${r[4] || ""}</td>
-            <td>${r[5] || ""}</td>
-            <td>${r[6] || ""}</td>
-            <td>${r[7] || ""}</td>
-            <td>${r[8] || ""}</td>
-            <td>${r[10] || ""}</td>
-            <td>${r[12] || ""}</td>
-          </tr>`;
+          html += "<tr>";
+          // r is array in the same order as HEADER in codigo.gs
+          html += r.map(cell => `<td>${cell || ""}</td>`).join("");
+          html += "</tr>";
         });
-
         html += "</tbody></table>";
-        tablaContenedor.innerHTML = html;
 
-        setEstado("success", "Registros actualizados");
-        delete window[callbackName];
+        tablaContenedor.innerHTML = html;
+        setEstado("success");
+        delete window[cb];
       };
 
       const script = document.createElement("script");
-      script.src = `${URL_SCRIPT}?action=get&callback=${callbackName}`;
+      script.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
+      script.onerror = function(){ setEstado("error"); };
       document.body.appendChild(script);
     }
 
+    // inicio
     cargarRegistros();
-
     document.getElementById("fechaFooter").textContent =
-      new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" });
+      new Date().toLocaleDateString("es-MX", { day:"2-digit", month:"long", year:"numeric" });
   </script>
 </body>
 </html>
