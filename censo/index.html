@@ -456,7 +456,7 @@
     if (ft) ft.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
   </script>
 
-  <!--   <script>
+    <script>
     // === CRUD / UI logic ===
     const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbw0UcGKKcRTNacnJHAhJz-nTIyeIgJ7G42hg44OkAp317M8oGYenD8iFrqX6A63QBKP/exec"; // Reemplaza por tu WebApp URL
 
@@ -679,80 +679,8 @@
         );
       }
     });
-  </script> -->
-  <script>
-    const URL_SCRIPT = "https://script.google.com/macros/s/TU_DEPLOY_ID/exec"; // tu WebApp JSONP
-
-    const form = document.getElementById("formCenso");
-    if (document.getElementById("fecha")) document.getElementById("fecha").valueAsDate = new Date();
-
-    function setEstado(estado) {
-      // ejemplo mínimo, reemplaza con tu animación
-      console.log("Estado:", estado);
-    }
-
-    // Validación de horas
-    function validarHoras() {
-      if (!form) return { ok: true };
-      const ingreso = [
-        form.hora_ingreso_consulta_externa?.value,
-        form.hora_ingreso_urgencias?.value,
-        form.hora_ingreso_otra_unidad?.value
-      ].filter(Boolean);
-      if (ingreso.length > 1) return { ok: false };
-
-      const egreso = [
-        form.hora_egreso_vivo?.value,
-        form.hora_egreso_muerto?.value
-      ].filter(Boolean);
-      if (egreso.length > 1) return { ok: false };
-
-      return { ok: true };
-    }
-
-    // Enviar registro
-    function guardarRegistro() {
-      const v = validarHoras();
-      if (!v.ok) { setEstado("error"); return; }
-
-      const fd = new FormData(form);
-      const datos = {};
-      fd.forEach((v, k) => datos[k] = v);
-      datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
-      datos.action = "save";
-
-      // callback único
-      const cb = "cb_" + Date.now();
-      window[cb] = function (resp) {
-        if (resp.exito) {
-          setEstado("success");
-          form.reset();
-          if (document.getElementById("fecha")) document.getElementById("fecha").valueAsDate = new Date();
-          // poner folio en el input si lo hay
-          if (resp.foliador) document.getElementById("foliador").value = resp.foliador;
-        } else {
-          setEstado("error");
-          alert("Error: " + (resp.mensaje || "No se pudo guardar."));
-        }
-        setTimeout(() => delete window[cb], 500);
-      };
-
-      const params = new URLSearchParams(datos);
-      params.append("callback", cb);
-
-      const s = document.createElement("script");
-      s.src = `${URL_SCRIPT}?${params.toString()}`;
-      s.onerror = () => setEstado("error");
-      document.body.appendChild(s);
-    }
-
-    // Asignar al botón
-    document.getElementById("btnGuardar")?.addEventListener("click", e => {
-      e.preventDefault();
-      guardarRegistro();
-    });
   </script>
-
+  
 </body>
 
 </html>
