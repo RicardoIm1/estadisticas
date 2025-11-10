@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -10,19 +9,14 @@
   <link rel="stylesheet" href="../main_css/estilos.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="../main_js/estadoSistema.js"></script>
-  <!-- === Estilos base === -->
-  <link rel="stylesheet" href="../main_css/estilos.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-  <script src="../main_js/estadoSistema.js"></script>
+
   <style>
     /* === ESTRUCTURA GLOBAL === */
-    html,
-    body {
+    html, body {
       height: 100%;
       margin: 0;
       font-family: 'Poppins', sans-serif;
       overflow: hidden;
-      /* evita scroll general, solo scrollea el contenido */
       background: linear-gradient(135deg, #2c3e50, #4ca1af);
     }
 
@@ -66,9 +60,7 @@
     main.contenedor-central {
       position: absolute;
       top: 70px;
-      /* altura del header */
       bottom: 50px;
-      /* altura del footer */
       left: 0;
       right: 0;
       overflow-y: auto;
@@ -84,7 +76,6 @@
       scroll-behavior: smooth;
     }
 
-    /* Responsivo */
     @media (max-width: 1080px) {
       main.contenedor-central {
         grid-template-columns: 1fr;
@@ -93,87 +84,81 @@
     }
 
     /* === PANELES === */
-    .panel-formulario,
-    .panel-tabla {
-      background: rgba(255, 255, 255, 0.08);
+    .panel-formulario, .panel-tabla {
+      background: rgba(255,255,255,0.08);
       border-radius: 1rem;
       padding: 1.5rem;
-      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 4px 25px rgba(0,0,0,0.15);
       backdrop-filter: blur(12px);
       color: #fff;
       overflow-y: auto;
       max-height: calc(100vh - 180px);
-      /* para evitar que se solape con header/footer */
       transition: transform .3s ease, box-shadow .3s ease;
     }
 
-    .panel-formulario:hover,
-    .panel-tabla:hover {
+    .panel-formulario:hover, .panel-tabla:hover {
       transform: translateY(-2px);
-      box-shadow: 0 6px 25px rgba(255, 255, 255, 0.1);
+      box-shadow: 0 6px 25px rgba(255,255,255,0.1);
     }
 
-    /* === TABLA === */
     .tabla-wrapper {
       overflow-x: auto;
       margin-top: .6rem;
     }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: .5rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+    th { text-transform: uppercase; font-size: .75rem; background: rgba(255,255,255,0.05); }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th,
-    td {
-      padding: 0.5rem;
-      text-align: left;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    th {
-      text-transform: uppercase;
-      font-size: 0.75rem;
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    /* === FORMULARIO === */
     .formulario {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
       gap: 1rem;
     }
+
+    /* === EFECTOS DE ESTADO EN .glass (colores solo) === */
+    .glass {
+      transition: background 0.6s ease, box-shadow 0.6s ease;
+    }
+    .glass.loading {
+      background: linear-gradient(135deg, rgba(30, 144, 255, 0.18), rgba(0, 191, 255, 0.25));
+      box-shadow: 0 0 18px rgba(0, 191, 255, 0.35);
+    }
+    .glass.success {
+      background: linear-gradient(135deg, rgba(0, 255, 127, 0.18), rgba(0, 128, 64, 0.25));
+      box-shadow: 0 0 22px rgba(0, 255, 127, 0.35);
+    }
+    .glass.error {
+      background: linear-gradient(135deg, rgba(255, 0, 64, 0.22), rgba(139, 0, 0, 0.25));
+      box-shadow: 0 0 22px rgba(255, 0, 64, 0.35);
+    }
   </style>
 </head>
 
 <body>
-
+  <!-- .glass envuelve todo; setEstado actuará sobre este elemento -->
   <div class="glass" id="dashboard">
-    <h5>Registro diario del movimiento de pacientes en
-      hospitalización</h5>
+    <h5>Registro diario del movimiento de pacientes en hospitalización</h5>
+
     <div class="header">
       <div class="logo">
-        <a href="/estadisticas"> <img src="../img/logo-hrpv.png" alt="Logo" width="120"></a>
+        <a href="/estadisticas"><img src="../img/logo-hrpv.png" alt="Logo" width="120"></a>
       </div>
       <div>
         <div class="usuario">
           <i class="fa-solid fa-user-circle"></i>
           <span id="user-info"></span>
-          <!-- Botón de cerrar sesión -->
-          <button onclick="cerrarSesion()" class="btn-salir-ultra">
-            Salir
-          </button>
+          <button onclick="cerrarSesion()" class="btn-salir-ultra">Salir</button>
         </div>
       </div>
     </div>
 
     <!-- === CONTENEDOR PRINCIPAL === -->
-    <div class="grid">
+    <main class="contenedor-central">
       <!-- PANEL IZQUIERDO: FORMULARIO -->
       <div class="panel-formulario">
-        <div id="message" class="mensaje-estado"></div>
-        <form id="formCenso" class="formulario" autocomplete="off">
+        <div id="message" class="mensaje-estado" aria-live="polite"></div>
 
+        <form id="formCenso" class="formulario" autocomplete="off">
           <div class="celda">
             <label for="unidad">Unidad</label>
             <input id="unidad" name="unidad" readonly value="HOSPITAL REGIONAL PUERTO VALLARTA">
@@ -197,30 +182,21 @@
             </select>
           </div>
 
-          <!-- <div class="celda">
-          <label for="sala">Sala</label>
-          <input id="sala" name="sala" type="text">
-        </div> -->
-
-          <!-- 1 -->
           <div class="celda">
             <label for="numero_cama">No. cama</label>
             <input id="numero_cama" name="numero_cama" type="text">
           </div>
 
-          <!-- 2 -->
           <div class="celda">
             <label for="expediente">Expediente</label>
             <input id="expediente" name="expediente" type="text">
           </div>
 
-          <!-- 3 -->
           <div class="celda" style="grid-column:1/-1">
             <label for="nombre">Nombre completo</label>
             <input id="nombre" name="nombre" type="text" required>
           </div>
 
-          <!-- 4 -->
           <div class="celda">
             <label for="pase_de">Pase de</label>
             <select id="pase_de" name="pase_de">
@@ -234,41 +210,33 @@
             </select>
           </div>
 
-          <!-- 5 -->
           <h3 style="grid-column:1/-1;margin-top:.4rem;">Ingreso</h3>
           <div class="celda">
             <label for="hora_ingreso_consulta_externa">Consulta externa (HH:MM)</label>
-            <input id="hora_ingreso_consulta_externa" name="hora_ingreso_consulta_externa" type="time" step="60"
-              inputmode="numeric">
+            <input id="hora_ingreso_consulta_externa" name="hora_ingreso_consulta_externa" type="time" step="60" inputmode="numeric">
           </div>
 
-          <!-- 6 -->
           <div class="celda">
             <label for="hora_ingreso_urgencias">Urgencias (HH:MM)</label>
             <input id="hora_ingreso_urgencias" name="hora_ingreso_urgencias" type="time" step="60" inputmode="numeric">
           </div>
 
-          <!-- 7 -->
           <div class="celda">
             <label for="hora_ingreso_otra_unidad">Otra unidad (HH:MM)</label>
-            <input id="hora_ingreso_otra_unidad" name="hora_ingreso_otra_unidad" type="time" step="60"
-              inputmode="numeric">
+            <input id="hora_ingreso_otra_unidad" name="hora_ingreso_otra_unidad" type="time" step="60" inputmode="numeric">
           </div>
 
-          <!-- 8 -->
           <h3 style="grid-column:1/-1;margin-top:.4rem;">Egreso</h3>
           <div class="celda">
             <label for="hora_egreso_vivo">Vivo (HH:MM)</label>
             <input id="hora_egreso_vivo" name="hora_egreso_vivo" type="time" step="60" inputmode="numeric">
           </div>
 
-          <!-- 9 -->
           <div class="celda">
             <label for="hora_egreso_muerto">Muerto (HH:MM)</label>
-            <input id="hora_egreso_muerto" name="hora_egreso_muerto" type="time">
+            <input id="hora_egreso_muerto" name="hora_egreso_muerto" type="time" step="60" inputmode="numeric">
           </div>
 
-          <!-- 10 -->
           <div class="celda">
             <label for="servicio_destino">Servicio destino</label>
             <select id="servicio_destino" name="servicio_destino">
@@ -284,13 +252,11 @@
             </select>
           </div>
 
-          <!-- 11 -->
           <div class="celda">
             <label for="foliador">Foliador</label>
             <input id="foliador" name="foliador" type="text">
           </div>
 
-          <!-- 12 -->
           <div class="celda" style="grid-column:1/-1">
             <label for="observaciones">Observaciones</label>
             <textarea id="observaciones" name="observaciones" rows="2"></textarea>
@@ -298,8 +264,6 @@
 
           <button type="submit" class="boton-principal" style="grid-column:1/-1">💾 Guardar registro</button>
         </form>
-
-        <div id="message" class="mensaje-estado"></div>
       </div>
 
       <!-- PANEL DERECHO: TABLA -->
@@ -307,94 +271,91 @@
         <h2 class="titulo-seccion">Registros guardados</h2>
         <div id="contenedorTabla" class="tabla-wrapper cargando">Cargando registros...</div>
       </div>
-    </div>
+    </main>
 
     <footer>
       <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
     </footer>
-  </div>
+  </div> <!-- end .glass -->
 
   <script>
-    // Footer dinámico
-    document.getElementById('footerText').innerHTML =
-      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-
+    /* -----------------------
+       setEstado: aplica clases a .glass
+       ----------------------- */
     function setEstado(estado) {
-      const dashboard = document.getElementById('dashboard');
-      const estadoTexto = document.getElementById('estadoTexto');
-      dashboard.classList.remove('loading', 'success', 'error');
-      dashboard.classList.add(estado);
-
-      switch (estado) {
-        case 'loading':
-          estadoTexto.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando sistema...';
-          break;
-        case 'success':
-          estadoTexto.innerHTML = '<i class="fas fa-check-circle"></i> Sistema operativo con éxito ✅';
-          break;
-        case 'error':
-          estadoTexto.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error detectado ❌';
-          break;
+      const glass = document.querySelector('.glass');
+      if (!glass) return; // evita errores si el DOM cambia
+      glass.classList.remove('loading', 'success', 'error');
+      glass.classList.add(estado);
+      if (estado === 'success' || estado === 'error') {
+        setTimeout(() => glass.classList.remove(estado), 2500);
       }
     }
 
+    // footer dinámico (seguro)
+    const ft = document.getElementById('footerText');
+    if (ft) ft.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
   </script>
 
   <script>
+    // === CRUD / UI logic ===
     const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwFZfgIcaHfTuz-H-KrVHSPlR-p20xN0ZhwCYnBfmxmv-ZP5eljWES2A-KMt6LXVK07/exec"; // Reemplaza por tu WebApp URL
+
     const form = document.getElementById("formCenso");
     const tablaContenedor = document.getElementById("contenedorTabla");
-
-    document.getElementById("fecha").valueAsDate = new Date();
-    /* document.getElementById("fechaFooter").textContent = new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" }); */
+    // Si el formulario no existe, evitamos fallos posteriores
+    if (document.getElementById("fecha")) document.getElementById("fecha").valueAsDate = new Date();
 
     function validarHoras() {
+      if (!form) return { ok: true }; // si no existe form, no validamos
       const ingreso = [
-        form.hora_ingreso_consulta_externa.value,
-        form.hora_ingreso_urgencias.value,
-        form.hora_ingreso_otra_unidad.value
+        form.hora_ingreso_consulta_externa?.value,
+        form.hora_ingreso_urgencias?.value,
+        form.hora_ingreso_otra_unidad?.value
       ].filter(Boolean);
       if (ingreso.length > 1) return { ok: false };
 
       const egreso = [
-        form.hora_egreso_vivo.value,
-        form.hora_egreso_muerto.value
+        form.hora_egreso_vivo?.value,
+        form.hora_egreso_muerto?.value
       ].filter(Boolean);
       if (egreso.length > 1) return { ok: false };
 
       return { ok: true };
     }
 
-    form.addEventListener("submit", e => {
-      e.preventDefault();
-      const v = validarHoras();
-      if (!v.ok) { setEstado("error"); return; }
+    if (form) {
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        const v = validarHoras();
+        if (!v.ok) { setEstado("error"); return; }
 
-      const fd = new FormData(form);
-      const datos = {};
-      fd.forEach((v, k) => datos[k] = v);
-      datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
-      datos.action = "save";
+        const fd = new FormData(form);
+        const datos = {};
+        fd.forEach((v, k) => datos[k] = v);
+        datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
+        datos.action = "save";
 
-      const cb = "cb_" + Date.now();
-      window[cb] = function (resp) {
-        if (resp && resp.exito) {
-          setEstado("success");
-          form.reset();
-          document.getElementById("fecha").valueAsDate = new Date();
-          cargarRegistros();
-        } else setEstado("error");
-        setTimeout(() => delete window[cb], 500);
-      };
+        const cb = "cb_" + Date.now();
+        window[cb] = function (resp) {
+          if (resp && resp.exito) {
+            setEstado("success");
+            form.reset();
+            if (document.getElementById("fecha")) document.getElementById("fecha").valueAsDate = new Date();
+            cargarRegistros();
+          } else setEstado("error");
+          setTimeout(() => delete window[cb], 500);
+        };
 
-      const params = new URLSearchParams(datos);
-      params.append("callback", cb);
-      setEstado("loading");
-      const s = document.createElement("script");
-      s.src = `${URL_SCRIPT}?${params.toString()}`;
-      s.onerror = () => setEstado("error");
-      document.body.appendChild(s);
-    });
+        const params = new URLSearchParams(datos);
+        params.append("callback", cb);
+        setEstado("loading");
+        const s = document.createElement("script");
+        s.src = `${URL_SCRIPT}?${params.toString()}`;
+        s.onerror = () => setEstado("error");
+        document.body.appendChild(s);
+      });
+    }
 
     function formatearFecha(fechaISO) {
       if (!fechaISO) return "";
@@ -412,14 +373,12 @@
 
     function formatearHora(valor) {
       if (!valor) return "";
-      // Si viene como fecha completa, extrae hora
       const d = new Date(valor);
       if (!isNaN(d)) {
         const hh = String(d.getHours()).padStart(2, "0");
         const mm = String(d.getMinutes()).padStart(2, "0");
         return `${hh}:${mm}`;
       }
-      // Si viene ya como string "HH:MM", lo dejamos igual
       if (/^\d{1,2}:\d{2}$/.test(valor)) return valor;
       return "";
     }
@@ -429,57 +388,35 @@
       const cb = "cb_get_" + Date.now();
       window[cb] = function (data) {
         if (!data || !data.length) {
-          tablaContenedor.innerHTML = "<p class='tiny'>Sin registros aún.</p>";
+          if (tablaContenedor) tablaContenedor.innerHTML = "<p class='tiny'>Sin registros aún.</p>";
           setEstado("success");
           delete window[cb];
           return;
         }
 
         const headers = [
-          "Fecha",
-          "Unidad",
-          "Servicio",
-          "Pase de",
-          "Sala",
-          "Cama",
-          "Expediente",
-          "Nombre",
-          "Ingreso (consulta)",
-          "Ingreso (urgencias)",
-          "Ingreso (otra)",
-          "Egreso (vivo)",
-          "Egreso (muerto)",
-          "Servicio destino",
-          "Foliador",
-          "Observaciones",
-          "Registro TS"
+          "Fecha","Unidad","Servicio","Pase de","Sala","Cama","Expediente","Nombre",
+          "Ingreso (consulta)","Ingreso (urgencias)","Ingreso (otra)","Egreso (vivo)","Egreso (muerto)",
+          "Servicio destino","Foliador","Observaciones","Registro TS"
         ];
 
-        // Índices de columnas de fecha/hora según HEADER del backend
         const idxFecha = 0;
-        const idxHoraCols = [8, 9, 10, 11, 12, 16]; // ingreso/egreso/TS
+        const idxHoraCols = [8,9,10,11,12,16];
 
-        let html =
-          "<table><thead><tr>" +
-          headers.map((h) => `<th>${h}</th>`).join("") +
-          "</tr></thead><tbody>";
-
-        data.forEach((fila) => {
+        let html = "<table><thead><tr>"+headers.map(h=>`<th>${h}</th>`).join("")+"</tr></thead><tbody>";
+        data.forEach(fila=>{
           html += "<tr>";
-
-          fila.forEach((celda, i) => {
+          fila.forEach((celda,i)=>{
             let valor = celda;
             if (i === idxFecha) valor = formatearFecha(celda);
             if (idxHoraCols.includes(i)) valor = formatearHora(celda);
             html += `<td>${valor || ""}</td>`;
           });
-
           html += "</tr>";
         });
-
         html += "</tbody></table>";
 
-        tablaContenedor.innerHTML = html;
+        if (tablaContenedor) tablaContenedor.innerHTML = html;
         setEstado("success");
         delete window[cb];
       };
@@ -489,33 +426,28 @@
       s.onerror = () => setEstado("error");
       document.body.appendChild(s);
     }
+
     cargarRegistros();
 
     // === Persistencia de campos seleccionados ===
     const campoFecha = document.getElementById("fecha");
     const campoServicio = document.getElementById("servicio");
 
-    // Cargar valores guardados (si existen)
     window.addEventListener("DOMContentLoaded", () => {
-      const fechaGuardada = localStorage.getItem("ultima_fecha");
-      const servicioGuardado = localStorage.getItem("ultimo_servicio");
-
-      if (fechaGuardada) campoFecha.value = fechaGuardada;
-      else campoFecha.valueAsDate = new Date(); // si no hay guardada, hoy
-
-      if (servicioGuardado) campoServicio.value = servicioGuardado;
+      try {
+        const fechaGuardada = localStorage.getItem("ultima_fecha");
+        const servicioGuardado = localStorage.getItem("ultimo_servicio");
+        if (campoFecha) {
+          if (fechaGuardada) campoFecha.value = fechaGuardada;
+          else campoFecha.valueAsDate = new Date();
+        }
+        if (campoServicio && servicioGuardado) campoServicio.value = servicioGuardado;
+      } catch (e) { /* no crítico */ }
     });
 
-    // Guardar cambios cuando el usuario los modifica
-    campoFecha.addEventListener("change", () => {
-      localStorage.setItem("ultima_fecha", campoFecha.value);
-    });
-
-    campoServicio.addEventListener("change", () => {
-      localStorage.setItem("ultimo_servicio", campoServicio.value);
-    });
+    if (campoFecha) campoFecha.addEventListener("change", ()=> localStorage.setItem("ultima_fecha", campoFecha.value));
+    if (campoServicio) campoServicio.addEventListener("change", ()=> localStorage.setItem("ultimo_servicio", campoServicio.value));
 
   </script>
 </body>
-
 </html>
