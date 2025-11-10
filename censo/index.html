@@ -533,6 +533,9 @@
         const idxHoraCols = [8, 9, 10, 11, 12, 16];
 
         let html = "<table><thead><tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr></thead><tbody>";
+        // Muestra el registro más reciente al inicio
+        data = data.reverse();
+
         data.forEach(fila => {
           html += "<tr>";
           fila.forEach((celda, i) => {
@@ -543,17 +546,18 @@
           });
           html += "</tr>";
         });
-        html += "</tbody></table>";
 
-        if (tablaContenedor) tablaContenedor.innerHTML = html;
-        setEstado("success");
-        delete window[cb];
-      };
+      html += "</tbody></table>";
 
-      const s = document.createElement("script");
-      s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
-      s.onerror = () => setEstado("error");
-      document.body.appendChild(s);
+      if (tablaContenedor) tablaContenedor.innerHTML = html;
+      setEstado("success");
+      delete window[cb];
+    };
+
+    const s = document.createElement("script");
+    s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
+    s.onerror = () => setEstado("error");
+    document.body.appendChild(s);
     }
 
     cargarRegistros();
