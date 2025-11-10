@@ -576,63 +576,27 @@
     // === FORMATO DE HORA 24H (HH:MM) ===
     document.querySelectorAll('input[id^="hora_"]').forEach(input => {
       input.addEventListener('input', e => {
-        let v = e.target.value.replace(/\D/g, ''); // solo números
-        if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2, 4); // agrega los dos puntos automáticamente
-        e.target.value = v.slice(0, 5); // máximo 5 caracteres
+        let v = e.target.value.replace(/\D/g, ''); // Solo números
+        if (v.length > 4) v = v.slice(0, 4);       // Máximo 4 dígitos
+        if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2); // Inserta ":"
+        e.target.value = v;
       });
 
       input.addEventListener('blur', e => {
         const val = e.target.value;
+        if (!val) return; // si está vacío, no validar
+
         const match = /^([01]\d|2[0-3]):[0-5]\d$/.test(val);
-        if (!match && val !== '') {
+        if (!match) {
           e.target.classList.add('error-hora');
           setTimeout(() => e.target.classList.remove('error-hora'), 1500);
-          e.target.value = '';
-        }
-      });
-    });
-
-    // === FORMATO AUTOMÁTICO DE HORA (24H) ===
-    document.querySelectorAll('input[id^="hora_"]').forEach(input => {
-      input.addEventListener('input', e => {
-        let v = e.target.value.replace(/\D/g, ''); // solo números
-
-        // Corrige longitudes comunes
-        if (v.length === 3) v = '0' + v; // ejemplo: 945 → 0945
-        if (v.length > 4) v = v.slice(0, 4); // no más de 4 dígitos numéricos
-
-        // Inserta los dos puntos automáticamente
-        if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2);
-
-        e.target.value = v; // no truncamos aquí
-      });
-
-      input.addEventListener('blur', e => {
-        let val = e.target.value.replace(/\D/g, '');
-        if (!val) return;
-
-        if (val.length <= 2) {
-          val = val.padStart(2, '0') + '00'; // 7 → 07:00
-        } else if (val.length === 3) {
-          val = val.padStart(4, '0'); // 945 → 0945
-        } else if (val.length > 4) {
-          val = val.slice(0, 4);
-        }
-
-        const hh = val.slice(0, 2);
-        const mm = val.slice(2, 4);
-        const horaFormateada = `${hh}:${mm}`;
-        const esValida = /^([01]\d|2[0-3]):[0-5]\d$/.test(horaFormateada);
-
-        if (esValida) {
-          e.target.value = horaFormateada;
+          e.target.value = ''; // limpia si es inválido
         } else {
-          e.target.classList.add('error-hora');
-          setTimeout(() => e.target.classList.remove('error-hora'), 1500);
-          e.target.value = '';
+          e.target.value = val.padStart(5, '0'); // asegura formato HH:MM
         }
       });
     });
+
 
   </script>
 </body>
