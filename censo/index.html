@@ -211,6 +211,11 @@
     .panel-tabla {
       animation-delay: 0.2s;
     }
+
+    .error-hora {
+      outline: 2px solid rgba(255, 64, 64, 0.7);
+      transition: outline 0.3s ease;
+    }
   </style>
 
 </head>
@@ -295,30 +300,30 @@
           <h3 style="grid-column:1/-1;margin-top:.4rem;">Ingreso</h3>
           <div class="celda">
             <label for="hora_ingreso_consulta_externa">Consulta externa (HH:MM)</label>
-            <input id="hora_ingreso_consulta_externa" name="hora_ingreso_consulta_externa" type="time" step="60"
+            <input id="hora_ingreso_consulta_externa" name="hora_ingreso_consulta_externa" type="text" step="60"
               inputmode="numeric">
           </div>
 
           <div class="celda">
             <label for="hora_ingreso_urgencias">Urgencias (HH:MM)</label>
-            <input id="hora_ingreso_urgencias" name="hora_ingreso_urgencias" type="time" step="60" inputmode="numeric">
+            <input id="hora_ingreso_urgencias" name="hora_ingreso_urgencias" type="text" step="60" inputmode="numeric">
           </div>
 
           <div class="celda">
             <label for="hora_ingreso_otra_unidad">Otra unidad (HH:MM)</label>
-            <input id="hora_ingreso_otra_unidad" name="hora_ingreso_otra_unidad" type="time" step="60"
+            <input id="hora_ingreso_otra_unidad" name="hora_ingreso_otra_unidad" type="text" step="60"
               inputmode="numeric">
           </div>
 
           <h3 style="grid-column:1/-1;margin-top:.4rem;">Egreso</h3>
           <div class="celda">
             <label for="hora_egreso_vivo">Vivo (HH:MM)</label>
-            <input id="hora_egreso_vivo" name="hora_egreso_vivo" type="time" step="60" inputmode="numeric">
+            <input id="hora_egreso_vivo" name="hora_egreso_vivo" type="text" step="60" inputmode="numeric">
           </div>
 
           <div class="celda">
             <label for="hora_egreso_muerto">Muerto (HH:MM)</label>
-            <input id="hora_egreso_muerto" name="hora_egreso_muerto" type="time" step="60" inputmode="numeric">
+            <input id="hora_egreso_muerto" name="hora_egreso_muerto" type="text" step="60" inputmode="numeric">
           </div>
 
           <div class="celda">
@@ -531,6 +536,25 @@
 
     if (campoFecha) campoFecha.addEventListener("change", () => localStorage.setItem("ultima_fecha", campoFecha.value));
     if (campoServicio) campoServicio.addEventListener("change", () => localStorage.setItem("ultimo_servicio", campoServicio.value));
+
+    // === FORMATO DE HORA 24H (HH:MM) ===
+    document.querySelectorAll('input[id^="hora_"]').forEach(input => {
+      input.addEventListener('input', e => {
+        let v = e.target.value.replace(/\D/g, ''); // solo números
+        if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2, 4); // agrega los dos puntos automáticamente
+        e.target.value = v.slice(0, 5); // máximo 5 caracteres
+      });
+
+      input.addEventListener('blur', e => {
+        const val = e.target.value;
+        const match = /^([01]\d|2[0-3]):[0-5]\d$/.test(val);
+        if (!match && val !== '') {
+          e.target.classList.add('error-hora');
+          setTimeout(() => e.target.classList.remove('error-hora'), 1500);
+          e.target.value = '';
+        }
+      });
+    });
 
   </script>
 </body>
