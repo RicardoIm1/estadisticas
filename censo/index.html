@@ -461,12 +461,37 @@
     const form = document.getElementById("formCenso");
     const tablaContenedor = document.getElementById("contenedorTabla");
 
-    // === setEstado: animaciones de carga/éxito/error ===
+    // === setEstado con retorno a translúcido automático ===
     function setEstado(estado) {
-      const glass = document.querySelector('.glass'); // tu contenedor animado
+      const glass = document.querySelector('.glass');
       if (!glass) return;
-      glass.classList.remove('loading', 'success', 'error');
-      if (estado) glass.classList.add(estado);
+
+      // limpia todas las clases de estado antes de aplicar la nueva
+      glass.classList.remove('loading', 'success', 'error', 'translucido');
+
+      switch (estado) {
+        case 'loading':
+          glass.classList.add('loading');
+          break;
+        case 'success':
+          glass.classList.add('success');
+          // vuelve a translúcido después de 5s
+          setTimeout(() => {
+            glass.classList.remove('success');
+            glass.classList.add('translucido');
+          }, 5000);
+          break;
+        case 'error':
+          glass.classList.add('error');
+          setTimeout(() => {
+            glass.classList.remove('error');
+            glass.classList.add('translucido');
+          }, 5000);
+          break;
+        case 'translucido':
+          glass.classList.add('translucido');
+          break;
+      }
     }
 
     // Inicializa fecha
