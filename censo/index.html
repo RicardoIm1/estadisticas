@@ -547,17 +547,17 @@
           html += "</tr>";
         });
 
-      html += "</tbody></table>";
+        html += "</tbody></table>";
 
-      if (tablaContenedor) tablaContenedor.innerHTML = html;
-      setEstado("success");
-      delete window[cb];
-    };
+        if (tablaContenedor) tablaContenedor.innerHTML = html;
+        setEstado("success");
+        delete window[cb];
+      };
 
-    const s = document.createElement("script");
-    s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
-    s.onerror = () => setEstado("error");
-    document.body.appendChild(s);
+      const s = document.createElement("script");
+      s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
+      s.onerror = () => setEstado("error");
+      document.body.appendChild(s);
     }
 
     cargarRegistros();
@@ -601,15 +601,18 @@
     });
 
     // === FORMATO AUTOMÁTICO DE HORA (24H) ===
-    // Aplica a todos los campos cuyo id empieza con "hora_"
     document.querySelectorAll('input[id^="hora_"]').forEach(input => {
       input.addEventListener('input', e => {
         let v = e.target.value.replace(/\D/g, ''); // solo números
 
-        // Corrige longitud
+        // Corrige longitudes comunes
         if (v.length === 3) v = '0' + v; // ejemplo: 945 → 0945
-        if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2, 4);
-        e.target.value = v.slice(0, 5);
+        if (v.length > 4) v = v.slice(0, 4); // no más de 4 dígitos numéricos
+
+        // Inserta los dos puntos automáticamente
+        if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2);
+
+        e.target.value = v; // no truncamos aquí
       });
 
       input.addEventListener('blur', e => {
@@ -620,14 +623,17 @@
           val = val.padStart(2, '0') + '00'; // 7 → 07:00
         } else if (val.length === 3) {
           val = val.padStart(4, '0'); // 945 → 0945
+        } else if (val.length > 4) {
+          val = val.slice(0, 4);
         }
 
         const hh = val.slice(0, 2);
         const mm = val.slice(2, 4);
-        const esValida = /^([01]\d|2[0-3]):[0-5]\d$/.test(`${hh}:${mm}`);
+        const horaFormateada = `${hh}:${mm}`;
+        const esValida = /^([01]\d|2[0-3]):[0-5]\d$/.test(horaFormateada);
 
         if (esValida) {
-          e.target.value = `${hh}:${mm}`;
+          e.target.value = horaFormateada;
         } else {
           e.target.classList.add('error-hora');
           setTimeout(() => e.target.classList.remove('error-hora'), 1500);
@@ -635,7 +641,6 @@
         }
       });
     });
-
 
   </script>
 </body>
