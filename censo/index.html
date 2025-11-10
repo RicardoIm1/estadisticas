@@ -456,215 +456,197 @@
     if (ft) ft.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
   </script>
 
-  <script>
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbw0UcGKKcRTNacnJHAhJz-nTIyeIgJ7G42hg44OkAp317M8oGYenD8iFrqX6A63QBKP/exec"; // tu WebApp JSONP
-    const form = document.getElementById("formCenso");
-    const tablaContenedor = document.getElementById("contenedorTabla");
 
-    // === setEstado con retorno a translúcido automático ===
-    function setEstado(estado) {
-      const glass = document.querySelector('.glass');
-      if (!glass) return;
+<script>
+  const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbw0UcGKKcRTNacnJHAhJz-nTIyeIgJ7G42hg44OkAp317M8oGYenD8iFrqX6A63QBKP/exec"; // tu WebApp JSONP
+  const form = document.getElementById("formCenso");
+  const tablaContenedor = document.getElementById("contenedorTabla");
 
-      // limpia todas las clases de estado antes de aplicar la nueva
-      glass.classList.remove('loading', 'success', 'error', 'translucido');
+// === Asignar fecha por defecto si no hay valor ===
+if (document.getElementById("fecha") && !document.getElementById("fecha").value) {
+  document.getElementById("fecha").valueAsDate = new Date();
+}
 
-      switch (estado) {
-        case 'loading':
-          glass.classList.add('loading');
-          break;
-        case 'success':
-          glass.classList.add('success');
-          // vuelve a translúcido después de 5s
-          setTimeout(() => {
-            glass.classList.remove('success');
-            glass.classList.add('translucido');
-          }, 5000);
-          break;
-        case 'error':
-          glass.classList.add('error');
-          setTimeout(() => {
-            glass.classList.remove('error');
-            glass.classList.add('translucido');
-          }, 5000);
-          break;
-        case 'translucido':
-          glass.classList.add('translucido');
-          break;
-      }
+// === Validación de horas ===
+function validarHoras() {
+  if (!form) return { ok: true };
+  const ingreso = [
+    form.hora_ingreso_consulta_externa?.value,
+    form.hora_ingreso_urgencias?.value,
+    form.hora_ingreso_otra_unidad?.value
+  ].filter(Boolean);
+  if (ingreso.length > 1) return { ok: false };
+
+  const egreso = [
+    form.hora_egreso_vivo?.value,
+    form.hora_egreso_muerto?.value
+  ].filter(Boolean);
+  if (egreso.length > 1) return { ok: false };
+
+  return { ok: true };
+}
+
+// === Formateo de fecha y hora ===
+function formatearFecha(fechaISO) {
+  if (!fechaISO) return "";
+  try {
+    const d = new Date(fechaISO);
+    if (isNaN(d)) return fechaISO;
+    const dia = String(d.getDate()).padStart(2, "0");
+    const mes = String(d.getMonth() + 1).padStart(2, "0");
+    const anio = d.getFullYear();
+    return `${dia}/${mes}/${anio}`;
+  } catch {
+    return fechaISO;
+  }
+}
+function formatearHora(valor) {
+  if (!valor) return "";
+  const d = new Date(valor);
+  if (!isNaN(d)) {
+    const hh = String(d.getHours()).padStart(2, "0");
+    const mm = String(d.getMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+  if (/^\d{1,2}:\d{2}$/.test(valor)) return valor;
+  return "";
+}
+
+// === Cargar registros en tabla ===
+function cargarRegistros() {
+  setEstado("loading");
+  const cb = "cb_get_" + Date.now();
+  window[cb] = function(data) {
+    if (!data || !data.length) {
+      if (tablaContenedor) tablaContenedor.innerHTML = "<p class='tiny'>Sin registros aún.</p>";
+      setEstado("success");
+      delete window[cb];
+      return;
     }
 
-    // Inicializa fecha
-    if (document.getElementById("fecha")) document.getElementById("fecha").valueAsDate = new Date();
+    const headers = [
+      "Fecha", "Unidad", "Servicio", "Pase de", "Sala", "Cama", "Expediente", "Nombre",
+      "Ingreso (consulta)", "Ingreso (urgencias)", "Ingreso (otra)", "Egreso (vivo)", "Egreso (muerto)",
+      "Servicio destino", "Foliador", "Observaciones", "Registro TS"
+    ];
 
-    // === Validar horas de ingreso/egreso ===
-    function validarHoras() {
-      if (!form) return { ok: true };
-      const ingreso = [
-        form.hora_ingreso_consulta_externa?.value,
-        form.hora_ingreso_urgencias?.value,
-        form.hora_ingreso_otra_unidad?.value
-      ].filter(Boolean);
-      if (ingreso.length > 1) return { ok: false };
+    const idxFecha = 0;
+    const idxHoraCols = [8, 9, 10, 11, 12, 16];
+    const ocultarIdx = [1, 4, 16];
 
-      const egreso = [
-        form.hora_egreso_vivo?.value,
-        form.hora_egreso_muerto?.value
-      ].filter(Boolean);
-      if (egreso.length > 1) return { ok: false };
+    let html = "<table><thead><tr>" +
+      headers.map((h, i) => ocultarIdx.includes(i) ? "" : `<th>${h}</th>`).join("") +
+      "</tr></thead><tbody>";
 
-      return { ok: true };
-    }
-
-    // === Enviar registro via JSONP ===
-    function guardarRegistro() {
-      const v = validarHoras();
-      if (!v.ok) { setEstado("error"); return; }
-
-      const fd = new FormData(form);
-      const datos = {};
-      fd.forEach((v, k) => datos[k] = v);
-      datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
-      datos.action = "save";
-
-      setEstado("loading");
-
-      const cb = "cb_" + Date.now();
-      window[cb] = function (resp) {
-        if (resp.exito) {
-          setEstado("success");
-          form.reset();
-          if (document.getElementById("fecha")) document.getElementById("fecha").valueAsDate = new Date();
-          if (resp.foliador) document.getElementById("foliador").value = resp.foliador;
-          cargarRegistros();
-        } else {
-          setEstado("error");
-          alert("Error: " + (resp.mensaje || "No se pudo guardar."));
-        }
-        setTimeout(() => delete window[cb], 500);
-      };
-
-      const params = new URLSearchParams(datos);
-      params.append("callback", cb);
-
-      const s = document.createElement("script");
-      s.src = `${URL_SCRIPT}?${params.toString()}`;
-      s.onerror = () => setEstado("error");
-      document.body.appendChild(s);
-    }
-
-    // === Asignar al botón ===
-    document.getElementById("btnGuardar")?.addEventListener("click", e => {
-      e.preventDefault();
-      guardarRegistro();
-    });
-
-    // === Cargar registros ===
-    function formatearFecha(fechaISO) {
-      if (!fechaISO) return "";
-      const d = new Date(fechaISO);
-      if (isNaN(d)) return fechaISO;
-      return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
-    }
-
-    function formatearHora(valor) {
-      if (!valor) return "";
-      const d = new Date(valor);
-      if (!isNaN(d)) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-      if (/^\d{1,2}:\d{2}$/.test(valor)) return valor;
-      return "";
-    }
-
-    function cargarRegistros() {
-      setEstado("loading");
-      const cb = "cb_get_" + Date.now();
-      window[cb] = function (data) {
-        if (!data || !data.length) {
-          if (tablaContenedor) tablaContenedor.innerHTML = "<p class='tiny'>Sin registros aún.</p>";
-          setEstado("success");
-          delete window[cb];
-          return;
-        }
-
-        const headers = [
-          "Fecha", "Unidad", "Servicio", "Pase de", "Sala", "Cama", "Expediente", "Nombre",
-          "Ingreso (consulta)", "Ingreso (urgencias)", "Ingreso (otra)", "Egreso (vivo)", "Egreso (muerto)",
-          "Servicio destino", "Foliador", "Observaciones", "Registro TS"
-        ];
-
-        const idxFecha = 0;
-        const idxHoraCols = [8, 9, 10, 11, 12, 16];
-        const ocultarIdx = [1, 4, 16];
-
-        let html = "<table><thead><tr>" +
-          headers.map((h, i) => ocultarIdx.includes(i) ? "" : `<th>${h}</th>`).join("") +
-          "</tr></thead><tbody>";
-
-        data.reverse().forEach(fila => {
-          html += "<tr>";
-          fila.forEach((celda, i) => {
-            if (ocultarIdx.includes(i)) return;
-            let valor = celda;
-            if (i === idxFecha) valor = formatearFecha(celda);
-            if (idxHoraCols.includes(i)) valor = formatearHora(celda);
-            html += `<td>${valor || ""}</td>`;
-          });
-          html += "</tr>";
-        });
-
-        html += "</tbody></table>";
-        if (tablaContenedor) tablaContenedor.innerHTML = html;
-        setEstado("success");
-        delete window[cb];
-      };
-
-      const s = document.createElement("script");
-      s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
-      s.onerror = () => setEstado("error");
-      document.body.appendChild(s);
-    }
-
-    // === Formato HH:MM ===
-    document.querySelectorAll('input[id^="hora_"]').forEach(input => {
-      input.addEventListener('input', e => {
-        let v = e.target.value.replace(/\D/g, '');
-        if (v.length > 4) v = v.slice(0, 4);
-        if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2);
-        e.target.value = v;
+    data.reverse().forEach(fila => {
+      html += "<tr>";
+      fila.forEach((celda, i) => {
+        if (ocultarIdx.includes(i)) return;
+        let valor = celda;
+        if (i === idxFecha) valor = formatearFecha(celda);
+        if (idxHoraCols.includes(i)) valor = formatearHora(celda);
+        html += `<td>${valor || ""}</td>`;
       });
-      input.addEventListener('blur', e => {
-        const val = e.target.value;
-        if (!val) return;
-        if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(val)) {
-          e.target.classList.add('error-hora');
-          setTimeout(() => e.target.classList.remove('error-hora'), 1500);
-          e.target.value = '';
-        } else e.target.value = val.padStart(5, '0');
-      });
+      html += "</tr>";
     });
 
-    // Inicializar valores guardados
-    window.addEventListener("DOMContentLoaded", () => {
-      const campoFecha = document.getElementById("fecha");
-      const campoServicio = document.getElementById("servicio");
-      const fechaGuardada = localStorage.getItem("ultima_fecha");
-      const servicioGuardado = localStorage.getItem("ultimo_servicio");
+    html += "</tbody></table>";
+    if (tablaContenedor) tablaContenedor.innerHTML = html;
+    setEstado("success");
+    delete window[cb];
+  };
 
-      if (campoFecha) {
-        if (fechaGuardada) campoFecha.value = fechaGuardada;
-        else campoFecha.valueAsDate = new Date();
-        campoFecha.addEventListener("change", () => localStorage.setItem("ultima_fecha", campoFecha.value));
+  const s = document.createElement("script");
+  s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
+  s.onerror = () => setEstado("error");
+  document.body.appendChild(s);
+}
+
+// === Guardar registro usando JSONP ===
+function guardarRegistro() {
+  const v = validarHoras();
+  if (!v.ok) { setEstado("error"); return; }
+
+  const fd = new FormData(form);
+  const datos = {};
+  fd.forEach((val, key) => datos[key] = val);
+  datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
+  datos.action = "save";
+
+  const cb = "cb_" + Date.now();
+  window[cb] = function(resp) {
+    if (resp.exito) {
+      setEstado("success");
+      form.reset();
+
+      // Restaurar fecha y servicio desde localStorage
+      if (document.getElementById("fecha")) {
+        const fechaGuardada = localStorage.getItem("ultima_fecha");
+        if (fechaGuardada) document.getElementById("fecha").value = fechaGuardada;
+        else document.getElementById("fecha").valueAsDate = new Date();
+      }
+      if (document.getElementById("servicio")) {
+        const servicioGuardado = localStorage.getItem("ultimo_servicio");
+        if (servicioGuardado) document.getElementById("servicio").value = servicioGuardado;
       }
 
-      if (campoServicio) {
-        if (servicioGuardado) campoServicio.value = servicioGuardado;
-        campoServicio.addEventListener("change", () => localStorage.setItem("ultimo_servicio", campoServicio.value));
-      }
-    });
+      // Mostrar folio generado
+      if (resp.foliador) document.getElementById("foliador").value = resp.foliador;
 
-    // Carga inicial de registros
-    cargarRegistros();
-  </script>
+      // 🔄 Actualizar tabla inmediatamente
+      cargarRegistros();
+    } else {
+      setEstado("error");
+      alert("Error: " + (resp.mensaje || "No se pudo guardar."));
+    }
+    setTimeout(() => delete window[cb], 500);
+  };
+
+  const params = new URLSearchParams(datos);
+  params.append("callback", cb);
+
+  setEstado("loading");
+  const s = document.createElement("script");
+  s.src = `${URL_SCRIPT}?${params.toString()}`;
+  s.onerror = () => setEstado("error");
+  document.body.appendChild(s);
+}
+
+// === Botón de guardar ===
+document.getElementById("btnGuardar")?.addEventListener("click", e => {
+  e.preventDefault();
+  guardarRegistro();
+});
+
+// === Persistencia de fecha y servicio ===
+window.addEventListener("DOMContentLoaded", () => {
+  const campoFecha = document.getElementById("fecha");
+  const campoServicio = document.getElementById("servicio");
+
+  if (campoFecha) {
+    const fechaGuardada = localStorage.getItem("ultima_fecha");
+    if (fechaGuardada) campoFecha.value = fechaGuardada;
+    else campoFecha.valueAsDate = new Date();
+
+    campoFecha.addEventListener("change", () =>
+      localStorage.setItem("ultima_fecha", campoFecha.value)
+    );
+  }
+
+  if (campoServicio) {
+    const servicioGuardado = localStorage.getItem("ultimo_servicio");
+    if (servicioGuardado) campoServicio.value = servicioGuardado;
+
+    campoServicio.addEventListener("change", () =>
+      localStorage.setItem("ultimo_servicio", campoServicio.value)
+    );
+  }
+});
+
+// === Cargar tabla al inicio ===
+cargarRegistros();
+</script>
+
 
 </body>
 
