@@ -695,14 +695,38 @@
     // 🧠 Control de tabulación dinámica
     // ===============================
 
-    document.getElementById('hora_egreso_vivo')?.addEventListener('input', e => {
+    document.addEventListener('DOMContentLoaded', () => {
+      const horaVivo = document.getElementById('hora_egreso_vivo');
       const horaMuerto = document.getElementById('hora_egreso_muerto');
-      if (!horaMuerto) return;
+      const ingresoCE = document.getElementById('hora_ingreso_consulta_externa');
+      const ingresoUrg = document.getElementById('hora_ingreso_urgencias');
+      const ingresoOtra = document.getElementById('hora_ingreso_otra_unidad');
+      const botonGuardar = document.querySelector('button[type="submit"], button.guardar, #guardarRegistro');
 
-      if (e.target.value.trim() !== '') {
-        horaMuerto.tabIndex = -1; // se salta del tabulador
-      } else {
-        horaMuerto.tabIndex = 0; // vuelve al orden normal
+      // === Control hora egreso vivo/muerto ===
+      if (horaVivo && horaMuerto) {
+        horaVivo.addEventListener('input', e => {
+          horaMuerto.tabIndex = e.target.value.trim() !== '' ? -1 : 0;
+        });
+      }
+
+      // === Salto directo al botón guardar ===
+      if (ingresoCE && ingresoUrg && ingresoOtra && botonGuardar) {
+        const camposIntermedios = Array.from(document.querySelectorAll('input, select, textarea'))
+          .filter(el => el !== ingresoCE && el !== ingresoUrg && el !== ingresoOtra && el !== botonGuardar);
+
+        function actualizarTabulacion() {
+          const hayIngreso = [ingresoCE, ingresoUrg, ingresoOtra].some(el => el.value.trim() !== '');
+          camposIntermedios.forEach(el => {
+            if (hayIngreso && el.tabIndex >= 0) el.tabIndex = -1; // se saltan
+            else if (!hayIngreso && el.tabIndex === -1) el.tabIndex = 0; // vuelven
+          });
+        }
+
+        // Escucha cambios en los tres campos de ingreso
+        [ingresoCE, ingresoUrg, ingresoOtra].forEach(el => {
+          el.addEventListener('input', actualizarTabulacion);
+        });
       }
     });
 
