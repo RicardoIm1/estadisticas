@@ -597,24 +597,35 @@
           html += "<tr>";
           fila.forEach((celda, i) => {
             if (ocultarIdx.includes(i)) return;
+
             let valor = celda;
+
+            // === Ajustes visuales ===
             if (i === idxFecha) valor = formatearFecha(celda);
             if (idxHoraCols.includes(i)) valor = formatearHora(celda);
+
+            // === Mantener ceros iniciales ===
+            if (HEADER[i] === "expediente" && valor) valor = valor.toString().padStart(6, "0");
+            if (HEADER[i] === "foliador" && valor) valor = valor.toString().padStart(3, "0");
+
             html += `<td>${valor || ""}</td>`;
           });
           html += "</tr>";
         });
 
-        html += "</tbody></table>";
-        if (tablaContenedor) tablaContenedor.innerHTML = html;
-        setEstado("success");
-        delete window[cb];
-      };
+        html += "</tr>";
+      });
 
-      const s = document.createElement("script");
-      s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
-      s.onerror = () => setEstado("error");
-      document.body.appendChild(s);
+      html += "</tbody></table>";
+      if (tablaContenedor) tablaContenedor.innerHTML = html;
+      setEstado("success");
+      delete window[cb];
+    };
+
+    const s = document.createElement("script");
+    s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
+    s.onerror = () => setEstado("error");
+    document.body.appendChild(s);
     }
 
     // ---------------------- Formatear fecha y hora ----------------------
