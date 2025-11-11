@@ -695,40 +695,75 @@
     // ===============================
     // 🧠 Control de tabulación dinámica
     // ===============================
-
     document.addEventListener('DOMContentLoaded', () => {
-      const horaVivo = document.getElementById('hora_egreso_vivo');
-      const horaMuerto = document.getElementById('hora_egreso_muerto');
-      const ingresoCE = document.getElementById('hora_ingreso_consulta_externa');
-      const ingresoUrg = document.getElementById('hora_ingreso_urgencias');
-      const ingresoOtra = document.getElementById('hora_ingreso_otra_unidad');
-      const botonGuardar = document.querySelector('button[type="submit"], button.guardar, #guardarRegistro');
+      const form = document.getElementById('formCenso'); // ajusta si tu form tiene otro id
+      if (!form) return;
 
-      // === Control hora egreso vivo/muerto ===
-      if (horaVivo && horaMuerto) {
-        horaVivo.addEventListener('input', e => {
-          horaMuerto.tabIndex = e.target.value.trim() !== '' ? -1 : 0;
+      const ingresoCE = form.querySelector('#hora_ingreso_consulta_externa');
+      const ingresoUrg = form.querySelector('#hora_ingreso_urgencias');
+      const ingresoOtra = form.querySelector('#hora_ingreso_otra_unidad');
+
+      // busca el botón guardar dentro del form; si no está, selecciona el primer submit
+      let botonGuardar = form.querySelector('button[type="submit"], input[type="submit"]');
+      if (!botonGuardar) botonGuardar = document.querySelector('button[type="submit"], input[type="submit"]');
+
+      // elementos que queremos preservar siempre focuseables (puedes añadir más ids si hace falta)
+      const preservados = new Set([ingresoCE, ingresoUrg, ingresoOtra, botonGuardar].filter(Boolean));
+
+      // obtiene TODOS los controles dentro del form en orden natural
+      const controls = Array.from(form.elements).filter(el => {
+        // sólo inputs, selects, textareas y buttons
+        return ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(el.tagName);
+      });
+
+      function actualizarTabulacion() {
+        const hayIngreso = [ingresoCE, ingresoUrg, ingresoOtra].some(el => el && el.value && el.value.toString().trim() !== '');
+
+        controls.forEach(el => {
+          // si es uno de los tres de ingreso o el boton -> dejar su tabindex natural
+          if (preservados.has(el)) {
+            // Aseguramos que el botón sea tabbable
+            if (el === botonGuardar) el.tabIndex = 0;
+            else el.removeAttribute('tabindex');
+            return;
+          }
+
+          // Si hay ingreso, los demás se deshabilitan para tabulación
+          if (hayIngreso) {
+            el.tabIndex = -1;
+          } else {
+            // restaurar tabIndex natural
+            el.tabIndex = 0;
+          }
         });
       }
 
-      // === Salto directo al botón guardar ===
-      if (ingresoCE && ingresoUrg && ingresoOtra && botonGuardar) {
-        const camposIntermedios = Array.from(document.querySelectorAll('input, select, textarea'))
-          .filter(el => el !== ingresoCE && el !== ingresoUrg && el !== ingresoOtra && el !== botonGuardar);
-
-        function actualizarTabulacion() {
-          const hayIngreso = [ingresoCE, ingresoUrg, ingresoOtra].some(el => el.value.trim() !== '');
-          camposIntermedios.forEach(el => {
-            if (hayIngreso && el.tabIndex >= 0) el.tabIndex = -1; // se saltan
-            else if (!hayIngreso && el.tabIndex === -1) el.tabIndex = 0; // vuelven
-          });
+      // interceptar TAB en cada campo de ingreso para forzar foco al botón
+      function handleKeydownToSave(e) {
+        if (e.key === 'Tab') {
+          const hayIngreso = [ingresoCE, ingresoUrg, ingresoOtra].some(el => el && el.value && el.value.toString().trim() !== '');
+          if (hayIngreso && botonGuardar) {
+            e.preventDefault();
+            // un pequeño timeout para que no se pierda la interacción nativa
+            setTimeout(() => botonGuardar.focus(), 0);
+          }
         }
-
-        // Escucha cambios en los tres campos de ingreso
-        [ingresoCE, ingresoUrg, ingresoOtra].forEach(el => {
-          el.addEventListener('input', actualizarTabulacion);
-        });
       }
+
+      // Registrar listeners (si los elementos existen)
+      [ingresoCE, ingresoUrg, ingresoOtra].forEach(inp => {
+        if (!inp) return;
+        inp.addEventListener('input', actualizarTabulacion);
+        inp.addEventListener('keydown', handleKeydownToSave);
+        // en caso de que ya haya valor al cargar la página
+        if (inp.value && inp.value.toString().trim() !== '') actualizarTabulacion();
+      });
+
+      // también actualiza si el formulario es reseteado desde JS
+      form.addEventListener('reset', () => setTimeout(actualizarTabulacion, 50));
+
+      // llamada inicial para establecer estado correcto
+      actualizarTabulacion();
     });
 
   </script>
