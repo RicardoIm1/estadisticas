@@ -277,70 +277,77 @@
       return { ok: true };
     }
 
-    // ---------------------- Guardar registro ----------------------
-    function guardarRegistro() {
-      const v = validarHoras();
-      if (!v.ok) { setEstado("error"); return; }
+  // ---------------------- Guardar registro ----------------------
+function guardarRegistro() {
+  const v = validarHoras();
+  if (!v.ok) { setEstado("error"); return; }
 
-      const fd = new FormData(form);
-      const datos = {};
-      fd.forEach((v, k) => datos[k] = v);
-      datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
-      datos.action = "save";
+  const fd = new FormData(form);
+  const datos = {};
+  fd.forEach((v, k) => datos[k] = v);
+  datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
+  datos.action = "save";
 
-      const cb = "cb_" + Date.now();
-      window[cb] = function (resp) {
-        if (resp.exito) {
-          setEstado("success");
-          // Mostrar folio solo después de guardar
-          if (resp.foliador) document.getElementById("foliador").value = resp.foliador;
+  const cb = "cb_" + Date.now();
+  window[cb] = function (resp) {
+    if (resp.exito) {
+      setEstado("success");
+      // Mostrar folio solo después de guardar
+      if (resp.foliador) document.getElementById("foliador").value = resp.foliador;
 
-          // ✅ Reset sin perder unidad, fecha ni servicio (y persistencia local)
-          const unidad = form.unidad?.value || localStorage.getItem("ultima_unidad") || "HOSPITAL REGIONAL PUERTO VALLARTA";
-          const fecha = form.fecha?.value || localStorage.getItem("ultima_fecha") || new Date().toISOString().split('T')[0];
-          const servicio = form.servicio?.value || localStorage.getItem("ultimo_servicio") || "";
+      // ✅ ELIMINAR form.reset() y usar limpieza controlada
+      const camposALimpiar = [
+        'numero_cama', 'expediente', 'nombre', 'pase_de',
+        'hora_ingreso_consulta_externa', 'hora_ingreso_urgencias', 
+        'hora_ingreso_otra_unidad', 'hora_egreso_vivo', 'hora_egreso_muerto',
+        'servicio_destino', 'observaciones'
+      ];
+      
+      // Limpiar solo los campos que deben cambiar
+      camposALimpiar.forEach(campo => {
+        const elemento = form.querySelector(`[name="${campo}"]`);
+        if (elemento) elemento.value = '';
+      });
 
-          form.reset();
+      // Los campos 'unidad', 'fecha', 'servicio' se MANTIENEN automáticamente
+      
+      // 💾 Persistir en localStorage (por si el usuario los cambia manualmente)
+      const unidad = form.unidad?.value || "HOSPITAL REGIONAL PUERTO VALLARTA";
+      const fecha = form.fecha?.value || new Date().toISOString().split('T')[0];
+      const servicio = form.servicio?.value || "";
+      
+      localStorage.setItem("ultima_unidad", unidad);
+      localStorage.setItem("ultima_fecha", fecha);
+      localStorage.setItem("ultimo_servicio", servicio);
 
-          // 🔄 Restaurar los valores inmediatamente
-          form.unidad.value = unidad;
-          form.fecha.value = fecha;
-          form.servicio.value = servicio;
+      // ⚡ Asegurar que foliador nunca reciba foco al tabular
+      const foliador = document.getElementById("foliador");
+      if (foliador) foliador.tabIndex = -1;
 
-          // 💾 Guardar para la próxima recarga
-          localStorage.setItem("ultima_unidad", unidad);
-          localStorage.setItem("ultima_fecha", fecha);
-          localStorage.setItem("ultimo_servicio", servicio);
+      // 🔁 Recargar registros
+      cargarRegistros();
 
-          // ⚡ Asegurar que foliador nunca reciba foco al tabular
-          const foliador = document.getElementById("foliador");
-          if (foliador) foliador.tabIndex = -1;
-
-          // 🔁 Recargar registros
-          cargarRegistros();
-
-          // 💡 Nuevo: colocar foco en el campo numero_cama
-          setTimeout(() => {
-            const campoCama = document.querySelector('[name="numero_cama"], #numero_cama');
-            if (campoCama) campoCama.focus();
-          }, 400);
-        } else {
-          setEstado("error");
-          alert("Error: " + (resp.mensaje || "No se pudo guardar."));
-        }
-        setTimeout(() => delete window[cb], 500);
-      };
-
-      const params = new URLSearchParams(datos);
-      params.append("callback", cb);
-
-      setEstado("loading");
-      const s = document.createElement("script");
-      s.src = `${URL_SCRIPT}?${params.toString()}`;
-      s.onerror = () => setEstado("error");
-      document.body.appendChild(s);
+      // 💡 Nuevo: colocar foco en el campo numero_cama
+      setTimeout(() => {
+        const campoCama = document.querySelector('[name="numero_cama"], #numero_cama');
+        if (campoCama) campoCama.focus();
+      }, 400);
+    } else {
+      setEstado("error");
+      alert("Error: " + (resp.mensaje || "No se pudo guardar."));
     }
+    setTimeout(() => delete window[cb], 500);
+  };
 
+  const params = new URLSearchParams(datos);
+  params.append("callback", cb);
+
+  setEstado("loading");
+  const s = document.createElement("script");
+  s.src = `${URL_SCRIPT}?${params.toString()}`;
+  s.onerror = () => setEstado("error");
+  document.body.appendChild(s);
+}
     // ---------------------- Asignar botón ----------------------
     document.getElementById("btnGuardar")?.addEventListener("click", e => {
       e.preventDefault();
