@@ -204,7 +204,7 @@
         </div>
         <button id="btnGuardar">Guardar</button>
       </form>
-      
+
       <div class="tabla-wrapper">
         <div class="buscador-wrapper">
           <input type="text" id="buscador" placeholder="🔍 Buscar por cualquier campo..." class="input-busqueda">
@@ -248,14 +248,6 @@
     if (document.getElementById("fecha")) {
       document.getElementById("fecha").valueAsDate = new Date();
     }
-
-    // ---------------------- setEstado (mantener tu animación real) ----------------------
-    /*     function setEstado(estado) {
-          const glass = document.querySelector('.glass');
-          if (!glass) return;
-          glass.classList.remove('success', 'error');
-          if (estado) glass.classList.add(estado);
-        } */
 
     // ---------------------- Validación de horas ----------------------
     function validarHoras() {
@@ -487,10 +479,11 @@
 
     // ---------------------- Inicializar ----------------------
     cargarRegistros();
+  </script>
 
-
+  <script>
     // ===============================
-    // 🧠 Control de tabulación dinámica
+    // 🧠 Control de tabulación dinámica (versión funcional)
     // ===============================
     document.addEventListener('DOMContentLoaded', () => {
       const form = document.getElementById('formCenso');
@@ -499,49 +492,60 @@
       const ingresoCE = form.querySelector('#hora_ingreso_consulta_externa');
       const ingresoUrg = form.querySelector('#hora_ingreso_urgencias');
       const ingresoOtra = form.querySelector('#hora_ingreso_otra_unidad');
-      const botonGuardar = document.getElementById('btnGuardar'); // ✅ uso directo y claro
+      const botonGuardar = document.getElementById('btnGuardar');
 
       if (!botonGuardar) return;
 
-      const controls = Array.from(form.elements).filter(el =>
-        ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(el.tagName)
-      );
+      // Todos los controles que participan en la tabulación
+      const controls = Array.from(form.querySelectorAll('input, select, textarea, button'))
+        .filter(el => !el.disabled && el.type !== 'hidden');
 
       const ingresoFields = [ingresoCE, ingresoUrg, ingresoOtra].filter(Boolean);
 
+      // 🔍 Verifica si hay alguna hora de ingreso capturada
       function hayIngreso() {
-        return ingresoFields.some(el => el.value && el.value.trim() !== '');
+        return ingresoFields.some(el => el && el.value.trim() !== '');
       }
 
+      // 🔄 Actualiza el flujo de tabulación según la condición
       function actualizarTabulacion() {
-        const saltar = hayIngreso();
+        const restringir = hayIngreso();
 
         controls.forEach(el => {
-          if (el === botonGuardar || ingresoFields.includes(el)) {
-            el.tabIndex = 0; // siguen en el flujo
+          if (restringir) {
+            // Si hay ingreso, solo los campos de ingreso y guardar tienen tabulación
+            el.tabIndex = ingresoFields.includes(el) || el === botonGuardar ? 0 : -1;
           } else {
-            el.tabIndex = saltar ? -1 : 0; // se saltan si ya hay ingreso
+            // Si no hay ingreso, todos vuelven al flujo normal
+            el.tabIndex = 0;
           }
         });
       }
 
+      // ⌨️ Si ya hay ingreso y se presiona Tab, salta al botón Guardar
       function handleKeydownToSave(e) {
         if (e.key === 'Tab' && !e.shiftKey && hayIngreso()) {
-          e.preventDefault();
-          botonGuardar.focus();
+          const ultimoIngreso = ingresoFields.find(el => el === document.activeElement);
+          if (ultimoIngreso) {
+            e.preventDefault();
+            botonGuardar.focus();
+          }
         }
       }
 
+      // Eventos dinámicos
       ingresoFields.forEach(inp => {
         inp.addEventListener('input', actualizarTabulacion);
         inp.addEventListener('keydown', handleKeydownToSave);
       });
 
-      form.addEventListener('reset', () => setTimeout(actualizarTabulacion, 50));
+      form.addEventListener('reset', () => setTimeout(actualizarTabulacion, 100));
+
+      // Inicia el estado correcto
       actualizarTabulacion();
     });
-
   </script>
+
 
   <script>
     // === FILTRO DE BÚSQUEDA ===
