@@ -184,7 +184,8 @@
             <span class="senalado">censo</span> identificadas por nombre del paciente.(Colocar el número de folio a
             lápiz en el extremo superior derecho de la hoja), Revisar que correspondan al servicio que los egresa. Si
             las hojas recogidas no aparecen en el Censo se identificarán como de <span>Corta Estancia</span> y se
-            foliarán con el número consecutivo a partir del último número de los censos.</li>
+            foliarán con el número consecutivo a partir del último número de los censos.
+          </li>
           <li>Se apartan las <span class="senalado">Hojas de Hospitalización</span> del servicio de <span
               class="senalado">Ginecología</span> con eventos obstétricos y se entregan al área de <strong>Planificación
               Familiar</strong> para verificar que los métodos anticonceptivos otorgados estén correctos.</li>
@@ -193,7 +194,8 @@
             a la <span>Libreta de Defunciones</span> del mes correspondiente</li>
           <li>Actualizar la <span class="senalado">Relación de Mortalidad</span> (Hoja de Excel:
             \\192.168.1.24\2020\MORTALIDAD), identificando las defunciones <strong>Censadas</strong> o de
-            <strong>Urgencias</strong></li>
+            <strong>Urgencias</strong>
+          </li>
           <li>Actualizar el <span class="senalado">Censo de Egresos Hospitalarios</span> (Hoja de Excel:
             \\192.168.1.24\2020\CENSO)</li>
           <li>Recoger los <span class="senalado">Expedientes de defuncion</span> del Archivo Clínico, firmar la bitácora
@@ -228,7 +230,8 @@
         <ol>
           <li><span class="senalado">Reporte SUIVE</span> Capturar los nuevos casos detectados y resaltados en las
             <span>Hojas Diarias del Servicio de Urgencias</span> (2020/2023/suivenuevo/agregar hoja semana
-            correspondiente) y enviar a <strong>Epidemiologia</strong>.</li>
+            correspondiente) y enviar a <strong>Epidemiologia</strong>.
+          </li>
           <li><span class="senalado">Reporte Semanal de Certificados de Nacimiento</span> Capturar certificados
             utilizados y cancelados registrados en la <span>Bitácora de Certificados de Nacimiento</span>. Modificar
             archivo "Reporte regional modificado(nacimientos)" (2020/2023/nacimientos). Enviar a la <strong>Región
@@ -258,7 +261,8 @@
             sinba/reportes de seul/) archivar (2020/2023/egresos/gerenciales)</li>
           <li>Se descargará la base de datos del mes correspondiente (sinba/descarga de datos/subsistema seul)...</li>
           <li>Se generan reportes de <strong>Principales Causas de Egresos</strong> totales y por servicio y
-            <strong>Reporte Obstétrico de Egresos</strong>...</li>
+            <strong>Reporte Obstétrico de Egresos</strong>...
+          </li>
         </ol>
         <li>Informe <span class="senalado">SIS INDEPENDIENTE</span> plataforma <strong>SINBA</strong>, datos obtenidos
           de los informes mesuales de los diferentes departamentos:</li>
@@ -306,6 +310,77 @@
 
     <script>
       document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+    <script>
+      // ========== VERIFICACIÓN DE SESIÓN CORREGIDA ==========
+      function verificarAutenticacion() {
+        const usuario = localStorage.getItem('usuario');
+        const rol = localStorage.getItem('rol');
+        const loginTime = localStorage.getItem('loginTime');
+
+        console.log('🔍 Verificando sesión:', { usuario, rol, loginTime });
+
+        // ✅ Si NO hay sesión activa, redirigir AL LOGIN CORRECTO
+        if (!usuario || !rol || !loginTime) {
+          console.warn('❌ No hay sesión activa - Redirigiendo a login');
+          window.location.href = '/estadisticas/login.html';
+          return false;
+        }
+
+        // Verificar expiración (24 horas)
+        const ahora = Date.now();
+        const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+
+        if (horasTranscurridas > 24) {
+          console.warn('⏰ Sesión expirada - Redirigiendo a login');
+          localStorage.clear();
+          window.location.href = '/estadisticas/login.html';
+          return false;
+        }
+
+        console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+
+        // Mostrar en el header
+        const userElement = document.getElementById('user-info');
+        if (userElement) {
+          userElement.innerHTML = `${usuario} (${rol})`;
+        }
+
+        return true;
+      }
+
+      // Cerrar sesión
+      function cerrarSesion() {
+        if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+          localStorage.clear();
+          // ✅ Redirigir al login CORRECTO
+          window.location.href = '/estadisticas/login.html';
+        }
+      }
+
+      // Verificar al cargar la página - VERSIÓN MEJORADA
+      document.addEventListener('DOMContentLoaded', function () {
+        console.log('📍 Página cargada:', window.location.href);
+
+        // Verificar sesión inmediatamente
+        if (!verificarAutenticacion()) {
+          console.log('🚨 Redirección en proceso...');
+          // Detener cualquier ejecución adicional
+          return;
+        }
+
+        // Solo ejecutar esto si la sesión es válida
+        console.log('✅ Sesión válida, continuando...');
+
+        // Hacer función global
+        window.cerrarSesion = cerrarSesion;
+      });
+
+      // También verificar en window.load por si acaso
+      window.addEventListener('load', function () {
+        console.log('🔄 Window loaded - Verificando sesión nuevamente');
+        verificarAutenticacion();
+      });
     </script>
 </body>
 
