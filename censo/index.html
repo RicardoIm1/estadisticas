@@ -298,23 +298,30 @@
           // Mostrar folio solo después de guardar
           if (resp.foliador) document.getElementById("foliador").value = resp.foliador;
 
-          /* // ✅ Reset sin perder unidad, fecha ni servicio
-          const unidad = form.unidad?.value;
-          const fecha = form.fecha?.value;
-          const servicio = form.servicio?.value;
+          // ✅ Reset sin perder unidad, fecha ni servicio (y persistencia local)
+          const unidad = form.unidad?.value || localStorage.getItem("ultima_unidad") || "HOSPITAL REGIONAL PUERTO VALLARTA";
+          const fecha = form.fecha?.value || localStorage.getItem("ultima_fecha") || new Date().toISOString().split('T')[0];
+          const servicio = form.servicio?.value || localStorage.getItem("ultimo_servicio") || "";
 
           form.reset();
 
-          if (form.unidad) form.unidad.value = unidad || "HOSPITAL REGIONAL PUERTO VALLARTA";
-          if (form.fecha) form.fecha.value = fecha || new Date().toISOString().split('T')[0];
-          if (form.servicio) form.servicio.value = servicio || "";
+          // 🔄 Restaurar los valores inmediatamente
+          form.unidad.value = unidad;
+          form.fecha.value = fecha;
+          form.servicio.value = servicio;
+
+          // 💾 Guardar para la próxima recarga
+          localStorage.setItem("ultima_unidad", unidad);
+          localStorage.setItem("ultima_fecha", fecha);
+          localStorage.setItem("ultimo_servicio", servicio);
 
           // ⚡ Asegurar que foliador nunca reciba foco al tabular
           const foliador = document.getElementById("foliador");
           if (foliador) foliador.tabIndex = -1;
 
+          // 🔁 Recargar registros
           cargarRegistros();
- */
+
           // 💡 Nuevo: colocar foco en el campo numero_cama
           setTimeout(() => {
             const campoCama = document.querySelector('[name="numero_cama"], #numero_cama');
@@ -449,23 +456,28 @@
       return "";
     }
 
-    // ---------------------- Mantener fecha y servicio ----------------------
+    // ---------------------- Mantener unidad, fecha y servicio ----------------------
     window.addEventListener("DOMContentLoaded", () => {
+      const campoUnidad = document.getElementById("unidad");
       const campoFecha = document.getElementById("fecha");
       const campoServicio = document.getElementById("servicio");
 
-      const fechaGuardada = localStorage.getItem("ultima_fecha");
-      const servicioGuardado = localStorage.getItem("ultimo_servicio");
+      const unidadGuardada = localStorage.getItem("ultima_unidad") || "HOSPITAL REGIONAL PUERTO VALLARTA";
+      const fechaGuardada = localStorage.getItem("ultima_fecha") || new Date().toISOString().split("T")[0];
+      const servicioGuardado = localStorage.getItem("ultimo_servicio") || "";
+
+      if (campoUnidad) {
+        campoUnidad.value = unidadGuardada;
+        campoUnidad.addEventListener("change", () => localStorage.setItem("ultima_unidad", campoUnidad.value));
+      }
 
       if (campoFecha) {
-        if (fechaGuardada) campoFecha.value = fechaGuardada;
-        else campoFecha.valueAsDate = new Date();
-
+        campoFecha.value = fechaGuardada;
         campoFecha.addEventListener("change", () => localStorage.setItem("ultima_fecha", campoFecha.value));
       }
 
       if (campoServicio) {
-        if (servicioGuardado) campoServicio.value = servicioGuardado;
+        campoServicio.value = servicioGuardado;
         campoServicio.addEventListener("change", () => localStorage.setItem("ultimo_servicio", campoServicio.value));
       }
     });
