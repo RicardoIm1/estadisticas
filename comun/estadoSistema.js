@@ -61,7 +61,8 @@ function setEstado(estado, mensaje = null) {
     if (!dashboard) return;
 
     // sube intensidad mínima
-    intensidadUso = Math.min(intensidadUso + 1, 8);
+    /* intensidadUso = Math.min(intensidadUso + 1, 8); */
+    intensidadUso = Math.min(intensidadUso + 1, 4);
     iniciarRespiracion();
     setTimeout(() => (intensidadUso = Math.max(intensidadUso - 1, 0)), 6000);
 
