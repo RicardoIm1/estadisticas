@@ -6,19 +6,51 @@ let respiracionInterval;
 
 // Respiración principal del panel .glass
 function iniciarRespiracion() {
-    const dashboard = document.querySelector('.glass');
-    if (!dashboard) return;
+  const dashboard = document.querySelector('.glass');
+  if (!dashboard) return;
 
-    clearInterval(respiracionInterval);
+  clearInterval(respiracionInterval);
 
-    let fase = 0;
-    respiracionInterval = setInterval(() => {
-        fase += 0.015; // más lento, más natural, menos CPU
-        const intensidad = Math.min(0.10 + intensidadUso / 120, 0.25);
-        const escala = 1 + Math.sin(fase) * intensidad * 0.03; // muy sutil
+  let fase = 0;
 
-        dashboard.style.transform = `scale(${escala})`;
-    }, 700); // respiración más lenta, máximo ahorro
+  respiracionInterval = setInterval(() => {
+    fase += 0.04 + intensidadUso * 0.005; 
+    // base 0.04 → suave
+    // + actividad → acelera
+
+    const intensidad = 0.05 + intensidadUso * 0.008;
+    // base 0.05 → visible pero ligera
+    // se intensifica con actividad
+
+    const escala = 1 + Math.sin(fase) * intensidad;
+    dashboard.style.transform = `scale(${escala})`;
+  }, 300);
+}
+// ---------- Suspiro espontáneo ----------
+function iniciarSuspiros() {
+  const dashboard = document.querySelector('.glass');
+  if (!dashboard) return;
+
+  function suspiro() {
+    dashboard.animate(
+      [
+        { transform: 'scale(1)' },
+        { transform: 'scale(1.015)' },
+        { transform: 'scale(1)' }
+      ],
+      {
+        duration: 1800,
+        easing: 'ease-in-out'
+      }
+    );
+
+    // programa siguiente suspiro entre 20 y 60s
+    const siguiente = Math.random() * (600000 - 200000) + 200000;
+    setTimeout(suspiro, siguiente);
+  }
+
+  // primer suspiro
+  setTimeout(suspiro, 25000);
 }
 
 
@@ -78,4 +110,9 @@ function iniciarRespiracionFondo() {
     }, 1200); // muy poco frecuente
 }
 
-window.addEventListener('load', iniciarRespiracionFondo);
+// ---------- Inicialización ----------
+window.addEventListener('load', () => {
+  iniciarRespiracion();
+  iniciarRespiracionFondo();
+  iniciarSuspiros();
+});
