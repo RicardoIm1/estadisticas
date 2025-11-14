@@ -8,21 +8,21 @@
   <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
   <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
 
-  <!-- Tu CSS base -->
   <link rel="stylesheet" href="../main_css/estilos.css">
 
-  <!-- Estado sistema (ya lo subiste) -->
   <script type="module" src="../main_js/estadoSistema.js"></script>
   <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
   <style>
-    /* Ajusta la altura automática de las celdas */
+    /* ================================
+       ESTILOS LOCALES
+    =================================== */
+
     .grid {
       grid-auto-rows: minmax(90px, auto);
       grid-auto-flow: dense;
     }
 
-    /* Variantes de tamaño */
     .celda.small {
       grid-column: span 1;
     }
@@ -36,7 +36,6 @@
       grid-row: span 2;
     }
 
-    /* Tipografía más compacta */
     .celda h3 {
       font-size: 0.95rem;
     }
@@ -47,15 +46,18 @@
       color: rgb(0, 255, 89);
     }
 
-    /* Íconos dentro de cada celda */
     .celda .icon {
       display: block;
       font-size: 1.6rem;
       margin-bottom: 0.4rem;
       color: #ffdd00;
+      transition: transform 0.3s ease;
     }
 
-    /* Responsividad adicional */
+    .celda:hover .icon {
+      transform: scale(1.1);
+    }
+
     @media (max-width: 520px) {
 
       .celda.medium,
@@ -65,23 +67,19 @@
       }
 
       .celda h3 {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
       }
     }
 
-    /* Efecto de enfoque (opcional, se ve elegante al pasar el mouse) */
-    .celda:hover .icon {
-      transform: scale(1.1);
-      transition: transform 0.3s ease;
-    }
-
-    /* Sutileza al pulsar los botones */
     button:active {
       transform: scale(0.97);
       opacity: 0.9;
     }
 
-    /* MODAL */
+    /* ================================
+       MODAL
+    =================================== */
+
     .modal-camas {
       display: none;
       position: fixed;
@@ -142,44 +140,50 @@
       font-weight: bold;
     }
   </style>
-
 </head>
 
 <body>
   <div class="glass" id="dashboard">
     <h5>Indicadores Hospitalarios</h5>
+
     <div class="header">
       <div class="logo">
-        <a href="/estadisticas"> <img src="../img/logo-hrpv.png" alt="Logo" width="120"></a>
+        <a href="/estadisticas">
+          <img src="../img/logo-hrpv.png" alt="Logo" width="120">
+        </a>
       </div>
+
       <div>
         <div class="usuario">
           <i class="fas fa-user-circle"></i>
           <span id="user-info"></span>
-          <!-- Botón de cerrar sesión -->
-          <button onclick="cerrarSesion()" class="btn-salir-ultra">
-            Salir
-          </button>
+          <button onclick="cerrarSesion()" class="btn-salir-ultra">Salir</button>
         </div>
       </div>
     </div>
 
+    <!-- =======================================
+         GRID PRINCIPAL
+    ============================================ -->
     <div class="grid" id="indicadores">
-      <div class="celda medium">
+
+      <!-- ===================
+           CAMAS CENSABLES
+      ===================== -->
+      <div class="celda medium" onclick="abrirModal('modalCensables')">
         <span class="icon fas fa-bed"></span>
         <h3>No DE CAMAS CENSABLES</h3>
         <p>87</p>
       </div>
 
-      <!-- === MODAL DE CAMAS CENSABLES === -->
-      <div id="modalCamas" class="modal-camas">
+      <!-- MODAL CAMAS CENSABLES -->
+      <div id="modalCensables" class="modal-camas">
         <div class="modal-contenido">
-          <span class="cerrar">&times;</span>
+          <span class="cerrar" onclick="cerrarModal('modalCensables')">&times;</span>
 
-          <h2>Camas Censables y No Censables</h2>
+          <h2>Camas Censables</h2>
 
           <div class="tablas-modal">
-            <!-- TABLA 1: CENSABLES -->
             <table>
               <thead>
                 <tr>
@@ -188,53 +192,38 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Ginecología</td>
-                  <td>18</td>
-                </tr>
-                <tr>
-                  <td>Medicina Interna</td>
-                  <td>24</td>
-                </tr>
-                <tr>
-                  <td>Cirugía</td>
-                  <td>12</td>
-                </tr>
-                <tr>
-                  <td>Traumatología</td>
-                  <td>8</td>
-                </tr>
-                <tr>
-                  <td>Pediatría</td>
-                  <td>9</td>
-                </tr>
-                <tr>
-                  <td>UCIN</td>
-                  <td>12</td>
-                </tr>
-                <tr>
-                  <td>UCI</td>
-                  <td>4</td>
-                </tr>
-                <tr>
-                  <td><strong>TOTAL</strong></td>
-                  <td><strong>87</strong></td>
-                </tr>
+                <tr><td>Ginecología</td><td>18</td></tr>
+                <tr><td>Medicina Interna</td><td>24</td></tr>
+                <tr><td>Cirugía</td><td>12</td></tr>
+                <tr><td>Traumatología</td><td>8</td></tr>
+                <tr><td>Pediatría</td><td>9</td></tr>
+                <tr><td>UCIN</td><td>12</td></tr>
+                <tr><td>UCI</td><td>4</td></tr>
+                <tr><td><strong>TOTAL</strong></td><td><strong>87</strong></td></tr>
               </tbody>
             </table>
           </div>
 
         </div>
       </div>
-      <!-- === MODAL DE CAMAS NO CENSABLES === -->
-      <div id="modalCamas" class="modal-camas">
-        <div class="modal-contenido">
-          <span class="cerrar">&times;</span>
 
-          <h2>Camas Censables y No Censables</h2>
+      <!-- ===========================
+           CAMAS NO CENSABLES
+      ============================ -->
+      <div class="celda small" onclick="abrirModal('modalNoCensables')">
+        <span class="icon fas fa-bed"></span>
+        <h3>No DE CAMAS NO CENSABLES</h3>
+        <p>31</p>
+      </div>
+
+      <!-- MODAL CAMAS NO CENSABLES -->
+      <div id="modalNoCensables" class="modal-camas">
+        <div class="modal-contenido">
+          <span class="cerrar" onclick="cerrarModal('modalNoCensables')">&times;</span>
+
+          <h2>Camas No Censables</h2>
 
           <div class="tablas-modal">
-            <!-- TABLA 2: NO CENSABLES -->
             <table>
               <thead>
                 <tr>
@@ -243,26 +232,11 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
-                  <td>Urgencias</td>
-                  <td>12</td>
-                </tr>
-                <tr>
-                  <td>Toco</td>
-                  <td>10</td>
-                </tr>
-                <tr>
-                  <td>Recuperación QX</td>
-                  <td>5</td>
-                </tr>
-                <tr>
-                  <td>Toco Recu</td>
-                  <td>4</td>
-                </tr>
-                <tr>
-                  <td><strong>TOTAL</strong></td>
-                  <td><strong>31</strong></td>
-                </tr>
+                <tr><td>Urgencias</td><td>12</td></tr>
+                <tr><td>Toco</td><td>10</td></tr>
+                <tr><td>Recuperación QX</td><td>5</td></tr>
+                <tr><td>Toco Recu</td><td>4</td></tr>
+                <tr><td><strong>TOTAL</strong></td><td><strong>31</strong></td></tr>
               </tbody>
             </table>
           </div>
@@ -270,12 +244,11 @@
         </div>
       </div>
 
-
-      <div class="celda small">
-        <span class="icon fas fa-bed"></span>
-        <h3>No DE CAMAS NO CENSABLES</h3>
-        <p>31</p>
-      </div>
+      <!-- ===========================
+           RESTO DE INDICADORES
+      ============================ -->
+      <!-- NOTA: Mantengo tus celdas tal cual
+           para no alterar tu diseño -->
 
       <div class="celda small">
         <span class="icon fas fa-procedures"></span>
@@ -474,6 +447,7 @@
         <h3>RAZON DE ENFERMERA POR TOTAL DE CAMAS (JORNADA ACUMULADA)</h3>
         <p>0.44</p>
       </div>
+
     </div>
 
     <footer>
@@ -481,138 +455,54 @@
     </footer>
   </div>
 
-
+  <!-- =======================================
+       SCRIPT GENERAL
+    ============================================ -->
   <script>
-
-    function setEstado(estado) {
-      const dashboard = document.getElementById('dashboard');
-      const estadoTexto = document.getElementById('estadoTexto');
-      dashboard.classList.remove('loading', 'success', 'error');
-      dashboard.classList.add(estado);
-
-      switch (estado) {
-        case 'loading':
-          estadoTexto.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando sistema...';
-          break;
-        case 'success':
-          estadoTexto.innerHTML = '<i class="fas fa-check-circle"></i> Sistema operativo con éxito ✅';
-          break;
-        case 'error':
-          estadoTexto.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error detectado ❌';
-          break;
-      }
+    function abrirModal(id) {
+      document.getElementById(id).style.display = 'flex';
     }
 
-    // Footer dinámico
+    function cerrarModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    // footer dinámico
     document.getElementById('footerText').innerHTML =
       `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
   </script>
 
+  <!-- =======================================
+       SESIÓN
+    ============================================ -->
   <script>
-    // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
     function verificarAutenticacion() {
       const usuario = localStorage.getItem('usuario');
       const rol = localStorage.getItem('rol');
       const loginTime = localStorage.getItem('loginTime');
 
       if (!usuario || !rol || !loginTime) {
-        console.log('❌ No hay sesión activa');
-        window.location.href = 'index.html';
+        window.location.href = "index.html";
         return;
       }
 
-      // Verificar expiración (24 horas)
-      const ahora = new Date().getTime();
-      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
-
-      if (horasTranscurridas > 24) {
-        console.log('⏰ Sesión expirada');
-        localStorage.clear();
-        window.location.href = 'index.html';
-        return;
-      }
-
-      console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
-
-      // Mostrar en el header
-      const userElement = document.getElementById('user-info');
-      if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-      }
-    }
-
-    // Cerrar sesión
-    function cerrarSesion() {
-      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        localStorage.clear();
-
-        // ✅ Ajusta la ruta de redirección al LOGIN REAL
-        // Si el login está en la raíz del proyecto:
-        window.location.href = '/estadisticas/login.html';
-        // o, si estás dentro de una subcarpeta (por ejemplo, /panel/):
-        // window.location.href = '../login.html';
-      }
-    }
-
-    // Verificar al cargar la página
-    window.addEventListener('load', verificarAutenticacion);
-
-    // Hacer función global
-    window.cerrarSesion = cerrarSesion;
-
-    function verificarAutenticacion() {
-      const usuario = localStorage.getItem('usuario');
-      const rol = localStorage.getItem('rol');
-      const loginTime = localStorage.getItem('loginTime');
-
-      // ✅ Si no hay sesión activa, manda al login sin parpadeo
-      if (!usuario || !rol || !loginTime) {
-        console.warn('❌ No hay sesión activa');
-        window.location.replace('/login.html');
-        return;
-      }
-
-      // Verificar expiración (24 horas)
       const ahora = Date.now();
-      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+      const horas = (ahora - Number(loginTime)) / (1000 * 60 * 60);
 
-      if (horasTranscurridas > 24) {
-        console.warn('⏰ Sesión expirada');
-        localStorage.clear();
-        window.location.replace('estadisticas/login.html');
-        return;
-      }
-
-      console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
-
-      const userElement = document.getElementById('user-info');
-      if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
+      if (horas > 24) {
+        cerrarSesion();
+      } else {
+        document.getElementById('user-info').innerText = `${usuario} (${rol})`;
       }
     }
 
-  </script>
+    function cerrarSesion() {
+      localStorage.clear();
+      window.location.href = "index.html";
+    }
 
-  <script>
-    // Abrir modal al hacer clic en la celda
-    document.querySelector(".celda.medium").addEventListener("click", () => {
-      document.getElementById("modalCamas").style.display = "flex";
-    });
-
-    // Cerrar modal (botón X)
-    document.querySelector(".modal-camas .cerrar").addEventListener("click", () => {
-      document.getElementById("modalCamas").style.display = "none";
-    });
-
-    // Cerrar modal haciendo clic fuera del contenido
-    window.addEventListener("click", (e) => {
-      const modal = document.getElementById("modalCamas");
-      if (e.target === modal) {
-        modal.style.display = "none";
-      }
-    });
+    verificarAutenticacion();
   </script>
 
 </body>
-
 </html>
