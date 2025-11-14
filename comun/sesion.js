@@ -34,15 +34,6 @@
       return true;
     }
 
-    // Cerrar sesión
-    function cerrarSesion() {
-      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        localStorage.clear();
-        // ✅ Redirigir al login CORRECTO
-        window.location.href = '/estadisticas/login.html';
-      }
-    }
-
     // Verificar al cargar la página - VERSIÓN MEJORADA
     document.addEventListener('DOMContentLoaded', function () {
       console.log('📍 Página cargada:', window.location.href);
