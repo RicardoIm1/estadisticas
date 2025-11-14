@@ -18,11 +18,11 @@ function iniciarRespiracion() {
     // base 0.04 → suave
     // + actividad → acelera
 
-    const intensidad = 0.05 + intensidadUso * 0.008;
+    const intensidad = 0.02 + intensidadUso * 0.004;
     // base 0.05 → visible pero ligera
     // se intensifica con actividad
 
-    const escala = 1 + Math.sin(fase) * intensidad;
+const escala = 1 + Math.sin(fase) * (intensidad * 0.8);
     dashboard.style.transform = `scale(${escala})`;
   }, 300);
 }
