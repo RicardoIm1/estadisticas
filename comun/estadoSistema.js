@@ -1,120 +1,81 @@
-// ========== estadoSistema.js GAMIFICADO ==========
+// ========== estadoSistema.js (versión ultra ligera) ==========
 
-// Nivel de intensidad simbólica del “pulso”
+// Nivel simbólico de la “respiración”
 let intensidadUso = 0;
 let respiracionInterval;
 
-// ---------- Respiración principal ----------
+// Respiración principal del panel .glass
 function iniciarRespiracion() {
-  const dashboard = document.querySelector('.glass');
-  if (!dashboard) return;
+    const dashboard = document.querySelector('.glass');
+    if (!dashboard) return;
 
-  clearInterval(respiracionInterval);
+    clearInterval(respiracionInterval);
 
-  let fase = 0;
+    let fase = 0;
+    respiracionInterval = setInterval(() => {
+        fase += 0.015; // más lento, más natural, menos CPU
+        const intensidad = Math.min(0.10 + intensidadUso / 120, 0.25);
+        const escala = 1 + Math.sin(fase) * intensidad * 0.03; // muy sutil
 
-  respiracionInterval = setInterval(() => {
-    fase += 0.04 + intensidadUso * 0.005; 
-    // base 0.04 → suave
-    // + actividad → acelera
-
-    const intensidad = 0.05 + intensidadUso * 0.008;
-    // base 0.05 → visible pero ligera
-    // se intensifica con actividad
-
-    const escala = 1 + Math.sin(fase) * intensidad;
-    dashboard.style.transform = `scale(${escala})`;
-  }, 300);
+        dashboard.style.transform = `scale(${escala})`;
+    }, 700); // respiración más lenta, máximo ahorro
 }
 
-// ---------- Suspiro espontáneo ----------
-function iniciarSuspiros() {
-  const dashboard = document.querySelector('.glass');
-  if (!dashboard) return;
 
-  function suspiro() {
-    dashboard.animate(
-      [
-        { transform: 'scale(1)' },
-        { transform: 'scale(1.015)' },
-        { transform: 'scale(1)' }
-      ],
-      {
-        duration: 1800,
-        easing: 'ease-in-out'
-      }
-    );
-
-    // programa siguiente suspiro entre 20 y 60s
-    const siguiente = Math.random() * (60000 - 20000) + 20000;
-    setTimeout(suspiro, siguiente);
-  }
-
-  // primer suspiro
-  setTimeout(suspiro, 25000);
-}
-
-// ---------- Estado del sistema ----------
+// Control de estados visuales (igual que antes)
 function setEstado(estado, mensaje = null) {
-  const dashboard = document.querySelector('.glass');
-  const messageDiv = document.getElementById('message');
-  if (!dashboard) return;
+    const dashboard = document.querySelector('.glass');
+    const messageDiv = document.getElementById('message');
+    if (!dashboard) return;
 
-  // Aumenta el "pulso" por actividad
-  intensidadUso = Math.min(intensidadUso + 1, 10);
-  iniciarRespiracion();
-  setTimeout(() => {
-    intensidadUso = Math.max(intensidadUso - 1, 0);
-  }, 6000);
+    // sube intensidad mínima
+    intensidadUso = Math.min(intensidadUso + 1, 8);
+    iniciarRespiracion();
+    setTimeout(() => (intensidadUso = Math.max(intensidadUso - 1, 0)), 6000);
 
-  dashboard.style.transition =
-    'background 0.4s ease, box-shadow 0.6s ease, border 0.4s ease, transform 0.5s ease';
+    dashboard.style.transition =
+        'background 0.4s ease, box-shadow 0.6s ease, border 0.4s ease';
 
-  dashboard.classList.remove('loading', 'success', 'error');
-  dashboard.classList.add(estado);
-
-  if (messageDiv) {
-    const iconos = {
-      loading: '<i class="fas fa-sync fa-spin"></i> Procesando...',
-      success: '<i class="fas fa-check-circle"></i> Éxito ✓',
-      error: '<i class="fas fa-exclamation-circle"></i> Error ✗'
-    };
-
-    messageDiv.innerHTML = mensaje || iconos[estado] || 'Listo';
-    messageDiv.style.opacity = '1';
-
-    setTimeout(() => {
-      messageDiv.style.opacity = '0';
-      setTimeout(() => (messageDiv.innerHTML = ''), 500);
-    }, 4000);
-  }
-
-  // limpia estado visual
-  setTimeout(() => {
     dashboard.classList.remove('loading', 'success', 'error');
-  }, 4500);
+    dashboard.classList.add(estado);
+
+    if (messageDiv) {
+        const iconos = {
+            loading: '<i class="fas fa-sync fa-spin"></i> Procesando...',
+            success: '<i class="fas fa-check-circle"></i> Éxito',
+            error: '<i class="fas fa-exclamation-circle"></i> Error'
+        };
+        messageDiv.innerHTML = mensaje || iconos[estado];
+        messageDiv.style.opacity = '1';
+    }
+
+    // Limpiar y volver a neutro
+    setTimeout(() => {
+        dashboard.classList.remove('loading', 'success', 'error');
+        if (messageDiv) {
+            messageDiv.style.opacity = '0';
+            setTimeout(() => (messageDiv.innerHTML = ''), 400);
+        }
+    }, 4500);
 }
 
-// ---------- Respiración del fondo ----------
+
+// Sutil respiración del fondo general
 function iniciarRespiracionFondo() {
-  const body = document.body;
-  if (!body) return;
+    const body = document.body;
+    if (!body) return;
 
-  let faseFondo = 0;
-  setInterval(() => {
-    faseFondo += 0.02;
+    let faseFondo = 0;
 
-    const intensidad = 0.03 + intensidadUso * 0.008;
-    const brillo = 1 + Math.sin(faseFondo) * intensidad;
-    const saturacion = 1 + Math.sin(faseFondo + Math.PI / 2) * intensidad * 1.2;
+    setInterval(() => {
+        faseFondo += 0.01; // más suave
+        const intensidad = Math.min(0.12 + intensidadUso / 160, 0.22);
 
-    body.style.filter = `brightness(${brillo}) saturate(${saturacion})`;
-  }, 500);
+        const brillo = 1 + Math.sin(faseFondo) * intensidad * 0.10;
+        const saturacion = 1 + Math.sin(faseFondo + Math.PI / 2) * intensidad * 0.15;
+
+        body.style.filter = `brightness(${brillo}) saturate(${saturacion})`;
+    }, 1200); // muy poco frecuente
 }
 
-// ---------- Inicialización ----------
-window.addEventListener('load', () => {
-  iniciarRespiracion();
-  iniciarRespiracionFondo();
-  iniciarSuspiros();
-});
+window.addEventListener('load', iniciarRespiracionFondo);
