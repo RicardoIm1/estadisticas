@@ -80,6 +80,67 @@
       transform: scale(0.97);
       opacity: 0.9;
     }
+
+    /* MODAL */
+    .modal-camas {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      backdrop-filter: blur(3px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .modal-contenido {
+      background: #fff;
+      padding: 25px;
+      border-radius: 12px;
+      max-width: 900px;
+      width: 95%;
+      box-shadow: 0 0 20px rgba(0, 0, 0, .3);
+      animation: aparecer .25s ease-out;
+    }
+
+    @keyframes aparecer {
+      from {
+        transform: scale(.9);
+        opacity: 0;
+      }
+
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .tablas-modal {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 20px;
+    }
+
+    .modal-contenido table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .modal-contenido th,
+    .modal-contenido td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+
+    .cerrar {
+      float: right;
+      font-size: 22px;
+      cursor: pointer;
+      font-weight: bold;
+    }
   </style>
 
 </head>
@@ -88,28 +149,111 @@
   <div class="glass" id="dashboard">
     <h5>Indicadores Hospitalarios</h5>
     <div class="header">
-        <div class="logo">
-          <a href="/estadisticas" > <img src="../img/logo-hrpv.png" alt="Logo" width="120"></a>
-        </div>
-        <div>
-          <div class="usuario">
+      <div class="logo">
+        <a href="/estadisticas"> <img src="../img/logo-hrpv.png" alt="Logo" width="120"></a>
+      </div>
+      <div>
+        <div class="usuario">
           <i class="fas fa-user-circle"></i>
-              <span id="user-info"></span>
-            <!-- Botón de cerrar sesión -->
-            <button onclick="cerrarSesion()" class="btn-salir-ultra">
-              Salir
-            </button>
-          </div>
+          <span id="user-info"></span>
+          <!-- Botón de cerrar sesión -->
+          <button onclick="cerrarSesion()" class="btn-salir-ultra">
+            Salir
+          </button>
         </div>
       </div>
+    </div>
 
     <div class="grid" id="indicadores">
 
-      <div class="celda medium">
-        <span class="icon fas fa-bed"></span>
-        <h3>No DE CAMAS CENSABLES</h3>
-        <p>87</p>
+      <!-- === MODAL DE CAMAS === -->
+      <div id="modalCamas" class="modal-camas">
+        <div class="modal-contenido">
+          <span class="cerrar">&times;</span>
+
+          <h2>Camas Censables y No Censables</h2>
+
+          <div class="tablas-modal">
+            <!-- TABLA 1: CENSABLES -->
+            <table>
+              <thead>
+                <tr>
+                  <th>Servicio</th>
+                  <th>Camas Censables</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Ginecología</td>
+                  <td>18</td>
+                </tr>
+                <tr>
+                  <td>Medicina Interna</td>
+                  <td>24</td>
+                </tr>
+                <tr>
+                  <td>Cirugía</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td>Traumatología</td>
+                  <td>8</td>
+                </tr>
+                <tr>
+                  <td>Pediatría</td>
+                  <td>9</td>
+                </tr>
+                <tr>
+                  <td>UCIN</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td>UCI</td>
+                  <td>4</td>
+                </tr>
+                <tr>
+                  <td><strong>TOTAL</strong></td>
+                  <td><strong>87</strong></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- TABLA 2: NO CENSABLES -->
+            <table>
+              <thead>
+                <tr>
+                  <th>Servicio</th>
+                  <th>Camas No Censables</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Urgencias</td>
+                  <td>12</td>
+                </tr>
+                <tr>
+                  <td>Toco</td>
+                  <td>10</td>
+                </tr>
+                <tr>
+                  <td>Recuperación QX</td>
+                  <td>5</td>
+                </tr>
+                <tr>
+                  <td>Toco Recu</td>
+                  <td>4</td>
+                </tr>
+                <tr>
+                  <td><strong>TOTAL</strong></td>
+                  <td><strong>31</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
       </div>
+
 
       <div class="celda small">
         <span class="icon fas fa-bed"></span>
@@ -321,116 +465,138 @@
     </footer>
   </div>
 
-  
-    <script>
-      
-      function setEstado(estado) {
-        const dashboard = document.getElementById('dashboard');
-        const estadoTexto = document.getElementById('estadoTexto');
-        dashboard.classList.remove('loading', 'success', 'error');
-        dashboard.classList.add(estado);
 
-        switch (estado) {
-          case 'loading':
-            estadoTexto.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando sistema...';
-            break;
-          case 'success':
-            estadoTexto.innerHTML = '<i class="fas fa-check-circle"></i> Sistema operativo con éxito ✅';
-            break;
-          case 'error':
-            estadoTexto.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error detectado ❌';
-            break;
-        }
+  <script>
+
+    function setEstado(estado) {
+      const dashboard = document.getElementById('dashboard');
+      const estadoTexto = document.getElementById('estadoTexto');
+      dashboard.classList.remove('loading', 'success', 'error');
+      dashboard.classList.add(estado);
+
+      switch (estado) {
+        case 'loading':
+          estadoTexto.innerHTML = '<i class="fas fa-sync fa-spin"></i> Cargando sistema...';
+          break;
+        case 'success':
+          estadoTexto.innerHTML = '<i class="fas fa-check-circle"></i> Sistema operativo con éxito ✅';
+          break;
+        case 'error':
+          estadoTexto.innerHTML = '<i class="fas fa-exclamation-circle"></i> Error detectado ❌';
+          break;
       }
+    }
 
-      // Footer dinámico
-      document.getElementById('footerText').innerHTML =
-        `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+    // Footer dinámico
+    document.getElementById('footerText').innerHTML =
+      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
   </script>
 
   <script>
     // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
     function verificarAutenticacion() {
-        const usuario = localStorage.getItem('usuario');
-        const rol = localStorage.getItem('rol');
-        const loginTime = localStorage.getItem('loginTime');
-        
-        if (!usuario || !rol || !loginTime) {
-            console.log('❌ No hay sesión activa');
-            window.location.href = 'index.html';
-            return;
-        }
-        
-        // Verificar expiración (24 horas)
-        const ahora = new Date().getTime();
-        const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
-        
-        if (horasTranscurridas > 24) {
-            console.log('⏰ Sesión expirada');
-            localStorage.clear();
-            window.location.href = 'index.html';
-            return;
-        }
-        
-        console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
-        
-        // Mostrar en el header
-        const userElement = document.getElementById('user-info');
-        if (userElement) {
-            userElement.innerHTML = `${usuario} (${rol})`;
-        }
+      const usuario = localStorage.getItem('usuario');
+      const rol = localStorage.getItem('rol');
+      const loginTime = localStorage.getItem('loginTime');
+
+      if (!usuario || !rol || !loginTime) {
+        console.log('❌ No hay sesión activa');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Verificar expiración (24 horas)
+      const ahora = new Date().getTime();
+      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+
+      if (horasTranscurridas > 24) {
+        console.log('⏰ Sesión expirada');
+        localStorage.clear();
+        window.location.href = 'index.html';
+        return;
+      }
+
+      console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+
+      // Mostrar en el header
+      const userElement = document.getElementById('user-info');
+      if (userElement) {
+        userElement.innerHTML = `${usuario} (${rol})`;
+      }
     }
 
-        // Cerrar sesión
-        function cerrarSesion() {
-          if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-            localStorage.clear();
+    // Cerrar sesión
+    function cerrarSesion() {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        localStorage.clear();
 
-            // ✅ Ajusta la ruta de redirección al LOGIN REAL
-            // Si el login está en la raíz del proyecto:
-            window.location.href = '/estadisticas/login.html';
-            // o, si estás dentro de una subcarpeta (por ejemplo, /panel/):
-            // window.location.href = '../login.html';
-          }
-        }
-       
-        // Verificar al cargar la página
-        window.addEventListener('load', verificarAutenticacion);
-        
-        // Hacer función global
-        window.cerrarSesion = cerrarSesion;
+        // ✅ Ajusta la ruta de redirección al LOGIN REAL
+        // Si el login está en la raíz del proyecto:
+        window.location.href = '/estadisticas/login.html';
+        // o, si estás dentro de una subcarpeta (por ejemplo, /panel/):
+        // window.location.href = '../login.html';
+      }
+    }
 
-        function verificarAutenticacion() {
-          const usuario = localStorage.getItem('usuario');
-          const rol = localStorage.getItem('rol');
-          const loginTime = localStorage.getItem('loginTime');
+    // Verificar al cargar la página
+    window.addEventListener('load', verificarAutenticacion);
 
-          // ✅ Si no hay sesión activa, manda al login sin parpadeo
-          if (!usuario || !rol || !loginTime) {
-            console.warn('❌ No hay sesión activa');
-            window.location.replace('/login.html');
-            return;
-          }
+    // Hacer función global
+    window.cerrarSesion = cerrarSesion;
 
-          // Verificar expiración (24 horas)
-          const ahora = Date.now();
-          const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+    function verificarAutenticacion() {
+      const usuario = localStorage.getItem('usuario');
+      const rol = localStorage.getItem('rol');
+      const loginTime = localStorage.getItem('loginTime');
 
-          if (horasTranscurridas > 24) {
-            console.warn('⏰ Sesión expirada');
-            localStorage.clear();
-            window.location.replace('estadisticas/login.html');
-            return;
-          }
+      // ✅ Si no hay sesión activa, manda al login sin parpadeo
+      if (!usuario || !rol || !loginTime) {
+        console.warn('❌ No hay sesión activa');
+        window.location.replace('/login.html');
+        return;
+      }
 
-          console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+      // Verificar expiración (24 horas)
+      const ahora = Date.now();
+      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
 
-          const userElement = document.getElementById('user-info');
-          if (userElement) {
-            userElement.innerHTML = `${usuario} (${rol})`;
-          }
-        }
+      if (horasTranscurridas > 24) {
+        console.warn('⏰ Sesión expirada');
+        localStorage.clear();
+        window.location.replace('estadisticas/login.html');
+        return;
+      }
 
-    </script>
-  </body>
+      console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+
+      const userElement = document.getElementById('user-info');
+      if (userElement) {
+        userElement.innerHTML = `${usuario} (${rol})`;
+      }
+    }
+
+  </script>
+
+  <script>
+    // Abrir modal al hacer clic en la celda
+    document.querySelector(".celda.medium").addEventListener("click", () => {
+      document.getElementById("modalCamas").style.display = "flex";
+    });
+
+    // Cerrar modal (botón X)
+    document.querySelector(".modal-camas .cerrar").addEventListener("click", () => {
+      document.getElementById("modalCamas").style.display = "none";
+    });
+
+    // Cerrar modal haciendo clic fuera del contenido
+    window.addEventListener("click", (e) => {
+      const modal = document.getElementById("modalCamas");
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+  </script>
+
+</body>
+
 </html>
