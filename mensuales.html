@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tablero Temporal — Informes</title>
-  <link rel="stylesheet" href="/main_css/estilos.css" />
+  <link rel="stylesheet" href="estilos.css" />
   <style>
     /* Ajustes específicos del tablero */
     .wrapper { display: flex; height: 100%; width: 100%; }
@@ -94,58 +94,54 @@
   </div>
 
 <style>
+  /* MATRIZ EN VERDADERO MODO EXCEL */
   .matriz {
     margin-top: 20px;
     display: grid;
-    grid-auto-rows: min-content;
-    gap: 4px;
-    overflow-x: auto;
+    grid-auto-rows: minmax(42px, auto);
+    gap: 0;
+    border: 1px solid #e5e7eb;
   }
 
-  .col-fija {
-    background: #f9fafb;
-    padding: 10px;
-    border-right: 2px solid #e5e7eb;
-  }
-
-  .col-mes {
-    padding: 10px;
-    border-left: 1px solid #f1f5f9;
-  }
-
-  .titulo-columna {
-    font-weight: bold;
-    background: #e8f1fa;
-    padding: 6px 8px;
-    border-radius: 6px;
-    text-align: center;
-    margin-bottom: 8px;
-  }
-
-  .item-row {
+  .celda {
+    border-bottom: 1px solid #e5e7eb;
+    border-right: 1px solid #e5e7eb;
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 0;
+    padding: 6px 10px;
+    background:white;
+  }
+
+  .col-titulo {
+    font-weight: bold;
+    background: #e8f1fa;
+    border-bottom: 2px solid #cbd5e1;
+    justify-content: center;
+  }
+
+  .celda-fija {
+    background:#f9fafb;
+    font-weight: 600;
   }
 
   .card-informe {
-    border: 1px solid #e5e7eb;
-    padding: 8px;
-    border-radius: 8px;
-    background: #ffffff;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    width:100%;
   }
 
   .card-informe.activo {
-    background: #e0f7e9;
-    border-color: #34a853;
+    background:#e0f7e9;
+    border-radius:6px;
+    padding:4px;
   }
 
   .input-evidencia {
-    width: 100%;
-    border: 1px solid #d1d5db;
-    padding: 6px;
-    border-radius: 6px;
+    flex:1;
+    border:1px solid #d1d5db;
+    padding:4px 6px;
+    border-radius:4px;
   }
 </style>
 
@@ -154,11 +150,12 @@ const INFORMES = [
   "SINBA BD EGRESOS","SINBA BD URGENCIAS","SINBA BD LESIONES","SINBA BD NACIMIENTOS","SINBA BD DEFUNCIONES","SINBA GERENCIAL","RESUMEN DEFUNCIONES","CONCENTRADO GENERAL DEL CENSO","CORTA ESTANCIA","PRINCIPALES CAUSAS DE EGRESO","EXPEDIENTES CLINICOS NUEVOS","LABORATORIO","TAMIZ NEONATAL","CAPACITACIONES DE ENFERMERIA","VACUNAS","CARTILLAS DE SALUD","REHABILITACION","EPIDEMIOLOGIA","TRABAJO SOCIAL","SERVICIO DE AMBULANCIAS"
 ];
 
-const LLAVE = "informes_matriz_v1";
+const LLAVE = "informes_matriz_v2";
 
 function obtenerDatos() {
-  return JSON.parse(localStorage.getItem(LLAVE)) || {};
+  return JSON.parse(localStorage.getItem(LLAVE)) || { meses: {} };
 }
+
 function guardarDatos(obj) {
   localStorage.setItem(LLAVE, JSON.stringify(obj));
 }
@@ -184,67 +181,84 @@ function generarMatriz() {
   const matriz = document.getElementById("matriz");
   matriz.innerHTML = "";
 
-  // Definir columnas: fija + meses
+  const columnas = 1 + meses.length;
   matriz.style.gridTemplateColumns = `260px repeat(${meses.length}, 280px)`;
 
-  // Columna fija
-  const colFija = document.createElement("div");
-  colFija.className = "col-fija";
-  colFija.innerHTML = `<div class='titulo-columna'>Informes</div>` +
-    INFORMES.map(i => `<div class='item-row'><strong>${i}</strong></div>`).join("");
-  matriz.appendChild(colFija);
+  // ----- TITULOS -----
+  matriz.appendChild(crearCeldaTitulo("Informes"));
+  meses.forEach(m => matriz.appendChild(crearCeldaTitulo(m)));
 
   const datos = obtenerDatos();
-  if (!datos.meses) datos.meses = {};
 
-  // Columnas por mes
-  meses.forEach(mes => {
-    const col = document.createElement("div");
-    col.className = "col-mes";
+  INFORMES.forEach(informe => {
+    // Columna fija
+    matriz.appendChild(crearCeldaFija(informe));
 
-    col.innerHTML = `<div class='titulo-columna'>${mes}</div>`;
-
-    INFORMES.forEach(informe => {
+    meses.forEach(mes => {
       if (!datos.meses[mes]) datos.meses[mes] = {};
-      if (!datos.meses[mes][informe]) datos.meses[mes][informe] = { ruta: "", completo: false };
+      if (!datos.meses[mes][informe]) datos.meses[mes][informe] = { ruta:"", completo:false };
 
-      const reg = datos.meses[mes][informe];
-
-      const row = document.createElement("div");
-      row.className = "item-row card-informe";
-      if (reg.ruta.trim() !== "") row.classList.add("activo");
-
-      row.innerHTML = `
-        <input type='checkbox' ${reg.completo ? "checked" : ""} />
-        <input type='text' class='input-evidencia' placeholder='Evidencia' value='${reg.ruta}' />
-      `;
-
-      const chk = row.querySelector("input[type=checkbox]");
-      const inp = row.querySelector(".input-evidencia");
-
-      inp.addEventListener("input", () => {
-        reg.ruta = inp.value.trim();
-        reg.completo = reg.ruta !== "";
-        chk.checked = reg.completo;
-        row.classList.toggle("activo", reg.completo);
-        guardarDatos(datos);
-      });
-
-      chk.addEventListener("change", () => {
-        reg.completo = chk.checked;
-        if (!reg.completo) reg.ruta = "";
-        inp.value = reg.ruta;
-        row.classList.toggle("activo", reg.completo);
-        guardarDatos(datos);
-      });
-
-      col.appendChild(row);
+      matriz.appendChild(crearCeldaEditable(mes, informe, datos));
     });
-
-    matriz.appendChild(col);
   });
 
   guardarDatos(datos);
+}
+
+function crearCeldaTitulo(texto) {
+  const div = document.createElement("div");
+  div.className = "celda col-titulo";
+  div.textContent = texto;
+  return div;
+}
+
+function crearCeldaFija(texto) {
+  const div = document.createElement("div");
+  div.className = "celda celda-fija";
+  div.textContent = texto;
+  return div;
+}
+
+function crearCeldaEditable(mes, informe, datos) {
+  const div = document.createElement("div");
+  div.className = "celda";
+
+  const reg = datos.meses[mes][informe];
+
+  const box = document.createElement("div");
+  box.className = "card-informe";
+  if (reg.ruta) box.classList.add("activo");
+
+  const chk = document.createElement("input");
+  chk.type = "checkbox";
+  chk.checked = reg.completo;
+
+  const inp = document.createElement("input");
+  inp.type = "text";
+  inp.value = reg.ruta;
+  inp.placeholder = "Evidencia";
+  inp.className = "input-evidencia";
+
+  inp.addEventListener("input", () => {
+    reg.ruta = inp.value.trim();
+    reg.completo = reg.ruta !== "";
+    chk.checked = reg.completo;
+    box.classList.toggle("activo", reg.completo);
+    guardarDatos(datos);
+  });
+
+  chk.addEventListener("change", () => {
+    reg.completo = chk.checked;
+    if (!reg.completo) reg.ruta = "";
+    inp.value = reg.ruta;
+    box.classList.toggle("activo", reg.completo);
+    guardarDatos(datos);
+  });
+
+  box.appendChild(chk);
+  box.appendChild(inp);
+  div.appendChild(box);
+  return div;
 }
 
 document.getElementById("btnGenerar").addEventListener("click", generarMatriz);
