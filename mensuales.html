@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control de Informes Mensuales — Tablero</title>
+  <style>
+    :root{--accent:#2e86c1;--bg:#f4f6f8}
+    body {
+      font-family: Inter, Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      padding: 20px;
+      color: #1f2937;
+    }
+    .contenedor {
+      max-width: 1100px;
+      margin: 12px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(15,23,42,0.06);
+    }
+    h1 { text-align:center; margin:6px 0 14px 0 }
+    .controls{ display:flex; gap:12px; flex-wrap:wrap; align-items:end }
+    .controls > div{ flex:1; min-width:220px }
+    label{ display:block; font-size:13px; margin-bottom:6px }
+    input[type="text"], input[type="month"], .select{ width:100%; padding:8px; border-radius:8px; border:1px solid #e2e8f0 }
+    button { padding:10px 14px; background:var(--accent); color:white; border:none; border-radius:8px; cursor:pointer }
+    button.ghost{ background:transparent; color:var(--accent); border:1px solid #dbeafe }
+
+    .tablero { margin-top:18px }
+    .lista-informes{ display:grid; grid-template-columns: repeat(auto-fit,minmax(320px,1fr)); gap:10px }
+    .item-informe{ background:#fcfdff; border:1px solid #eef2f7; padding:10px; border-radius:8px; display:flex; gap:8px; align-items:center }
+    .item-informe label{ display:flex; gap:8px; align-items:center; flex:1 }
+    .item-informe strong{ font-size:13px }
+    .input-evidencia{ width:100%; padding:6px 8px; border-radius:6px; border:1px solid #e6eef6 }
+
+    .resumen{ margin-top:18px; display:flex; gap:12px; align-items:center; justify-content:space-between }
+    .progreso{ flex:1; height:12px; background:#eef2f7; border-radius:999px; overflow:hidden }
+    .progreso > i{ display:block; height:100%; background:linear-gradient(90deg,var(--accent),#1b6aa0); width:0% }
+
+    table{ width:100%; border-collapse:collapse; margin-top:14px }
+    th,td{ text-align:left; padding:8px; border-bottom:1px solid #f1f5f9 }
+    th{ font-size:13px; color:#334155 }
+
+    .meta{ font-size:13px; color:#475569 }
+
+    @media (max-width:600px){ .controls{ flex-direction:column } }
+  </style>
+</head>
+<body>
+  <div class="contenedor">
+    <h1>Tablero de Checklists — Informes Mensuales</h1>
+
+    <div class="controls">
+      <div>
+        <label for="mesReferencia">Mes de referencia</label>
+        <input type="month" id="mesReferencia" />
+      </div>
+
+      
+
+      <div style="min-width:180px;display:flex;gap:8px">
+        <button id="btnCrear">Abrir tablero</button>
+        <button id="btnGuardar" class="ghost">Guardar informe</button>
+      </div>
+    </div>
+
+    <div style="margin-top:8px" class="meta">Guarda un informe rápido (mes + tipo) o selecciona un mes para ver/llenar el checklist completo con evidencia por ítem.</div>
+
+    <div class="tablero">
+      <h2 style="margin:14px 0 6px 0">Checklist por mes</h2>
+      <div id="contenedorChecklists"></div>
+
+      <div class="resumen" style="display:none;" id="resumenWrapper">
+        <div class="meta" id="metaResumen">Progreso</div>
+        <div class="progreso"><i id="barraProgreso"></i></div>
+      </div>
+
+      <div class="suive-semanal" style="margin-top:28px; padding:14px; border:1px solid #e2e8f0; border-radius:10px; background:#fafcff">
+        <h3 style="margin:0 0 10px 0">SUIVE — Informe Semanal</h3>
+        <div class="item-informe" style="margin-top:6px">
+          <label>
+            <input type="checkbox" id="chkSuiveSemanal" />
+            <strong>SUIVE (Semanal)</strong>
+          </label>
+          <input type="text" id="rutaSuiveSemanal" class="input-evidencia" placeholder="Evidencia / enlace" />
+        </div>
+      </div>
+
+      <h3 style="margin-top:14px">Últimos registros guardados</h3>
+      <table aria-label="Registros recientes">
+        <thead>
+          <tr><th>Mes</th><th>Informe</th><th>Evidencia</th></tr>
+        </thead>
+        <tbody id="tablaInformes">
+          <!-- filas generadas dinámicamente -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<script>
+  // Llave única en localStorage
+  const LLAVE = 'informes_persistentes_v2';
+
+  // Estructura guardada en localStorage:
+  // { savedList: [ {mes, informe, ruta, fecha} ], checklists: { '2025-11': { 'SINBA BD EGRESOS': { completo: true, ruta:'' } } } }
+
+  function obtenerDatos() {
+    return JSON.parse(localStorage.getItem(LLAVE)) || { savedList: [], checklists: {} };
+  }
+
+  function guardarDatos(obj) { localStorage.setItem(LLAVE, JSON.stringify(obj)); }
+
+  // --- Resumen tabla de registros recientes ---
+  function cargarDatos() {
+    const datos = obtenerDatos();
+    const cuerpo = document.getElementById('tablaInformes');
+    cuerpo.innerHTML = '';
+
+    const ultimos = datos.savedList.slice().reverse().slice(0, 50); // últimos 50
+    ultimos.forEach(reg => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${reg.mes}</td>
+        <td>${reg.informe}</td>
+        <td>${reg.ruta ? `<a class="ver-link" href="${reg.ruta}" target="_blank">Ver</a>` : ''}</td>
+      `;
+      cuerpo.appendChild(tr);
+    });
+  }
+
+  // --- Guardar un informe rápido como registro simple ---
+  function guardarInformeRapido() {
+    const mes = document.getElementById('mesReferencia').value;
+    const informe = document.getElementById('tipoInforme').value.trim();
+
+    if (!mes || !informe) { alert('Selecciona mes y escribe el tipo de informe.'); return; }
+
+    const datos = obtenerDatos();
+    datos.savedList.push({ mes, informe, ruta: '', fecha: new Date().toISOString() });
+    guardarDatos(datos);
+    cargarDatos();
+    alert('Informe guardado en registros. Para adjuntar evidencia y marcar como completo, abre el tablero para ese mes.');
+  }
+
+  // --- Crear checklist visual para un mes ---
+  function crearChecklist() {
+    // Informes mensuales fijos
+    const informes = [
+      "SINBA BD EGRESOS","SINBA BD URGENCIAS","SINBA BD LESIONES","SINBA BD NACIMIENTOS","SINBA BD DEFUNCIONES","SINBA GERENCIAL","RESUMEN DEFUNCIONES","CONCENTRADO GENERAL DEL CENSO","CORTA ESTANCIA","PRINCIPALES CAUSAS DE EGRESO","EXPEDIENTES CLINICOS NUEVOS","LABORATORIO","TAMIZ NEONATAL","CAPACITACIONES DE ENFERMERIA","VACUNAS","CARTILLAS DE SALUD","REHABILITACION","EPIDEMIOLOGIA","TRABAJO SOCIAL","SERVICIO DE AMBULANCIAS"
+    ];
+
+    // Generar semanas SUIVE según lunes del mes seleccionado
+    function obtenerLunesDelMes(mesStr) {
+      const [anio, mes] = mesStr.split('-').map(Number);
+      const lunes = [];
+      const fecha = new Date(anio, mes - 1, 1);
+      while (fecha.getMonth() === mes - 1) {
+        if (fecha.getDay() === 1) {
+          const dia = fecha.getDate();
+          lunes.push(`SUIVE Semana del ${dia}`);
+        }
+        fecha.setDate(fecha.getDate() + 1);
+      }
+      return lunes;
+    }
+
+    const mes = document.getElementById('mesReferencia').value;
+    if (!mes) { alert('Selecciona un mes primero.'); return; }
+
+    const cont = document.getElementById('contenedorChecklists');
+    cont.innerHTML = '';
+
+    const datos = obtenerDatos();
+    const registrosMes = datos.checklists[mes] || {};
+
+    const lista = document.createElement('div');
+    lista.className = 'lista-informes';
+
+    // Informes mensuales
+    informes.forEach(nombre => {
+      const item = document.createElement('div');
+      item.className = 'item-informe';
+
+      const label = document.createElement('label');
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.checked = !!(registrosMes[nombre] && registrosMes[nombre].completo);
+
+      // strong for name
+      const strong = document.createElement('strong');
+      strong.textContent = nombre;
+
+      label.appendChild(chk);
+      label.appendChild(strong);
+
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.placeholder = 'Evidencia / enlace';
+      inp.className = 'input-evidencia';
+      inp.value = (registrosMes[nombre] && registrosMes[nombre].ruta) ? registrosMes[nombre].ruta : '';
+
+      // listeners
+      chk.addEventListener('change', () => {
+        const d = obtenerDatos();
+        if (!d.checklists[mes]) d.checklists[mes] = {};
+        if (!d.checklists[mes][nombre]) d.checklists[mes][nombre] = {};
+        d.checklists[mes][nombre].completo = chk.checked;
+        d.checklists[mes][nombre].ruta = d.checklists[mes][nombre].ruta || inp.value || '';
+        guardarDatos(d);
+        actualizarProgreso(mes);
+      });
+
+      inp.addEventListener('blur', () => {
+        const d = obtenerDatos();
+        if (!d.checklists[mes]) d.checklists[mes] = {};
+        if (!d.checklists[mes][nombre]) d.checklists[mes][nombre] = {};
+        d.checklists[mes][nombre].ruta = inp.value.trim();
+        guardarDatos(d);
+      });
+
+      item.appendChild(label);
+      item.appendChild(inp);
+      lista.appendChild(item);
+    });
+
+    // === Agregar informes semanales SUIVE ===
+    const lunes = obtenerLunesDelMes(mes);
+    lunes.forEach(nombre => {
+      const item = document.createElement('div');
+      item.className = 'item-informe';
+
+      const label = document.createElement('label');
+      const chk = document.createElement('input');
+      chk.type = 'checkbox';
+      chk.checked = !!(registrosMes[nombre] && registrosMes[nombre].completo);
+
+      const strong = document.createElement('strong');
+      strong.textContent = nombre;
+
+      label.appendChild(chk);
+      label.appendChild(strong);
+
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.placeholder = 'Evidencia / enlace';
+      inp.className = 'input-evidencia';
+      inp.value = (registrosMes[nombre] && registrosMes[nombre].ruta) ? registrosMes[nombre].ruta : '';
+
+      chk.addEventListener('change', () => {
+        const d = obtenerDatos();
+        if (!d.checklists[mes]) d.checklists[mes] = {};
+        if (!d.checklists[mes][nombre]) d.checklists[mes][nombre] = {};
+        d.checklists[mes][nombre].completo = chk.checked;
+        d.checklists[mes][nombre].ruta = d.checklists[mes][nombre].ruta || inp.value || '';
+        guardarDatos(d);
+        actualizarProgreso(mes);
+      });
+
+      inp.addEventListener('blur', () => {
+        const d = obtenerDatos();
+        if (!d.checklists[mes]) d.checklists[mes] = {};
+        if (!d.checklists[mes][nombre]) d.checklists[mes][nombre] = {};
+        d.checklists[mes][nombre].ruta = inp.value.trim();
+        guardarDatos(d);
+      });
+
+      item.appendChild(label);
+      item.appendChild(inp);
+      lista.appendChild(item);
+    });
+
+    cont.appendChild(lista);
+    document.getElementById('resumenWrapper').style.display = 'flex';
+    actualizarProgreso(mes);
+  }
+
+  function actualizarProgreso(mes) {
+    const datos = obtenerDatos();
+    const registros = datos.checklists[mes] || {};
+    const total = 20; // cantidad fija de informes
+    const completados = Object.values(registros).filter(x => x && x.completo).length;
+    const pct = Math.round((completados / total) * 100);
+    document.getElementById('metaResumen').textContent = `${completados} de ${total} completados (${pct}%) — ${mes}`;
+    document.getElementById('barraProgreso').style.width = pct + '%';
+  }
+
+  // --- Inicialización y eventos ---
+  document.getElementById('btnCrear').addEventListener('click', crearChecklist);
+  document.getElementById('btnGuardar').addEventListener('click', guardarInformeRapido);
+
+  // Cargar tabla de registros al iniciar
+  cargarDatos();
+
+  // Si el usuario cambia mes con teclado, actualizar tablero en caliente
+  document.getElementById('mesReferencia').addEventListener('input', () => {
+    // do nothing automatically; let user click 'Abrir tablero' to avoid accidental overwrites
+  });
+
+</script>
+</body>
+</html>
