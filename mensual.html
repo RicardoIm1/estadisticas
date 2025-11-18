@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Control de Informes</title>
+  <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="/estadisticas/main_css/estilos.css" />
+  <!-- En el head de TODAS las páginas protegidas -->
+  <!-- <script src="/estadisticas/main_js/proteccion.js"></script> -->
+
+  <!-- En el body -->
+  <div id="user-info"
+    style="position: fixed; top: 10px; right: 10px; background: #f5f5f5; padding: 10px; border-radius: 5px;">
+    <!-- Aquí se mostrará el usuario -->
+  </div>
+  <style>
+    .matriz {
+      grid-auto-rows: 34px;
+    }
+
+    .matriz-grid {
+      margin-top: 20px;
+      display: grid;
+      grid-auto-rows: minmax(42px, auto);
+      gap: 0;
+      overflow-y: auto;
+      border: 1px solid #e5e7eb;
+      background: white;
+      border-radius: 16px;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
+
+    .celda {
+      border-bottom: 1px solid #e5e7eb;
+      border-right: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      padding: 6px 10px;
+      background: white;
+      color: #2c3e50;
+      width: auto;
+    }
+
+    .col-titulo {
+      font-weight: bold;
+      background: #e8f1fa !important;
+      justify-content: center;
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      color: 0;
+      font-size: 0.8rem;
+      padding: 4px;
+    }
+
+    .celda-fija {
+      background: #f9fafb !important;
+      font-weight: 600;
+      position: sticky;
+      left: 0;
+      z-index: 20;
+      color: #2c3e50;
+    }
+
+    .col-titulo:first-child {
+      left: 0;
+      z-index: 40;
+    }
+
+    .card-informe {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px;
+    }
+
+    .card-informe.activo {
+      background: #e0f7e9;
+      border-radius: 6px;
+      padding: 4px;
+    }
+
+    .input-evidencia {
+      flex: 1;
+      border: 1px solid #d1d5db;
+      padding: 4px 6px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      width: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="glass glass-inner">
+    <h5>Informes Mensuales</h5>
+    <div id="header"></div>
+
+    <!-- MATRIZ -->
+    <div id="matriz" class="matriz-grid"></div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script>
+    const INFORMES = [
+      "SINBA BD EGRESOS", "SINBA BD URGENCIAS", "SINBA BD LESIONES", "SINBA BD NACIMIENTOS",
+      "SINBA BD DEFUNCIONES", "SINBA GERENCIAL", "RESUMEN DEFUNCIONES",
+      "CONCENTRADO GENERAL DEL CENSO", "CORTA ESTANCIA", "PRINCIPALES CAUSAS DE EGRESO",
+      "EXPEDIENTES CLINICOS NUEVOS", "LABORATORIO", "TAMIZ NEONATAL", "CAPACITACIONES DE ENFERMERIA",
+      "VACUNAS", "CARTILLAS DE SALUD", "REHABILITACION", "EPIDEMIOLOGIA", "TRABAJO SOCIAL",
+      "SERVICIO DE AMBULANCIAS"
+    ];
+
+    const LLAVE = "informes_matriz_v2";
+
+    function obtenerDatos() {
+      return JSON.parse(localStorage.getItem(LLAVE)) || { meses: {} };
+    }
+
+    function guardarDatos(obj) {
+      localStorage.setItem(LLAVE, JSON.stringify(obj));
+    }
+
+    function generarMesesAñoActual() {
+      const y = new Date().getFullYear();
+      const m = [];
+      for (let i = 1; i <= 12; i++) {
+        m.push(`${y}-${String(i).padStart(2, "0")}`);
+      }
+      return m;
+    }
+
+    function generarMatrizAuto() {
+      const meses = generarMesesAñoActual();
+      const matriz = document.getElementById("matriz");
+      matriz.innerHTML = "";
+
+      matriz.style.gridTemplateColumns = `auto repeat(${meses.length}, auto)`;
+
+      const datos = obtenerDatos();
+
+      // TITULOS
+      matriz.appendChild(crearCeldaTitulo("Informes"));
+      meses.forEach(m => matriz.appendChild(crearCeldaTitulo(m)));
+
+      // FILAS
+      INFORMES.forEach(informe => {
+        matriz.appendChild(crearCeldaFija(informe));
+
+        meses.forEach(mes => {
+          if (!datos.meses[mes]) datos.meses[mes] = {};
+          if (!datos.meses[mes][informe]) {
+            datos.meses[mes][informe] = { ruta: "", completo: false };
+          }
+
+          matriz.appendChild(crearCeldaEditable(mes, informe, datos));
+        });
+      });
+
+      guardarDatos(datos);
+    }
+
+    function crearCeldaTitulo(texto) {
+      const d = document.createElement("div");
+      d.className = "celda col-titulo";
+      d.textContent = texto;
+      return d;
+    }
+
+    function crearCeldaFija(texto) {
+      const d = document.createElement("div");
+      d.className = "celda celda-fija";
+      d.textContent = texto;
+      return d;
+    }
+
+    function crearCeldaEditable(mes, informe, datos) {
+      const d = document.createElement("div");
+      d.className = "celda";
+
+      const reg = datos.meses[mes][informe];
+
+      const box = document.createElement("div");
+      box.className = "card-informe";
+      if (reg.ruta) box.classList.add("activo");
+
+      const chk = document.createElement("input");
+      chk.type = "checkbox";
+      chk.checked = reg.completo;
+
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.value = reg.ruta;
+      inp.placeholder = "Evidencia";
+      inp.className = "input-evidencia";
+
+      inp.addEventListener("input", () => {
+        reg.ruta = inp.value.trim();
+        reg.completo = reg.ruta !== "";
+        chk.checked = reg.completo;
+        box.classList.toggle("activo", reg.completo);
+        guardarDatos(datos);
+      });
+
+      chk.addEventListener("change", () => {
+        reg.completo = chk.checked;
+        if (!reg.completo) reg.ruta = "";
+        inp.value = reg.ruta;
+        box.classList.toggle("activo", reg.completo);
+        guardarDatos(datos);
+      });
+
+      box.appendChild(chk);
+      box.appendChild(inp);
+      d.appendChild(box);
+      return d;
+    }
+
+    // GENERACIÓN AUTOMÁTICA AL ABRIR LA PÁGINA
+    window.addEventListener("load", generarMatrizAuto);
+  </script>
+
+  <script>
+    fetch('/estadisticas/comun/header.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('header').innerHTML = html;
+
+        // Cargar sesión.js después de insertar el HTML
+        const s = document.createElement('script');
+        s.src = '/estadisticas/comun/sesion.js';
+
+        s.onload = () => {
+          console.log("🔥 sesion.js cargado. Verificando sesión...");
+          verificarAutenticacion();
+        };
+
+        document.body.appendChild(s);
+      });
+
+    fetch('/estadisticas/comun/footer.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('footer').innerHTML = html;
+
+        // Ya existe footerText
+        const footer = document.getElementById('footerText');
+        if (footer) {
+          footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+        }
+      });
+  </script>
+  
+<!--   <script src="/estadisticas/comun/estadoSistema.js"></script>
+  <script src="/estadisticas/comun/sesion.js"></script> -->
+</body>
+
+</html>
