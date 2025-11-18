@@ -121,207 +121,113 @@
 </style>
 </head>
 <body>
-  <div class="glass glass-inner">
-    <div class="header">
-      <div class="logo"><h1>Control de Informes</h1></div>
-    </div>
+const cant = parseInt(document.getElementById("cantidadMeses").value);
+if (!mesInicio) { alert("Selecciona el mes inicial"); return; }
 
-    <div class="contenido">
-      <div class="controls" style="margin-bottom:1rem; display:flex; gap:1rem;">
-        <div>
-          <label for="mesInicio">Mes inicial</label>
-          <input type="month" id="mesInicio" />
-        </div>
-        <div>
-          <label>Meses visibles</label>
-          <select id="cantidadMeses">
-            <option value="2" selected>2 meses</option>
-            <option value="3">3 meses</option>
-          </select>
-        </div>
-        <button id="btnGenerar">Generar tablero</button>
-      </div>
 
-      <!-- MATRIZ PRINCIPAL -->
-      <div id="matriz" class="matriz-grid"></div>
-    </div>
+const meses = generarMeses(mesInicio, cant);
+const matriz = <div id="matriz" class="matriz-grid">TemplateColumns = `260px repeat(${meses.length}, 280px)`;
 
-    <footer>Tablero persistente de informes</footer>
-  </div>
 
-<!-- estilos anteriores se mantienen debajo -->
-<div id="matriz" class="matriz"></div>
-  </div>
+// ----- TITULOS -----
+matriz.appendChild(crearCeldaTitulo("Informes"));
+meses.forEach(m => matriz.appendChild(crearCeldaTitulo(m)));
 
-<style>
-  /* MATRIZ EN VERDADERO MODO EXCEL */
-  .matriz {
-    margin-top: 20px;
-    display: grid;
-    grid-auto-rows: minmax(42px, auto);
-    gap: 0;
-    border: 1px solid #e5e7eb;
-  }
 
-  .celda {
-    border-bottom: 1px solid #e5e7eb;
-    border-right: 1px solid #e5e7eb;
-    display: flex;
-    align-items: center;
-    padding: 6px 10px;
-    background:white;
-  }
+const datos = obtenerDatos();
 
-  .col-titulo {
-    font-weight: bold;
-    background: #e8f1fa;
-    border-bottom: 2px solid #cbd5e1;
-    justify-content: center;
-  }
 
-  .celda-fija {
-    background:#f9fafb;
-    font-weight: 600;
-  }
+INFORMES.forEach(informe => {
+// Columna fija
+matriz.appendChild(crearCeldaFija(informe));
 
-  .card-informe {
-    display:flex;
-    align-items:center;
-    gap:8px;
-    width:100%;
-  }
 
-  .card-informe.activo {
-    background:#e0f7e9;
-    border-radius:6px;
-    padding:4px;
-  }
+meses.forEach(mes => {
+if (!datos.meses[mes]) datos.meses[mes] = {};
+if (!datos.meses[mes][informe]) datos.meses[mes][informe] = { ruta:"", completo:false };
 
-  .input-evidencia {
-    flex:1;
-    border:1px solid #d1d5db;
-    padding:4px 6px;
-    border-radius:4px;
-  }
-</style>
 
-<script>
-const INFORMES = [
-  "SINBA BD EGRESOS","SINBA BD URGENCIAS","SINBA BD LESIONES","SINBA BD NACIMIENTOS","SINBA BD DEFUNCIONES","SINBA GERENCIAL","RESUMEN DEFUNCIONES","CONCENTRADO GENERAL DEL CENSO","CORTA ESTANCIA","PRINCIPALES CAUSAS DE EGRESO","EXPEDIENTES CLINICOS NUEVOS","LABORATORIO","TAMIZ NEONATAL","CAPACITACIONES DE ENFERMERIA","VACUNAS","CARTILLAS DE SALUD","REHABILITACION","EPIDEMIOLOGIA","TRABAJO SOCIAL","SERVICIO DE AMBULANCIAS"
-];
+matriz.appendChild(crearCeldaEditable(mes, informe, datos));
+});
+});
 
-const LLAVE = "informes_matriz_v2";
 
-function obtenerDatos() {
-  return JSON.parse(localStorage.getItem(LLAVE)) || { meses: {} };
+guardarDatos(datos);
 }
 
-function guardarDatos(obj) {
-  localStorage.setItem(LLAVE, JSON.stringify(obj));
-}
-
-function generarMeses(inicio, cantidad) {
-  const meses = [];
-  let fecha = new Date(inicio + "-01");
-  for (let i = 0; i < cantidad; i++) {
-    const y = fecha.getFullYear();
-    const m = String(fecha.getMonth() + 1).padStart(2, "0");
-    meses.push(`${y}-${m}`);
-    fecha.setMonth(fecha.getMonth() + 1);
-  }
-  return meses;
-}
-
-function generarMatriz() {
-  const mesInicio = document.getElementById("mesInicio").value;
-  const cant = parseInt(document.getElementById("cantidadMeses").value);
-  if (!mesInicio) { alert("Selecciona el mes inicial"); return; }
-
-  const meses = generarMeses(mesInicio, cant);
-  const matriz = document.getElementById("matriz");
-  matriz.innerHTML = "";
-
-  const columnas = 1 + meses.length;
-  matriz.style.matriz-gridTemplateColumns = `260px repeat(${meses.length}, 280px)`;
-
-  // ----- TITULOS -----
-  matriz.appendChild(crearCeldaTitulo("Informes"));
-  meses.forEach(m => matriz.appendChild(crearCeldaTitulo(m)));
-
-  const datos = obtenerDatos();
-
-  INFORMES.forEach(informe => {
-    // Columna fija
-    matriz.appendChild(crearCeldaFija(informe));
-
-    meses.forEach(mes => {
-      if (!datos.meses[mes]) datos.meses[mes] = {};
-      if (!datos.meses[mes][informe]) datos.meses[mes][informe] = { ruta:"", completo:false };
-
-      matriz.appendChild(crearCeldaEditable(mes, informe, datos));
-    });
-  });
-
-  guardarDatos(datos);
-}
 
 function crearCeldaTitulo(texto) {
-  const div = document.createElement("div");
-  div.className = "celda col-titulo";
-  div.textContent = texto;
-  return div;
+const div = document.createElement("div");
+div.className = "celda col-titulo";
+div.textContent = texto;
+return div;
 }
+
 
 function crearCeldaFija(texto) {
-  const div = document.createElement("div");
-  div.className = "celda celda-fija";
-  div.textContent = texto;
-  return div;
+const div = document.createElement("div");
+div.className = "celda celda-fija";
+div.textContent = texto;
+return div;
 }
+
 
 function crearCeldaEditable(mes, informe, datos) {
-  const div = document.createElement("div");
-  div.className = "celda";
+const div = document.createElement("div");
+div.className = "celda";
 
-  const reg = datos.meses[mes][informe];
 
-  const box = document.createElement("div");
-  box.className = "card-informe";
-  if (reg.ruta) box.classList.add("activo");
+const reg = datos.meses[mes][informe];
 
-  const chk = document.createElement("input");
-  chk.type = "checkbox";
-  chk.checked = reg.completo;
 
-  const inp = document.createElement("input");
-  inp.type = "text";
-  inp.value = reg.ruta;
-  inp.placeholder = "Evidencia";
-  inp.className = "input-evidencia";
+const box = document.createElement("div");
+box.className = "card-informe";
+if (reg.ruta) box.classList.add("activo");
 
-  inp.addEventListener("input", () => {
-    reg.ruta = inp.value.trim();
-    reg.completo = reg.ruta !== "";
-    chk.checked = reg.completo;
-    box.classList.toggle("activo", reg.completo);
-    guardarDatos(datos);
-  });
 
-  chk.addEventListener("change", () => {
-    reg.completo = chk.checked;
-    if (!reg.completo) reg.ruta = "";
-    inp.value = reg.ruta;
-    box.classList.toggle("activo", reg.completo);
-    guardarDatos(datos);
-  });
+const chk = document.createElement("input");
+chk.type = "checkbox";
+chk.checked = reg.completo;
 
-  box.appendChild(chk);
-  box.appendChild(inp);
-  div.appendChild(box);
-  return div;
+
+const inp = document.createElement("input");
+inp.type = "text";
+inp.value = reg.ruta;
+inp.placeholder = "Evidencia";
+inp.className = "input-evidencia";
+
+
+inp.addEventListener("input", () => {
+reg.ruta = inp.value.trim();
+reg.completo = reg.ruta !== "";
+chk.checked = reg.completo;
+box.classList.toggle("activo", reg.completo);
+guardarDatos(datos);
+});
+
+
+chk.addEventListener("change", () => {
+reg.completo = chk.checked;
+if (!reg.completo) reg.ruta = "";
+inp.value = reg.ruta;
+box.classList.toggle("activo", reg.completo);
+guardarDatos(datos);
+});
+
+
+box.appendChild(chk);
+box.appendChild(inp);
+div.appendChild(box);
+return div;
 }
 
-document.getElementById("btnGenerar").addEventListener("click", generarMatriz);
+
+// Botón eliminado
+// Generar auto año completo
+window.addEventListener("load",()=>{
+const y=new Date().getFullYear();
+generarMatrizAuto(`${y}-01`,12);
+});
 </script>
 </body>
 </html>
