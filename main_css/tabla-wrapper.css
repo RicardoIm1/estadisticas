@@ -12,16 +12,15 @@
     scrollbar-gutter: stable;
     flex: 1;
     min-width: 0;
-    
-    /* Mejoras para responsividad */
     max-width: 100%;
-    -webkit-overflow-scrolling: touch; /* Scroll suave en iOS */
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0); /* Aceleración hardware */
 }
 
 .tabla-wrapper table {
     table-layout: fixed;
     width: 100%;
-    min-width: 600px; /* Ancho mínimo para evitar que se rompa */
+    min-width: 800px; /* Suficiente para 6 columnas */
     border-collapse: collapse;
 }
 
@@ -34,17 +33,123 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    min-width: 80px; /* Ancho mínimo para mantener legibilidad */
-    max-width: 200px; /* Ancho máximo para evitar que se expandan demasiado */
 }
 
-/* Cabeceras fijas opcional (mejora UX) */
+/* Definir anchos específicos para cada columna */
+.tabla-wrapper th:nth-child(1), /* N° */
+.tabla-wrapper td:nth-child(1) {
+    width: 60px;
+    min-width: 60px;
+    max-width: 80px;
+}
+
+.tabla-wrapper th:nth-child(2), /* Folio */
+.tabla-wrapper td:nth-child(2) {
+    width: 120px;
+    min-width: 120px;
+    max-width: 150px;
+}
+
+.tabla-wrapper th:nth-child(3), /* Nombre */
+.tabla-wrapper td:nth-child(3) {
+    width: 200px;
+    min-width: 150px;
+    max-width: 250px;
+}
+
+.tabla-wrapper th:nth-child(4), /* Fecha */
+.tabla-wrapper td:nth-child(4) {
+    width: 120px;
+    min-width: 120px;
+    max-width: 150px;
+}
+
+.tabla-wrapper th:nth-child(5), /* Área */
+.tabla-wrapper td:nth-child(5) {
+    width: 120px;
+    min-width: 120px;
+    max-width: 150px;
+}
+
+.tabla-wrapper th:nth-child(6), /* Acciones */
+.tabla-wrapper td:nth-child(6) {
+    width: 180px;
+    min-width: 150px;
+    max-width: 200px;
+}
+
+/* Cabeceras fijas (mejora UX) */
 .tabla-wrapper thead {
     position: sticky;
     top: 0;
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
     z-index: 10;
+}
+
+/* Buscador */
+.buscador-wrapper {
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    position: sticky;
+    top: 0;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(10px);
+    z-index: 20;
+}
+
+.input-busqueda {
+    width: 100%;
+    padding: 10px 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 14px;
+    transition: all 0.3s ease;
+}
+
+.input-busqueda:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.4);
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.input-busqueda::placeholder {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Estilos para los botones de acciones */
+.btn-editar, .btn-eliminar {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+    margin: 2px;
+    transition: all 0.2s ease;
+}
+
+.btn-editar {
+    background: rgba(76, 175, 80, 0.3);
+    color: #4CAF50;
+    border: 1px solid rgba(76, 175, 80, 0.5);
+}
+
+.btn-eliminar {
+    background: rgba(244, 67, 54, 0.3);
+    color: #F44336;
+    border: 1px solid rgba(244, 67, 54, 0.5);
+}
+
+.btn-editar:hover {
+    background: rgba(76, 175, 80, 0.5);
+    transform: translateY(-1px);
+}
+
+.btn-eliminar:hover {
+    background: rgba(244, 67, 54, 0.5);
+    transform: translateY(-1px);
 }
 
 /* Estilos del scrollbar para mejor apariencia */
@@ -67,43 +172,6 @@
     background: rgba(255, 255, 255, 0.3);
 }
 
-/* Media queries para responsividad */
-@media (max-width: 768px) {
-    .tabla-wrapper th,
-    .tabla-wrapper td {
-        padding: 6px 8px;
-        min-width: 70px;
-        font-size: 0.9em;
-    }
-    
-    .tabla-wrapper table {
-        min-width: 500px;
-    }
-}
-
-@media (max-width: 480px) {
-    .tabla-wrapper th,
-    .tabla-wrapper td {
-        padding: 4px 6px;
-        min-width: 60px;
-        font-size: 0.85em;
-    }
-    
-    .tabla-wrapper table {
-        min-width: 400px;
-    }
-    
-    .tabla-wrapper {
-        border-radius: 8px;
-    }
-}
-
-/* Para mejorar el rendimiento en dispositivos móviles */
-.tabla-wrapper {
-    -webkit-overflow-scrolling: touch;
-    transform: translateZ(0); /* Aceleración hardware */
-}
-
 /* Clases utilitarias para columnas específicas */
 .columna-pequena {
     width: 80px;
@@ -121,4 +189,83 @@
     width: 180px;
     min-width: 150px;
     max-width: 200px;
+}
+
+/* Media queries para responsividad */
+@media (max-width: 768px) {
+    .tabla-wrapper th,
+    .tabla-wrapper td {
+        padding: 6px 8px;
+        font-size: 0.9em;
+    }
+    
+    .tabla-wrapper table {
+        min-width: 700px;
+    }
+    
+    .tabla-wrapper th:nth-child(1),
+    .tabla-wrapper td:nth-child(1) {
+        width: 50px;
+        min-width: 50px;
+    }
+    
+    .tabla-wrapper th:nth-child(3),
+    .tabla-wrapper td:nth-child(3) {
+        width: 180px;
+        min-width: 130px;
+    }
+    
+    .tabla-wrapper th:nth-child(6),
+    .tabla-wrapper td:nth-child(6) {
+        width: 160px;
+        min-width: 140px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tabla-wrapper {
+        border-radius: 8px;
+    }
+    
+    .tabla-wrapper th,
+    .tabla-wrapper td {
+        padding: 4px 6px;
+        font-size: 0.85em;
+    }
+    
+    .tabla-wrapper table {
+        min-width: 600px;
+    }
+    
+    .buscador-wrapper {
+        padding: 0.75rem;
+    }
+    
+    .input-busqueda {
+        padding: 8px 12px;
+        font-size: 13px;
+    }
+    
+    .btn-editar, .btn-eliminar {
+        padding: 4px 8px;
+        font-size: 0.8em;
+    }
+    
+    .tabla-wrapper th:nth-child(1),
+    .tabla-wrapper td:nth-child(1) {
+        width: 40px;
+        min-width: 40px;
+    }
+    
+    .tabla-wrapper th:nth-child(3),
+    .tabla-wrapper td:nth-child(3) {
+        width: 150px;
+        min-width: 120px;
+    }
+    
+    .tabla-wrapper th:nth-child(6),
+    .tabla-wrapper td:nth-child(6) {
+        width: 140px;
+        min-width: 130px;
+    }
 }
