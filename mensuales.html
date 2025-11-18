@@ -1,133 +1,112 @@
+<!-- NUEVA VERSION DEL TABLERO TIPO CARRUSEL CON INFORMES FIJOS A LA IZQUIERDA -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tablero Temporal — Informes</title>
+  <link rel="stylesheet" href="estilos.css" />
   <style>
-    :root {
-      --accent: #2e86c1;
-      --bg: #f5f7fa;
-      --ok: #cff6d8;
-      --warn: #ffe8c7;
-    }
-    body {
-      font-family: Inter, Arial, sans-serif;
-      background: var(--bg);
-      margin: 0;
-      padding: 0;
-    }
-    .wrapper {
-      display: flex;
-      height: 100vh;
-      overflow: hidden;
-    }
-    /* Columna fija de informes */
+    /* Ajustes específicos del tablero */
+    .wrapper { display: flex; height: 100%; width: 100%; }
+
     .col-fixed {
-      width: 320px;
-      background: white;
-      border-right: 1px solid #e5e7eb;
-      padding: 18px;
+      width: 280px;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255,255,255,0.2);
+      padding: 1rem;
       overflow-y: auto;
     }
-    .col-fixed h2 {
-      margin-top: 0;
-    }
-    .informe-item {
-      padding: 8px 6px;
-      margin: 4px 0;
-      font-size: 14px;
-    }
+    .col-fixed h2 { margin-bottom: 0.6rem; font-size: 1.1rem; }
+    .informe-item { padding: 0.4rem 0; font-size: 0.9rem; opacity: 0.9; }
 
-    /* Carrusel temporal */
+    /* Carrusel del tiempo */
     .timeline {
       flex: 1;
       display: flex;
       overflow-x: auto;
       scroll-behavior: smooth;
-      padding: 18px;
-      gap: 18px;
+      padding: 1rem;
+      gap: 1rem;
     }
     .mes-columna {
       min-width: 260px;
-      background: white;
-      border-radius: 12px;
-      padding: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.2);
+      padding: 1rem;
+      border-radius: 14px;
+      color: white;
     }
-    .mes-header {
-      font-weight: bold;
-      text-align: center;
-      margin-bottom: 10px;
-    }
+    .mes-header { text-align:center; font-weight:600; margin-bottom:0.8rem; }
+
     .card-informe {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      padding: 8px;
-      border-radius: 8px;
-      margin-bottom: 10px;
+      padding: 0.6rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 10px;
+      margin-bottom: 0.6rem;
+      transition: background 0.3s ease;
     }
-    .card-informe.ok { background: var(--ok); }
-    .card-informe.warn { background: var(--warn); }
-    .card-informe input[type="text"] {
+    .card-informe.ok { background: rgba(0,255,120,0.18); }
+    .card-informe input[type=text] {
       width: 100%;
       margin-top: 4px;
       padding: 6px;
-      font-size: 12px;
-      border-radius: 6px;
-      border: 1px solid #cbd5e1;
-    }
-    .nav-buttons {
-      position: fixed;
-      bottom: 14px;
-      right: 14px;
-      display: flex;
-      gap: 10px;
-    }
-    button {
-      padding: 10px 14px;
       border-radius: 8px;
       border: none;
-      cursor: pointer;
-      background: var(--accent);
-      color: white;
+      background: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    .nav-buttons {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      display: flex;
+      gap: 10px;
+      z-index: 50;
     }
   </style>
 </head>
 <body>
 <div class="wrapper">
 
-  <!-- Columna fija con todos los informes -->
+  <!-- INFORMES FIJOS -->
   <div class="col-fixed">
     <h2>Informes</h2>
     <div id="listaInformesFija"></div>
   </div>
 
-  <!-- Carrusel temporal -->
+  <!-- CARRUSEL TEMPORAL -->
   <div id="timeline" class="timeline"></div>
 
 </div>
 
 <div class="nav-buttons">
-  <button onclick="retroceder()">◀ Mes anterior</button>
-  <button onclick="avanzar()">Mes siguiente ▶</button>
+  <button onclick="retroceder()">◀</button>
+  <button onclick="avanzar()">▶</button>
 </div>
 
 <script>
-  const LLAVE = "tableroTemporalV1";
+  const LLAVE = "tableroTemporalV1.1";
 
   const INFORMES = [
-    "SINBA BD EGRESOS","SINBA BD URGENCIAS","SINBA BD LESIONES","SINBA BD NACIMIENTOS","SINBA BD DEFUNCIONES","SINBA GERENCIAL","RESUMEN DEFUNCIONES","CONCENTRADO GENERAL DEL CENSO","CORTA ESTANCIA","PRINCIPALES CAUSAS DE EGRESO","EXPEDIENTES CLINICOS NUEVOS","LABORATORIO","TAMIZ NEONATAL","CAPACITACIONES DE ENFERMERIA","VACUNAS","CARTILLAS DE SALUD","REHABILITACION","EPIDEMIOLOGIA","TRABAJO SOCIAL","SERVICIO DE AMBULANCIAS",
+    "SINBA BD EGRESOS","SINBA BD URGENCIAS","SINBA BD LESIONES","SINBA BD NACIMIENTOS",
+    "SINBA BD DEFUNCIONES","SINBA GERENCIAL","RESUMEN DEFUNCIONES","CONCENTRADO GENERAL DEL CENSO",
+    "CORTA ESTANCIA","PRINCIPALES CAUSAS DE EGRESO","EXPEDIENTES CLINICOS NUEVOS","LABORATORIO",
+    "TAMIZ NEONATAL","CAPACITACIONES DE ENFERMERIA","VACUNAS","CARTILLAS DE SALUD",
+    "REHABILITACION","EPIDEMIOLOGIA","TRABAJO SOCIAL","SERVICIO DE AMBULANCIAS",
     "SUIVE SEMANAL 1","SUIVE SEMANAL 2","SUIVE SEMANAL 3","SUIVE SEMANAL 4","SUIVE SEMANAL 5"
   ];
 
-  function obtener() {
-    return JSON.parse(localStorage.getItem(LLAVE)) || {};
-  }
+  function obtener() { return JSON.parse(localStorage.getItem(LLAVE)) || {}; }
   function guardar(x) { localStorage.setItem(LLAVE, JSON.stringify(x)); }
 
-  function pintarInformesFijos() {
+  function pintarInformesFijos(){
     const cont = document.getElementById("listaInformesFija");
+    cont.innerHTML = "";
     INFORMES.forEach(i => {
       const div = document.createElement("div");
       div.className = "informe-item";
@@ -136,50 +115,49 @@
     });
   }
 
-  function generarMes(yyyy, mm) {
+  function generarMes(yyyy, mm){
     const idMes = `${yyyy}-${String(mm).padStart(2,'0')}`;
     const datos = obtener();
     if (!datos[idMes]) datos[idMes] = {};
 
     const col = document.createElement("div");
     col.className = "mes-columna";
-
     col.innerHTML = `<div class='mes-header'>${idMes}</div>`;
 
-    INFORMES.forEach(nombre => {
-      const estado = datos[idMes][nombre] || { ruta:"", completo:false };
+    INFORMES.forEach(nombre =>{
+      const estado = datos[idMes][nombre] || { ruta:"" };
 
       const card = document.createElement("div");
       card.className = "card-informe";
-      if (estado.ruta.trim() !== "") card.classList.add("ok");
+      if (estado.ruta) card.classList.add("ok");
 
       card.innerHTML = `
-        <label style='font-size:13px;'>
-          <input type='checkbox' ${estado.ruta?"checked":""} data-nombre='${nombre}' />
+        <label style='font-size:0.9rem;'>
+          <input type='checkbox' ${estado.ruta?"checked":""} />
           ${nombre}
         </label>
-        <input type='text' placeholder='Evidencia / URL' value='${estado.ruta}' data-ruta='${nombre}' />
+        <input type='text' placeholder='URL evidencia' value='${estado.ruta}' />
       `;
 
-      // eventos
-      card.querySelector("input[type=checkbox]").addEventListener("change", e => {
+      const chk = card.querySelector("input[type=checkbox]");
+      const inp = card.querySelector("input[type=text]");
+
+      inp.addEventListener("input", ()=>{
         const d = obtener();
         if (!d[idMes]) d[idMes] = {};
-        d[idMes][nombre] = d[idMes][nombre] || { ruta:"" };
-        const tiene = d[idMes][nombre].ruta.trim() !== "";
-        e.target.checked = tiene;
+        d[idMes][nombre] = { ruta: inp.value.trim() };
         guardar(d);
+        if (inp.value.trim() !== ""){
+          card.classList.add("ok");
+          chk.checked = true;
+        } else {
+          card.classList.remove("ok");
+          chk.checked = false;
+        }
       });
 
-      card.querySelector("input[type=text]").addEventListener("input", e => {
-        const d = obtener();
-        if (!d[idMes]) d[idMes] = {};
-        d[idMes][nombre] = d[idMes][nombre] || {};
-        d[idMes][nombre].ruta = e.target.value.trim();
-        guardar(d);
-
-        if (e.target.value.trim() !== "") card.classList.add("ok"); else card.classList.remove("ok");
-        card.querySelector("input[type=checkbox]").checked = e.target.value.trim() !== "";
+      chk.addEventListener("change", ()=>{
+        if (!chk.checked){ inp.value = ""; inp.dispatchEvent(new Event('input')); }
       });
 
       col.appendChild(card);
@@ -188,27 +166,23 @@
     return col;
   }
 
-  function cargarLineaTiempo() {
+  function cargarLineaTiempo(){
     const timeline = document.getElementById("timeline");
     timeline.innerHTML = "";
 
     const hoy = new Date();
-    let yyyy = hoy.getFullYear();
-    let mm = hoy.getMonth() + 1;
+    const baseY = hoy.getFullYear();
+    const baseM = hoy.getMonth() + 1;
 
-    for (let i = -2; i <= 2; i++) {
-      let fecha = new Date(yyyy, mm - 1 + i);
-      const c = generarMes(fecha.getFullYear(), fecha.getMonth() + 1);
-      timeline.appendChild(c);
+    for (let i = -3; i <= 3; i++){
+      let f = new Date(baseY, baseM - 1 + i);
+      const col = generarMes(f.getFullYear(), f.getMonth()+1);
+      timeline.appendChild(col);
     }
   }
 
-  function retroceder() {
-    document.getElementById("timeline").scrollBy({ left: -300, behavior: 'smooth' });
-  }
-  function avanzar() {
-    document.getElementById("timeline").scrollBy({ left: 300, behavior: 'smooth' });
-  }
+  function retroceder(){ document.getElementById("timeline").scrollBy({left:-300,behavior:'smooth'}); }
+  function avanzar(){ document.getElementById("timeline").scrollBy({left:300,behavior:'smooth'}); }
 
   pintarInformesFijos();
   cargarLineaTiempo();
