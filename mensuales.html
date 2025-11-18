@@ -5,7 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tablero Temporal — Informes</title>
-  <link rel="stylesheet" href="/estadisticas/main_css/estilos.css" />
+  <link rel="stylesheet" href="estilos.css" />
   <style>
     /* Ajustes específicos del tablero */
     .wrapper { display: flex; height: 100%; width: 100%; }
@@ -68,29 +68,57 @@
       gap: 10px;
       z-index: 50;
     }
-  </style>
+  /* === COLUMNA IZQUIERDA FIJA (CONGELADA) === */
+.matriz-grid div.celda.celda-fija {
+  position: sticky;
+  left: 0;
+  z-index: 50;
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-right: 2px solid rgba(255, 255, 255, 0.25);
+}
+
+.matriz-grid div.col-titulo:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 60;
+  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-right: 2px solid rgba(255, 255, 255, 0.25);
+}
+</style>
 </head>
 <body>
-  <div class="contenedor">
-    <h1>Tablero de Checklists — Vista Matricial</h1>
-
-    <div class="controls">
-      <div>
-        <label for="mesInicio">Mes inicial</label>
-        <input type="month" id="mesInicio" />
-      </div>
-      <div>
-        <label>Meses visibles</label>
-        <select id="cantidadMeses">
-          <option value="2" selected>2 meses</option>
-          <option value="3">3 meses</option>
-        </select>
-      </div>
-      <button id="btnGenerar">Generar tablero</button>
+  <div class="glass glass-inner">
+    <div class="header">
+      <div class="logo"><h1>Control de Informes</h1></div>
     </div>
 
-    <!-- MATRIZ PRINCIPAL -->
-    <div id="matriz" class="matriz"></div>
+    <div class="contenido">
+      <div class="controls" style="margin-bottom:1rem; display:flex; gap:1rem;">
+        <div>
+          <label for="mesInicio">Mes inicial</label>
+          <input type="month" id="mesInicio" />
+        </div>
+        <div>
+          <label>Meses visibles</label>
+          <select id="cantidadMeses">
+            <option value="2" selected>2 meses</option>
+            <option value="3">3 meses</option>
+          </select>
+        </div>
+        <button id="btnGenerar">Generar tablero</button>
+      </div>
+
+      <!-- MATRIZ PRINCIPAL -->
+      <div id="matriz" class="matriz-grid"></div>
+    </div>
+
+    <footer>Tablero persistente de informes</footer>
+  </div>
+
+<!-- estilos anteriores se mantienen debajo -->
+<div id="matriz" class="matriz"></div>
   </div>
 
 <style>
@@ -182,7 +210,7 @@ function generarMatriz() {
   matriz.innerHTML = "";
 
   const columnas = 1 + meses.length;
-  matriz.style.gridTemplateColumns = `260px repeat(${meses.length}, 280px)`;
+  matriz.style.matriz-gridTemplateColumns = `260px repeat(${meses.length}, 280px)`;
 
   // ----- TITULOS -----
   matriz.appendChild(crearCeldaTitulo("Informes"));
