@@ -71,121 +71,183 @@
   </style>
 </head>
 <body>
-<div class="wrapper">
+  <div class="contenedor">
+    <h1>Tablero de Checklists — Vista Matricial</h1>
 
-  <!-- INFORMES FIJOS -->
-  <div class="col-fixed">
-    <h2>Informes</h2>
-    <div id="listaInformesFija"></div>
+    <div class="controls">
+      <div>
+        <label for="mesInicio">Mes inicial</label>
+        <input type="month" id="mesInicio" />
+      </div>
+      <div>
+        <label>Meses visibles</label>
+        <select id="cantidadMeses">
+          <option value="2" selected>2 meses</option>
+          <option value="3">3 meses</option>
+        </select>
+      </div>
+      <button id="btnGenerar">Generar tablero</button>
+    </div>
+
+    <!-- MATRIZ PRINCIPAL -->
+    <div id="matriz" class="matriz"></div>
   </div>
 
-  <!-- CARRUSEL TEMPORAL -->
-  <div id="timeline" class="timeline"></div>
+<style>
+  .matriz {
+    margin-top: 20px;
+    display: grid;
+    grid-auto-rows: min-content;
+    gap: 4px;
+    overflow-x: auto;
+  }
 
-</div>
+  .col-fija {
+    background: #f9fafb;
+    padding: 10px;
+    border-right: 2px solid #e5e7eb;
+  }
 
-<div class="nav-buttons">
-  <button onclick="retroceder()">◀</button>
-  <button onclick="avanzar()">▶</button>
-</div>
+  .col-mes {
+    padding: 10px;
+    border-left: 1px solid #f1f5f9;
+  }
+
+  .titulo-columna {
+    font-weight: bold;
+    background: #e8f1fa;
+    padding: 6px 8px;
+    border-radius: 6px;
+    text-align: center;
+    margin-bottom: 8px;
+  }
+
+  .item-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+  }
+
+  .card-informe {
+    border: 1px solid #e5e7eb;
+    padding: 8px;
+    border-radius: 8px;
+    background: #ffffff;
+  }
+
+  .card-informe.activo {
+    background: #e0f7e9;
+    border-color: #34a853;
+  }
+
+  .input-evidencia {
+    width: 100%;
+    border: 1px solid #d1d5db;
+    padding: 6px;
+    border-radius: 6px;
+  }
+</style>
 
 <script>
-  const LLAVE = "tableroTemporalV1.1";
+const INFORMES = [
+  "SINBA BD EGRESOS","SINBA BD URGENCIAS","SINBA BD LESIONES","SINBA BD NACIMIENTOS","SINBA BD DEFUNCIONES","SINBA GERENCIAL","RESUMEN DEFUNCIONES","CONCENTRADO GENERAL DEL CENSO","CORTA ESTANCIA","PRINCIPALES CAUSAS DE EGRESO","EXPEDIENTES CLINICOS NUEVOS","LABORATORIO","TAMIZ NEONATAL","CAPACITACIONES DE ENFERMERIA","VACUNAS","CARTILLAS DE SALUD","REHABILITACION","EPIDEMIOLOGIA","TRABAJO SOCIAL","SERVICIO DE AMBULANCIAS"
+];
 
-  const INFORMES = [
-    "SINBA BD EGRESOS","SINBA BD URGENCIAS","SINBA BD LESIONES","SINBA BD NACIMIENTOS",
-    "SINBA BD DEFUNCIONES","SINBA GERENCIAL","RESUMEN DEFUNCIONES","CONCENTRADO GENERAL DEL CENSO",
-    "CORTA ESTANCIA","PRINCIPALES CAUSAS DE EGRESO","EXPEDIENTES CLINICOS NUEVOS","LABORATORIO",
-    "TAMIZ NEONATAL","CAPACITACIONES DE ENFERMERIA","VACUNAS","CARTILLAS DE SALUD",
-    "REHABILITACION","EPIDEMIOLOGIA","TRABAJO SOCIAL","SERVICIO DE AMBULANCIAS",
-    "SUIVE SEMANAL 1","SUIVE SEMANAL 2","SUIVE SEMANAL 3","SUIVE SEMANAL 4","SUIVE SEMANAL 5"
-  ];
+const LLAVE = "informes_matriz_v1";
 
-  function obtener() { return JSON.parse(localStorage.getItem(LLAVE)) || {}; }
-  function guardar(x) { localStorage.setItem(LLAVE, JSON.stringify(x)); }
+function obtenerDatos() {
+  return JSON.parse(localStorage.getItem(LLAVE)) || {};
+}
+function guardarDatos(obj) {
+  localStorage.setItem(LLAVE, JSON.stringify(obj));
+}
 
-  function pintarInformesFijos(){
-    const cont = document.getElementById("listaInformesFija");
-    cont.innerHTML = "";
-    INFORMES.forEach(i => {
-      const div = document.createElement("div");
-      div.className = "informe-item";
-      div.textContent = i;
-      cont.appendChild(div);
-    });
+function generarMeses(inicio, cantidad) {
+  const meses = [];
+  let fecha = new Date(inicio + "-01");
+  for (let i = 0; i < cantidad; i++) {
+    const y = fecha.getFullYear();
+    const m = String(fecha.getMonth() + 1).padStart(2, "0");
+    meses.push(`${y}-${m}`);
+    fecha.setMonth(fecha.getMonth() + 1);
   }
+  return meses;
+}
 
-  function generarMes(yyyy, mm){
-    const idMes = `${yyyy}-${String(mm).padStart(2,'0')}`;
-    const datos = obtener();
-    if (!datos[idMes]) datos[idMes] = {};
+function generarMatriz() {
+  const mesInicio = document.getElementById("mesInicio").value;
+  const cant = parseInt(document.getElementById("cantidadMeses").value);
+  if (!mesInicio) { alert("Selecciona el mes inicial"); return; }
 
+  const meses = generarMeses(mesInicio, cant);
+  const matriz = document.getElementById("matriz");
+  matriz.innerHTML = "";
+
+  // Definir columnas: fija + meses
+  matriz.style.gridTemplateColumns = `260px repeat(${meses.length}, 280px)`;
+
+  // Columna fija
+  const colFija = document.createElement("div");
+  colFija.className = "col-fija";
+  colFija.innerHTML = `<div class='titulo-columna'>Informes</div>` +
+    INFORMES.map(i => `<div class='item-row'><strong>${i}</strong></div>`).join("");
+  matriz.appendChild(colFija);
+
+  const datos = obtenerDatos();
+  if (!datos.meses) datos.meses = {};
+
+  // Columnas por mes
+  meses.forEach(mes => {
     const col = document.createElement("div");
-    col.className = "mes-columna";
-    col.innerHTML = `<div class='mes-header'>${idMes}</div>`;
+    col.className = "col-mes";
 
-    INFORMES.forEach(nombre =>{
-      const estado = datos[idMes][nombre] || { ruta:"" };
+    col.innerHTML = `<div class='titulo-columna'>${mes}</div>`;
 
-      const card = document.createElement("div");
-      card.className = "card-informe";
-      if (estado.ruta) card.classList.add("ok");
+    INFORMES.forEach(informe => {
+      if (!datos.meses[mes]) datos.meses[mes] = {};
+      if (!datos.meses[mes][informe]) datos.meses[mes][informe] = { ruta: "", completo: false };
 
-      card.innerHTML = `
-        <label style='font-size:0.9rem;'>
-          <input type='checkbox' ${estado.ruta?"checked":""} />
-          ${nombre}
-        </label>
-        <input type='text' placeholder='URL evidencia' value='${estado.ruta}' />
+      const reg = datos.meses[mes][informe];
+
+      const row = document.createElement("div");
+      row.className = "item-row card-informe";
+      if (reg.ruta.trim() !== "") row.classList.add("activo");
+
+      row.innerHTML = `
+        <input type='checkbox' ${reg.completo ? "checked" : ""} />
+        <input type='text' class='input-evidencia' placeholder='Evidencia' value='${reg.ruta}' />
       `;
 
-      const chk = card.querySelector("input[type=checkbox]");
-      const inp = card.querySelector("input[type=text]");
+      const chk = row.querySelector("input[type=checkbox]");
+      const inp = row.querySelector(".input-evidencia");
 
-      inp.addEventListener("input", ()=>{
-        const d = obtener();
-        if (!d[idMes]) d[idMes] = {};
-        d[idMes][nombre] = { ruta: inp.value.trim() };
-        guardar(d);
-        if (inp.value.trim() !== ""){
-          card.classList.add("ok");
-          chk.checked = true;
-        } else {
-          card.classList.remove("ok");
-          chk.checked = false;
-        }
+      inp.addEventListener("input", () => {
+        reg.ruta = inp.value.trim();
+        reg.completo = reg.ruta !== "";
+        chk.checked = reg.completo;
+        row.classList.toggle("activo", reg.completo);
+        guardarDatos(datos);
       });
 
-      chk.addEventListener("change", ()=>{
-        if (!chk.checked){ inp.value = ""; inp.dispatchEvent(new Event('input')); }
+      chk.addEventListener("change", () => {
+        reg.completo = chk.checked;
+        if (!reg.completo) reg.ruta = "";
+        inp.value = reg.ruta;
+        row.classList.toggle("activo", reg.completo);
+        guardarDatos(datos);
       });
 
-      col.appendChild(card);
+      col.appendChild(row);
     });
 
-    return col;
-  }
+    matriz.appendChild(col);
+  });
 
-  function cargarLineaTiempo(){
-    const timeline = document.getElementById("timeline");
-    timeline.innerHTML = "";
+  guardarDatos(datos);
+}
 
-    const hoy = new Date();
-    const baseY = hoy.getFullYear();
-    const baseM = hoy.getMonth() + 1;
-
-    for (let i = -3; i <= 3; i++){
-      let f = new Date(baseY, baseM - 1 + i);
-      const col = generarMes(f.getFullYear(), f.getMonth()+1);
-      timeline.appendChild(col);
-    }
-  }
-
-  function retroceder(){ document.getElementById("timeline").scrollBy({left:-300,behavior:'smooth'}); }
-  function avanzar(){ document.getElementById("timeline").scrollBy({left:300,behavior:'smooth'}); }
-
-  pintarInformesFijos();
-  cargarLineaTiempo();
+document.getElementById("btnGenerar").addEventListener("click", generarMatriz);
 </script>
 </body>
 </html>
