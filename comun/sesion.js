@@ -53,7 +53,7 @@ async function verificarAutenticacion() {
 
 // ✅ Validar sesión con tu backend GAS
 async function validarSesionBackend(usuario, token) {
-  const SCRIPT_URL = 'TU_URL_DE_APPS_SCRIPT_AQUI'; // Reemplaza con tu URL
+  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwr1R3uLPys_GJ5RMaWP-sBmjpNSy0A3PpOb_3i71fk2fjYwzW4VPnBD3jHS3ffL7_p/exec'; // Reemplaza con tu URL
   
   try {
     const response = await fetch(`${SCRIPT_URL}?usuario=${encodeURIComponent(usuario)}&clave=${encodeURIComponent(token)}&accion=validarSesion`);
