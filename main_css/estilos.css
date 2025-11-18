@@ -1,350 +1,97 @@
-/* === BASE GENERAL === */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tablero Temporal — Informes</title>
+<link rel="stylesheet" href="estilos.css" />
+<style>
+/* Ajustes específicos del tablero */
+.wrapper { display: flex; height: 100%; width: 100%; }
 
-html,
-body {
-  height: 100%;
-  width: 100%;
-  font-family: 'Poppins', sans-serif;
-  background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
-  background-attachment: fixed;
-  overflow: hidden;
-  color: white;
-  font-size: clamp(0.85rem, 0.9vw, 1rem);
-  /* ✅ tipografía fluida */
-}
 
-/* === ESTRUCTURA FLEXIBLE === */
-body {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 2vh;
+.col-fixed {
+width: 280px;
+background: rgba(255,255,255,0.12);
+backdrop-filter: blur(10px);
+border-right: 1px solid rgba(255,255,255,0.2);
+padding: 1rem;
+overflow-y: auto;
 }
+.col-fixed h2 { margin-bottom: 0.6rem; font-size: 1.1rem; }
+.informe-item { padding: 0.4rem 0; font-size: 0.9rem; opacity: 0.9; }
 
-/* Estados del panel */
-.glass.loading {
-  background: rgba(0, 123, 255, 0.15);
-  /*   box-shadow: 0 8px 32px rgba(0, 123, 255, 0.25);
- */
+
+/* Carrusel del tiempo */
+.timeline {
+flex: 1;
+display: flex;
+overflow-x: auto;
+scroll-behavior: smooth;
+padding: 1rem;
+gap: 1rem;
 }
-
-.glass.success {
-  background: rgba(40, 167, 69, 0.2);
-  /*   box-shadow: 0 8px 32px rgba(40, 167, 69, 0.25); */
+.mes-columna {
+min-width: 260px;
+background: rgba(255,255,255,0.12);
+backdrop-filter: blur(10px);
+border: 1px solid rgba(255,255,255,0.2);
+padding: 1rem;
+border-radius: 14px;
+color: white;
 }
+.mes-header { text-align:center; font-weight:600; margin-bottom:0.8rem; }
 
-.glass.error {
-  background: rgba(240, 50, 60, 0.45);
-  /* Cambia 0.25 por 0.45 */
-  /* box-shadow: 0 6px 20px rgba(240, 50, 60, 0.5); */
-  /* Cambia 0.25 por 0.5 */
+
+.card-informe {
+padding: 0.6rem;
+background: rgba(255,255,255,0.08);
+border: 1px solid rgba(255,255,255,0.15);
+border-radius: 10px;
+margin-bottom: 0.6rem;
+transition: background 0.3s ease;
 }
-
-/* === PANEL PRINCIPAL (GLASS) === */
-.glass {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 80vh;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  /* box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25); */
-  transition: all 0.3s ease;
-  padding: 1rem;
-  width: min(92%, 1600px);
-  /* backdrop-filter: blur(12px); */
-}
-
-.glass .grid {
-  flex: 1;
-  /* ocupa todo el espacio disponible */
-  overflow-y: auto;
-  /* ✅ activa scroll vertical */
-  overflow-x: hidden;
-  /* padding-right: 0.5rem; */
-  /* margin-bottom: 0.5rem; */
-  margin: 0.8rem;
-  padding: 1rem;
-  border-radius: 16px;
-}
-
-/* === CONTENIDO CON AJUSTE DINÁMICO === */
-.glass>.contenido {
-  flex: 1;
-  min-height: 0;
-  /* ✅ truco para flex con scroll */
-  overflow-y: auto;
-  overflow-x: hidden;
-  margin: 1rem 0;
-  padding-right: 0.5rem;
-  width: 90%;
-}
-
-/* Scroll estilizado */
-.glass>.contenido::-webkit-scrollbar {
-  width: 8px;
-}
-
-.glass>.contenido::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
-}
-
-.glass-inner {
-  transform: scale(1) !important;
-  transform-origin: center center;
-  will-change: transform;
-  pointer-events: auto;
-}
-
-.glass footer {
-  flex-shrink: 0;
-  margin-top: auto;
-  text-align: center;
-  font-size: 0.85rem;
-  color: #ddd;
-  padding: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-}
-
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.25rem;
-  /* 🔽 reduce la separación entre elementos */
-  padding: 0.1rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  margin-bottom: 0.25rem;
-  /* 🔽 menos espacio debajo */
-  flex-shrink: 0;
+.card-informe.ok { background: rgba(0,255,120,0.18); }
+.card-informe input[type=text] {
+width: 100%;
+margin-top: 4px;
+padding: 6px;
+border-radius: 8px;
+border: none;
+background: rgba(255,255,255,0.2);
+color: #fff;
 }
 
 
-.logo,
-.usuario {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
+.nav-buttons {
+position: fixed;
+bottom: 2rem;
+right: 2rem;
+display: flex;
+gap: 10px;
+z-index: 50;
+}
+/* === COLUMNA IZQUIERDA FIJA (CONGELADA) === */
+.matriz-grid div.celda.celda-fija {
+position: sticky;
+left: 0;
+z-index: 50;
+backdrop-filter: blur(12px);
+background: rgba(255, 255, 255, 0.15) !important;
+border-right: 2px solid rgba(255, 255, 255, 0.25);
 }
 
-.logo h1 {
-  font-size: clamp(1rem, 1.5vw, 1.4rem);
-  font-weight: 600;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
 
-/* === GRID DE INDICADORES === */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 1rem;
-  grid-auto-rows: minmax(90px, auto);
+.matriz-grid div.col-titulo:first-child {
+position: sticky;
+left: 0;
+z-index: 60;
+backdrop-filter: blur(12px);
+background: rgba(255, 255, 255, 0.25) !important;
+border-right: 2px solid rgba(255, 255, 255, 0.25);
 }
-
-.logo,
-.usuario {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-
-.logo h1 {
-  font-weight: 600;
-  font-size: 1.4rem;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
-}
-
-.logo-icon {
-  font-size: 2.5rem;
-  color: #ffdd00;
-}
-
-/* === CELDAS === */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-bottom: 2rem;
-  grid-auto-rows: minmax(90px, auto);
-}
-
-.celda {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 1rem;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-  will-change: transform, box-shadow;
-  margin-bottom: 0.8rem;
-}
-
-.celda:hover {
-  transform: translateY(-3px) scale(1.02);
-  /*   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); */
-  background: rgba(255, 255, 255, 0.15);
-}
-
-.celda h3 {
-  font-size: 1.05rem;
-  margin-bottom: 0.3rem;
-}
-
-.celda p {
-  opacity: 0.85;
-  font-size: 0.85rem;
-  color: rgb(0, 255, 89);
-}
-
-.celda .icon {
-  display: block;
-  font-size: 1.6rem;
-  margin-bottom: 0.4rem;
-  color: #ffdd00;
-}
-
-/* === TIPOGRAFÍA === */
-h5 {
-  color: #85ACBD;
-  font-size: 1.2rem;
-  text-transform: uppercase;
-}
-
-span,
-.frecuencia,
-.senalado {
-  color: rgb(0, 255, 89);
-}
-
-.frecuencia {
-  font-size: 1.5rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.senalado {
-  font-size: 1.05rem;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.title {
-  text-align: center;
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: rgba(238, 223, 223, 0.9);
-  margin-bottom: 1rem;
-}
-
-.buscador-wrapper {
-  position: sticky;
-  top: 0;
-  left: 0;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(8px);
-  padding: 0.6rem 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  z-index: 10;
-  text-align: left;
-  /* cargado a la izquierda */
-}
-
-/* === LISTAS === */
-ul,
-ol {
-  padding: 1rem;
-}
-
-li {
-  padding: 0.6rem;
-  font-size: 0.95rem;
-}
-
-/* === BOTONES === */
-button {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.1);
-  color: white;
-  font-weight: 600;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-button:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
-}
-
-button:active {
-  transform: scale(0.97);
-  opacity: 0.9;
-}
-
-/* === BOTÓN SALIR === */
-.btn-salir-ultra {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 0.4rem 0.9rem;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 0.8rem;
-  font-weight: 300;
-  letter-spacing: 0.5px;
-  transition: all 0.3s ease;
-}
-
-.btn-salir-ultra:hover {
-  color: rgba(255, 255, 255, 1);
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(240, 50, 60, 0.05);
-  transform: translateY(-1px);
-}
-
-.btn-salir-ultra:active {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(0);
-  transition: all 0.1s ease;
-}
-
-/* === FOOTER FIJO DENTRO DEL GLASS === */
-footer {
-  position: sticky;
-  bottom: 0;
-  /*background: rgba(255, 255, 255, 0.05); /* leve velo translúcido */
-  /*backdrop-filter: blur(6px);*/
-  text-align: center;
-  font-size: clamp(0.75rem, 0.9vw, 0.85rem);
-  color: rgba(255, 255, 255, 0.75);
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 0.8rem 0;
-  z-index: 10;
-  margin-top: 1rem;
-}
-
-/* === RESPONSIVIDAD === */
-@media (max-width: 768px) {
-  .glass {
-    width: 95%;
-    height: 92%;
-    padding: 1.2rem;
-  }
-
-  .header {
-    flex-direction: column;
-    text-align: center;
-  }
-}
+</style>
+</head>
+<body>
+<div class="glass glass-inner">
+</html>
