@@ -195,6 +195,18 @@
       inp.placeholder = "Evidencia";
       inp.className = "input-evidencia";
 
+      // --- NUEVO: CLICK EN LA CELDA COMPLETA ---
+      d.addEventListener("click", (e) => {
+        if (e.target.tagName === "INPUT") return;
+
+        if (reg.ruta && reg.ruta.trim() !== "") {
+          let url = reg.ruta.trim();
+          if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+          window.open(url, "_blank");
+        }
+      });
+
+      // ---- Eventos originales ----
       inp.addEventListener("input", () => {
         reg.ruta = inp.value.trim();
         reg.completo = reg.ruta !== "";
@@ -211,19 +223,7 @@
         guardarDatos(datos);
       });
 
-      // CLICK EN TODA LA CARD
-      box.addEventListener("click", (e) => {
-        if (e.target === inp || e.target === chk) return;
-
-        if (reg.ruta && reg.ruta.trim() !== "") {
-          let url = reg.ruta.trim();
-          if (!/^https?:\/\//i.test(url)) {
-            url = "https://" + url;
-          }
-          window.open(url, "_blank");
-        }
-      });
-
+      // Ensamble
       box.appendChild(chk);
       box.appendChild(inp);
       d.appendChild(box);
