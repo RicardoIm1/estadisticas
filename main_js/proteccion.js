@@ -1,6 +1,6 @@
 // proteccion.js - Colocar este archivo en TODAS las páginas protegidas
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwr1R3uLPys_GJ5RMaWP-sBmjpNSy0A3PpOb_3i71fk2fjYwzW4VPnBD3jHS3ffL7_p/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwBFw1yuoeolvohoqT6eLWDr2qkU9S2QU0QRRKbwhfT_0Fwe6MokL6Fn_siqRR1uKhx/exec";
 
 // ✅ Función global para manejar respuesta de validación
 window.manejarValidacionSesion = function(resultado) {
