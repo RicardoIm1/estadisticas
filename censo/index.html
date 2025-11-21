@@ -406,7 +406,6 @@
           html += "</tr>";
         });
 
-
         html += "</tbody></table>";
         if (tablaContenedor) tablaContenedor.innerHTML = html;
         setEstado("success");
@@ -415,29 +414,76 @@
 
       const s = document.createElement("script");
       s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
-      s.onerror = () => setEstado("error");
+      s.onerror = () => {
+        setEstado("error");
+        if (tablaContenedor) tablaContenedor.innerHTML = "<p class='tiny'>Error al cargar los registros.</p>";
+      };
       document.body.appendChild(s);
     }
 
-    // ---------------------- Formatear fecha y hora ----------------------
+    // ---------------------- Formatear fecha y hora CORREGIDO ----------------------
     function formatearFecha(fechaISO) {
       if (!fechaISO) return "";
-      const d = new Date(fechaISO);
-      if (isNaN(d)) return fechaISO;
-      const dia = String(d.getDate()).padStart(2, '0');
-      const mes = String(d.getMonth() + 1).padStart(2, '0');
-      const anio = d.getFullYear();
-      return `${dia}/${mes}/${anio}`;
+
+      // Si ya está en formato DD/MM/YYYY, devolverlo tal cual
+      if (typeof fechaISO === 'string' && fechaISO.includes('/')) {
+        return fechaISO;
+      }
+
+      // Si es un objeto Date
+      if (fechaISO instanceof Date) {
+        const dia = String(fechaISO.getDate()).padStart(2, '0');
+        const mes = String(fechaISO.getMonth() + 1).padStart(2, '0');
+        const anio = fechaISO.getFullYear();
+        return `${dia}/${mes}/${anio}`;
+      }
+
+      // Si es string en formato ISO (YYYY-MM-DD)
+      if (typeof fechaISO === 'string') {
+        // Intentar parsear como fecha ISO
+        const fecha = new Date(fechaISO);
+        if (!isNaN(fecha)) {
+          const dia = String(fecha.getDate()).padStart(2, '0');
+          const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+          const anio = fecha.getFullYear();
+          return `${dia}/${mes}/${anio}`;
+        }
+
+        // Si es formato YYYY-MM-DD directamente
+        const match = fechaISO.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+        if (match) {
+          const [, anio, mes, dia] = match;
+          return `${dia.padStart(2, '0')}/${mes.padStart(2, '0')}/${anio}`;
+        }
+      }
+
+      // Si no coincide con ningún formato conocido, devolver original
+      return fechaISO;
     }
 
     function formatearHora(valor) {
       if (!valor) return "";
-      const d = new Date(valor);
-      if (!isNaN(d)) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-      if (/^\d{1,2}:\d{2}$/.test(valor)) return valor;
+
+      // Si ya está en formato HH:MM
+      if (typeof valor === 'string' && /^\d{1,2}:\d{2}$/.test(valor)) {
+        return valor.padStart(5, '0');
+      }
+
+      // Si es un objeto Date
+      if (valor instanceof Date) {
+        return `${String(valor.getHours()).padStart(2, '0')}:${String(valor.getMinutes()).padStart(2, '0')}`;
+      }
+
+      // Si es string con hora ISO
+      if (typeof valor === 'string') {
+        const fecha = new Date(valor);
+        if (!isNaN(fecha)) {
+          return `${String(fecha.getHours()).padStart(2, '0')}:${String(fecha.getMinutes()).padStart(2, '0')}`;
+        }
+      }
+
       return "";
     }
-
     // ---------------------- Mantener unidad, fecha y servicio ----------------------
     window.addEventListener("DOMContentLoaded", () => {
       const campoUnidad = document.getElementById("unidad");
