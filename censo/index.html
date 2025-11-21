@@ -372,34 +372,52 @@
           "Servicio destino", "Foliador", "Observaciones", "Registro TS"
         ];
 
-        const idxFecha = 0;
-        const idxHoraCols = [8, 9, 10, 11, 12, 16];
+        // SOLO ocultamos estas columnas: Unidad(1), Sala(4), Registro TS(16)
         const ocultarIdx = [1, 4, 16];
 
-        let html = "<table><thead><tr>" +
-          headers.map((h, i) => ocultarIdx.includes(i) ? "" : `<th>${h}</th>`).join("") +
-          "</tr></thead><tbody>";
+        console.log("📋 Columnas visibles:");
+        headers.forEach((header, index) => {
+          if (!ocultarIdx.includes(index)) {
+            console.log(`  ${index}: ${header}`);
+          }
+        });
+
+        let html = "<table><thead><tr>";
+
+        // Solo agregar headers que NO estén en ocultarIdx
+        headers.forEach((h, i) => {
+          if (!ocultarIdx.includes(i)) {
+            html += `<th>${h}</th>`;
+          }
+        });
+
+        html += "</tr></thead><tbody>";
 
         data = data.reverse(); // mostrar más reciente primero
 
-        // Índices fijos según el orden del HEADER del backend
-        const idxExpediente = 6;  // "expediente"
-        const idxFoliador = 14; // "foliador"
-
-        data.forEach(fila => {
+        data.forEach((fila, rowIndex) => {
           html += "<tr>";
           fila.forEach((celda, i) => {
+            // Saltar columnas ocultas
             if (ocultarIdx.includes(i)) return;
 
             let valor = celda;
 
-            // === Ajustes visuales ===
-            if (i === idxFecha) valor = formatearFecha(celda);
-            if (idxHoraCols.includes(i)) valor = formatearHora(celda);
-
-            // === Mantener ceros iniciales ===
-            if (i === idxExpediente && valor) valor = valor.toString().padStart(6, "0");
-            if (i === idxFoliador && valor) valor = valor.toString().padStart(3, "0");
+            // Formatear fecha (columna 0)
+            if (i === 0) {
+              valor = formatearFechaSimple(celda);
+            }
+            // Formatear horas (columnas 8-12)
+            else if (i >= 8 && i <= 12) {
+              valor = formatearHoraSimple(celda);
+            }
+            // Mantener ceros iniciales
+            else if (i === 6 && valor) { // Expediente
+              valor = valor.toString().padStart(6, "0");
+            }
+            else if (i === 14 && valor) { // Foliador
+              valor = valor.toString().padStart(3, "0");
+            }
 
             html += `<td>${valor || ""}</td>`;
           });
@@ -407,7 +425,12 @@
         });
 
         html += "</tbody></table>";
-        if (tablaContenedor) tablaContenedor.innerHTML = html;
+
+        if (tablaContenedor) {
+          tablaContenedor.innerHTML = html;
+          console.log("✅ Tabla renderizada con", data.length, "registros");
+        }
+
         setEstado("success");
         delete window[cb];
       };
@@ -421,106 +444,45 @@
       document.body.appendChild(s);
     }
 
-    // ---------------------- Formatear fecha y hora - VERSIÓN MEJORADA ----------------------
-    function formatearFecha(fechaInput) {
-      if (!fechaInput) return "";
+    // ---------------------- Formateo SIMPLIFICADO Y EFICIENTE ----------------------
+    function formatearFechaSimple(fechaISO) {
+      if (!fechaISO) return "";
 
-      console.log("🔄 Formateando fecha:", fechaInput, "Tipo:", typeof fechaInput);
-
-      // Si ya está en formato DD/MM/YYYY, devolverlo tal cual
-      if (typeof fechaInput === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(fechaInput)) {
-        return fechaInput;
+      // Si ya es una fecha formateada, mantenerla
+      if (typeof fechaISO === 'string' && fechaISO.includes('/')) {
+        return fechaISO;
       }
 
-      let fecha;
+      try {
+        const fecha = new Date(fechaISO);
+        if (isNaN(fecha)) return String(fechaISO);
 
-      // Intentar diferentes formas de parsear la fecha
-      if (fechaInput instanceof Date) {
-        fecha = fechaInput;
-      } else if (typeof fechaInput === 'string') {
-        // Probar formato ISO (YYYY-MM-DD)
-        if (fechaInput.includes('-')) {
-          // Si es "YYYY-MM-DD" directo
-          const matchISO = fechaInput.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-          if (matchISO) {
-            const [, anio, mes, dia] = matchISO;
-            return `${dia.padStart(2, '0')}/${mes.padStart(2, '0')}/${anio}`;
-          }
-
-          // Si es fecha ISO completa
-          fecha = new Date(fechaInput);
-        }
-        // Probar formato de timestamp de Google Sheets
-        else if (!isNaN(fechaInput) && fechaInput.length > 5) {
-          // Google Sheets a veces devuelve timestamps numéricos
-          fecha = new Date(parseInt(fechaInput));
-        }
-        // Probar formato DD/MM/YYYY
-        else if (fechaInput.includes('/')) {
-          return fechaInput; // Ya está en el formato correcto
-        }
-      } else if (typeof fechaInput === 'number') {
-        // Si es un timestamp numérico
-        fecha = new Date(fechaInput);
-      }
-
-      // Si logramos crear una fecha válida, formatearla
-      if (fecha && !isNaN(fecha.getTime())) {
         const dia = String(fecha.getDate()).padStart(2, '0');
         const mes = String(fecha.getMonth() + 1).padStart(2, '0');
         const anio = fecha.getFullYear();
-        const resultado = `${dia}/${mes}/${anio}`;
-        console.log("✅ Fecha formateada:", resultado);
-        return resultado;
-      }
 
-      // Si todo falla, devolver el valor original como string
-      console.log("❌ No se pudo formatear la fecha, devolviendo original");
-      return String(fechaInput);
+        return `${dia}/${mes}/${anio}`;
+      } catch (e) {
+        return String(fechaISO);
+      }
     }
 
-    function formatearHora(valorInput) {
-      if (!valorInput) return "";
+    function formatearHoraSimple(valor) {
+      if (!valor) return "";
 
-      console.log("🔄 Formateando hora:", valorInput, "Tipo:", typeof valorInput);
-
-      // Si ya está en formato HH:MM
-      if (typeof valorInput === 'string' && /^\d{1,2}:\d{2}$/.test(valorInput)) {
-        return valorInput.padStart(5, '0');
+      // Si ya está en formato HH:MM, mantenerlo
+      if (typeof valor === 'string' && /^\d{1,2}:\d{2}$/.test(valor)) {
+        return valor.padStart(5, '0');
       }
 
-      let fecha;
+      try {
+        const fecha = new Date(valor);
+        if (isNaN(fecha)) return "";
 
-      // Intentar diferentes formas de parsear la hora
-      if (valorInput instanceof Date) {
-        fecha = valorInput;
-      } else if (typeof valorInput === 'string') {
-        // Probar si es una hora directa (HH:MM)
-        const matchHora = valorInput.match(/^(\d{1,2}):(\d{2})/);
-        if (matchHora) {
-          const [, horas, minutos] = matchHora;
-          return `${horas.padStart(2, '0')}:${minutos}`;
-        }
-
-        // Probar si es una fecha/hora ISO
-        fecha = new Date(valorInput);
-      } else if (typeof valorInput === 'number') {
-        // Si es un timestamp numérico
-        fecha = new Date(valorInput);
+        return `${String(fecha.getHours()).padStart(2, '0')}:${String(fecha.getMinutes()).padStart(2, '0')}`;
+      } catch (e) {
+        return "";
       }
-
-      // Si logramos crear una fecha válida, extraer la hora
-      if (fecha && !isNaN(fecha.getTime())) {
-        const horas = String(fecha.getHours()).padStart(2, '0');
-        const minutos = String(fecha.getMinutes()).padStart(2, '0');
-        const resultado = `${horas}:${minutos}`;
-        console.log("✅ Hora formateada:", resultado);
-        return resultado;
-      }
-
-      // Si todo falla, devolver vacío
-      console.log("❌ No se pudo formatear la hora");
-      return "";
     }
 
     // ---------------------- Mantener unidad, fecha y servicio ----------------------
