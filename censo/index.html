@@ -421,69 +421,108 @@
       document.body.appendChild(s);
     }
 
-    // ---------------------- Formatear fecha y hora CORREGIDO ----------------------
-    function formatearFecha(fechaISO) {
-      if (!fechaISO) return "";
+    // ---------------------- Formatear fecha y hora - VERSIÓN MEJORADA ----------------------
+    function formatearFecha(fechaInput) {
+      if (!fechaInput) return "";
+
+      console.log("🔄 Formateando fecha:", fechaInput, "Tipo:", typeof fechaInput);
 
       // Si ya está en formato DD/MM/YYYY, devolverlo tal cual
-      if (typeof fechaISO === 'string' && fechaISO.includes('/')) {
-        return fechaISO;
+      if (typeof fechaInput === 'string' && /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(fechaInput)) {
+        return fechaInput;
       }
 
-      // Si es un objeto Date
-      if (fechaISO instanceof Date) {
-        const dia = String(fechaISO.getDate()).padStart(2, '0');
-        const mes = String(fechaISO.getMonth() + 1).padStart(2, '0');
-        const anio = fechaISO.getFullYear();
-        return `${dia}/${mes}/${anio}`;
-      }
+      let fecha;
 
-      // Si es string en formato ISO (YYYY-MM-DD)
-      if (typeof fechaISO === 'string') {
-        // Intentar parsear como fecha ISO
-        const fecha = new Date(fechaISO);
-        if (!isNaN(fecha)) {
-          const dia = String(fecha.getDate()).padStart(2, '0');
-          const mes = String(fecha.getMonth() + 1).padStart(2, '0');
-          const anio = fecha.getFullYear();
-          return `${dia}/${mes}/${anio}`;
+      // Intentar diferentes formas de parsear la fecha
+      if (fechaInput instanceof Date) {
+        fecha = fechaInput;
+      } else if (typeof fechaInput === 'string') {
+        // Probar formato ISO (YYYY-MM-DD)
+        if (fechaInput.includes('-')) {
+          // Si es "YYYY-MM-DD" directo
+          const matchISO = fechaInput.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+          if (matchISO) {
+            const [, anio, mes, dia] = matchISO;
+            return `${dia.padStart(2, '0')}/${mes.padStart(2, '0')}/${anio}`;
+          }
+
+          // Si es fecha ISO completa
+          fecha = new Date(fechaInput);
         }
-
-        // Si es formato YYYY-MM-DD directamente
-        const match = fechaISO.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-        if (match) {
-          const [, anio, mes, dia] = match;
-          return `${dia.padStart(2, '0')}/${mes.padStart(2, '0')}/${anio}`;
+        // Probar formato de timestamp de Google Sheets
+        else if (!isNaN(fechaInput) && fechaInput.length > 5) {
+          // Google Sheets a veces devuelve timestamps numéricos
+          fecha = new Date(parseInt(fechaInput));
         }
+        // Probar formato DD/MM/YYYY
+        else if (fechaInput.includes('/')) {
+          return fechaInput; // Ya está en el formato correcto
+        }
+      } else if (typeof fechaInput === 'number') {
+        // Si es un timestamp numérico
+        fecha = new Date(fechaInput);
       }
 
-      // Si no coincide con ningún formato conocido, devolver original
-      return fechaISO;
+      // Si logramos crear una fecha válida, formatearla
+      if (fecha && !isNaN(fecha.getTime())) {
+        const dia = String(fecha.getDate()).padStart(2, '0');
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        const anio = fecha.getFullYear();
+        const resultado = `${dia}/${mes}/${anio}`;
+        console.log("✅ Fecha formateada:", resultado);
+        return resultado;
+      }
+
+      // Si todo falla, devolver el valor original como string
+      console.log("❌ No se pudo formatear la fecha, devolviendo original");
+      return String(fechaInput);
     }
 
-    function formatearHora(valor) {
-      if (!valor) return "";
+    function formatearHora(valorInput) {
+      if (!valorInput) return "";
+
+      console.log("🔄 Formateando hora:", valorInput, "Tipo:", typeof valorInput);
 
       // Si ya está en formato HH:MM
-      if (typeof valor === 'string' && /^\d{1,2}:\d{2}$/.test(valor)) {
-        return valor.padStart(5, '0');
+      if (typeof valorInput === 'string' && /^\d{1,2}:\d{2}$/.test(valorInput)) {
+        return valorInput.padStart(5, '0');
       }
 
-      // Si es un objeto Date
-      if (valor instanceof Date) {
-        return `${String(valor.getHours()).padStart(2, '0')}:${String(valor.getMinutes()).padStart(2, '0')}`;
-      }
+      let fecha;
 
-      // Si es string con hora ISO
-      if (typeof valor === 'string') {
-        const fecha = new Date(valor);
-        if (!isNaN(fecha)) {
-          return `${String(fecha.getHours()).padStart(2, '0')}:${String(fecha.getMinutes()).padStart(2, '0')}`;
+      // Intentar diferentes formas de parsear la hora
+      if (valorInput instanceof Date) {
+        fecha = valorInput;
+      } else if (typeof valorInput === 'string') {
+        // Probar si es una hora directa (HH:MM)
+        const matchHora = valorInput.match(/^(\d{1,2}):(\d{2})/);
+        if (matchHora) {
+          const [, horas, minutos] = matchHora;
+          return `${horas.padStart(2, '0')}:${minutos}`;
         }
+
+        // Probar si es una fecha/hora ISO
+        fecha = new Date(valorInput);
+      } else if (typeof valorInput === 'number') {
+        // Si es un timestamp numérico
+        fecha = new Date(valorInput);
       }
 
+      // Si logramos crear una fecha válida, extraer la hora
+      if (fecha && !isNaN(fecha.getTime())) {
+        const horas = String(fecha.getHours()).padStart(2, '0');
+        const minutos = String(fecha.getMinutes()).padStart(2, '0');
+        const resultado = `${horas}:${minutos}`;
+        console.log("✅ Hora formateada:", resultado);
+        return resultado;
+      }
+
+      // Si todo falla, devolver vacío
+      console.log("❌ No se pudo formatear la hora");
       return "";
     }
+
     // ---------------------- Mantener unidad, fecha y servicio ----------------------
     window.addEventListener("DOMContentLoaded", () => {
       const campoUnidad = document.getElementById("unidad");
