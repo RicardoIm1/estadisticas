@@ -14,7 +14,7 @@
 
 <body>
   <div class="glass" id="dashboard">
-    <h5>Registro diario del movimiento de pacientes en hospitalización</h5>
+    <h5>Registro diario del movimiento de pacientes en hospitalización QUE VES EN LA PANTALLA COMO ORIGINAL Y EN PRODUCCION</h5>
     <div class="header">
       <div class="logo">
         <a href="/estadisticas"><img src="../img/logo-hrpv.png" alt="Logo" width="120"></a>
@@ -147,12 +147,13 @@
             <option>PEDIATRIA</option>
             <option>TRAUMATOLOGIA Y ORTOPEDIA</option>
             <option>UCIN</option>
+            <option>TRASLADO A OTRA UNIDAD</option>
           </select>
         </div>
 
         <!-- Observaciones -->
         <div class="bloque">
-          <label for="observaciones">Observaciones</label>
+          <label for="observaciones">Archivista</label>
           <textarea id="observaciones" name="observaciones" rows="2"></textarea>
         </div>
 
@@ -173,6 +174,7 @@
       <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
     </footer>
   </div> <!-- end .glass -->
+
   <script>
     // ===============================
     // 🧠 CONTROL DE TABULACIÓN INTELIGENTE PARA FORMULARIO CENSO
@@ -219,11 +221,10 @@
         elementos.servicio_destino,
         elementos.observaciones,
         elementos.btnGuardar
-      ].filter(el => el !== null); // Filtrar elementos que no existan
+      ].filter(el => el !== null);
 
       // 🔄 Función para configurar tabulación normal
       function configurarTabulacionNormal() {
-        // Resetear todos los tabIndex
         secuenciaNormal.forEach((el, index) => {
           if (el) el.tabIndex = index + 1;
         });
@@ -243,24 +244,18 @@
         const tieneUrgencias = elementos.hora_ingreso_urgencias.value.trim() !== '';
         const tieneOtraUnidad = elementos.hora_ingreso_otra_unidad.value.trim() !== '';
 
-        // Si hay algún dato de ingreso, aplicar restricciones
         if (tieneConsulta || tieneUrgencias || tieneOtraUnidad) {
-          // Solo permitir tabulación en campos de ingreso y botón guardar
           secuenciaNormal.forEach(el => {
             if (el && el !== elementos.btnGuardar) {
               const esCampoIngreso =
                 el === elementos.hora_ingreso_consulta_externa ||
                 el === elementos.hora_ingreso_urgencias ||
                 el === elementos.hora_ingreso_otra_unidad;
-
               el.tabIndex = esCampoIngreso ? 0 : -1;
             }
           });
-
-          // Botón guardar siempre accesible
           elementos.btnGuardar.tabIndex = 0;
         } else {
-          // Sin datos de ingreso, tabulación normal
           configurarTabulacionNormal();
         }
       }
@@ -270,29 +265,16 @@
         if (e.key === 'Tab' && !e.shiftKey) {
           const campoActual = document.activeElement;
 
-          // Si estamos en último campo de ingreso con datos, saltar a guardar
-          if (campoActual === elementos.hora_ingreso_consulta_externa &&
-            elementos.hora_ingreso_consulta_externa.value.trim() !== '') {
+          // Saltar a guardar desde campos de ingreso con datos
+          if ((campoActual === elementos.hora_ingreso_consulta_externa && elementos.hora_ingreso_consulta_externa.value.trim() !== '') ||
+            (campoActual === elementos.hora_ingreso_urgencias && elementos.hora_ingreso_urgencias.value.trim() !== '') ||
+            (campoActual === elementos.hora_ingreso_otra_unidad && elementos.hora_ingreso_otra_unidad.value.trim() !== '')) {
             e.preventDefault();
             elementos.btnGuardar.focus();
             return;
           }
 
-          if (campoActual === elementos.hora_ingreso_urgencias &&
-            elementos.hora_ingreso_urgencias.value.trim() !== '') {
-            e.preventDefault();
-            elementos.btnGuardar.focus();
-            return;
-          }
-
-          if (campoActual === elementos.hora_ingreso_otra_unidad &&
-            elementos.hora_ingreso_otra_unidad.value.trim() !== '') {
-            e.preventDefault();
-            elementos.btnGuardar.focus();
-            return;
-          }
-
-          // Si hay dato en egreso vivo, saltar egreso muerto
+          // Saltar egreso_muerto si hay dato en egreso_vivo
           if (campoActual === elementos.hora_egreso_vivo &&
             elementos.hora_egreso_vivo.value.trim() !== '' &&
             elementos.hora_egreso_muerto) {
@@ -307,7 +289,6 @@
 
       // 📝 Configurar eventos
       function configurarEventos() {
-        // Campos de ingreso para tabulación dinámica
         [elementos.hora_ingreso_consulta_externa,
         elementos.hora_ingreso_urgencias,
         elementos.hora_ingreso_otra_unidad].forEach(campo => {
@@ -317,18 +298,11 @@
           }
         });
 
-        // Campo egreso vivo para lógica de exclusión
         if (elementos.hora_egreso_vivo) {
           elementos.hora_egreso_vivo.addEventListener('input', configurarTabulacionNormal);
         }
 
-        // Evento global de teclado
         form.addEventListener('keydown', manejarKeydown);
-
-        // Evento de reset para restaurar tabulación
-        form.addEventListener('reset', () => {
-          setTimeout(configurarTabulacionNormal, 100);
-        });
       }
 
       // 🎉 Inicialización
@@ -342,41 +316,7 @@
         }, 500);
       }
 
-      // 🔧 Modificar la función guardarRegistro existente para incluir reset de tabulación
-      const guardarOriginal = window.guardarRegistro;
-      window.guardarRegistro = function () {
-        // Ejecutar validaciones originales
-        const erroresRequeridos = validarCamposRequeridos();
-        if (erroresRequeridos.length > 0) {
-          alert("Por favor complete los siguientes campos obligatorios:\n\n" + erroresRequeridos.join("\n"));
-          return;
-        }
-
-        const v = validarHoras();
-        if (!v.ok) {
-          setEstado("error");
-          alert(v.mensaje);
-          return;
-        }
-
-        // Ejecutar guardado original
-        if (guardarOriginal) {
-          guardarOriginal();
-        } else {
-          // Fallback si no existe la función original
-          alert('Función de guardado no disponible');
-        }
-
-        // Restaurar tabulación y foco después de guardar
-        setTimeout(() => {
-          configurarTabulacionNormal();
-          if (elementos.numero_cama) {
-            elementos.numero_cama.focus();
-          }
-        }, 400);
-      };
-
-      // 🚀 Iniciar todo
+      // 🚀 Iniciar tabulación
       inicializarTabulacion();
 
       // Hacer función disponible globalmente
@@ -509,8 +449,11 @@
           // 🔁 Recargar registros
           cargarRegistros();
 
-          // 💡 Nuevo: colocar foco en el campo numero_cama
+          // 💡 Restaurar tabulación y colocar foco en el campo numero_cama
           setTimeout(() => {
+            if (window.actualizarTabulacion) {
+              window.actualizarTabulacion();
+            }
             const campoCama = document.querySelector('[name="numero_cama"], #numero_cama');
             if (campoCama) campoCama.focus();
           }, 400);
@@ -677,6 +620,7 @@
     // ---------------------- Inicializar ----------------------
     cargarRegistros();
   </script>
+
   <script>
     // === FILTRO DE BÚSQUEDA ===
     const buscador = document.getElementById('buscador');
