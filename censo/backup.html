@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -11,7 +10,6 @@
     <link href="/estadisticas/censo/censo.css" rel="stylesheet">
     <link href="/estadisticas/censo/tabla-wrapper-censo.css" rel="stylesheet">
 </head>
-
 <body>
     <div class="glass" id="dashboard">
         <h5>Registro diario del movimiento de pacientes en hospitalización</h5>
@@ -32,7 +30,6 @@
                 </div>
             </div>
         </div>
-
         <div class="contenedor-flex">
             <form id="formCenso" class="formulario" autocomplete="off">
                 <!-- Unidad -->
@@ -40,7 +37,6 @@
                     <label for="unidad">Unidad</label>
                     <input id="unidad" name="unidad" readonly value="HOSPITAL REGIONAL PUERTO VALLARTA">
                 </div>
-
                 <div class="bloque-horizontal">
                     <!-- Fecha -->
                     <div class="bloque">
@@ -61,7 +57,6 @@
                         </select>
                     </div>
                 </div>
-
                 <div class="bloque-horizontal">
                     <div class="bloque">
                         <label for="numero_cama">No. cama</label>
@@ -76,12 +71,10 @@
                         <input type="text" id="foliador" readonly tabindex="-1">
                     </div>
                 </div>
-
                 <div class="bloque">
                     <label for="nombre">Nombre completo</label>
                     <input id="nombre" name="nombre" type="text" required>
                 </div>
-
                 <!-- Información de ingreso -->
                 <h3>Ingreso</h3>
                 <div class="bloque">
@@ -116,7 +109,6 @@
                             inputmode="numeric" placeholder="HH:MM">
                     </div>
                 </div>
-
                 <!-- Información de egreso -->
                 <h3>Egreso</h3>
                 <div class="bloque-horizontal">
@@ -133,7 +125,6 @@
                             inputmode="numeric" placeholder="HH:MM">
                     </div>
                 </div>
-
                 <!-- Destino -->
                 <div class="bloque">
                     <label for="servicio_destino">Servicio destino</label>
@@ -153,28 +144,23 @@
                         <option>TRASLADO A OTRA UNIDAD</option>
                     </select>
                 </div>
-
                 <!-- Observaciones -->
                 <div class="bloque">
                     <label for="observaciones">Archivista</label>
                     <textarea id="observaciones" name="observaciones" rows="2"></textarea>
                 </div>
-
                 <button class="btn-salir-ultra" id="btnGuardar">Guardar</button>
             </form>
-
             <div class="glass-inner">
                 <div id="contenedorTabla" class="tabla-wrapper cargando">
                     Cargando registros...
                 </div>
             </div>
         </div>
-
         <footer>
             <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
         </footer>
     </div> <!-- end .glass -->
-
     <script>
         // ===============================
         // 🧠 CONTROL DE TABULACIÓN INTELIGENTE PARA FORMULARIO CENSO
@@ -182,7 +168,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             const form = document.getElementById('formCenso');
             if (!form) return;
-
             // 🔍 Elementos clave para la lógica de tabulación
             const elementos = {
                 fecha: document.getElementById('fecha'),
@@ -201,10 +186,8 @@
                 foliador: document.getElementById('foliador'),
                 btnGuardar: document.getElementById('btnGuardar')
             };
-
             // Validar que existan los elementos esenciales
             if (!elementos.fecha || !elementos.btnGuardar) return;
-
             // 🎯 Secuencia normal de tabulación (excluyendo foliador)
             const secuenciaNormal = [
                 elementos.fecha,
@@ -222,28 +205,23 @@
                 elementos.observaciones,
                 elementos.btnGuardar
             ].filter(el => el !== null);
-
             // 🔄 Función para configurar tabulación normal
             function configurarTabulacionNormal() {
                 secuenciaNormal.forEach((el, index) => {
                     if (el) el.tabIndex = index + 1;
                 });
-
                 // Folíador siempre excluido de tabulación
                 if (elementos.foliador) elementos.foliador.tabIndex = -1;
-
                 // Aplicar lógica de exclusión para hora_egreso_muerto si hay dato en vivo
                 if (elementos.hora_egreso_vivo && elementos.hora_egreso_vivo.value.trim() !== '') {
                     if (elementos.hora_egreso_muerto) elementos.hora_egreso_muerto.tabIndex = -1;
                 }
             }
-
             // 🚀 Función para manejar tabulación inteligente en ingreso
             function manejarTabulacionIngreso() {
                 const tieneConsulta = elementos.hora_ingreso_consulta_externa.value.trim() !== '';
                 const tieneUrgencias = elementos.hora_ingreso_urgencias.value.trim() !== '';
                 const tieneOtraUnidad = elementos.hora_ingreso_otra_unidad.value.trim() !== '';
-
                 if (tieneConsulta || tieneUrgencias || tieneOtraUnidad) {
                     secuenciaNormal.forEach(el => {
                         if (el && el !== elementos.btnGuardar) {
@@ -259,12 +237,10 @@
                     configurarTabulacionNormal();
                 }
             }
-
             // ⌨️ Interceptar Tab para saltar al botón guardar cuando corresponda
             function manejarKeydown(e) {
                 if (e.key === 'Tab' && !e.shiftKey) {
                     const campoActual = document.activeElement;
-
                     // Saltar a guardar desde campos de ingreso con datos
                     if ((campoActual === elementos.hora_ingreso_consulta_externa && elementos.hora_ingreso_consulta_externa.value.trim() !== '') ||
                         (campoActual === elementos.hora_ingreso_urgencias && elementos.hora_ingreso_urgencias.value.trim() !== '') ||
@@ -273,7 +249,6 @@
                         elementos.btnGuardar.focus();
                         return;
                     }
-
                     // Saltar egreso_muerto si hay dato en egreso_vivo
                     if (campoActual === elementos.hora_egreso_vivo &&
                         elementos.hora_egreso_vivo.value.trim() !== '' &&
@@ -286,7 +261,6 @@
                     }
                 }
             }
-
             // 📝 Configurar eventos
             function configurarEventos() {
                 [elementos.hora_ingreso_consulta_externa,
@@ -297,33 +271,26 @@
                         campo.addEventListener('keydown', manejarKeydown);
                     }
                 });
-
                 if (elementos.hora_egreso_vivo) {
                     elementos.hora_egreso_vivo.addEventListener('input', configurarTabulacionNormal);
                 }
-
                 form.addEventListener('keydown', manejarKeydown);
             }
-
             // 🎉 Inicialización
             function inicializarTabulacion() {
                 configurarTabulacionNormal();
                 configurarEventos();
-
                 // Foco inicial en fecha
                 setTimeout(() => {
                     elementos.fecha.focus();
                 }, 500);
             }
-
             // 🚀 Iniciar tabulación
             inicializarTabulacion();
-
             // Hacer función disponible globalmente
             window.actualizarTabulacion = configurarTabulacionNormal;
         });
     </script>
-
     <script>
         /* -----------------------
            setEstado: aplica clases a .glass
@@ -337,22 +304,17 @@
                 setTimeout(() => glass.classList.remove(estado), 2500);
             }
         }
-
         // footer dinámico (seguro)
         const ft = document.getElementById('footerText');
         if (ft) ft.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
     </script>
-
     <script>
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyhMRSZlKTZeveL0wHukElK92ntfc7yTfFCCyEeFnLsQCvIra2Tzn5_cN3MZdqZbgGH/exec"; // tu WebApp JSONP
-
         const form = document.getElementById("formCenso");
         const tablaContenedor = document.getElementById("contenedorTabla");
-
         if (document.getElementById("fecha")) {
             document.getElementById("fecha").valueAsDate = new Date();
         }
-
         // ---------------------- Validación de horas ----------------------
         function validarHoras() {
             if (!form) return { ok: true };
@@ -362,31 +324,25 @@
                 form.hora_ingreso_otra_unidad?.value
             ].filter(Boolean);
             if (ingreso.length > 1) return { ok: false, mensaje: "Solo puede haber una hora de ingreso" };
-
             const egreso = [
                 form.hora_egreso_vivo?.value,
                 form.hora_egreso_muerto?.value
             ].filter(Boolean);
             if (egreso.length > 1) return { ok: false, mensaje: "Solo puede haber una hora de egreso" };
-
             return { ok: true };
         }
-
         // ---------------------- Validación de campos requeridos ----------------------
         function validarCamposRequeridos() {
             const camposRequeridos = ['fecha', 'servicio', 'nombre'];
             const errores = [];
-
             camposRequeridos.forEach(campo => {
                 const elemento = form.querySelector(`[name="${campo}"]`);
                 if (elemento && !elemento.value.trim()) {
                     errores.push(`El campo "${elemento.previousElementSibling?.textContent || campo}" es obligatorio`);
                 }
             });
-
             return errores;
         }
-
         // ---------------------- Guardar registro ----------------------
         function guardarRegistro() {
             // Validar campos requeridos
@@ -395,7 +351,6 @@
                 alert("Por favor complete los siguientes campos obligatorios:\n\n" + erroresRequeridos.join("\n"));
                 return;
             }
-
             // Validar horas
             const v = validarHoras();
             if (!v.ok) {
@@ -403,20 +358,17 @@
                 alert(v.mensaje);
                 return;
             }
-
             const fd = new FormData(form);
             const datos = {};
             fd.forEach((v, k) => datos[k] = v);
             datos.unidad = "HOSPITAL REGIONAL PUERTO VALLARTA";
             datos.action = "save";
-
             const cb = "cb_" + Date.now();
             window[cb] = function (resp) {
                 if (resp.exito) {
                     setEstado("success");
                     // Mostrar folio solo después de guardar
                     if (resp.foliador) document.getElementById("foliador").value = resp.foliador;
-
                     // ✅ ELIMINAR form.reset() y usar limpieza controlada
                     const camposALimpiar = [
                         'numero_cama', 'expediente', 'nombre', 'pase_de',
@@ -424,31 +376,24 @@
                         'hora_ingreso_otra_unidad', 'hora_egreso_vivo', 'hora_egreso_muerto',
                         'servicio_destino', 'observaciones'
                     ];
-
                     // Limpiar solo los campos que deben cambiar
                     camposALimpiar.forEach(campo => {
                         const elemento = form.querySelector(`[name="${campo}"]`);
                         if (elemento) elemento.value = '';
                     });
-
                     // Los campos 'unidad', 'fecha', 'servicio' se MANTIENEN automáticamente
-
                     // 💾 Persistir en localStorage (por si el usuario los cambia manualmente)
                     const unidad = form.unidad?.value || "HOSPITAL REGIONAL PUERTO VALLARTA";
                     const fecha = form.fecha?.value || new Date().toISOString().split('T')[0];
                     const servicio = form.servicio?.value || "";
-
                     localStorage.setItem("ultima_unidad", unidad);
                     localStorage.setItem("ultima_fecha", fecha);
                     localStorage.setItem("ultimo_servicio", servicio);
-
                     // ⚡ Asegurar que foliador nunca reciba foco al tabular
                     const foliador = document.getElementById("foliador");
                     if (foliador) foliador.tabIndex = -1;
-
                     // 🔁 Recargar registros
                     cargarRegistros();
-
                     // 💡 Restaurar tabulación y colocar foco en el campo numero_cama
                     setTimeout(() => {
                         if (window.actualizarTabulacion) {
@@ -463,10 +408,8 @@
                 }
                 setTimeout(() => delete window[cb], 500);
             };
-
             const params = new URLSearchParams(datos);
             params.append("callback", cb);
-
             setEstado("loading");
             const s = document.createElement("script");
             s.src = `${URL_SCRIPT}?${params.toString()}`;
@@ -476,13 +419,11 @@
             };
             document.body.appendChild(s);
         }
-
         // ---------------------- Asignar botón ----------------------
         document.getElementById("btnGuardar")?.addEventListener("click", e => {
             e.preventDefault();
             guardarRegistro();
         });
-
         // ---------------------- Formato de hora HH:MM ----------------------
         document.querySelectorAll('input[id^="hora_"]').forEach(input => {
             input.addEventListener('input', e => {
@@ -491,7 +432,6 @@
                 if (v.length >= 3) v = v.slice(0, 2) + ':' + v.slice(2);
                 e.target.value = v;
             });
-
             input.addEventListener('blur', e => {
                 const val = e.target.value;
                 if (!val) return;
@@ -504,7 +444,6 @@
                 }
             });
         });
-
         // ---------------------- Cargar registros ----------------------
         function cargarRegistros() {
             setEstado("loading");
@@ -516,53 +455,41 @@
                     delete window[cb];
                     return;
                 }
-
                 const headers = [
                     "Fecha", "Unidad", "Servicio", "Pase de", "Sala", "Cama", "Expediente", "Nombre",
                     "Ingreso (consulta)", "Ingreso (urgencias)", "Ingreso (otra)", "Egreso (vivo)", "Egreso (muerto)",
                     "Servicio destino", "Foliador", "Observaciones", "Registro TS"
                 ];
-
                 const idxFecha = 0;
                 const idxHoraCols = [8, 9, 10, 11, 12, 16];
                 const ocultarIdx = [1, 4, 16];
-
                 let html = "<table><thead><tr>" +
                     headers.map((h, i) => ocultarIdx.includes(i) ? "" : `<th>${h}</th>`).join("") +
                     "</tr></thead><tbody>";
-
                 data = data.reverse(); // mostrar más reciente primero
-
                 // Índices fijos según el orden del HEADER del backend
                 const idxExpediente = 6;  // "expediente"
                 const idxFoliador = 14; // "foliador"
-
                 data.forEach(fila => {
                     html += "<tr>";
                     fila.forEach((celda, i) => {
                         if (ocultarIdx.includes(i)) return;
-
                         let valor = celda;
-
                         // === Ajustes visuales ===
                         if (i === idxFecha) valor = formatearFecha(celda);
                         if (idxHoraCols.includes(i)) valor = formatearHora(celda);
-
                         // === Mantener ceros iniciales ===
                         if (i === idxExpediente && valor) valor = valor.toString().padStart(6, "0");
                         if (i === idxFoliador && valor) valor = valor.toString().padStart(3, "0");
-
                         html += `<td>${valor || ""}</td>`;
                     });
                     html += "</tr>";
                 });
-
                 html += "</tbody></table>";
                 if (tablaContenedor) tablaContenedor.innerHTML = html;
                 setEstado("success");
                 delete window[cb];
             };
-
             const s = document.createElement("script");
             s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
             s.onerror = () => {
@@ -571,7 +498,6 @@
             };
             document.body.appendChild(s);
         }
-
         // ---------------------- Formatear fecha y hora ----------------------
         function formatearFecha(fechaISO) {
             if (!fechaISO) return "";
@@ -582,7 +508,6 @@
             const anio = d.getFullYear();
             return `${dia}/${mes}/${anio}`;
         }
-
         function formatearHora(valor) {
             if (!valor) return "";
             const d = new Date(valor);
@@ -590,41 +515,33 @@
             if (/^\d{1,2}:\d{2}$/.test(valor)) return valor;
             return "";
         }
-
         // ---------------------- Mantener unidad, fecha y servicio ----------------------
         window.addEventListener("DOMContentLoaded", () => {
             const campoUnidad = document.getElementById("unidad");
             const campoFecha = document.getElementById("fecha");
             const campoServicio = document.getElementById("servicio");
-
             const unidadGuardada = localStorage.getItem("ultima_unidad") || "HOSPITAL REGIONAL PUERTO VALLARTA";
             const fechaGuardada = localStorage.getItem("ultima_fecha") || new Date().toISOString().split("T")[0];
             const servicioGuardado = localStorage.getItem("ultimo_servicio") || "";
-
             if (campoUnidad) {
                 campoUnidad.value = unidadGuardada;
                 campoUnidad.addEventListener("change", () => localStorage.setItem("ultima_unidad", campoUnidad.value));
             }
-
             if (campoFecha) {
                 campoFecha.value = fechaGuardada;
                 campoFecha.addEventListener("change", () => localStorage.setItem("ultima_fecha", campoFecha.value));
             }
-
             if (campoServicio) {
                 campoServicio.value = servicioGuardado;
                 campoServicio.addEventListener("change", () => localStorage.setItem("ultimo_servicio", campoServicio.value));
             }
         });
-
         // ---------------------- Inicializar ----------------------
         cargarRegistros();
     </script>
-
     <script>
         // === FILTRO DE BÚSQUEDA ===
         const buscador = document.getElementById('buscador');
-
         if (buscador) {
             buscador.addEventListener('input', function () {
                 const filtro = this.value.toLowerCase().trim();
