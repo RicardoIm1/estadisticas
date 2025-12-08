@@ -210,70 +210,6 @@
       }
     }
 
-    // Eliminar registro - CON MODAL ELEGANTE
-    function solicitarEliminar(id) {
-      idParaEliminar = id;
-      const modal = document.getElementById('modalEliminar');
-      const modalContent = modal.querySelector('.modal');
-
-      modal.style.display = 'flex';
-      setTimeout(() => {
-        modalContent.classList.add('show');
-      }, 10);
-    }
-
-    async function eliminarConfirmado() {
-      if (!idParaEliminar) return;
-
-      try {
-        setEstado('loading', '🗑️ Eliminando registro...');
-
-        // Crear formulario para eliminar
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = GAS_URL;
-        form.target = '_blank';
-        form.style.display = 'none';
-
-        const inputAction = document.createElement('input');
-        inputAction.name = 'action';
-        inputAction.value = 'deleteData';
-        form.appendChild(inputAction);
-
-        const inputId = document.createElement('input');
-        inputId.name = 'id';
-        inputId.value = idParaEliminar;
-        form.appendChild(inputId);
-
-        document.body.appendChild(form);
-        form.submit();
-        document.body.removeChild(form);
-
-        setEstado('success', '✅ Eliminando registro...');
-        cerrarModal();
-
-        setTimeout(() => {
-          cargarRegistros();
-        }, 2000);
-
-      } catch (error) {
-        console.error('❌ Error eliminando:', error);
-        setEstado('error', '❌ Error eliminando: ' + error.message);
-        cerrarModal();
-      }
-    }
-
-    function cerrarModal() {
-      const modal = document.getElementById('modalEliminar');
-      const modalContent = modal.querySelector('.modal');
-
-      modalContent.classList.remove('show');
-      setTimeout(() => {
-        modal.style.display = 'none';
-        idParaEliminar = null;
-      }, 300);
-    }
-
     // Mostrar tabla
     function mostrarTabla(registros) {
       const tbody = document.getElementById('tabla-registros');
@@ -315,13 +251,6 @@
 
       document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarConfirmado);
       document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarModal);
-
-      // Cerrar modal al hacer clic fuera
-      document.getElementById('modalEliminar').addEventListener('click', function (e) {
-        if (e.target === this) {
-          cerrarModal();
-        }
-      });
 
       // Cargar datos
       cargarRegistros();
