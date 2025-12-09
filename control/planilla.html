@@ -8,8 +8,6 @@
   <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
   <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="/estadisticas/main_css/estilos.css" />
-  <!-- En el head de TODAS las páginas protegidas -->
-<!--   <script src="/estadisticas/main_js/proteccion.js"></script> -->
   <style>
     .matriz {
       grid-auto-rows: 34px;
@@ -21,28 +19,38 @@
       grid-auto-rows: minmax(42px, auto);
       gap: 0;
       overflow-y: auto;
-      border: 1px solid #e5e7eb;
+      /* border: 1px solid #e5e7eb; */
+      background-color: transparent !important;
       /* background: white; */
-      background: rgb(153, 18, 18) !important;
       border-radius: 16px;
       overflow-x: hidden;
       overflow-y: auto;
     }
 
     .celda {
-      border-bottom: 1px solid #e5e7eb;
-      border-right: 1px solid #e5e7eb;
+      /* border-bottom: 1px solid #e5e7eb;
+      border-right: 1px solid #e5e7eb; */
       display: flex;
       align-items: center;
       padding: 6px 10px;
-      background: white;
-      color: #2c3e50;
+      /* background: white; */
+      background: transparent;
+      /* color: #2c3e50; */
+      color: white;
       width: auto;
+    }
+
+    .celda-llena {
+      background: rgba(250, 202, 54, 1);
+    }
+
+    input[type="checkbox"] {
+      accent-color: #FACA5E;
     }
 
     .col-titulo {
       font-weight: bold;
-      background: #e8f1fa !important;
+      background: #2c3e50 !important;
       justify-content: center;
       position: sticky;
       top: 0;
@@ -53,15 +61,14 @@
     }
 
     .celda-fija {
+      font-size: 10px;
       /* background: #f9fafb !important; */
-      background: #3a8fe4 !important;
+      background: transparent !important;
       font-weight: 600;
       position: sticky;
       left: 0;
       z-index: 20;
-      /* color: #2c3e50; */
-      color: #e35503;
-      font-size: 10px;
+      color: #f9fafb;
     }
 
     .col-titulo:first-child {
@@ -77,18 +84,22 @@
     }
 
     .card-informe.activo {
-      background: #e0f7e9;
+      /* background: #e0f7e9; */
+      /* background: #2c3e50; */
+      background: transparent !important;
       border-radius: 6px;
       padding: 4px;
     }
 
     .input-evidencia {
       flex: 1;
-      border: 1px solid #d1d5db;
-      padding: 4px 6px;
-      border-radius: 4px;
+      border: 0px solid transparent;
+      padding: 4px;
+      border-radius: 12px;
       font-size: 0.75rem;
-      width: 30px;
+      width: 90%;
+      color: #0d49ee;
+      background-color: transparent;
     }
   </style>
 </head>
@@ -101,11 +112,10 @@
   </div>
   <div class="glass glass-inner">
     <h5>Informes Mensuales</h5>
-    <div id="header"></div>
+    <!--     <div id="header"></div> -->
 
     <!-- MATRIZ -->
     <div id="matriz" class="matriz-grid"></div>
-
     <div id="footer"></div>
   </div>
 
@@ -202,22 +212,46 @@
       inp.placeholder = "Evidencia";
       inp.className = "input-evidencia";
 
+      // Color persistente al cargar
+      if (reg.ruta) d.classList.add("celda-llena");
+
+
+      // --- ÚNICO LISTENER PARA inp ---
       inp.addEventListener("input", () => {
         reg.ruta = inp.value.trim();
         reg.completo = reg.ruta !== "";
         chk.checked = reg.completo;
         box.classList.toggle("activo", reg.completo);
+
+        d.classList.toggle("celda-llena", reg.completo);
+
         guardarDatos(datos);
+      });
+
+
+      // --- CLICK EN CELDA COMPLETA ---
+      d.addEventListener("click", (e) => {
+        if (e.target.tagName === "INPUT") return;
+
+        if (reg.ruta && reg.ruta.trim() !== "") {
+          let url = reg.ruta.trim();
+          if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+          window.open(url, "_blank");
+        }
       });
 
       chk.addEventListener("change", () => {
         reg.completo = chk.checked;
         if (!reg.completo) reg.ruta = "";
+
         inp.value = reg.ruta;
         box.classList.toggle("activo", reg.completo);
+        d.classList.toggle("celda-llena", reg.completo);
+
         guardarDatos(datos);
       });
 
+      // Ensamble
       box.appendChild(chk);
       box.appendChild(inp);
       d.appendChild(box);
@@ -251,16 +285,16 @@
       .then(html => {
         document.getElementById('footer').innerHTML = html;
 
-        // Ya existe footerText
         const footer = document.getElementById('footerText');
         if (footer) {
           footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+        } else {
+          console.warn("⚠ footerText no existe dentro de footer.html");
         }
       });
+
   </script>
-  
-  <script src="/estadisticas/comun/estadoSistema.js"></script>
-  <!-- <script src="/estadisticas/comun/sesion.js"></script> -->
+
 </body>
 
 </html>
