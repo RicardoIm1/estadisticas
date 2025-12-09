@@ -12,7 +12,7 @@
     .matriz {
       grid-auto-rows: 34px;
     }
-    
+
     .matriz-grid {
       margin-top: 20px;
       display: grid;
@@ -40,7 +40,9 @@
       width: auto;
     }
 
-    .celda-llena { background: rgba(5, 189, 5, 0.15); }
+    .celda-llena {
+      background: rgba(5, 189, 5, 0.15);
+    }
 
     .col-titulo {
       font-weight: bold;
@@ -53,7 +55,7 @@
       font-size: 0.8rem;
       padding: 4px;
     }
-    
+
     .celda-fija {
       font-size: 10px;
       /* background: #f9fafb !important; */
@@ -206,7 +208,24 @@
       inp.placeholder = "Evidencia";
       inp.className = "input-evidencia";
 
-      // --- NUEVO: CLICK EN LA CELDA COMPLETA ---
+      // Color persistente al cargar
+      if (reg.ruta) d.classList.add("celda-llena");
+
+
+      // --- ÚNICO LISTENER PARA inp ---
+      inp.addEventListener("input", () => {
+        reg.ruta = inp.value.trim();
+        reg.completo = reg.ruta !== "";
+        chk.checked = reg.completo;
+        box.classList.toggle("activo", reg.completo);
+
+        d.classList.toggle("celda-llena", reg.completo);
+
+        guardarDatos(datos);
+      });
+
+
+      // --- CLICK EN CELDA COMPLETA ---
       d.addEventListener("click", (e) => {
         if (e.target.tagName === "INPUT") return;
 
@@ -217,20 +236,14 @@
         }
       });
 
-      // ---- Eventos originales ----
-      inp.addEventListener("input", () => {
-        reg.ruta = inp.value.trim();
-        reg.completo = reg.ruta !== "";
-        chk.checked = reg.completo;
-        box.classList.toggle("activo", reg.completo);
-        guardarDatos(datos);
-      });
-
       chk.addEventListener("change", () => {
         reg.completo = chk.checked;
         if (!reg.completo) reg.ruta = "";
+
         inp.value = reg.ruta;
         box.classList.toggle("activo", reg.completo);
+        d.classList.toggle("celda-llena", reg.completo);
+
         guardarDatos(datos);
       });
 
