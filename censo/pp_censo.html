@@ -11,7 +11,7 @@
     <link href="/estadisticas/censo/tabla-wrapper-censo.css" rel="stylesheet">
 </head>
 <body>
-    <div class="glass" id="dashboard">
+    
         <div class="header">
             <div class="buscador-wrapper">
                 <input type="text" id="buscador" placeholder="🔍 Buscar por cualquier campo..." class="input-busqueda">
@@ -24,140 +24,7 @@
                 </div>
             </div>
         </div>
-        <footer>
-            <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
-        </footer>
-    </div> <!-- end .glass -->
-    <script>
-        // ===============================
-        // 🧠 CONTROL DE TABULACIÓN INTELIGENTE PARA FORMULARIO CENSO
-        // ===============================
-        document.addEventListener('DOMContentLoaded', () => {
-            const form = document.getElementById('formCenso');
-            if (!form) return;
-            // 🔍 Elementos clave para la lógica de tabulación
-            const elementos = {
-                fecha: document.getElementById('fecha'),
-                servicio: document.getElementById('servicio'),
-                numero_cama: document.getElementById('numero_cama'),
-                expediente: document.getElementById('expediente'),
-                nombre: document.getElementById('nombre'),
-                pase_de: document.getElementById('pase_de'),
-                hora_ingreso_consulta_externa: document.getElementById('hora_ingreso_consulta_externa'),
-                hora_ingreso_urgencias: document.getElementById('hora_ingreso_urgencias'),
-                hora_ingreso_otra_unidad: document.getElementById('hora_ingreso_otra_unidad'),
-                hora_egreso_vivo: document.getElementById('hora_egreso_vivo'),
-                hora_egreso_muerto: document.getElementById('hora_egreso_muerto'),
-                servicio_destino: document.getElementById('servicio_destino'),
-                observaciones: document.getElementById('observaciones'),
-                foliador: document.getElementById('foliador'),
-                btnGuardar: document.getElementById('btnGuardar')
-            };
-            // Validar que existan los elementos esenciales
-            if (!elementos.fecha || !elementos.btnGuardar) return;
-            // 🎯 Secuencia normal de tabulación (excluyendo foliador)
-            const secuenciaNormal = [
-                elementos.fecha,
-                elementos.servicio,
-                elementos.numero_cama,
-                elementos.expediente,
-                elementos.nombre,
-                elementos.pase_de,
-                elementos.hora_ingreso_consulta_externa,
-                elementos.hora_ingreso_urgencias,
-                elementos.hora_ingreso_otra_unidad,
-                elementos.hora_egreso_vivo,
-                elementos.hora_egreso_muerto,
-                elementos.servicio_destino,
-                elementos.observaciones,
-                elementos.btnGuardar
-            ].filter(el => el !== null);
-            // 🔄 Función para configurar tabulación normal
-            function configurarTabulacionNormal() {
-                secuenciaNormal.forEach((el, index) => {
-                    if (el) el.tabIndex = index + 1;
-                });
-                // Folíador siempre excluido de tabulación
-                if (elementos.foliador) elementos.foliador.tabIndex = -1;
-                // Aplicar lógica de exclusión para hora_egreso_muerto si hay dato en vivo
-                if (elementos.hora_egreso_vivo && elementos.hora_egreso_vivo.value.trim() !== '') {
-                    if (elementos.hora_egreso_muerto) elementos.hora_egreso_muerto.tabIndex = -1;
-                }
-            }
-            // 🚀 Función para manejar tabulación inteligente en ingreso
-            function manejarTabulacionIngreso() {
-                const tieneConsulta = elementos.hora_ingreso_consulta_externa.value.trim() !== '';
-                const tieneUrgencias = elementos.hora_ingreso_urgencias.value.trim() !== '';
-                const tieneOtraUnidad = elementos.hora_ingreso_otra_unidad.value.trim() !== '';
-                if (tieneConsulta || tieneUrgencias || tieneOtraUnidad) {
-                    secuenciaNormal.forEach(el => {
-                        if (el && el !== elementos.btnGuardar) {
-                            const esCampoIngreso =
-                                el === elementos.hora_ingreso_consulta_externa ||
-                                el === elementos.hora_ingreso_urgencias ||
-                                el === elementos.hora_ingreso_otra_unidad;
-                            el.tabIndex = esCampoIngreso ? 0 : -1;
-                        }
-                    });
-                    elementos.btnGuardar.tabIndex = 0;
-                } else {
-                    configurarTabulacionNormal();
-                }
-            }
-            // ⌨️ Interceptar Tab para saltar al botón guardar cuando corresponda
-            function manejarKeydown(e) {
-                if (e.key === 'Tab' && !e.shiftKey) {
-                    const campoActual = document.activeElement;
-                    // Saltar a guardar desde campos de ingreso con datos
-                    if ((campoActual === elementos.hora_ingreso_consulta_externa && elementos.hora_ingreso_consulta_externa.value.trim() !== '') ||
-                        (campoActual === elementos.hora_ingreso_urgencias && elementos.hora_ingreso_urgencias.value.trim() !== '') ||
-                        (campoActual === elementos.hora_ingreso_otra_unidad && elementos.hora_ingreso_otra_unidad.value.trim() !== '')) {
-                        e.preventDefault();
-                        elementos.btnGuardar.focus();
-                        return;
-                    }
-                    // Saltar egreso_muerto si hay dato en egreso_vivo
-                    if (campoActual === elementos.hora_egreso_vivo &&
-                        elementos.hora_egreso_vivo.value.trim() !== '' &&
-                        elementos.hora_egreso_muerto) {
-                        const siguienteIndex = secuenciaNormal.indexOf(elementos.hora_egreso_vivo) + 2;
-                        if (secuenciaNormal[siguienteIndex]) {
-                            e.preventDefault();
-                            secuenciaNormal[siguienteIndex].focus();
-                        }
-                    }
-                }
-            }
-            // 📝 Configurar eventos
-            function configurarEventos() {
-                [elementos.hora_ingreso_consulta_externa,
-                elementos.hora_ingreso_urgencias,
-                elementos.hora_ingreso_otra_unidad].forEach(campo => {
-                    if (campo) {
-                        campo.addEventListener('input', manejarTabulacionIngreso);
-                        campo.addEventListener('keydown', manejarKeydown);
-                    }
-                });
-                if (elementos.hora_egreso_vivo) {
-                    elementos.hora_egreso_vivo.addEventListener('input', configurarTabulacionNormal);
-                }
-                form.addEventListener('keydown', manejarKeydown);
-            }
-            // 🎉 Inicialización
-            function inicializarTabulacion() {
-                configurarTabulacionNormal();
-                configurarEventos();
-                // Foco inicial en fecha
-                setTimeout(() => {
-                    elementos.fecha.focus();
-                }, 500);
-            }
-            // 🚀 Iniciar tabulación
-            inicializarTabulacion();
-            // Hacer función disponible globalmente
-            window.actualizarTabulacion = configurarTabulacionNormal;
-        });
-    </script>
+        
     <script>
         /* -----------------------
            setEstado: aplica clases a .glass
