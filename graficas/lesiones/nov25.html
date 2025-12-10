@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gráfica de Lesiones por Sexo y Fecha</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /*background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);*/
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 30px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin-bottom: 40px;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            border-top: 4px solid #667eea;
+        }
+
+        .stat-card.mujer {
+            border-top-color: #ff6b8b;
+        }
+
+        .stat-card.hombre {
+            border-top-color: #4e81cd;
+        }
+
+        .stat-card h3 {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .stat-card .number {
+            font-size: 36px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .stat-card .percentage {
+            font-size: 14px;
+            color: #888;
+            font-weight: 500;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 25px;
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: #5a67d8;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        button.active {
+            background: #4c51bf;
+        }
+
+        .date-range {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 14px;
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+        .legend {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+        }
+
+        .legend-color.mujer {
+            background: #ff6b8b;
+        }
+
+        .legend-color.hombre {
+            background: #4e81cd;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .chart-container {
+                height: 400px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Lesiones Hospitalarios por Sexo</h1>
+            <p>Distribución diaria de lesiones según sexo - Noviembre 2025</p>
+        </div>
+
+        <div class="date-range">
+            <strong>Período:</strong> 01 Nov 2025 - 30 Nov 2025
+        </div>
+
+        <div class="chart-container">
+            <canvas id="egresosChart"></canvas>
+        </div>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color mujer"></div>
+                <span>Mujeres</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color hombre"></div>
+                <span>Hombres</span>
+            </div>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card mujer">
+                <h3>Total Mujeres</h3>
+                <div class="number" id="totalMujeres">0</div>
+                <div class="percentage" id="porcentajeMujeres">0%</div>
+            </div>
+
+            <div class="stat-card hombre">
+                <h3>Total Hombres</h3>
+                <div class="number" id="totalHombres">0</div>
+                <div class="percentage" id="porcentajeHombres">0%</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Total General</h3>
+                <div class="number" id="totalGeneral">0</div>
+                <div class="percentage">100%</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Día con más egresos</h3>
+                <div class="number" id="diaMaxEgresos">-</div>
+                <div class="percentage" id="cantidadMaxEgresos">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button onclick="changeChartType('line')">Líneas</button>
+            <button onclick="changeChartType('stacked')">Barras Apiladas</button>
+            <button onclick="toggleDataLabels()">Mostrar/Ocultar Números</button>
+        </div>
+    </div>
+
+    <script>
+        // Datos proporcionados
+        const datos = [
+            { fecha: "2025-11-02", sexo: "HOMBRE" },
+            { fecha: "2025-11-04", sexo: "HOMBRE" },
+            { fecha: "2025-11-04", sexo: "HOMBRE" },
+            { fecha: "2025-11-05", sexo: "MUJER" },
+            { fecha: "2025-11-05", sexo: "HOMBRE" },
+            { fecha: "2025-11-04", sexo: "HOMBRE" },
+            { fecha: "2025-11-06", sexo: "HOMBRE" },
+            { fecha: "2025-11-06", sexo: "HOMBRE" },
+            { fecha: "2025-11-09", sexo: "HOMBRE" },
+            { fecha: "2025-11-09", sexo: "HOMBRE" },
+            { fecha: "2025-11-09", sexo: "MUJER" },
+            { fecha: "2025-11-09", sexo: "HOMBRE" },
+            { fecha: "2025-11-09", sexo: "HOMBRE" },
+            { fecha: "2025-11-09", sexo: "HOMBRE" },
+            { fecha: "2025-11-11", sexo: "HOMBRE" },
+            { fecha: "2025-11-12", sexo: "MUJER" },
+            { fecha: "2025-11-09", sexo: "MUJER" },
+            { fecha: "2025-11-11", sexo: "HOMBRE" },
+            { fecha: "2025-11-11", sexo: "HOMBRE" },
+            { fecha: "2025-11-12", sexo: "HOMBRE" },
+            { fecha: "2025-11-13", sexo: "MUJER" },
+            { fecha: "2025-11-17", sexo: "HOMBRE" },
+            { fecha: "2025-11-17", sexo: "HOMBRE" },
+            { fecha: "2025-11-18", sexo: "HOMBRE" },
+            { fecha: "2025-11-17", sexo: "HOMBRE" },
+            { fecha: "2025-11-18", sexo: "HOMBRE" },
+            { fecha: "2025-11-16", sexo: "HOMBRE" },
+            { fecha: "2025-11-19", sexo: "HOMBRE" },
+            { fecha: "2025-10-28", sexo: "MUJER" },
+            { fecha: "2025-11-30", sexo: "HOMBRE" },
+            { fecha: "2025-11-29", sexo: "HOMBRE" },
+            { fecha: "2025-11-25", sexo: "HOMBRE" },
+            { fecha: "2025-11-28", sexo: "HOMBRE" },
+            { fecha: "2025-11-21", sexo: "MUJER" },
+            { fecha: "2025-11-20", sexo: "HOMBRE" },
+            { fecha: "2025-11-02", sexo: "HOMBRE" },
+            { fecha: "2025-11-02", sexo: "HOMBRE" },
+            { fecha: "2025-11-02", sexo: "HOMBRE" },
+            { fecha: "2025-11-02", sexo: "MUJER" },
+            { fecha: "2025-11-02", sexo: "HOMBRE" },
+            { fecha: "2025-11-02", sexo: "HOMBRE" },
+            { fecha: "2025-10-31", sexo: "HOMBRE" },
+            { fecha: "2025-11-06", sexo: "HOMBRE" },
+            { fecha: "2025-11-06", sexo: "HOMBRE" },
+            { fecha: "2025-11-05", sexo: "MUJER" },
+            { fecha: "2025-11-08", sexo: "MUJER" },
+            { fecha: "2025-11-08", sexo: "HOMBRE" },
+            { fecha: "2025-11-08", sexo: "HOMBRE" },
+            { fecha: "2025-11-09", sexo: "HOMBRE" },
+            { fecha: "2025-11-10", sexo: "HOMBRE" },
+            { fecha: "2025-11-10", sexo: "HOMBRE" },
+            { fecha: "2025-11-04", sexo: "HOMBRE" },
+            { fecha: "2025-11-11", sexo: "MUJER" },
+            { fecha: "2025-11-09", sexo: "MUJER" },
+            { fecha: "2025-11-07", sexo: "HOMBRE" },
+            { fecha: "2025-11-11", sexo: "HOMBRE" },
+            { fecha: "2025-11-13", sexo: "MUJER" },
+            { fecha: "2025-11-14", sexo: "HOMBRE" },
+            { fecha: "2025-11-13", sexo: "HOMBRE" },
+            { fecha: "2025-11-17", sexo: "MUJER" },
+            { fecha: "2025-11-17", sexo: "HOMBRE" },
+            { fecha: "2025-11-19", sexo: "MUJER" },
+            { fecha: "2025-11-19", sexo: "HOMBRE" },
+            { fecha: "2025-11-16", sexo: "HOMBRE" },
+            { fecha: "2025-11-21", sexo: "HOMBRE" },
+            { fecha: "2025-11-29", sexo: "MUJER" },
+            { fecha: "2025-11-30", sexo: "HOMBRE" },
+            { fecha: "2025-11-30", sexo: "HOMBRE" },
+            { fecha: "2025-11-21", sexo: "HOMBRE" },
+            { fecha: "2025-11-23", sexo: "MUJER" },
+            { fecha: "2025-11-02", sexo: "HOMBRE" },
+            { fecha: "2025-11-02", sexo: "HOMBRE" },
+            { fecha: "2025-11-03", sexo: "HOMBRE" },
+            { fecha: "2025-11-03", sexo: "HOMBRE" },
+            { fecha: "2025-11-04", sexo: "MUJER" },
+            { fecha: "2025-11-03", sexo: "MUJER" }
+        ];
+        // Procesar datos
+        function procesarDatos() {
+            const conteoPorFecha = {};
+
+            // Contar por fecha y sexo
+            datos.forEach(item => {
+                const fecha = item.fecha;
+                const sexo = item.sexo;
+
+                if (!conteoPorFecha[fecha]) {
+                    conteoPorFecha[fecha] = {
+                        fecha: fecha,
+                        MUJER: 0,
+                        HOMBRE: 0
+                    };
+                }
+
+                conteoPorFecha[fecha][sexo]++;
+            });
+
+            // Convertir a array y ordenar por fecha
+            const fechasOrdenadas = Object.keys(conteoPorFecha).sort();
+            const datosProcesados = fechasOrdenadas.map(fecha => conteoPorFecha[fecha]);
+
+            // Formatear fechas para mostrar
+            const labels = fechasOrdenadas.map(fecha => {
+                const d = new Date(fecha);
+                return `${d.getDate()}/11`;
+            });
+
+            // Datos para mujeres y hombres
+            const datosMujeres = datosProcesados.map(d => d.MUJER);
+            const datosHombres = datosProcesados.map(d => d.HOMBRE);
+
+            // Calcular totales
+            const totalMujeres = datosMujeres.reduce((a, b) => a + b, 0);
+            const totalHombres = datosHombres.reduce((a, b) => a + b, 0);
+            const totalGeneral = totalMujeres + totalHombres;
+
+            // Encontrar día con más egresos
+            let maxEgresos = 0;
+            let diaMaxEgresos = '';
+            datosProcesados.forEach(d => {
+                const totalDia = d.MUJER + d.HOMBRE;
+                if (totalDia > maxEgresos) {
+                    maxEgresos = totalDia;
+                    diaMaxEgresos = d.fecha;
+                }
+            });
+
+            // Formatear fecha del día máximo
+            const diaFormateado = new Date(diaMaxEgresos);
+            const diaMaxStr = `${diaFormateado.getDate()}/11/2025`;
+
+            return {
+                labels,
+                datosMujeres,
+                datosHombres,
+                totalMujeres,
+                totalHombres,
+                totalGeneral,
+                porcentajeMujeres: ((totalMujeres / totalGeneral) * 100).toFixed(1),
+                porcentajeHombres: ((totalHombres / totalGeneral) * 100).toFixed(1),
+                diaMaxEgresos: diaMaxStr,
+                maxEgresos
+            };
+        }
+
+        // Crear gráfica
+        let chart;
+        let showDataLabels = true;
+
+        function crearGrafica() {
+            const ctx = document.getElementById('egresosChart').getContext('2d');
+            const datosProcesados = procesarDatos();
+
+            // Actualizar estadísticas
+            document.getElementById('totalMujeres').textContent = datosProcesados.totalMujeres;
+            document.getElementById('totalHombres').textContent = datosProcesados.totalHombres;
+            document.getElementById('totalGeneral').textContent = datosProcesados.totalGeneral;
+            document.getElementById('porcentajeMujeres').textContent = `${datosProcesados.porcentajeMujeres}%`;
+            document.getElementById('porcentajeHombres').textContent = `${datosProcesados.porcentajeHombres}%`;
+            document.getElementById('diaMaxEgresos').textContent = datosProcesados.diaMaxEgresos;
+            document.getElementById('cantidadMaxEgresos').textContent = `${datosProcesados.maxEgresos} egresos`;
+
+            // Configurar gráfica
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: datosProcesados.labels,
+                    datasets: [
+                        {
+                            label: 'Mujeres',
+                            data: datosProcesados.datosMujeres,
+                            backgroundColor: 'rgba(255, 107, 139, 0.8)',
+                            borderColor: 'rgba(255, 107, 139, 1)',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        },
+                        {
+                            label: 'Hombres',
+                            data: datosProcesados.datosHombres,
+                            backgroundColor: 'rgba(78, 205, 196, 0.8)',
+                            borderColor: 'rgba(78, 205, 196, 1)',
+                            borderWidth: 1,
+                            borderRadius: 5
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: true,
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Número de Egresos'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: 'rgba(255, 255, 255, 0.1)',
+                            borderWidth: 1,
+                            cornerRadius: 6,
+                            callbacks: {
+                                label: function (context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.parsed.y;
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    }
+                },
+                plugins: [{
+                    id: 'dataLabels',
+                    afterDatasetsDraw(chart) {
+                        if (!showDataLabels) return;
+
+                        const { ctx, data, chartArea: { top, bottom, left, right, width, height } } = chart;
+                        const meta = chart.getDatasetMeta(0);
+
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'bottom';
+                        ctx.font = 'bold 11px Arial';
+
+                        chart.data.datasets.forEach((dataset, datasetIndex) => {
+                            const meta = chart.getDatasetMeta(datasetIndex);
+                            meta.data.forEach((bar, index) => {
+                                const value = dataset.data[index];
+                                if (value > 0) {
+                                    ctx.fillStyle = '#333';
+                                    ctx.fillText(value, bar.x, bar.y - 5);
+                                }
+                            });
+                        });
+
+                        ctx.restore();
+                    }
+                }]
+            });
+        }
+
+        // Cambiar tipo de gráfica
+        function changeChartType(type) {
+            // Actualizar botones activos
+            document.querySelectorAll('.controls button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            if (type === 'stacked') {
+                chart.options.scales.x.stacked = true;
+                chart.options.scales.y.stacked = true;
+                chart.type = 'bar';
+            } else if (type === 'line') {
+                chart.options.scales.x.stacked = false;
+                chart.options.scales.y.stacked = false;
+                chart.type = 'line';
+                chart.data.datasets[0].fill = false;
+                chart.data.datasets[1].fill = false;
+                chart.data.datasets[0].tension = 0.4;
+                chart.data.datasets[1].tension = 0.4;
+            } else {
+                chart.options.scales.x.stacked = false;
+                chart.options.scales.y.stacked = false;
+                chart.type = 'bar';
+                chart.data.datasets[0].tension = undefined;
+                chart.data.datasets[1].tension = undefined;
+            }
+
+            chart.update();
+        }
+
+        // Alternar etiquetas de datos
+        function toggleDataLabels() {
+            showDataLabels = !showDataLabels;
+            chart.update();
+            event.target.textContent = showDataLabels ? 'Ocultar Números' : 'Mostrar Números';
+        }
+
+        // Inicializar gráfica
+        window.onload = crearGrafica;
+    </script>
+</body>
+
+</html>
