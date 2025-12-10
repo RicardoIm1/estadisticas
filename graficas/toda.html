@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gráfica de Egresos Mensuales desde CSV</title>
+    <link rel="shortcut icon" href="./img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="./img/favicon.ico" type="image/x-icon">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
     <style>
@@ -12,14 +15,14 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -29,25 +32,25 @@
             overflow: hidden;
             padding: 30px;
         }
-        
+
         .header {
             text-align: center;
             margin-bottom: 30px;
             padding-bottom: 20px;
             border-bottom: 2px solid #f0f0f0;
         }
-        
+
         .header h1 {
             color: #333;
             font-size: 28px;
             margin-bottom: 10px;
         }
-        
+
         .header p {
             color: #666;
             font-size: 16px;
         }
-        
+
         .controls-panel {
             background: #f8f9fa;
             padding: 20px;
@@ -57,45 +60,47 @@
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 15px;
         }
-        
+
         .control-group {
             display: flex;
             flex-direction: column;
             gap: 8px;
         }
-        
+
         .control-group label {
             font-weight: 600;
             color: #555;
             font-size: 14px;
         }
-        
-        select, input {
+
+        select,
+        input {
             padding: 10px 15px;
             border: 2px solid #e0e0e0;
             border-radius: 8px;
             font-size: 14px;
             background: white;
         }
-        
-        select:focus, input:focus {
+
+        select:focus,
+        input:focus {
             outline: none;
             border-color: #667eea;
         }
-        
+
         .chart-container {
             position: relative;
             height: 500px;
             margin-bottom: 40px;
         }
-        
+
         .stats-container {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-top: 30px;
         }
-        
+
         .stat-card {
             background: #f8f9fa;
             padding: 20px;
@@ -104,34 +109,34 @@
             text-align: center;
             border-top: 4px solid #667eea;
         }
-        
+
         .stat-card.mujer {
             border-top-color: #ff6b8b;
         }
-        
+
         .stat-card.hombre {
             border-top-color: #4ecdc4;
         }
-        
+
         .stat-card h3 {
             font-size: 16px;
             color: #666;
             margin-bottom: 10px;
         }
-        
+
         .stat-card .number {
             font-size: 36px;
             font-weight: bold;
             color: #333;
             margin-bottom: 5px;
         }
-        
+
         .stat-card .percentage {
             font-size: 14px;
             color: #888;
             font-weight: 500;
         }
-        
+
         .files-info {
             background: #e3f2fd;
             border-left: 4px solid #2196f3;
@@ -145,14 +150,14 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-        
+
         .files-list {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin-top: 10px;
         }
-        
+
         .file-badge {
             background: #bbdefb;
             padding: 5px 10px;
@@ -162,27 +167,27 @@
             align-items: center;
             gap: 5px;
         }
-        
+
         .file-badge.loaded {
             background: #c8e6c9;
         }
-        
+
         .file-badge.error {
             background: #ffcdd2;
         }
-        
+
         .loading {
             text-align: center;
             padding: 40px;
             color: #666;
         }
-        
+
         .loading i {
             font-size: 48px;
             margin-bottom: 20px;
             color: #667eea;
         }
-        
+
         .legend {
             display: flex;
             justify-content: center;
@@ -190,27 +195,27 @@
             margin-top: 20px;
             flex-wrap: wrap;
         }
-        
+
         .legend-item {
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        
+
         .legend-color {
             width: 20px;
             height: 20px;
             border-radius: 4px;
         }
-        
+
         .legend-color.mujer {
             background: #ff6b8b;
         }
-        
+
         .legend-color.hombre {
             background: #4ecdc4;
         }
-        
+
         button {
             padding: 10px 20px;
             border: none;
@@ -226,29 +231,29 @@
             justify-content: center;
             gap: 8px;
         }
-        
+
         button:hover {
             background: #5a67d8;
             transform: translateY(-2px);
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
-        
+
         button.secondary {
             background: #6b7280;
         }
-        
+
         button.success {
             background: #10b981;
         }
-        
+
         button.danger {
             background: #ef4444;
         }
-        
+
         button.active {
             background: #4c51bf;
         }
-        
+
         .buttons-container {
             display: flex;
             gap: 10px;
@@ -256,14 +261,14 @@
             margin-top: 20px;
             flex-wrap: wrap;
         }
-        
+
         .month-selector {
             display: flex;
             gap: 10px;
             align-items: center;
             flex-wrap: wrap;
         }
-        
+
         .month-chip {
             padding: 8px 15px;
             background: #e0e7ff;
@@ -272,42 +277,43 @@
             transition: all 0.3s ease;
             font-size: 14px;
         }
-        
+
         .month-chip:hover {
             background: #c7d2fe;
         }
-        
+
         .month-chip.active {
             background: #4f46e5;
             color: white;
         }
-        
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
             }
-            
+
             .chart-container {
                 height: 400px;
             }
-            
+
             .header h1 {
                 font-size: 24px;
             }
-            
+
             .controls-panel {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
             <h1>📊 Sistema de Gráficas de Egresos por Mes desde CSV</h1>
             <p>Visualización continua de múltiples archivos CSV desde Google Drive</p>
         </div>
-        
+
         <div class="controls-panel">
             <div class="control-group">
                 <label for="yearFilter">📅 Año:</label>
@@ -318,7 +324,7 @@
                     <option value="2022">2022</option>
                 </select>
             </div>
-            
+
             <div class="control-group">
                 <label for="monthFilter">🗓️ Mes:</label>
                 <select id="monthFilter">
@@ -337,7 +343,7 @@
                     <option value="12">Diciembre</option>
                 </select>
             </div>
-            
+
             <div class="control-group">
                 <label for="chartType">📈 Tipo de Gráfica:</label>
                 <select id="chartType">
@@ -346,7 +352,7 @@
                     <option value="stacked">Barras Apiladas</option>
                 </select>
             </div>
-            
+
             <div class="control-group">
                 <label for="groupBy">👥 Agrupar por:</label>
                 <select id="groupBy">
@@ -356,36 +362,36 @@
                 </select>
             </div>
         </div>
-        
+
         <div id="filesInfo" class="files-info">
             <div>
-                <strong>📁 Carpeta de Google Drive:</strong> 
+                <strong>📁 Carpeta de Google Drive:</strong>
                 <span id="folderStatus">Conectando...</span>
             </div>
             <button onclick="recargarTodosLosArchivos()" class="success">
                 <i class="fas fa-sync-alt"></i> Recargar Todo
             </button>
         </div>
-        
+
         <div class="month-selector" id="monthSelector">
             <!-- Se llenará dinámicamente con los meses disponibles -->
         </div>
-        
+
         <div id="loadingState" class="loading">
             <i class="fas fa-spinner fa-spin"></i>
             <p>Cargando datos desde Google Drive...</p>
             <div id="loadingProgress" style="margin-top: 20px;"></div>
         </div>
-        
+
         <div id="chartSection" style="display: none;">
             <div class="files-list" id="loadedFilesList">
                 <!-- Se llenará dinámicamente con los archivos cargados -->
             </div>
-            
+
             <div class="chart-container">
                 <canvas id="egresosChart"></canvas>
             </div>
-            
+
             <div class="legend">
                 <div class="legend-item">
                     <div class="legend-color mujer"></div>
@@ -396,33 +402,33 @@
                     <span>Hombres</span>
                 </div>
             </div>
-            
+
             <div class="stats-container">
                 <div class="stat-card mujer">
                     <h3>Total Mujeres</h3>
                     <div class="number" id="totalMujeres">0</div>
                     <div class="percentage" id="porcentajeMujeres">0%</div>
                 </div>
-                
+
                 <div class="stat-card hombre">
                     <h3>Total Hombres</h3>
                     <div class="number" id="totalHombres">0</div>
                     <div class="percentage" id="porcentajeHombres">0%</div>
                 </div>
-                
+
                 <div class="stat-card">
                     <h3>Total General</h3>
                     <div class="number" id="totalGeneral">0</div>
                     <div class="percentage">100%</div>
                 </div>
-                
+
                 <div class="stat-card">
                     <h3>Período Activo</h3>
                     <div class="number" id="periodoActivo">-</div>
                     <div class="percentage" id="registrosActivos">0 registros</div>
                 </div>
             </div>
-            
+
             <div class="buttons-container">
                 <button onclick="toggleDataLabels()" id="toggleLabelsBtn">
                     <i class="fas fa-chart-bar"></i> Mostrar/Ocultar Números
@@ -435,7 +441,7 @@
                 </button>
             </div>
         </div>
-        
+
         <div id="errorState" style="display: none; text-align: center; padding: 40px; color: #dc2626;">
             <i class="fas fa-exclamation-triangle" style="font-size: 48px; margin-bottom: 20px;"></i>
             <h3>Error al cargar datos</h3>
@@ -450,18 +456,21 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <!-- Modal de configuración -->
-    <div id="configModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
-        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
+    <div id="configModal"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;">
+        <div
+            style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;">
             <h3 style="margin-bottom: 20px;">⚙️ Configuración de Google Drive</h3>
-            
+
             <div class="control-group" style="margin-bottom: 15px;">
                 <label for="folderId">ID de la Carpeta de Google Drive:</label>
-                <input type="text" id="folderId" placeholder="Ej: 1O1Bds1HDG3Zt0pR82hsTxqG4Bkr212KA" style="width: 100%;">
+                <input type="text" id="folderId" placeholder="Ej: 1O1Bds1HDG3Zt0pR82hsTxqG4Bkr212KA"
+                    style="width: 100%;">
                 <small style="color: #666; margin-top: 5px;">
                     La carpeta debe estar compartida como "Cualquiera con el enlace puede ver"
                 </small>
             </div>
-            
+
             <div class="control-group" style="margin-bottom: 20px;">
                 <label for="filePattern">Patrón de nombres de archivos:</label>
                 <input type="text" id="filePattern" placeholder="Ej: {NNN}-Egreso-{MMM}{YY}.csv" style="width: 100%;">
@@ -469,7 +478,7 @@
                     {NNN} = Número (001), {MMM} = Mes abreviado (ENE), {YY} = Año (24)
                 </small>
             </div>
-            
+
             <div style="background: #f0f9ff; padding: 15px; border-radius: 5px; margin: 15px 0;">
                 <h4>📋 Ejemplos de nombres de archivo:</h4>
                 <ul style="margin-left: 20px; font-size: 12px;">
@@ -481,7 +490,7 @@
                     Patrón sugerido: <code>{NNN}-Egreso-{MMM}{YY}.csv</code>
                 </p>
             </div>
-            
+
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
                 <button onclick="cerrarConfiguracion()" class="secondary">
                     Cancelar
@@ -497,19 +506,19 @@
         // ============================================
         // CONFIGURACIÓN
         // ============================================
-        
+
         // ID de tu carpeta de Google Drive
         const DEFAULT_FOLDER_ID = '1O1Bds1HDG3Zt0pR82hsTxqG4Bkr212KA';
-        
+
         // Patrón de nombres de archivos
         // {NNN} = Número (001, 002, etc.)
         // {MMM} = Mes abreviado en español (ENE, FEB, MAR, etc.)
         // {YY} = Año con 2 dígitos (24, 25, etc.)
         const DEFAULT_FILE_PATTERN = '{NNN}-Egreso-{MMM}{YY}.csv';
-        
+
         // Máximo de archivos a cargar
         const MAX_FILES = 24;
-        
+
         // ============================================
         // VARIABLES GLOBALES
         // ============================================
@@ -521,7 +530,7 @@
             folderId: localStorage.getItem('csvFolderId') || DEFAULT_FOLDER_ID,
             filePattern: localStorage.getItem('csvFilePattern') || DEFAULT_FILE_PATTERN
         };
-        
+
         // Mapeo de meses en español (abreviaturas comunes)
         const mesesAbreviados = {
             'ENE': 1, 'EN': 1, 'E': 1,
@@ -537,126 +546,126 @@
             'NOV': 11, 'NV': 11, 'NO': 11,
             'DIC': 12, 'DC': 12, 'DI': 12
         };
-        
+
         const mesesNombres = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
             'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
-        
+
         const mesesCortos = [
             'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
             'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'
         ];
-        
+
         // ============================================
         // FUNCIONES PRINCIPALES
         // ============================================
-        
+
         async function inicializarApp() {
             try {
                 mostrarCargando();
                 actualizarUIEstado(`Conectando con carpeta: ${configuracion.folderId}`);
-                
+
                 const errores = validarConfiguracion();
                 if (errores.length > 0) {
                     mostrarError(errores.join('<br>'));
                     return;
                 }
-                
+
                 const archivos = await obtenerListaArchivos();
-                
+
                 if (archivos.length === 0) {
                     mostrarError('No se encontraron archivos CSV en la carpeta');
                     return;
                 }
-                
+
                 actualizarUIEstado(`Encontrados ${archivos.length} archivos en la carpeta`);
-                
+
                 const archivosCSV = filtrarArchivosCSV(archivos);
-                
+
                 if (archivosCSV.length === 0) {
                     mostrarError('No se encontraron archivos CSV con el patrón esperado');
                     console.log('Archivos disponibles:', archivos.map(a => a.name));
                     return;
                 }
-                
+
                 actualizarUIEstado(`${archivosCSV.length} archivos CSV coinciden con el patrón`);
                 console.log('Archivos a cargar:', archivosCSV.map(a => a.name));
-                
+
                 await cargarMultiplesArchivos(archivosCSV);
-                
+
                 if (todosLosDatos.length > 0) {
                     aplicarFiltrosYActualizar();
                     ocultarCargando();
                 } else {
                     mostrarError('Los archivos CSV están vacíos o no tienen datos válidos');
                 }
-                
+
             } catch (error) {
                 console.error('❌ Error inicializando:', error);
                 mostrarError(`Error de conexión: ${error.message}`);
             }
         }
-        
+
         function validarConfiguracion() {
             const errors = [];
-            
+
             if (!configuracion.folderId || configuracion.folderId.trim() === '') {
                 errors.push('El ID de la carpeta es requerido');
             }
-            
+
             if (!configuracion.filePattern || configuracion.filePattern.trim() === '') {
                 errors.push('El patrón de archivos es requerido');
             }
-            
+
             return errors;
         }
-        
+
         async function obtenerListaArchivos() {
             const folderId = configuracion.folderId;
-            
+
             try {
                 const API_KEY = 'AIzaSyCL32j5S4f6lTp4_3nLYVv_zkJfe6Qg_Rk';
-                
+
                 const response = await fetch(
                     `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+trashed=false&key=${API_KEY}&fields=files(id,name,modifiedTime,size,mimeType)&orderBy=name`
                 );
-                
+
                 if (!response.ok) {
                     throw new Error(`Error API Drive: ${response.status}`);
                 }
-                
+
                 const data = await response.json();
-                
+
                 if (!data.files || data.files.length === 0) {
                     console.warn('No se encontraron archivos, usando simulación');
                     return simularArchivosDisponibles();
                 }
-                
-                return data.files.filter(file => 
-                    file.mimeType === 'text/csv' || 
+
+                return data.files.filter(file =>
+                    file.mimeType === 'text/csv' ||
                     file.name.toLowerCase().endsWith('.csv')
                 );
-                
+
             } catch (error) {
                 console.warn('⚠️ Error con Drive API, usando simulación:', error);
                 return simularArchivosDisponibles();
             }
         }
-        
+
         function simularArchivosDisponibles() {
             console.log('Usando datos de simulación');
             const archivos = [];
             const ahora = luxon.DateTime.now();
-            
+
             // Generar archivos como los que tienes
             for (let i = 1; i <= 12; i++) {
                 const mesNum = i;
                 const mesAbrev = mesesCortos[mesNum - 1].toUpperCase().substring(0, 3);
                 const año = 24; // 2024
-                
+
                 const nombreArchivo = `00${i}-Egreso-${mesAbrev}${año}.csv`;
-                
+
                 archivos.push({
                     id: `simulado_${mesNum}`,
                     name: nombreArchivo,
@@ -665,10 +674,10 @@
                     size: '100KB'
                 });
             }
-            
+
             return archivos;
         }
-        
+
         function filtrarArchivosCSV(archivos) {
             // Convertir patrón a regex
             let regexPattern = configuracion.filePattern
@@ -678,15 +687,15 @@
                 .replace('{YY}', '\\d{2}')
                 .replace('{YYYY}', '\\d{4}')
                 .replace('.csv', '\\.csv$');
-            
+
             const regex = new RegExp(regexPattern, 'i');
-            
+
             const archivosFiltrados = archivos
                 .filter(archivo => {
-                    const esCSV = archivo.mimeType === 'text/csv' || 
-                                 archivo.name.toLowerCase().endsWith('.csv');
+                    const esCSV = archivo.mimeType === 'text/csv' ||
+                        archivo.name.toLowerCase().endsWith('.csv');
                     const coincidePatron = regex.test(archivo.name);
-                    
+
                     return esCSV && coincidePatron;
                 })
                 .sort((a, b) => {
@@ -696,35 +705,35 @@
                     return numA - numB;
                 })
                 .slice(0, MAX_FILES);
-            
+
             console.log(`Archivos filtrados (${archivosFiltrados.length}):`, archivosFiltrados.map(f => f.name));
             return archivosFiltrados;
         }
-        
+
         async function cargarMultiplesArchivos(archivosCSV) {
             actualizarUIEstado(`Cargando ${archivosCSV.length} archivos CSV...`);
-            
+
             todosLosDatos = [];
             archivosCargados = [];
-            
+
             const totalArchivos = archivosCSV.length;
             let archivosCargadosCount = 0;
-            
+
             for (const archivo of archivosCSV) {
                 try {
                     actualizarUIEstado(`Cargando ${archivo.name} (${archivosCargadosCount + 1}/${totalArchivos})`);
-                    
+
                     let datosArchivo;
-                    
+
                     if (archivo.id.startsWith('simulado_')) {
                         datosArchivo = generarDatosEjemplo(archivo.name);
                     } else {
                         datosArchivo = await cargarArchivoCSV(archivo);
                     }
-                    
+
                     if (datosArchivo.length > 0) {
                         const { año, mes } = extraerAñoMesDelNombre(archivo.name);
-                        
+
                         const datosConMetadatos = datosArchivo.map(registro => ({
                             ...registro,
                             _archivo: archivo.name,
@@ -732,9 +741,9 @@
                             _mes: mes,
                             _fechaCompleta: luxon.DateTime.fromISO(registro.fecha)
                         }));
-                        
+
                         todosLosDatos.push(...datosConMetadatos);
-                        
+
                         archivosCargados.push({
                             nombre: archivo.name,
                             registros: datosArchivo.length,
@@ -750,94 +759,94 @@
                             error: 'Archivo vacío o sin datos válidos'
                         });
                     }
-                    
+
                     archivosCargadosCount++;
                     actualizarProgresoCarga(archivosCargadosCount, totalArchivos);
-                    
+
                 } catch (error) {
                     console.error(`❌ Error cargando ${archivo.name}:`, error);
-                    
+
                     archivosCargados.push({
                         nombre: archivo.name,
                         registros: 0,
                         estado: 'error',
                         error: error.message
                     });
-                    
+
                     archivosCargadosCount++;
                     actualizarProgresoCarga(archivosCargadosCount, totalArchivos);
                 }
-                
+
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
-            
+
             console.log(`✅ Total de registros cargados: ${todosLosDatos.length}`);
             actualizarUIEstado(`Carga completada: ${todosLosDatos.length} registros de ${archivosCargados.length} archivos`);
         }
-        
+
         function generarDatosEjemplo(nombreArchivo) {
             const { año, mes } = extraerAñoMesDelNombre(nombreArchivo);
             const datos = [];
-            
+
             const totalRegistros = Math.floor(Math.random() * 100) + 50;
             const diasEnMes = new Date(año, mes, 0).getDate();
-            
+
             for (let i = 0; i < totalRegistros; i++) {
                 const dia = Math.floor(Math.random() * diasEnMes) + 1;
                 const fecha = `${año}-${mes.toString().padStart(2, '0')}-${dia.toString().padStart(2, '0')}`;
                 const sexo = Math.random() > 0.3 ? 'HOMBRE' : 'MUJER';
-                
+
                 datos.push({ fecha, sexo });
             }
-            
+
             return datos;
         }
-        
+
         async function cargarArchivoCSV(archivo) {
             try {
                 const fileId = archivo.id;
                 const csvUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
-                
+
                 console.log(`Cargando: ${csvUrl}`);
                 const response = await fetch(csvUrl);
-                
+
                 if (!response.ok) {
                     throw new Error(`Error HTTP: ${response.status}`);
                 }
-                
+
                 const csvText = await response.text();
                 console.log(`Texto CSV cargado (${csvText.length} caracteres)`, csvText.substring(0, 200));
                 return parseCSV(csvText);
-                
+
             } catch (error) {
                 console.error('Error cargando CSV:', error);
-                
+
                 if (archivo.id.startsWith('simulado_')) {
                     return generarDatosEjemplo(archivo.name);
                 }
-                
+
                 throw error;
             }
         }
-        
+
         function parseCSV(csvText) {
             // Limpiar el texto CSV
             csvText = csvText.trim();
-            
+
             // Normalizar saltos de línea
             csvText = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-            
+
             const lines = csvText.split('\n').filter(line => line.trim() !== '');
-            
+
             if (lines.length === 0) {
                 console.warn('CSV vacío');
                 return [];
             }
-            
+
             // Detectar separador
             const primeraLinea = lines[0];
             let separador = ',';
-            
+
             if (primeraLinea.includes(';') && !primeraLinea.includes(',')) {
                 separador = ';';
                 console.log('Usando separador: ;');
@@ -847,41 +856,41 @@
             } else {
                 console.log('Usando separador: ,');
             }
-            
+
             // Obtener encabezados
             const headers = lines[0].split(separador).map(h => h.trim().toLowerCase());
             console.log('Encabezados encontrados:', headers);
-            
+
             // Buscar columnas relevantes
-            const fechaIndex = headers.findIndex(h => 
+            const fechaIndex = headers.findIndex(h =>
                 h.includes('fecha') || h.includes('date')
             );
-            
-            const sexoIndex = headers.findIndex(h => 
+
+            const sexoIndex = headers.findIndex(h =>
                 h.includes('sexo') || h.includes('genero') || h.includes('gender') ||
                 h.includes('sex') || h.includes('género')
             );
-            
+
             // Si no encontramos, usar primeras columnas
             const fechaIdx = fechaIndex !== -1 ? fechaIndex : 0;
             const sexoIdx = sexoIndex !== -1 ? sexoIndex : 1;
-            
+
             console.log(`Usando columna ${fechaIdx} para fecha, columna ${sexoIdx} para sexo`);
-            
+
             // Procesar datos
             const datos = [];
             let errores = 0;
-            
+
             for (let i = 1; i < lines.length; i++) {
                 try {
                     const line = lines[i].trim();
                     if (!line) continue;
-                    
+
                     // Manejar comillas y separadores especiales
                     let values = [];
                     let inQuotes = false;
                     let currentValue = '';
-                    
+
                     for (let char of line) {
                         if (char === '"' || char === "'") {
                             inQuotes = !inQuotes;
@@ -893,17 +902,17 @@
                         }
                     }
                     values.push(currentValue);
-                    
+
                     values = values.map(v => v.trim().replace(/['"]/g, ''));
-                    
+
                     if (values.length <= Math.max(fechaIdx, sexoIdx)) {
                         console.warn(`Línea ${i + 1} incompleta:`, values);
                         continue;
                     }
-                    
+
                     const fecha = values[fechaIdx] || '';
                     let sexo = (values[sexoIdx] || '').toUpperCase();
-                    
+
                     if (fecha && fecha.toLowerCase() !== 'fecha' && fecha.toLowerCase() !== 'date') {
                         // Normalizar sexo
                         if (sexo === 'F' || sexo === 'FEMENINO' || sexo === 'MUJER' || sexo === 'FEMALE' || sexo === 'FEM') {
@@ -914,7 +923,7 @@
                             console.warn(`Sexo no reconocido en línea ${i + 1}:`, sexo);
                             continue;
                         }
-                        
+
                         const fechaFormateada = formatearFechaCSV(fecha);
                         if (fechaFormateada) {
                             datos.push({
@@ -931,16 +940,16 @@
                     errores++;
                 }
             }
-            
+
             console.log(`Parseados ${datos.length} registros válidos, ${errores} errores`);
             return datos;
         }
-        
+
         function formatearFechaCSV(fechaString) {
             fechaString = fechaString.replace(/['"]/g, '').trim();
-            
+
             if (!fechaString) return null;
-            
+
             // Intentar formatos comunes
             const formatos = [
                 'yyyy-MM-dd',
@@ -954,7 +963,7 @@
                 'dd/MM/yy',
                 'MM/dd/yy'
             ];
-            
+
             for (const formato of formatos) {
                 try {
                     const fecha = luxon.DateTime.fromFormat(fechaString, formato);
@@ -965,7 +974,7 @@
                     // Continuar con el siguiente formato
                 }
             }
-            
+
             // Intentar parseo ISO
             try {
                 const fecha = luxon.DateTime.fromISO(fechaString);
@@ -975,7 +984,7 @@
             } catch (e) {
                 // Continuar
             }
-            
+
             // Intentar como timestamp
             try {
                 const timestamp = Date.parse(fechaString);
@@ -985,26 +994,26 @@
             } catch (e) {
                 // Último intento fallido
             }
-            
+
             console.warn(`Fecha no reconocida: ${fechaString}`);
             return null;
         }
-        
+
         function extraerAñoMesDelNombre(nombreArchivo) {
             console.log(`Extrayendo fecha de: ${nombreArchivo}`);
-            
+
             let año = null, mes = null;
-            
+
             // Extraer el número del mes (parte después de "Egreso-")
             const match = nombreArchivo.match(/Egreso-([A-Z]{2,3})(\d{2})\.csv$/i);
-            
+
             if (match) {
                 const mesAbrev = match[1].toUpperCase();
                 const añoCorto = match[2];
-                
+
                 // Convertir año corto a año completo
                 año = 2000 + parseInt(añoCorto);
-                
+
                 // Buscar mes en el mapeo
                 if (mesesAbreviados[mesAbrev]) {
                     mes = mesesAbreviados[mesAbrev];
@@ -1018,7 +1027,7 @@
                     }
                 }
             }
-            
+
             // Si no se encontró, intentar otros métodos
             if (!mes) {
                 // Buscar por nombre de mes en el archivo
@@ -1029,7 +1038,7 @@
                     }
                 }
             }
-            
+
             if (!año) {
                 // Buscar año de 4 dígitos
                 const añoMatch = nombreArchivo.match(/(20\d{2})/);
@@ -1043,45 +1052,45 @@
                     }
                 }
             }
-            
+
             // Valores por defecto
             if (!año) {
                 año = luxon.DateTime.now().year;
                 console.warn(`No se pudo extraer año de ${nombreArchivo}, usando ${año}`);
             }
-            
+
             if (!mes) {
                 mes = luxon.DateTime.now().month;
                 console.warn(`No se pudo extraer mes de ${nombreArchivo}, usando ${mes}`);
             }
-            
+
             console.log(`Extraídos de ${nombreArchivo}: año=${año}, mes=${mes}`);
             return { año, mes };
         }
-        
+
         // ============================================
         // FUNCIONES DE FILTRADO Y AGRUPACIÓN
         // ============================================
-        
+
         function aplicarFiltrosYActualizar() {
             const añoFiltro = document.getElementById('yearFilter').value;
             const mesFiltro = document.getElementById('monthFilter').value;
             const agrupacion = document.getElementById('groupBy').value;
             const tipoGrafica = document.getElementById('chartType').value;
-            
+
             let datosFiltrados = todosLosDatos;
-            
+
             if (añoFiltro !== 'all') {
                 datosFiltrados = datosFiltrados.filter(d => d._año === parseInt(añoFiltro));
             }
-            
+
             if (mesFiltro !== 'all') {
                 datosFiltrados = datosFiltrados.filter(d => d._mes === parseInt(mesFiltro));
             }
-            
+
             actualizarSelectorMeses(datosFiltrados);
             actualizarListaArchivos();
-            
+
             if (datosFiltrados.length > 0) {
                 const datosProcesados = procesarDatosParaGrafica(datosFiltrados, agrupacion);
                 mostrarGrafica(datosProcesados, tipoGrafica);
@@ -1091,31 +1100,31 @@
                 mostrarMensajeSinDatos();
             }
         }
-        
+
         function procesarDatosParaGrafica(datos, agrupacion) {
             const grupos = {};
-            
+
             datos.forEach(item => {
                 let clave = '';
-                
+
                 switch (agrupacion) {
                     case 'day':
                         clave = item.fecha;
                         break;
-                        
+
                     case 'week':
                         const fecha = luxon.DateTime.fromISO(item.fecha);
                         const añoSemana = fecha.year;
                         const numeroSemana = fecha.weekNumber;
                         clave = `${añoSemana}-W${numeroSemana.toString().padStart(2, '0')}`;
                         break;
-                        
+
                     case 'month':
                         const fechaMes = luxon.DateTime.fromISO(item.fecha);
                         clave = `${fechaMes.year}-${fechaMes.month.toString().padStart(2, '0')}`;
                         break;
                 }
-                
+
                 if (!grupos[clave]) {
                     grupos[clave] = {
                         clave: clave,
@@ -1123,40 +1132,40 @@
                         HOMBRE: 0
                     };
                 }
-                
+
                 grupos[clave][item.sexo]++;
             });
-            
+
             const clavesOrdenadas = Object.keys(grupos).sort();
             const datosProcesados = clavesOrdenadas.map(clave => grupos[clave]);
-            
+
             const labels = clavesOrdenadas.map(clave => {
                 switch (agrupacion) {
                     case 'day':
                         const fecha = luxon.DateTime.fromISO(clave);
-                        return fecha.isValid ? 
-                            `${fecha.day}/${fecha.month}` : 
+                        return fecha.isValid ?
+                            `${fecha.day}/${fecha.month}` :
                             clave;
-                            
+
                     case 'week':
                         const [año, semana] = clave.split('-W');
                         return `S${semana} ${año}`;
-                        
+
                     case 'month':
                         const [añoMes, mesNum] = clave.split('-');
                         return `${mesesCortos[parseInt(mesNum) - 1]} ${añoMes}`;
-                        
+
                     default:
                         return clave;
                 }
             });
-            
+
             const datosMujeres = datosProcesados.map(d => d.MUJER || 0);
             const datosHombres = datosProcesados.map(d => d.HOMBRE || 0);
             const totalMujeres = datosMujeres.reduce((a, b) => a + b, 0);
             const totalHombres = datosHombres.reduce((a, b) => a + b, 0);
             const totalGeneral = totalMujeres + totalHombres;
-            
+
             let maxRegistros = 0;
             let grupoMax = '';
             datosProcesados.forEach(d => {
@@ -1166,14 +1175,14 @@
                     grupoMax = d.clave;
                 }
             });
-            
+
             let periodoInfo = 'Todos los períodos';
             if (clavesOrdenadas.length > 0) {
                 const primera = clavesOrdenadas[0];
                 const ultima = clavesOrdenadas[clavesOrdenadas.length - 1];
                 periodoInfo = `${primera} a ${ultima}`;
             }
-            
+
             return {
                 labels,
                 datosMujeres,
@@ -1190,18 +1199,18 @@
                 agrupacion
             };
         }
-        
+
         // ============================================
         // FUNCIONES DE GRÁFICA
         // ============================================
-        
+
         function mostrarGrafica(datosProcesados, tipoGrafica) {
             const ctx = document.getElementById('egresosChart').getContext('2d');
-            
+
             if (chart) {
                 chart.destroy();
             }
-            
+
             const config = {
                 type: tipoGrafica === 'line' ? 'line' : 'bar',
                 data: {
@@ -1269,13 +1278,13 @@
                     id: 'dataLabels',
                     afterDatasetsDraw(chart) {
                         if (!showDataLabels) return;
-                        
+
                         const { ctx } = chart;
                         ctx.save();
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'bottom';
                         ctx.font = 'bold 11px Arial';
-                        
+
                         chart.data.datasets.forEach((dataset, datasetIndex) => {
                             const meta = chart.getDatasetMeta(datasetIndex);
                             meta.data.forEach((bar, index) => {
@@ -1288,40 +1297,40 @@
                                 }
                             });
                         });
-                        
+
                         ctx.restore();
                     }
                 }]
             };
-            
+
             chart = new Chart(ctx, config);
         }
-        
+
         // ============================================
         // FUNCIONES DE INTERFAZ
         // ============================================
-        
+
         function mostrarCargando() {
             document.getElementById('loadingState').style.display = 'block';
             document.getElementById('chartSection').style.display = 'none';
             document.getElementById('errorState').style.display = 'none';
         }
-        
+
         function ocultarCargando() {
             document.getElementById('loadingState').style.display = 'none';
         }
-        
+
         function mostrarSeccionGrafica() {
             document.getElementById('chartSection').style.display = 'block';
         }
-        
+
         function mostrarError(mensaje) {
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('chartSection').style.display = 'none';
             document.getElementById('errorState').style.display = 'block';
             document.getElementById('errorMessage').innerHTML = mensaje;
         }
-        
+
         function mostrarMensajeSinDatos() {
             document.getElementById('chartSection').style.display = 'block';
             document.getElementById('egresosChart').style.display = 'none';
@@ -1333,11 +1342,11 @@
                 </div>
             `;
         }
-        
+
         function actualizarUIEstado(mensaje) {
             document.getElementById('folderStatus').textContent = mensaje;
         }
-        
+
         function actualizarProgresoCarga(actual, total) {
             const progreso = (actual / total) * 100;
             document.getElementById('loadingProgress').innerHTML = `
@@ -1347,16 +1356,16 @@
                 <small>${actual} de ${total} archivos cargados (${Math.round(progreso)}%)</small>
             `;
         }
-        
+
         function actualizarSelectorMeses(datos) {
             const selector = document.getElementById('monthSelector');
             selector.innerHTML = '';
-            
+
             if (datos.length === 0) {
                 selector.style.display = 'none';
                 return;
             }
-            
+
             const mesesDisponibles = {};
             datos.forEach(d => {
                 const clave = `${d._año}-${d._mes.toString().padStart(2, '0')}`;
@@ -1369,7 +1378,7 @@
                 }
                 mesesDisponibles[clave].count++;
             });
-            
+
             Object.keys(mesesDisponibles)
                 .sort()
                 .reverse()
@@ -1387,37 +1396,37 @@
                     };
                     selector.appendChild(chip);
                 });
-            
+
             if (Object.keys(mesesDisponibles).length > 0) {
                 selector.style.display = 'flex';
             } else {
                 selector.style.display = 'none';
             }
         }
-        
+
         function actualizarListaArchivos() {
             const lista = document.getElementById('loadedFilesList');
             lista.innerHTML = '';
-            
+
             archivosCargados.forEach(archivo => {
                 const badge = document.createElement('div');
                 badge.className = `file-badge ${archivo.estado}`;
                 badge.title = archivo.error ? `Error: ${archivo.error}` : `${archivo.registros} registros`;
-                
-                const icono = archivo.estado === 'success' ? 'fa-check' : 
-                             archivo.estado === 'error' ? 'fa-exclamation' : 
-                             archivo.estado === 'warning' ? 'fa-exclamation-triangle' : 'fa-file';
-                
+
+                const icono = archivo.estado === 'success' ? 'fa-check' :
+                    archivo.estado === 'error' ? 'fa-exclamation' :
+                        archivo.estado === 'warning' ? 'fa-exclamation-triangle' : 'fa-file';
+
                 badge.innerHTML = `
                     <i class="fas ${icono}"></i>
                     ${archivo.nombre}
                     <small>(${archivo.registros})</small>
                 `;
-                
+
                 lista.appendChild(badge);
             });
         }
-        
+
         function actualizarEstadisticas(datosProcesados) {
             document.getElementById('totalMujeres').textContent = datosProcesados.totalMujeres;
             document.getElementById('totalHombres').textContent = datosProcesados.totalHombres;
@@ -1427,78 +1436,78 @@
             document.getElementById('periodoActivo').textContent = datosProcesados.periodoInfo;
             document.getElementById('registrosActivos').textContent = `${datosProcesados.registrosFiltrados} registros`;
         }
-        
+
         // ============================================
         // FUNCIONES DE CONTROL
         // ============================================
-        
+
         function recargarTodosLosArchivos() {
             inicializarApp();
         }
-        
+
         function toggleDataLabels() {
             showDataLabels = !showDataLabels;
             if (chart) {
                 chart.update();
             }
             const btn = document.getElementById('toggleLabelsBtn');
-            btn.innerHTML = showDataLabels ? 
-                '<i class="fas fa-chart-bar"></i> Ocultar Números' : 
+            btn.innerHTML = showDataLabels ?
+                '<i class="fas fa-chart-bar"></i> Ocultar Números' :
                 '<i class="fas fa-chart-bar"></i> Mostrar Números';
         }
-        
+
         function mostrarConfiguracion() {
             document.getElementById('folderId').value = configuracion.folderId;
             document.getElementById('filePattern').value = configuracion.filePattern;
             document.getElementById('configModal').style.display = 'flex';
         }
-        
+
         function cerrarConfiguracion() {
             document.getElementById('configModal').style.display = 'none';
         }
-        
+
         function guardarConfiguracion() {
             const folderId = document.getElementById('folderId').value.trim();
             const filePattern = document.getElementById('filePattern').value.trim();
-            
+
             if (!folderId) {
                 alert('Por favor ingresa el ID de la carpeta de Google Drive');
                 return;
             }
-            
+
             if (!filePattern) {
                 alert('Por favor ingresa el patrón de nombres de archivos');
                 return;
             }
-            
+
             localStorage.setItem('csvFolderId', folderId);
             localStorage.setItem('csvFilePattern', filePattern);
-            
+
             configuracion.folderId = folderId;
             configuracion.filePattern = filePattern;
-            
+
             cerrarConfiguracion();
             recargarTodosLosArchivos();
         }
-        
+
         function exportarDatos() {
             if (todosLosDatos.length === 0) {
                 alert('No hay datos para exportar');
                 return;
             }
-            
+
             const headers = ['fecha', 'sexo', 'archivo', 'año', 'mes'];
             const csvRows = [
                 headers.join(','),
-                ...todosLosDatos.map(d => 
+                ...todosLosDatos.map(d =>
                     [d.fecha, d.sexo, d._archivo, d._año, d._mes].join(',')
                 )
             ];
-            
+
             const csvString = csvRows.join('\n');
             const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
             const url = window.URL.createObjectURL(blob);
-            
+
             const a = document.createElement('a');
             a.href = url;
             a.download = `egresos-completos-${luxon.DateTime.now().toFormat('yyyy-MM-dd')}.csv`;
@@ -1507,32 +1516,32 @@
             document.body.removeChild(a);
             window.URL.revokeObjectURL(url);
         }
-        
+
         // ============================================
         // INICIALIZACIÓN
         // ============================================
-        
-        document.addEventListener('DOMContentLoaded', function() {
+
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('🚀 Iniciando aplicación de Egresos CSV...');
-            
+
             document.getElementById('yearFilter').addEventListener('change', aplicarFiltrosYActualizar);
             document.getElementById('monthFilter').addEventListener('change', aplicarFiltrosYActualizar);
             document.getElementById('chartType').addEventListener('change', aplicarFiltrosYActualizar);
             document.getElementById('groupBy').addEventListener('change', aplicarFiltrosYActualizar);
-            
+
             inicializarApp();
-            
+
             setInterval(() => {
                 console.log('🔄 Actualización automática de datos...');
                 recargarTodosLosArchivos();
             }, 10 * 60 * 1000);
         });
-        
+
         window.debugInfo = () => {
             console.log('📊 Datos cargados:', todosLosDatos.length);
             console.log('📁 Archivos cargados:', archivosCargados);
             console.log('⚙️ Configuración:', configuracion);
-            
+
             const statsByFile = {};
             todosLosDatos.forEach(d => {
                 if (!statsByFile[d._archivo]) {
@@ -1546,4 +1555,5 @@
         };
     </script>
 </body>
+
 </html>
