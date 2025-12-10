@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gráfica de Altas Mensuales desde CSV</title>
+    <title>Gráfica de Egresos Mensuales desde CSV</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
     <style>
@@ -304,7 +304,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>📊 Sistema de Gráficas por Mes desde CSV</h1>
+            <h1>📊 Sistema de Gráficas de Egresos por Mes desde CSV</h1>
             <p>Visualización continua de múltiples archivos CSV desde Google Drive</p>
         </div>
         
@@ -313,9 +313,9 @@
                 <label for="yearFilter">📅 Año:</label>
                 <select id="yearFilter">
                     <option value="all">Todos los años</option>
-                    <option value="2025">2025</option>
                     <option value="2024">2024</option>
                     <option value="2023">2023</option>
+                    <option value="2022">2022</option>
                 </select>
             </div>
             
@@ -383,7 +383,7 @@
             </div>
             
             <div class="chart-container">
-                <canvas id="altasChart"></canvas>
+                <canvas id="egresosChart"></canvas>
             </div>
             
             <div class="legend">
@@ -464,20 +464,22 @@
             
             <div class="control-group" style="margin-bottom: 20px;">
                 <label for="filePattern">Patrón de nombres de archivos:</label>
-                <input type="text" id="filePattern" placeholder="Ej: altas-{YYYY}-{MM}.csv" style="width: 100%;">
+                <input type="text" id="filePattern" placeholder="Ej: {NNN}-Egreso-{MMM}{YY}.csv" style="width: 100%;">
                 <small style="color: #666; margin-top: 5px;">
-                    {YYYY} = Año (2025), {MM} = Mes (01), {MMM} = Mes abreviado (Ene)
+                    {NNN} = Número (001), {MMM} = Mes abreviado (ENE), {YY} = Año (24)
                 </small>
             </div>
             
             <div style="background: #f0f9ff; padding: 15px; border-radius: 5px; margin: 15px 0;">
-                <h4>📋 Cómo obtener el ID de carpeta:</h4>
-                <ol style="margin-left: 20px; font-size: 12px;">
-                    <li>Abre tu carpeta en Google Drive</li>
-                    <li>La URL será: https://drive.google.com/drive/folders/<strong>ID_DE_LA_CARPETA</strong></li>
-                    <li>Copia el ID después de "folders/"</li>
-                    <li>Comparte la carpeta como "Cualquiera con el enlace puede ver"</li>
-                </ol>
+                <h4>📋 Ejemplos de nombres de archivo:</h4>
+                <ul style="margin-left: 20px; font-size: 12px;">
+                    <li>001-Egreso-ENE24.csv</li>
+                    <li>002-Egreso-FEB24.csv</li>
+                    <li>003-Egreso-MAR24.csv</li>
+                </ul>
+                <p style="font-size: 12px; margin-top: 10px;">
+                    Patrón sugerido: <code>{NNN}-Egreso-{MMM}{YY}.csv</code>
+                </p>
             </div>
             
             <div style="display: flex; gap: 10px; justify-content: flex-end;">
@@ -493,18 +495,20 @@
 
     <script>
         // ============================================
-        // CONFIGURACIÓN - ¡EDITA ESTO!
+        // CONFIGURACIÓN
         // ============================================
         
         // ID de tu carpeta de Google Drive
         const DEFAULT_FOLDER_ID = '1O1Bds1HDG3Zt0pR82hsTxqG4Bkr212KA';
         
-        // Patrón de nombres de archivos en tu carpeta
-        // Cambia esto según cómo se llamen tus archivos
-        const DEFAULT_FILE_PATTERN = 'altas_{YYYY}_{MM}.csv';
+        // Patrón de nombres de archivos
+        // {NNN} = Número (001, 002, etc.)
+        // {MMM} = Mes abreviado en español (ENE, FEB, MAR, etc.)
+        // {YY} = Año con 2 dígitos (24, 25, etc.)
+        const DEFAULT_FILE_PATTERN = '{NNN}-Egreso-{MMM}{YY}.csv';
         
         // Máximo de archivos a cargar
-        const MAX_FILES = 24; // 2 años de datos mensuales
+        const MAX_FILES = 24;
         
         // ============================================
         // VARIABLES GLOBALES
@@ -518,8 +522,23 @@
             filePattern: localStorage.getItem('csvFilePattern') || DEFAULT_FILE_PATTERN
         };
         
-        // Mapeo de meses
-        const meses = [
+        // Mapeo de meses en español (abreviaturas comunes)
+        const mesesAbreviados = {
+            'ENE': 1, 'EN': 1, 'E': 1,
+            'FEB': 2, 'FE': 2, 'F': 2,
+            'MAR': 3, 'MR': 3,
+            'ABR': 4, 'AB': 4,
+            'MAY': 5, 'MY': 5,
+            'JUN': 6, 'JN': 6,
+            'JUL': 7, 'JL': 7,
+            'AGO': 8, 'AG': 8,
+            'SEP': 9, 'SP': 9, 'SE': 9,
+            'OCT': 10, 'OC': 10,
+            'NOV': 11, 'NV': 11, 'NO': 11,
+            'DIC': 12, 'DC': 12, 'DI': 12
+        };
+        
+        const mesesNombres = [
             'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
             'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
         ];
@@ -533,20 +552,17 @@
         // FUNCIONES PRINCIPALES
         // ============================================
         
-        // Inicializar la aplicación
         async function inicializarApp() {
             try {
                 mostrarCargando();
                 actualizarUIEstado(`Conectando con carpeta: ${configuracion.folderId}`);
                 
-                // Verificar configuración
                 const errores = validarConfiguracion();
                 if (errores.length > 0) {
                     mostrarError(errores.join('<br>'));
                     return;
                 }
                 
-                // Obtener lista de archivos de la carpeta
                 const archivos = await obtenerListaArchivos();
                 
                 if (archivos.length === 0) {
@@ -554,23 +570,21 @@
                     return;
                 }
                 
-                // Mostrar info de archivos encontrados
                 actualizarUIEstado(`Encontrados ${archivos.length} archivos en la carpeta`);
                 
-                // Filtrar solo archivos CSV que coincidan con el patrón
                 const archivosCSV = filtrarArchivosCSV(archivos);
                 
                 if (archivosCSV.length === 0) {
                     mostrarError('No se encontraron archivos CSV con el patrón esperado');
+                    console.log('Archivos disponibles:', archivos.map(a => a.name));
                     return;
                 }
                 
                 actualizarUIEstado(`${archivosCSV.length} archivos CSV coinciden con el patrón`);
+                console.log('Archivos a cargar:', archivosCSV.map(a => a.name));
                 
-                // Cargar todos los archivos
                 await cargarMultiplesArchivos(archivosCSV);
                 
-                // Si se cargaron datos, mostrar gráfica
                 if (todosLosDatos.length > 0) {
                     aplicarFiltrosYActualizar();
                     ocultarCargando();
@@ -584,7 +598,6 @@
             }
         }
         
-        // Validar configuración
         function validarConfiguracion() {
             const errors = [];
             
@@ -599,13 +612,11 @@
             return errors;
         }
         
-        // Obtener lista de archivos desde Google Drive
         async function obtenerListaArchivos() {
             const folderId = configuracion.folderId;
             
             try {
-                // Método 1: Usar Google Drive API v3
-                const API_KEY = 'AIzaSyCL32j5S4f6lTp4_3nLYVv_zkJfe6Qg_Rk'; // API Key pública de prueba
+                const API_KEY = 'AIzaSyCL32j5S4f6lTp4_3nLYVv_zkJfe6Qg_Rk';
                 
                 const response = await fetch(
                     `https://www.googleapis.com/drive/v3/files?q='${folderId}'+in+parents+and+trashed=false&key=${API_KEY}&fields=files(id,name,modifiedTime,size,mimeType)&orderBy=name`
@@ -633,33 +644,24 @@
             }
         }
         
-        // Simular archivos disponibles (para desarrollo)
         function simularArchivosDisponibles() {
             console.log('Usando datos de simulación');
             const archivos = [];
             const ahora = luxon.DateTime.now();
             
-            // Generar archivos de los últimos 12 meses
-            for (let i = 0; i < 12; i++) {
-                const fecha = ahora.minus({ months: i });
-                const año = fecha.year;
-                const mes = fecha.month.toString().padStart(2, '0');
-                const nombreMes = mesesCortos[fecha.month - 1];
+            // Generar archivos como los que tienes
+            for (let i = 1; i <= 12; i++) {
+                const mesNum = i;
+                const mesAbrev = mesesCortos[mesNum - 1].toUpperCase().substring(0, 3);
+                const año = 24; // 2024
                 
-                // Crear nombre según patrón
-                const nombreArchivo = configuracion.filePattern
-                    .replace('{YYYY}', año)
-                    .replace('{YY}', año.toString().substring(2))
-                    .replace('{MM}', mes)
-                    .replace('{M}', fecha.month)
-                    .replace('{MMM}', nombreMes)
-                    .replace('{MES}', meses[fecha.month - 1].toLowerCase());
+                const nombreArchivo = `00${i}-Egreso-${mesAbrev}${año}.csv`;
                 
                 archivos.push({
-                    id: `simulado_${año}_${mes}`,
+                    id: `simulado_${mesNum}`,
                     name: nombreArchivo,
                     mimeType: 'text/csv',
-                    modifiedTime: fecha.toISO(),
+                    modifiedTime: ahora.minus({ months: 12 - i }).toISO(),
                     size: '100KB'
                 });
             }
@@ -667,17 +669,14 @@
             return archivos;
         }
         
-        // Filtrar archivos CSV por patrón
         function filtrarArchivosCSV(archivos) {
             // Convertir patrón a regex
             let regexPattern = configuracion.filePattern
                 .replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
-                .replace('{YYYY}', '\\d{4}')
+                .replace('{NNN}', '\\d{3}')
+                .replace('{MMM}', '[A-Z]{2,3}')
                 .replace('{YY}', '\\d{2}')
-                .replace('{MM}', '\\d{2}')
-                .replace('{M}', '\\d{1,2}')
-                .replace('{MMM}', '[A-Za-z]{3}')
-                .replace('{MES}', '[A-Za-z]+')
+                .replace('{YYYY}', '\\d{4}')
                 .replace('.csv', '\\.csv$');
             
             const regex = new RegExp(regexPattern, 'i');
@@ -688,20 +687,20 @@
                                  archivo.name.toLowerCase().endsWith('.csv');
                     const coincidePatron = regex.test(archivo.name);
                     
-                    if (esCSV && !coincidePatron) {
-                        console.log(`Archivo no coincide con patrón: ${archivo.name}`);
-                    }
-                    
                     return esCSV && coincidePatron;
                 })
-                .sort((a, b) => b.name.localeCompare(a.name)) // Más recientes primero
+                .sort((a, b) => {
+                    // Ordenar por número al inicio del nombre
+                    const numA = parseInt(a.name.match(/^(\d+)/)?.[1] || '0');
+                    const numB = parseInt(b.name.match(/^(\d+)/)?.[1] || '0');
+                    return numA - numB;
+                })
                 .slice(0, MAX_FILES);
             
-            console.log(`Archivos filtrados: ${archivosFiltrados.map(f => f.name).join(', ')}`);
+            console.log(`Archivos filtrados (${archivosFiltrados.length}):`, archivosFiltrados.map(f => f.name));
             return archivosFiltrados;
         }
         
-        // Cargar múltiples archivos CSV
         async function cargarMultiplesArchivos(archivosCSV) {
             actualizarUIEstado(`Cargando ${archivosCSV.length} archivos CSV...`);
             
@@ -718,18 +717,14 @@
                     let datosArchivo;
                     
                     if (archivo.id.startsWith('simulado_')) {
-                        // Datos de ejemplo para desarrollo
                         datosArchivo = generarDatosEjemplo(archivo.name);
                     } else {
-                        // Cargar desde Google Drive
                         datosArchivo = await cargarArchivoCSV(archivo);
                     }
                     
                     if (datosArchivo.length > 0) {
-                        // Extraer año y mes del nombre del archivo
                         const { año, mes } = extraerAñoMesDelNombre(archivo.name);
                         
-                        // Agregar metadatos a cada registro
                         const datosConMetadatos = datosArchivo.map(registro => ({
                             ...registro,
                             _archivo: archivo.name,
@@ -773,7 +768,6 @@
                     actualizarProgresoCarga(archivosCargadosCount, totalArchivos);
                 }
                 
-                // Pequeña pausa para no sobrecargar
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
             
@@ -781,12 +775,10 @@
             actualizarUIEstado(`Carga completada: ${todosLosDatos.length} registros de ${archivosCargados.length} archivos`);
         }
         
-        // Generar datos de ejemplo para desarrollo
         function generarDatosEjemplo(nombreArchivo) {
             const { año, mes } = extraerAñoMesDelNombre(nombreArchivo);
             const datos = [];
             
-            // Generar entre 50 y 150 registros por mes
             const totalRegistros = Math.floor(Math.random() * 100) + 50;
             const diasEnMes = new Date(año, mes, 0).getDate();
             
@@ -801,36 +793,25 @@
             return datos;
         }
         
-        // Cargar un archivo CSV desde Google Drive
         async function cargarArchivoCSV(archivo) {
             try {
                 const fileId = archivo.id;
-                
-                // Método 1: Para archivos CSV públicos
                 const csvUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
                 
+                console.log(`Cargando: ${csvUrl}`);
                 const response = await fetch(csvUrl);
                 
                 if (!response.ok) {
-                    // Método alternativo
-                    const altUrl = `https://docs.google.com/spreadsheets/d/${fileId}/gviz/tq?tqx=out:csv`;
-                    const altResponse = await fetch(altUrl);
-                    
-                    if (!altResponse.ok) {
-                        throw new Error(`Error HTTP: ${response.status}`);
-                    }
-                    
-                    const csvText = await altResponse.text();
-                    return parseCSV(csvText);
+                    throw new Error(`Error HTTP: ${response.status}`);
                 }
                 
                 const csvText = await response.text();
+                console.log(`Texto CSV cargado (${csvText.length} caracteres)`, csvText.substring(0, 200));
                 return parseCSV(csvText);
                 
             } catch (error) {
                 console.error('Error cargando CSV:', error);
                 
-                // Si es un archivo simulado, generar datos de ejemplo
                 if (archivo.id.startsWith('simulado_')) {
                     return generarDatosEjemplo(archivo.name);
                 }
@@ -839,11 +820,17 @@
             }
         }
         
-        // Parsear texto CSV
         function parseCSV(csvText) {
+            // Limpiar el texto CSV
+            csvText = csvText.trim();
+            
+            // Normalizar saltos de línea
+            csvText = csvText.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            
             const lines = csvText.split('\n').filter(line => line.trim() !== '');
             
             if (lines.length === 0) {
+                console.warn('CSV vacío');
                 return [];
             }
             
@@ -853,16 +840,19 @@
             
             if (primeraLinea.includes(';') && !primeraLinea.includes(',')) {
                 separador = ';';
+                console.log('Usando separador: ;');
             } else if (primeraLinea.includes('\t')) {
                 separador = '\t';
+                console.log('Usando separador: TAB');
+            } else {
+                console.log('Usando separador: ,');
             }
             
             // Obtener encabezados
             const headers = lines[0].split(separador).map(h => h.trim().toLowerCase());
-            
             console.log('Encabezados encontrados:', headers);
             
-            // Encontrar índices de columnas
+            // Buscar columnas relevantes
             const fechaIndex = headers.findIndex(h => 
                 h.includes('fecha') || h.includes('date')
             );
@@ -872,7 +862,7 @@
                 h.includes('sex') || h.includes('género')
             );
             
-            // Si no encontramos columnas, usar las primeras dos
+            // Si no encontramos, usar primeras columnas
             const fechaIdx = fechaIndex !== -1 ? fechaIndex : 0;
             const sexoIdx = sexoIndex !== -1 ? sexoIndex : 1;
             
@@ -880,52 +870,78 @@
             
             // Procesar datos
             const datos = [];
+            let errores = 0;
             
             for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                const values = line.split(separador).map(v => v.trim().replace(/['"]/g, ''));
-                
-                if (values.length <= Math.max(fechaIdx, sexoIdx)) {
-                    continue; // Línea incompleta
-                }
-                
-                const fecha = values[fechaIdx] || '';
-                let sexo = (values[sexoIdx] || '').toUpperCase();
-                
-                if (fecha && fecha !== 'fecha' && fecha !== 'date') {
-                    // Normalizar sexo
-                    if (sexo === 'F' || sexo === 'FEMENINO' || sexo === 'MUJER' || sexo === 'FEMALE') {
-                        sexo = 'MUJER';
-                    } else if (sexo === 'M' || sexo === 'MASCULINO' || sexo === 'HOMBRE' || sexo === 'MALE') {
-                        sexo = 'HOMBRE';
-                    } else {
-                        // Si el sexo no es reconocido, saltar este registro
+                try {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    // Manejar comillas y separadores especiales
+                    let values = [];
+                    let inQuotes = false;
+                    let currentValue = '';
+                    
+                    for (let char of line) {
+                        if (char === '"' || char === "'") {
+                            inQuotes = !inQuotes;
+                        } else if (char === separador && !inQuotes) {
+                            values.push(currentValue);
+                            currentValue = '';
+                        } else {
+                            currentValue += char;
+                        }
+                    }
+                    values.push(currentValue);
+                    
+                    values = values.map(v => v.trim().replace(/['"]/g, ''));
+                    
+                    if (values.length <= Math.max(fechaIdx, sexoIdx)) {
+                        console.warn(`Línea ${i + 1} incompleta:`, values);
                         continue;
                     }
                     
-                    const fechaFormateada = formatearFechaCSV(fecha);
-                    if (fechaFormateada) {
-                        datos.push({
-                            fecha: fechaFormateada,
-                            sexo: sexo
-                        });
+                    const fecha = values[fechaIdx] || '';
+                    let sexo = (values[sexoIdx] || '').toUpperCase();
+                    
+                    if (fecha && fecha.toLowerCase() !== 'fecha' && fecha.toLowerCase() !== 'date') {
+                        // Normalizar sexo
+                        if (sexo === 'F' || sexo === 'FEMENINO' || sexo === 'MUJER' || sexo === 'FEMALE' || sexo === 'FEM') {
+                            sexo = 'MUJER';
+                        } else if (sexo === 'M' || sexo === 'MASCULINO' || sexo === 'HOMBRE' || sexo === 'MALE' || sexo === 'MASC') {
+                            sexo = 'HOMBRE';
+                        } else {
+                            console.warn(`Sexo no reconocido en línea ${i + 1}:`, sexo);
+                            continue;
+                        }
+                        
+                        const fechaFormateada = formatearFechaCSV(fecha);
+                        if (fechaFormateada) {
+                            datos.push({
+                                fecha: fechaFormateada,
+                                sexo: sexo
+                            });
+                        } else {
+                            console.warn(`Fecha no válida en línea ${i + 1}:`, fecha);
+                            errores++;
+                        }
                     }
+                } catch (error) {
+                    console.error(`Error procesando línea ${i + 1}:`, error);
+                    errores++;
                 }
             }
             
-            console.log(`Parseados ${datos.length} registros válidos`);
+            console.log(`Parseados ${datos.length} registros válidos, ${errores} errores`);
             return datos;
         }
         
-        // Formatear fecha del CSV
         function formatearFechaCSV(fechaString) {
             fechaString = fechaString.replace(/['"]/g, '').trim();
             
             if (!fechaString) return null;
             
-            // Intentar diferentes formatos
+            // Intentar formatos comunes
             const formatos = [
                 'yyyy-MM-dd',
                 'dd/MM/yyyy',
@@ -934,94 +950,101 @@
                 'dd-MM-yyyy',
                 'MM-dd-yyyy',
                 'dd.MM.yyyy',
-                'MM.dd.yyyy'
+                'MM.dd.yyyy',
+                'dd/MM/yy',
+                'MM/dd/yy'
             ];
             
             for (const formato of formatos) {
-                const fecha = luxon.DateTime.fromFormat(fechaString, formato);
-                if (fecha.isValid) {
-                    return fecha.toISODate();
+                try {
+                    const fecha = luxon.DateTime.fromFormat(fechaString, formato);
+                    if (fecha.isValid) {
+                        return fecha.toISODate();
+                    }
+                } catch (e) {
+                    // Continuar con el siguiente formato
                 }
             }
             
-            // Intentar parseo automático
-            const fecha = luxon.DateTime.fromISO(fechaString);
-            if (fecha.isValid) {
-                return fecha.toISODate();
+            // Intentar parseo ISO
+            try {
+                const fecha = luxon.DateTime.fromISO(fechaString);
+                if (fecha.isValid) {
+                    return fecha.toISODate();
+                }
+            } catch (e) {
+                // Continuar
             }
             
             // Intentar como timestamp
-            const timestamp = Date.parse(fechaString);
-            if (!isNaN(timestamp)) {
-                return luxon.DateTime.fromMillis(timestamp).toISODate();
+            try {
+                const timestamp = Date.parse(fechaString);
+                if (!isNaN(timestamp)) {
+                    return luxon.DateTime.fromMillis(timestamp).toISODate();
+                }
+            } catch (e) {
+                // Último intento fallido
             }
             
             console.warn(`Fecha no reconocida: ${fechaString}`);
             return null;
         }
         
-        // Extraer año y mes del nombre del archivo
         function extraerAñoMesDelNombre(nombreArchivo) {
-            const patron = configuracion.filePattern;
-            
-            // Convertir patrón a regex con grupos de captura
-            let regexPattern = patron
-                .replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')
-                .replace('{YYYY}', '(\\d{4})')
-                .replace('{YY}', '(\\d{2})')
-                .replace('{MM}', '(\\d{2})')
-                .replace('{M}', '(\\d{1,2})')
-                .replace('{MMM}', '([A-Za-z]{3})')
-                .replace('{MES}', '([A-Za-z]+)')
-                .replace('.csv', '\\.csv$');
-            
-            const regex = new RegExp(regexPattern, 'i');
-            const match = nombreArchivo.match(regex);
+            console.log(`Extrayendo fecha de: ${nombreArchivo}`);
             
             let año = null, mes = null;
             
+            // Extraer el número del mes (parte después de "Egreso-")
+            const match = nombreArchivo.match(/Egreso-([A-Z]{2,3})(\d{2})\.csv$/i);
+            
             if (match) {
-                const grupos = match.slice(1);
+                const mesAbrev = match[1].toUpperCase();
+                const añoCorto = match[2];
                 
-                // Buscar año
-                for (let i = 0; i < grupos.length; i++) {
-                    if (/^\d{4}$/.test(grupos[i])) {
-                        año = parseInt(grupos[i]);
-                        break;
-                    } else if (/^\d{2}$/.test(grupos[i]) && grupos[i] > 31) {
-                        // Asumir año de 2 dígitos
-                        año = 2000 + parseInt(grupos[i]);
-                        break;
-                    }
-                }
+                // Convertir año corto a año completo
+                año = 2000 + parseInt(añoCorto);
                 
-                // Buscar mes
-                for (let i = 0; i < grupos.length; i++) {
-                    const grupo = grupos[i];
-                    
-                    if (/^\d{2}$/.test(grupo) && parseInt(grupo) >= 1 && parseInt(grupo) <= 12) {
-                        mes = parseInt(grupo);
-                        break;
-                    } else if (/^\d{1,2}$/.test(grupo)) {
-                        const num = parseInt(grupo);
-                        if (num >= 1 && num <= 12) {
+                // Buscar mes en el mapeo
+                if (mesesAbreviados[mesAbrev]) {
+                    mes = mesesAbreviados[mesAbrev];
+                } else {
+                    // Intentar coincidencias parciales
+                    for (const [abrev, num] of Object.entries(mesesAbreviados)) {
+                        if (mesAbrev.startsWith(abrev) || abrev.startsWith(mesAbrev)) {
                             mes = num;
                             break;
                         }
-                    } else if (/^[A-Za-z]{3}/.test(grupo)) {
-                        const mesAbrev = grupo.substring(0, 3).toLowerCase();
-                        for (let j = 0; j < mesesCortos.length; j++) {
-                            if (mesesCortos[j].toLowerCase().startsWith(mesAbrev)) {
-                                mes = j + 1;
-                                break;
-                            }
-                        }
-                        if (mes) break;
                     }
                 }
             }
             
-            // Valores por defecto si no se encontraron
+            // Si no se encontró, intentar otros métodos
+            if (!mes) {
+                // Buscar por nombre de mes en el archivo
+                for (const [abrev, num] of Object.entries(mesesAbreviados)) {
+                    if (nombreArchivo.toUpperCase().includes(abrev)) {
+                        mes = num;
+                        break;
+                    }
+                }
+            }
+            
+            if (!año) {
+                // Buscar año de 4 dígitos
+                const añoMatch = nombreArchivo.match(/(20\d{2})/);
+                if (añoMatch) {
+                    año = parseInt(añoMatch[1]);
+                } else {
+                    // Buscar año de 2 dígitos
+                    const añoCortoMatch = nombreArchivo.match(/(\d{2})\.csv$/);
+                    if (añoCortoMatch) {
+                        año = 2000 + parseInt(añoCortoMatch[1]);
+                    }
+                }
+            }
+            
+            // Valores por defecto
             if (!año) {
                 año = luxon.DateTime.now().year;
                 console.warn(`No se pudo extraer año de ${nombreArchivo}, usando ${año}`);
@@ -1046,7 +1069,6 @@
             const agrupacion = document.getElementById('groupBy').value;
             const tipoGrafica = document.getElementById('chartType').value;
             
-            // Filtrar datos
             let datosFiltrados = todosLosDatos;
             
             if (añoFiltro !== 'all') {
@@ -1057,13 +1079,9 @@
                 datosFiltrados = datosFiltrados.filter(d => d._mes === parseInt(mesFiltro));
             }
             
-            // Actualizar selector de meses
             actualizarSelectorMeses(datosFiltrados);
-            
-            // Actualizar lista de archivos cargados
             actualizarListaArchivos();
             
-            // Procesar y mostrar datos
             if (datosFiltrados.length > 0) {
                 const datosProcesados = procesarDatosParaGrafica(datosFiltrados, agrupacion);
                 mostrarGrafica(datosProcesados, tipoGrafica);
@@ -1082,7 +1100,7 @@
                 
                 switch (agrupacion) {
                     case 'day':
-                        clave = item.fecha; // YYYY-MM-DD
+                        clave = item.fecha;
                         break;
                         
                     case 'week':
@@ -1109,11 +1127,9 @@
                 grupos[clave][item.sexo]++;
             });
             
-            // Ordenar grupos
             const clavesOrdenadas = Object.keys(grupos).sort();
             const datosProcesados = clavesOrdenadas.map(clave => grupos[clave]);
             
-            // Formatear etiquetas
             const labels = clavesOrdenadas.map(clave => {
                 switch (agrupacion) {
                     case 'day':
@@ -1135,14 +1151,12 @@
                 }
             });
             
-            // Calcular totales
             const datosMujeres = datosProcesados.map(d => d.MUJER || 0);
             const datosHombres = datosProcesados.map(d => d.HOMBRE || 0);
             const totalMujeres = datosMujeres.reduce((a, b) => a + b, 0);
             const totalHombres = datosHombres.reduce((a, b) => a + b, 0);
             const totalGeneral = totalMujeres + totalHombres;
             
-            // Encontrar grupo con más registros
             let maxRegistros = 0;
             let grupoMax = '';
             datosProcesados.forEach(d => {
@@ -1153,7 +1167,6 @@
                 }
             });
             
-            // Información del período
             let periodoInfo = 'Todos los períodos';
             if (clavesOrdenadas.length > 0) {
                 const primera = clavesOrdenadas[0];
@@ -1183,7 +1196,7 @@
         // ============================================
         
         function mostrarGrafica(datosProcesados, tipoGrafica) {
-            const ctx = document.getElementById('altasChart').getContext('2d');
+            const ctx = document.getElementById('egresosChart').getContext('2d');
             
             if (chart) {
                 chart.destroy();
@@ -1234,7 +1247,7 @@
                             stacked: tipoGrafica === 'stacked',
                             title: {
                                 display: true,
-                                text: 'Número de Registros'
+                                text: 'Número de Egresos'
                             }
                         }
                     },
@@ -1311,7 +1324,7 @@
         
         function mostrarMensajeSinDatos() {
             document.getElementById('chartSection').style.display = 'block';
-            document.getElementById('altasChart').style.display = 'none';
+            document.getElementById('egresosChart').style.display = 'none';
             document.querySelector('.chart-container').innerHTML = `
                 <div style="text-align: center; padding: 60px; color: #666;">
                     <i class="fas fa-database" style="font-size: 48px; margin-bottom: 20px;"></i>
@@ -1344,7 +1357,6 @@
                 return;
             }
             
-            // Agrupar por año-mes
             const mesesDisponibles = {};
             datos.forEach(d => {
                 const clave = `${d._año}-${d._mes.toString().padStart(2, '0')}`;
@@ -1358,7 +1370,6 @@
                 mesesDisponibles[clave].count++;
             });
             
-            // Crear chips para cada mes
             Object.keys(mesesDisponibles)
                 .sort()
                 .reverse()
@@ -1460,11 +1471,9 @@
                 return;
             }
             
-            // Guardar en localStorage
             localStorage.setItem('csvFolderId', folderId);
             localStorage.setItem('csvFilePattern', filePattern);
             
-            // Actualizar configuración
             configuracion.folderId = folderId;
             configuracion.filePattern = filePattern;
             
@@ -1478,7 +1487,6 @@
                 return;
             }
             
-            // Convertir a CSV
             const headers = ['fecha', 'sexo', 'archivo', 'año', 'mes'];
             const csvRows = [
                 headers.join(','),
@@ -1493,7 +1501,7 @@
             
             const a = document.createElement('a');
             a.href = url;
-            a.download = `datos-completos-${luxon.DateTime.now().toFormat('yyyy-MM-dd')}.csv`;
+            a.download = `egresos-completos-${luxon.DateTime.now().toFormat('yyyy-MM-dd')}.csv`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1505,34 +1513,26 @@
         // ============================================
         
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 Iniciando aplicación multi-CSV...');
+            console.log('🚀 Iniciando aplicación de Egresos CSV...');
             
-            // Configurar event listeners para filtros
             document.getElementById('yearFilter').addEventListener('change', aplicarFiltrosYActualizar);
             document.getElementById('monthFilter').addEventListener('change', aplicarFiltrosYActualizar);
             document.getElementById('chartType').addEventListener('change', aplicarFiltrosYActualizar);
             document.getElementById('groupBy').addEventListener('change', aplicarFiltrosYActualizar);
             
-            // Inicializar aplicación
             inicializarApp();
             
-            // Actualizar automáticamente cada 10 minutos
             setInterval(() => {
                 console.log('🔄 Actualización automática de datos...');
                 recargarTodosLosArchivos();
             }, 10 * 60 * 1000);
         });
         
-        // Función global para debug
         window.debugInfo = () => {
             console.log('📊 Datos cargados:', todosLosDatos.length);
             console.log('📁 Archivos cargados:', archivosCargados);
             console.log('⚙️ Configuración:', configuracion);
             
-            // Mostrar primeros 5 registros
-            console.log('📝 Primeros 5 registros:', todosLosDatos.slice(0, 5));
-            
-            // Mostrar estadísticas por archivo
             const statsByFile = {};
             todosLosDatos.forEach(d => {
                 if (!statsByFile[d._archivo]) {
