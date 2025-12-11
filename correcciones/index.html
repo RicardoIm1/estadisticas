@@ -1,312 +1,108 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadísticas de Médicos</title>
-    <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon">
-    <link rel="icon" href="/img/favicon.ico" type="image/x-icon">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        body {
-            background-color: #f5f7fa;
-            color: #333;
-            line-height: 1.6;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-        }
-        
-        header {
-            text-align: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #eaeaea;
-        }
-        
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 10px;
-        }
-        
-        .description {
-            color: #7f8c8d;
-            font-size: 1.1rem;
-        }
-        
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .search-box {
-            flex-grow: 1;
-            position: relative;
-        }
-        
-        .search-box input {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
-        }
-        
-        .search-box input:focus {
-            outline: none;
-            border-color: #3498db;
-            box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
-        }
-        
-        .sort-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        
-        button {
-            padding: 10px 15px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-            font-size: 0.9rem;
-        }
-        
-        button:hover {
-            background-color: #2980b9;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-        }
-        
-        thead {
-            background-color: #3498db;
-            color: white;
-        }
-        
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 1px solid #eaeaea;
-        }
-        
-        th {
-            cursor: pointer;
-            user-select: none;
-            position: relative;
-        }
-        
-        th:hover {
-            background-color: #2980b9;
-        }
-        
-        th::after {
-            content: '↕';
-            position: absolute;
-            right: 10px;
-            opacity: 0.7;
-        }
-        
-        th.asc::after {
-            content: '↑';
-        }
-        
-        th.desc::after {
-            content: '↓';
-        }
-        
-        tbody tr:nth-child(even) {
-            background-color: #f8f9fa;
-        }
-        
-        tbody tr:hover {
-            background-color: #e8f4fc;
-        }
-        
-        .total-row {
-            font-weight: bold;
-            background-color: #2c3e50 !important;
-            color: white;
-        }
-        
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eaeaea;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-        
-        .stat-card {
-            flex: 1;
-            min-width: 200px;
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 5px;
-            text-align: center;
-        }
-        
-        .stat-value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: #3498db;
-        }
-        
-        .stat-label {
-            color: #7f8c8d;
-            margin-top: 5px;
-        }
-        
-        /* Estilos para resaltar por número */
-        .number-high {
-            background-color: rgba(231, 76, 60, 0.2) !important;
-            border-left: 4px solid #e74c3c;
-        }
-        
-        .number-medium {
-            background-color: rgba(241, 196, 15, 0.2) !important;
-            border-left: 4px solid #f1c40f;
-        }
-        
-        .number-low {
-            background-color: rgba(46, 204, 113, 0.2) !important;
-            border-left: 4px solid #2ecc71;
-        }
-        
-        .legend {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 3px;
-        }
-        
-        .high-color {
-            background-color: rgba(231, 76, 60, 0.2);
-            border-left: 4px solid #e74c3c;
-        }
-        
-        .medium-color {
-            background-color: rgba(241, 196, 15, 0.2);
-            border-left: 4px solid #f1c40f;
-        }
-        
-        .low-color {
-            background-color: rgba(46, 204, 113, 0.2);
-            border-left: 4px solid #2ecc71;
-        }
-        
-        @media (max-width: 768px) {
-            .controls {
-                flex-direction: column;
-            }
-            
-            .sort-buttons {
-                justify-content: center;
-            }
-            
-            th, td {
-                padding: 10px 5px;
-            }
-        }
-    </style>
+    <title>Estadísticas y Archivo Clínico</title>
+    <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>Estadísticas de Médicos</h1>
-            <p class="description">Lista de médicos con sus respectivos números</p>
-        </header>
-        
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-color high-color"></div>
-                <span>Número alto (15+)</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color medium-color"></div>
-                <span>Número medio (5-14)</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color low-color"></div>
-                <span>Número bajo (1-4)</span>
-            </div>
-        </div>
-        
-        <div class="controls">
-            <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Buscar médico...">
-            </div>
-            <div class="sort-buttons">
-                <button id="sortName">Ordenar por Nombre</button>
-                <button id="sortNumber">Ordenar por Número</button>
-            </div>
-        </div>
-        
-        <table id="doctorsTable">
-            <thead>
-                <tr>
-                    <th data-sort="name">Médico</th>
-                    <th data-sort="number">Número</th>
-                </tr>
-            </thead>
-            <tbody id="tableBody">
-                <!-- Los datos se cargarán con JavaScript -->
-            </tbody>
-        </table>
-        
-        <div class="stats">
-            <div class="stat-card">
-                <div class="stat-value" id="totalDoctors">0</div>
-                <div class="stat-label">Total de Médicos</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="totalNumbers">0</div>
-                <div class="stat-label">Total de Números</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-value" id="averageNumbers">0</div>
-                <div class="stat-label">Promedio por Médico</div>
-            </div>
-        </div>
-    </div>
 
+<body>
+    <div class="glass" id="dashboard">
+        <h5>Base</h5>
+        <div id="header"></div>
+        <div class="grid">
+            <div class="container">
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color high-color"></div>
+                        <span>Número alto (15+)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color medium-color"></div>
+                        <span>Número medio (5-14)</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color low-color"></div>
+                        <span>Número bajo (1-4)</span>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Buscar médico...">
+                    </div>
+                    <div class="sort-buttons">
+                        <button id="sortName">Ordenar por Nombre</button>
+                        <button id="sortNumber">Ordenar por Número</button>
+                    </div>
+                </div>
+
+                <table id="doctorsTable">
+                    <thead>
+                        <tr>
+                            <th data-sort="name">Médico</th>
+                            <th data-sort="number">Número</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Los datos se cargarán con JavaScript -->
+                    </tbody>
+                </table>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalDoctors">0</div>
+                        <div class="stat-label">Total de Médicos</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="totalNumbers">0</div>
+                        <div class="stat-label">Total de Números</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="averageNumbers">0</div>
+                        <div class="stat-label">Promedio por Médico</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="footer"></div>
+    </div>
+    <script>
+        fetch('/estadisticas/comun/header.html')
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById('header').innerHTML = html;
+
+                // Cargar sesión.js después de insertar el HTML
+                const s = document.createElement('script');
+                s.src = '/estadisticas/comun/sesion_bk.js';
+
+                s.onload = () => {
+                    console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
+                    verificarAutenticacion();
+                };
+
+                document.body.appendChild(s);
+            });
+
+        fetch('/estadisticas/comun/footer.html')
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById('footer').innerHTML = html;
+
+                // Ya existe footerText
+                const footer = document.getElementById('footerText');
+                if (footer) {
+                    footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+                }
+            });
+    </script>
     <script>
         // Datos de los médicos
         const doctorsData = [
@@ -353,10 +149,10 @@
         function renderTable(data) {
             const tableBody = document.getElementById('tableBody');
             tableBody.innerHTML = '';
-            
+
             // Calcular total
             const total = data.reduce((sum, doctor) => sum + doctor.number, 0);
-            
+
             // Renderizar filas de médicos
             data.forEach(doctor => {
                 const row = document.createElement('tr');
@@ -367,7 +163,7 @@
                 `;
                 tableBody.appendChild(row);
             });
-            
+
             // Agregar fila de total
             const totalRow = document.createElement('tr');
             totalRow.className = 'total-row';
@@ -376,7 +172,7 @@
                 <td>${formatNumber(total)}</td>
             `;
             tableBody.appendChild(totalRow);
-            
+
             // Actualizar estadísticas
             updateStats(data.length, total);
         }
@@ -393,22 +189,22 @@
             filteredData.sort((a, b) => {
                 let aValue = a[column];
                 let bValue = b[column];
-                
+
                 if (column === 'name') {
                     // Ordenamiento alfabético para nombres
                     aValue = aValue.toLowerCase();
                     bValue = bValue.toLowerCase();
                 }
-                
+
                 if (direction === 'asc') {
                     return aValue > bValue ? 1 : -1;
                 } else {
                     return aValue < bValue ? 1 : -1;
                 }
             });
-            
+
             renderTable(filteredData);
-            
+
             // Actualizar indicadores de ordenamiento en los encabezados
             document.querySelectorAll('th').forEach(th => {
                 th.classList.remove('asc', 'desc');
@@ -423,11 +219,11 @@
             if (searchTerm === '') {
                 filteredData = [...doctorsData];
             } else {
-                filteredData = doctorsData.filter(doctor => 
+                filteredData = doctorsData.filter(doctor =>
                     doctor.name.toLowerCase().includes(searchTerm.toLowerCase())
                 );
             }
-            
+
             sortData(currentSort.column, currentSort.direction);
         }
 
@@ -435,25 +231,25 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Renderizar tabla inicial (ordenada por número descendente)
             sortData('number', 'desc');
-            
+
             // Configurar eventos de búsqueda
             document.getElementById('searchInput').addEventListener('input', (e) => {
                 filterData(e.target.value);
             });
-            
+
             // Configurar eventos de ordenamiento
             document.getElementById('sortName').addEventListener('click', () => {
                 currentSort.direction = currentSort.column === 'name' && currentSort.direction === 'asc' ? 'desc' : 'asc';
                 currentSort.column = 'name';
                 sortData('name', currentSort.direction);
             });
-            
+
             document.getElementById('sortNumber').addEventListener('click', () => {
                 currentSort.direction = currentSort.column === 'number' && currentSort.direction === 'asc' ? 'desc' : 'asc';
                 currentSort.column = 'number';
                 sortData('number', currentSort.direction);
             });
-            
+
             // Configurar ordenamiento al hacer clic en los encabezados de la tabla
             document.querySelectorAll('th[data-sort]').forEach(th => {
                 th.addEventListener('click', () => {
@@ -465,5 +261,8 @@
             });
         });
     </script>
+    <script src="/estadisticas/comun/estadoSistema.js"></script>
+    <script src="/estadisticas/comun/sesion_bk.js"></script>
 </body>
+
 </html>
