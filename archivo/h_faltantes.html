@@ -37,85 +37,62 @@
                 <thead></thead>
                 <tbody></tbody>
             </table>
-
-            <script>
-                const URL = "https://script.google.com/macros/s/AKfycbXXXXX/exec"; // ← tu endpoint
-
-                // GUARDAR
-                document.getElementById("form-egresos").addEventListener("submit", async (e) => {
-                    e.preventDefault();
-
-                    const data = Object.fromEntries(new FormData(e.target).entries());
-
-                    const res = await fetch(URL, {
-                        method: "POST",
-                        body: JSON.stringify(data)
-                    });
-
-                    const json = await res.json();
-                    if (json.ok) {
-                        alert("Guardado correctamente");
-                        cargarRegistros();
-                        e.target.reset();
-                    }
-                });
-
-
-                // CARGAR TABLA
-                async function cargarRegistros() {
-                    const res = await fetch(URL);
-                    const json = await res.json();
-
-                    if (!json.ok) return;
-
-                    const registros = json.registros;
-                    const tablaHead = document.querySelector("#tabla-registros thead");
-                    const tablaBody = document.querySelector("#tabla-registros tbody");
-
-                    tablaHead.innerHTML = "";
-                    tablaBody.innerHTML = "";
-
-                    if (registros.length === 0) return;
-
-                    // Encabezados
-                    const headers = Object.keys(registros[0]);
-                    tablaHead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
-
-                    // Filas
-                    registros.forEach(reg => {
-                        const fila = "<tr>" + headers.map(h => `<td>${reg[h]}</td>`).join("") + "</tr>";
-                        tablaBody.innerHTML += fila;
-                    });
-                }
-
-                // Cargar tabla al inicio
-                cargarRegistros();
-            </script>
-            <script>
-                document.getElementById("form-egresos").addEventListener("submit", async (e) => {
-                    e.preventDefault();
-
-                    const data = Object.fromEntries(new FormData(e.target).entries());
-
-                    const url =
-                        "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec"; // <- tu URL desplegada
-
-                    const res = await fetch(url, {
-                        method: "POST",
-                        body: JSON.stringify(data)
-                        // NO headers → NO CORS
-                    });
-
-                    const json = await res.json();
-                    console.log(json);
-
-                    alert("Registro guardado correctamente");
-                });
-            </script>
-
         </div>
         <div id="footer"></div>
     </div>
+    <script>
+        const URL = "https://script.google.com/macros/s/AKfycbXXXXX/exec"; // ← tu endpoint
+
+        // GUARDAR
+        document.getElementById("form-egresos").addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const data = Object.fromEntries(new FormData(e.target).entries());
+
+            const res = await fetch(URL, {
+                method: "POST",
+                body: JSON.stringify(data)
+            });
+
+            const json = await res.json();
+            if (json.ok) {
+                alert("Guardado correctamente");
+                cargarRegistros();
+                e.target.reset();
+            }
+        });
+
+
+        // CARGAR TABLA
+        async function cargarRegistros() {
+            const res = await fetch(URL);
+            const json = await res.json();
+
+            if (!json.ok) return;
+
+            const registros = json.registros;
+            const tablaHead = document.querySelector("#tabla-registros thead");
+            const tablaBody = document.querySelector("#tabla-registros tbody");
+
+            tablaHead.innerHTML = "";
+            tablaBody.innerHTML = "";
+
+            if (registros.length === 0) return;
+
+            // Encabezados
+            const headers = Object.keys(registros[0]);
+            tablaHead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+            // Filas
+            registros.forEach(reg => {
+                const fila = "<tr>" + headers.map(h => `<td>${reg[h]}</td>`).join("") + "</tr>";
+                tablaBody.innerHTML += fila;
+            });
+        }
+
+        // Cargar tabla al inicio
+        cargarRegistros();
+    </script>
     <script>
         fetch('/estadisticas/comun/header.html')
             .then(r => r.text())
