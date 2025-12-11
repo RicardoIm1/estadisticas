@@ -94,138 +94,139 @@
                     <i class="fa-solid fa-arrow-left"></i> Inicio
                 </a>
             </div>
-            <script>
-                // URL de tu GAS - REEMPLAZA CON TU URL REAL
-                const GAS_URL = "https://script.google.com/macros/s/AKfycbw5lrSCqUScFDhgcGvSgkiWdTte_as7rcwqVcAp8MCfjPvOrvBIDO-gUSfbJEOCVjET/exec";
+        </div>
+        <script>
+            // URL de tu GAS - REEMPLAZA CON TU URL REAL
+            const GAS_URL = "https://script.google.com/macros/s/AKfycbw5lrSCqUScFDhgcGvSgkiWdTte_as7rcwqVcAp8MCfjPvOrvBIDO-gUSfbJEOCVjET/exec";
 
-                document.getElementById('reporteForm').addEventListener('submit', function (e) {
-                    e.preventDefault();
+            document.getElementById('reporteForm').addEventListener('submit', function (e) {
+                e.preventDefault();
 
-                    const submitBtn = document.getElementById('submitBtn');
-                    const originalHTML = submitBtn.innerHTML;
+                const submitBtn = document.getElementById('submitBtn');
+                const originalHTML = submitBtn.innerHTML;
 
-                    // Deshabilitar y mostrar loading
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin pulse"></i> Guardando en sistema...';
+                // Deshabilitar y mostrar loading
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin pulse"></i> Guardando en sistema...';
 
-                    const formData = {
-                        fecha: new Date().toISOString().split('T')[0], // YYYY-MM-DD
-                        persona: document.getElementById('persona').value,
-                        tarea: document.getElementById('tarea').value,
-                        documentos: document.getElementById('documentos').value,
-                        observaciones: document.getElementById('observaciones').value
-                    };
+                const formData = {
+                    fecha: new Date().toISOString().split('T')[0], // YYYY-MM-DD
+                    persona: document.getElementById('persona').value,
+                    tarea: document.getElementById('tarea').value,
+                    documentos: document.getElementById('documentos').value,
+                    observaciones: document.getElementById('observaciones').value
+                };
 
-                    console.log('🚀 Enviando datos premium:', formData);
+                console.log('🚀 Enviando datos premium:', formData);
 
-                    // Usar JSONP para evitar CORS
-                    const callbackName = 'formCallback_' + Date.now();
+                // Usar JSONP para evitar CORS
+                const callbackName = 'formCallback_' + Date.now();
 
-                    window[callbackName] = function (response) {
-                        console.log('📥 Respuesta del servidor:', response);
+                window[callbackName] = function (response) {
+                    console.log('📥 Respuesta del servidor:', response);
 
-                        // Limpiar
-                        delete window[callbackName];
-                        const script = document.querySelector(`script[src*="${callbackName}"]`);
-                        if (script) script.remove();
+                    // Limpiar
+                    delete window[callbackName];
+                    const script = document.querySelector(`script[src*="${callbackName}"]`);
+                    if (script) script.remove();
 
-                        // Restaurar botón
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalHTML;
+                    // Restaurar botón
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHTML;
 
-                        if (response && response.success) {
-                            // ÉXITO - Mostrar confirmación
-                            document.getElementById('successMessage').style.display = 'block';
-                            document.getElementById('reporteForm').reset();
+                    if (response && response.success) {
+                        // ÉXITO - Mostrar confirmación
+                        document.getElementById('successMessage').style.display = 'block';
+                        document.getElementById('reporteForm').reset();
 
-                            setTimeout(() => {
-                                document.getElementById('successMessage').style.display = 'none';
-                            }, 4000);
+                        setTimeout(() => {
+                            document.getElementById('successMessage').style.display = 'none';
+                        }, 4000);
 
-                        } else {
-                            // ERROR
-                            alert('❌ Error: ' + (response.error || 'No se pudo guardar el reporte'));
-                        }
-                    };
+                    } else {
+                        // ERROR
+                        alert('❌ Error: ' + (response.error || 'No se pudo guardar el reporte'));
+                    }
+                };
 
-                    // Crear script JSONP
-                    const script = document.createElement('script');
-                    const params = new URLSearchParams({
-                        ...formData,
-                        callback: callbackName
-                    });
-
-                    script.src = `${GAS_URL}?${params.toString()}`;
-                    console.log('🔗 URL llamada:', script.src);
-
-                    script.onerror = function () {
-                        console.error('❌ Error de conexión');
-                        submitBtn.disabled = false;
-                        submitBtn.innerHTML = originalHTML;
-                        alert('🚨 Error de conexión. Verifica tu internet.');
-                        delete window[callbackName];
-                    };
-
-                    document.head.appendChild(script);
-
-                    // Timeout de seguridad
-                    setTimeout(() => {
-                        if (window[callbackName]) {
-                            console.warn('⏰ Timeout del formulario');
-                            submitBtn.disabled = false;
-                            submitBtn.innerHTML = originalHTML;
-                            alert('⏰ El servidor no respondió. Intenta nuevamente.');
-                            delete window[callbackName];
-                        }
-                    }, 10000);
+                // Crear script JSONP
+                const script = document.createElement('script');
+                const params = new URLSearchParams({
+                    ...formData,
+                    callback: callbackName
                 });
 
-                // Efectos de focus mejorados
-                document.querySelectorAll('.form-select, .form-input, .form-textarea').forEach(input => {
-                    input.addEventListener('focus', function () {
-                        this.parentElement.style.transform = 'translateY(-2px)';
-                    });
+                script.src = `${GAS_URL}?${params.toString()}`;
+                console.log('🔗 URL llamada:', script.src);
 
-                    input.addEventListener('blur', function () {
-                        this.parentElement.style.transform = 'translateY(0)';
-                    });
+                script.onerror = function () {
+                    console.error('❌ Error de conexión');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalHTML;
+                    alert('🚨 Error de conexión. Verifica tu internet.');
+                    delete window[callbackName];
+                };
+
+                document.head.appendChild(script);
+
+                // Timeout de seguridad
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        console.warn('⏰ Timeout del formulario');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalHTML;
+                        alert('⏰ El servidor no respondió. Intenta nuevamente.');
+                        delete window[callbackName];
+                    }
+                }, 10000);
+            });
+
+            // Efectos de focus mejorados
+            document.querySelectorAll('.form-select, .form-input, .form-textarea').forEach(input => {
+                input.addEventListener('focus', function () {
+                    this.parentElement.style.transform = 'translateY(-2px)';
                 });
 
-                // Auto-focus en el primer campo
-                document.getElementById('persona').focus();
-            </script>
-            <script>
-                fetch('/estadisticas/comun/header.html')
-                    .then(r => r.text())
-                    .then(html => {
-                        document.getElementById('header').innerHTML = html;
+                input.addEventListener('blur', function () {
+                    this.parentElement.style.transform = 'translateY(0)';
+                });
+            });
 
-                        // Cargar sesión.js después de insertar el HTML
-                        const s = document.createElement('script');
-                        s.src = '/estadisticas/comun/sesion_bk.js';
+            // Auto-focus en el primer campo
+            document.getElementById('persona').focus();
+        </script>
+        <script>
+            fetch('/estadisticas/comun/header.html')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('header').innerHTML = html;
 
-                        s.onload = () => {
-                            console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
-                            verificarAutenticacion();
-                        };
+                    // Cargar sesión.js después de insertar el HTML
+                    const s = document.createElement('script');
+                    s.src = '/estadisticas/comun/sesion_bk.js';
 
-                        document.body.appendChild(s);
-                    });
+                    s.onload = () => {
+                        console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
+                        verificarAutenticacion();
+                    };
 
-                fetch('/estadisticas/comun/footer.html')
-                    .then(r => r.text())
-                    .then(html => {
-                        document.getElementById('footer').innerHTML = html;
+                    document.body.appendChild(s);
+                });
 
-                        // Ya existe footerText
-                        const footer = document.getElementById('footerText');
-                        if (footer) {
-                            footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-                        }
-                    });
-            </script>
-            <script src="/estadisticas/comun/estadoSistema.js"></script>
-            <script src="/estadisticas/comun/sesion_bk.js"></script>
+            fetch('/estadisticas/comun/footer.html')
+                .then(r => r.text())
+                .then(html => {
+                    document.getElementById('footer').innerHTML = html;
+
+                    // Ya existe footerText
+                    const footer = document.getElementById('footerText');
+                    if (footer) {
+                        footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+                    }
+                });
+        </script>
+        <script src="/estadisticas/comun/estadoSistema.js"></script>
+        <script src="/estadisticas/comun/sesion_bk.js"></script>
 
 </body>
 
