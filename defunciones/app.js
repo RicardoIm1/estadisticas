@@ -55,7 +55,7 @@ async function guardar(e) {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = GAS_URL;
-    form.target = '_blank'; // Nueva pestaña
+    form.target = '_self'; // Nueva pestaña
     form.style.display = 'none';
 
     // Agregar campos individuales (no JSON)
@@ -100,7 +100,7 @@ async function eliminar(id) {
     const form = document.createElement('form');
     form.method = 'POST';
     form.action = GAS_URL;
-    form.target = '_blank';
+    form.target = '_self';
     form.style.display = 'none';
 
     const inputAction = document.createElement('input');
