@@ -41,27 +41,12 @@
         opacity: .8;
         font-size: 12px;
     }
-
-    .buscador-wrapper {
-        position: sticky;
-        top: 0;
-        left: 0;
-        /* background-color: rgba(255, 25, 255, 0.08); */
-        /* backdrop-filter: blur(10px); */
-        padding: 1rem;
-        /* border-bottom: 1px solid rgba(255, 255, 255, 0.1); */
-        z-index: 10;
-        text-align: left;
-        border-radius: 12px;
-        width: 60%;
-        /*     padding: 0.5rem; */
-    }
 </style>
 
 <body>
     <div class="glass" id="dashboard">
-        <h5>REGISTROS RESCATADOS  DE SIMAH</h5>
-        <div id="headerb"></div>
+        <h5>SIMAH</h5>
+        <div id="header"></div>
         <div class="grid">
             <div id="cards" class="cards-grid"></div>
 
@@ -75,70 +60,10 @@
         <div id="footer"></div>
     </div>
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
-        let page = 1;
-
-        async function cargar() {
-            try {
-                const res = await fetch(`${API_URL}?page=${page}`);
-                const data = await res.json();
-                render(data);
-
-                document.getElementById("paginaActual").innerText =
-                    `Página ${data.page} de ${Math.ceil(data.total / data.pageSize)}`;
-            } catch (e) {
-                console.error("Error cargando datos:", e);
-            }
-        }
-
-        function cambiarPagina(delta) {
-            if (page + delta < 1) return;
-            page += delta;
-            cargar();
-        }
-
-        function render(data) {
-            const cont = document.getElementById("cards");
-            cont.innerHTML = "";
-
-            data.rows.forEach(r => {
-                cont.innerHTML += `
-        <div class="card">
-          <span>${r.nombre}</span><br>
-          <small>Expediente: ${r.expediente}</small><br>
-          <small>${r.servicio}</small><br>
-          <small>${r.fecha}</small>
-        </div>
-      `;
-            });
-        }
-
-        window.addEventListener("load", cargar);
-
-        // ---------------------- Formatear fecha y hora ----------------------
-        function formatearFecha(fechaISO) {
-            if (!fechaISO) return "";
-            const d = new Date(fechaISO);
-            if (isNaN(d)) return fechaISO;
-            const dia = String(d.getDate()).padStart(2, '0');
-            const mes = String(d.getMonth() + 1).padStart(2, '0');
-            const anio = d.getFullYear();
-            return `${dia}/${mes}/${anio}`;
-        }
-        function formatearHora(valor) {
-            if (!valor) return "";
-            const d = new Date(valor);
-            if (!isNaN(d)) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-            if (/^\d{1,2}:\d{2}$/.test(valor)) return valor;
-            return "";
-        }
-    </script>
-
-    <script>
-        fetch('/estadisticas/comun/headerb.html')
+        fetch('/estadisticas/comun/header.html')
             .then(r => r.text())
             .then(html => {
-                document.getElementById('headerb').innerHTML = html;
+                document.getElementById('header').innerHTML = html;
 
                 // Cargar sesión.js después de insertar el HTML
                 const s = document.createElement('script');
@@ -164,6 +89,41 @@
                 }
             });
     </script>
+    <script>
+        let pagina = 1;
+
+            function cambiarPagina(d) {
+            pagina = Math.max(1, pagina + d);
+            cargar();
+        }
+
+        window.onload = cargar;
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
+        let page = 1;
+
+        async function cargar() {
+            const res = await fetch(`${API_URL}?page=${page}`);
+            const data = await res.json();
+            render(data);
+        }
+        function render(data) {
+            const cont = document.getElementById("cards");
+            cont.innerHTML = "";
+
+            data.rows.forEach(r => {
+                cont.innerHTML += `
+      <div class="card">
+        <strong>${r.nombre}</strong><br>
+        <small>${r.expediente}</small><br>
+        <small>${r.servicio}</small><br>
+        <small>${r.fecha}</small>
+      </div>
+    `;
+            });
+        }
+
+    </script>
+
     <script src="/estadisticas/comun/estadoSistema.js"></script>
     <script src="/estadisticas/comun/sesion_bk.js"></script>
 </body>
