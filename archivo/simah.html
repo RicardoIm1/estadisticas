@@ -96,24 +96,6 @@
             google.script.run.withSuccessHandler(render).obtenerRegistros(pagina);
         }
 
-        function render(res) {
-            const cont = document.getElementById("cards");
-            cont.innerHTML = "";
-
-            res.rows.forEach(r => {
-                cont.innerHTML += `
-      <div class="card">
-        <h4>${r.nombre}</h4>
-        <small>Expediente: ${r.expediente}</small><br>
-        <small>${r.servicio}</small><br>
-        <small>${r.fecha}</small>
-      </div>`;
-            });
-
-            document.getElementById("paginaActual").innerText =
-                `Página ${res.page} de ${Math.ceil(res.total / res.pageSize)}`;
-        }
-
         function cambiarPagina(d) {
             pagina = Math.max(1, pagina + d);
             cargar();
@@ -127,6 +109,21 @@
             const res = await fetch(`${API_URL}?page=${page}`);
             const data = await res.json();
             render(data);
+        }
+        function render(data) {
+            const cont = document.getElementById("cards");
+            cont.innerHTML = "";
+
+            data.rows.forEach(r => {
+                cont.innerHTML += `
+      <div class="card">
+        <strong>${r.nombre}</strong><br>
+        <small>${r.expediente}</small><br>
+        <small>${r.servicio}</small><br>
+        <small>${r.fecha}</small>
+      </div>
+    `;
+            });
         }
 
     </script>
