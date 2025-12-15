@@ -1,126 +1,137 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Estadísticas y Archivo Clínico</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas y Archivo Clínico</title>
 
-  <link rel="shortcut icon" href="/estadisticas/img/favicon.ico">
-  <link rel="icon" href="/estadisticas/img/favicon.ico">
+    <link rel="shortcut icon" href="/estadisticas/img/favicon.ico">
+    <link rel="icon" href="/estadisticas/img/favicon.ico">
 
-  <link rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
+    <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
 
-  <style>
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 16px;
-    }
+    <style>
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+        }
 
-    .card {
-      background: rgba(255,255,255,.08);
-      backdrop-filter: blur(10px);
-      border-radius: 14px;
-      padding: 14px;
-      box-shadow: 0 10px 25px rgba(0,0,0,.15);
-      transition: transform .2s ease;
-    }
+        .card {
+            background: rgba(255, 255, 255, .08);
+            backdrop-filter: blur(10px);
+            border-radius: 14px;
+            padding: 14px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, .15);
+            transition: transform .2s ease;
+        }
 
-    .card:hover { transform: translateY(-4px); }
+        .card:hover {
+            transform: translateY(-4px);
+        }
 
-    .card span { font-weight: 600; font-size: 14px; }
-    .card small { font-size: 12px; opacity: .8; display:block; }
+        .card span {
+            font-weight: 600;
+            font-size: 14px;
+        }
 
-    .buscador {
-      margin: 12px 0 18px;
-      position: relative;
-    }
+        .card small {
+            font-size: 12px;
+            opacity: .8;
+            display: block;
+        }
 
-    .buscador input {
-      width: 100%;
-      padding: 10px 40px 10px 14px;
-      border-radius: 12px;
-      border: none;
-      background: rgba(255,255,255,.12);
-      color: #fff;
-      font-size: 14px;
-      outline: none;
-    }
+        .buscador {
+            margin: 12px 0 18px;
+            position: relative;
+        }
 
-    .buscador i {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      opacity: .6;
-    }
-  </style>
+        .buscador input {
+            width: 100%;
+            padding: 10px 40px 10px 14px;
+            border-radius: 12px;
+            border: none;
+            background: rgba(255, 255, 255, .12);
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .buscador i {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: .6;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="glass" id="dashboard">
-  <h5>SIMAH</h5>
+    <div class="glass" id="dashboard">
+        <h5>SIMAH</h5>
 
-  <div id="header"></div>
+        <div id="header">
+            <!-- 🔍 BUSCADOR GLOBAL -->
+            <div class="buscador">
+                <input id="busqueda" placeholder="Buscar en toda la base…">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </div>
+        </div>
 
-  <!-- 🔍 BUSCADOR GLOBAL -->
-  <div class="buscador">
-    <input id="busqueda" placeholder="Buscar en toda la base…">
-    <i class="fa-solid fa-magnifying-glass"></i>
-  </div>
 
-  <div class="grid">
-    <!-- <div id="cards" class="cards-grid"></div> -->
 
-    <div class="paginacion">
-      <button onclick="cambiarPagina(-1)">←</button>
-      <span id="paginaActual"></span>
-      <button onclick="cambiarPagina(1)">→</button>
+        <div class="grid">
+            <!-- <div id="cards" class="cards-grid"></div> -->
+            <div class="paginacion">
+                <button onclick="cambiarPagina(-1)">←</button>
+                <span id="paginaActual"></span>
+                <button onclick="cambiarPagina(1)">→</button>
+            </div>
+        </div>
+
+        <div id="footer"></div>
     </div>
-  </div>
 
-  <div id="footer"></div>
-</div>
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
 
-<script>
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
+        const POR_PAGINA = 12;
 
-  const POR_PAGINA = 12;
+        let dataTotal = [];
+        let dataFiltrada = [];
+        let pagina = 1;
 
-  let dataTotal = [];
-  let dataFiltrada = [];
-  let pagina = 1;
+        async function cargar() {
+            const res = await fetch(`${API_URL}?all=true`);
+            const json = await res.json();
 
-  async function cargar() {
-    const res = await fetch(`${API_URL}?all=true`);
-    const json = await res.json();
+            dataTotal = json.rows;
+            dataFiltrada = [...dataTotal];
 
-    dataTotal = json.rows;
-    dataFiltrada = [...dataTotal];
+            pagina = 1;
+            render();
+        }
 
-    pagina = 1;
-    render();
-  }
+        function render() {
+            const cont = document.getElementById("cards");
+            cont.innerHTML = "";
 
-  function render() {
-    const cont = document.getElementById("cards");
-    cont.innerHTML = "";
+            const inicio = (pagina - 1) * POR_PAGINA;
+            const fin = inicio + POR_PAGINA;
+            const paginaData = dataFiltrada.slice(inicio, fin);
 
-    const inicio = (pagina - 1) * POR_PAGINA;
-    const fin = inicio + POR_PAGINA;
-    const paginaData = dataFiltrada.slice(inicio, fin);
+            if (!paginaData.length) {
+                cont.innerHTML = "<small>No hay resultados</small>";
+                return;
+            }
 
-    if (!paginaData.length) {
-      cont.innerHTML = "<small>No hay resultados</small>";
-      return;
-    }
-
-    paginaData.forEach(r => {
-      cont.innerHTML += `
+            paginaData.forEach(r => {
+                cont.innerHTML += `
         <div class="card">
           <span>${r.nombre}</span>
           <small>Expediente: ${r.expediente}</small>
@@ -128,38 +139,39 @@
           <small>${r.fecha}</small>
         </div>
       `;
-    });
+            });
 
-    const totalPaginas = Math.ceil(dataFiltrada.length / POR_PAGINA);
-    document.getElementById("paginaActual").textContent =
-      `Página ${pagina} de ${totalPaginas}`;
-  }
+            const totalPaginas = Math.ceil(dataFiltrada.length / POR_PAGINA);
+            document.getElementById("paginaActual").textContent =
+                `Página ${pagina} de ${totalPaginas}`;
+        }
 
-  function cambiarPagina(d) {
-    const totalPaginas = Math.ceil(dataFiltrada.length / POR_PAGINA);
-    pagina = Math.min(Math.max(1, pagina + d), totalPaginas);
-    render();
-  }
+        function cambiarPagina(d) {
+            const totalPaginas = Math.ceil(dataFiltrada.length / POR_PAGINA);
+            pagina = Math.min(Math.max(1, pagina + d), totalPaginas);
+            render();
+        }
 
-  // 🔍 BÚSQUEDA GLOBAL REAL
-  document.getElementById("busqueda").addEventListener("input", e => {
-    const q = e.target.value.toLowerCase();
+        // 🔍 BÚSQUEDA GLOBAL REAL
+        document.getElementById("busqueda").addEventListener("input", e => {
+            const q = e.target.value.toLowerCase();
 
-    dataFiltrada = dataTotal.filter(r =>
-      r.nombre.toLowerCase().includes(q) ||
-      r.expediente.toLowerCase().includes(q) ||
-      r.servicio.toLowerCase().includes(q)
-    );
+            dataFiltrada = dataTotal.filter(r =>
+                r.nombre.toLowerCase().includes(q) ||
+                r.expediente.toLowerCase().includes(q) ||
+                r.servicio.toLowerCase().includes(q)
+            );
 
-    pagina = 1;
-    render();
-  });
+            pagina = 1;
+            render();
+        });
 
-  window.onload = cargar;
-</script>
+        window.onload = cargar;
+    </script>
 
-<script src="/estadisticas/comun/estadoSistema.js"></script>
-<script src="/estadisticas/comun/sesion_bk.js"></script>
+    <script src="/estadisticas/comun/estadoSistema.js"></script>
+    <script src="/estadisticas/comun/sesion_bk.js"></script>
 
 </body>
+
 </html>
