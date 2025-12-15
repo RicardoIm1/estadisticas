@@ -137,24 +137,38 @@
         }
 
         window.addEventListener("load", cargar);
+        function obtenerRegistros(page, q) {
+            const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
+            const rows = sh.getDataRange().getValues();
+            rows.shift();
 
-        // ---------------------- Formatear fecha y hora ----------------------
-        function formatearFecha(fechaISO) {
-            if (!fechaISO) return "";
-            const d = new Date(fechaISO);
-            if (isNaN(d)) return fechaISO;
-            const dia = String(d.getDate()).padStart(2, '0');
-            const mes = String(d.getMonth() + 1).padStart(2, '0');
-            const anio = d.getFullYear();
-            return `${dia}/${mes}/${anio}`;
+            let filtrados = rows;
+
+            if (q) {
+                filtrados = rows.filter(r =>
+                    String(r[0]).toLowerCase().includes(q) || // expediente
+                    String(r[1]).toLowerCase().includes(q)    // nombre
+                );
+            }
+
+            const total = filtrados.length;
+            const start = (page - 1) * PAGE_SIZE;
+            const slice = filtrados.slice(start, start + PAGE_SIZE);
+
+            return {
+                page,
+                pageSize: PAGE_SIZE,
+                total,
+                rows: slice.map(r => ({
+                    expediente: r[0],
+                    nombre: r[1],
+                    fecha: r[2],
+                    servicio: r[3]
+                }))
+            };
         }
-        function formatearHora(valor) {
-            if (!valor) return "";
-            const d = new Date(valor);
-            if (!isNaN(d)) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
-            if (/^\d{1,2}:\d{2}$/.test(valor)) return valor;
-            return "";
-        }
+
+
     </script>
 
     <script>
