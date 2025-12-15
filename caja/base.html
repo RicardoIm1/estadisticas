@@ -96,410 +96,270 @@
     </div>
     <div id="footer"></div>
   </div>
-
   <script src="/estadisticas/comun/estadoSistema.js"></script>
   <script src="/estadisticas/comun/sesion_bk.js"></script>
-  <script>
-    // Footer dinámico
-    document.getElementById('footerText').innerHTML =
-      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+<script>
+  /* ======================================================
+     🧠 BLOQUE PRINCIPAL OPTIMIZADO — Archivo Clínico
+     Limpio, sin duplicaciones y con funciones ordenadas
+  ====================================================== */
 
-    const URL_API = "https://script.google.com/macros/s/AKfycbzBL9Ms9YkkB_M8xnMepCSQ7zT3wXHTJXiM82GojntZy25bddXiQBp3QjxCrCEldNb6_g/exec";
-    /* const URL_API = "https://script.google.com/macros/s/AKfycbwEgr4ICW8Rx8aPf5JPCUEoGKF3fOs8Cz9aUv69q5Jpiwd0vhoE950niuuWegpgqq7i0g/exec"; */
-    let html5QrCode, filaDestacada = null;
+  // ===== 🦶 FOOTER DINÁMICO =====
+  // (Se actualizará también en el fetch del footer)
+  const URL_API = "https://script.google.com/macros/s/AKfycbzBL9Ms9YkkB_M8xnMepCSQ7zT3wXHTJXiM82GojntZy25bddXiQBp3QjxCrCEldNb6_g/exec";
+  let html5QrCode, filaDestacada = null;
 
-    // Función para formatear fecha dd/mm/yyyy
-    function formatearFecha(valor) {
-      if (!valor) return "";
-      const fecha = new Date(valor);
-      if (isNaN(fecha)) return valor;
-      return fecha.toLocaleDateString("es-MX", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric"
-      });
-    }
-
-    // Función para formatear hora hh:mm
-    // Función para formatear hora hh:mm (FRONTEND)
-    function formatearHora(valor) {
-      if (!valor) return "";
-
-      // Si ya está en formato hh:mm, devolverlo tal cual
-      if (typeof valor === 'string' && /^\d{2}:\d{2}$/.test(valor)) {
-        return valor;
-      }
-
-      // Si es un objeto Date o timestamp
-      const fecha = new Date(valor);
-      if (!isNaN(fecha)) {
-        return fecha.toLocaleTimeString("es-MX", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false // Formato 24 horas
-        });
-      }
-
-      // Si es string con formato "8:42:52 p.m."
-      if (typeof valor === 'string') {
-        try {
-          if (valor.includes('p.m.') || valor.includes('a.m.')) {
-            const [horaPart] = valor.split(' ');
-            const [horas, minutos] = horaPart.split(':');
-
-            let horas24 = parseInt(horas);
-            if (valor.includes('p.m.') && horas24 < 12) {
-              horas24 += 12;
-            } else if (valor.includes('a.m.') && horas24 === 12) {
-              horas24 = 0;
-            }
-
-            return horas24.toString().padStart(2, '0') + ':' + minutos.padStart(2, '0');
-          }
-        } catch (e) {
-          console.warn("Error formateando hora:", valor, e);
-        }
-      }
-
-      return valor; // Devolver original si no se puede formatear
-    }
-
-    // Función para filtrar la tabla
-    function filtrarTabla() {
-      const input = document.getElementById("busqueda").value.toLowerCase();
-      const filas = document.querySelectorAll("#tabla-pacientes tr");
-
-      for (let i = 0; i < filas.length; i++) {
-        const celdas = filas[i].getElementsByTagName("td");
-        let coincide = false;
-
-        for (let j = 0; j < celdas.length; j++) {
-          if (celdas[j] && celdas[j].textContent && celdas[j].textContent.toLowerCase().includes(input)) {
-            coincide = true;
-            break;
-          }
-        }
-
-        filas[i].style.display = coincide ? "" : "none";
-      }
-    }
-
-    // 📋 Carga registros desde Google Sheets - VERSIÓN SIMPLIFICADA
-    function cargarTabla() {
-      console.log("Cargando tabla desde:", URL_API);
-
-      fetch(URL_API + '?action=get')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Error en la respuesta del servidor: ' + response.status);
-          }
-          return response.json();
-        })
-        .then(registros => {
-          console.log("Registros recibidos:", registros);
-          const cuerpo = document.getElementById("tabla-pacientes");
-          cuerpo.innerHTML = "";
-
-          if (!registros || registros.length === 0) {
-            cuerpo.innerHTML = "<tr><td colspan='16' style='text-align:center'>No hay registros disponibles.</td></tr>";
-            return;
-          }
-
-          // Mostrar registros
-          registros.forEach(reg => {
-            const fila = document.createElement("tr");
-
-            const valores = [
-              reg.folio || reg.FOLIO || "",
-              formatearFecha(reg.fecha || reg.FECHA || ""),
-              formatearHora(reg.hora || reg.HORA || ""),
-              reg.curp || reg.CURP || "",
-              reg.paterno || reg.PATERNO || "",
-              reg.materno || reg.MATERNO || "",
-              reg.nombres || reg.NOMBRES || reg["NOMBRE(S)"] || "",
-              formatearFecha(reg.fecha_nacimiento || reg.fechaNacimiento || reg["FECHA DE NACIMIENTO"] || ""),
-              reg.sexo || reg.SEXO || "",
-              reg.entidad || reg.ENTIDAD || "",
-              reg.motivo || reg.MOTIVO || "",
-              reg.edad || reg.EDAD || "",
-              reg.cajera || reg.CAJERA || "",
-              reg.referencia || reg.REFERENCIA || reg["NUMERO DE REFERENCIA"] || "",
-              reg.observaciones || reg.OBSERVACIONES || ""
-            ];
-
-            valores.forEach(valor => {
-              const celda = document.createElement("td");
-              celda.textContent = valor;
-              celda.style.color = "#0f0"; // Forzar color verde
-              fila.appendChild(celda);
-            });
-
-            cuerpo.appendChild(fila);
-          });
-        })
-        .catch(err => {
-          console.error("Error al cargar registros:", err);
-          const cuerpo = document.getElementById("tabla-pacientes");
-          cuerpo.innerHTML = "<tr><td colspan='16' style='text-align:center; color: #f00;'>Error al cargar registros. Verifica la conexión.</td></tr>";
-        });
-    }
-
-    // Función para enviar datos al servidor - VERSIÓN SIMPLIFICADA
-    function enviarDatos(datos) {
-      return new Promise((resolve, reject) => {
-        const formData = new URLSearchParams();
-        for (const key in datos) {
-          formData.append(key, datos[key]);
-        }
-
-        fetch(URL_API, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: formData
-        })
-          .then(response => response.json())
-          .then(data => {
-            if (data && data.success) {
-              resolve(data);
-            } else {
-              reject(data && data.error ? data.error : 'Error desconocido');
-            }
-          })
-          .catch(error => {
-            reject('Error de conexión: ' + error.message);
-          });
-      });
-    }
-
-    // Inicialización cuando carga la página
-    window.addEventListener("load", () => {
-      const loader = document.getElementById('loader-pagina');
-      setTimeout(() => {
-        loader.style.transition = 'opacity 0.5s ease';
-        loader.style.opacity = 0;
-        setTimeout(() => loader.style.display = 'none', 500);
-        cargarTabla();
-      }, 2000);
-
-      // Configurar evento de búsqueda
-      document.getElementById("busqueda").addEventListener("keyup", filtrarTabla);
-
-      // Configurar botón de actualización
-      document.getElementById("btnRefresh").addEventListener("click", cargarTabla);
+  // ===== 📅 FORMATO DE FECHAS Y HORAS =====
+  function formatearFecha(valor) {
+    if (!valor) return "";
+    const fecha = new Date(valor);
+    if (isNaN(fecha)) return valor;
+    return fecha.toLocaleDateString("es-MX", {
+      day: "2-digit", month: "2-digit", year: "numeric"
     });
+  }
 
-    // Manejo de botones de escaneo
-    const btnStart = document.getElementById('btnStart');
-    const btnStop = document.getElementById('btnStop');
-    const status = document.getElementById('status');
-    const reader = document.getElementById('reader');
+  function formatearHora(valor) {
+    if (!valor) return "";
 
-    btnStart.addEventListener('click', () => {
-      // Validar formulario
-      const motivo = document.getElementById('motivo').value;
-      const cajera = document.getElementById('cajera').value;
-      const referencia = document.getElementById('referencia').value;
+    // Si ya está en formato hh:mm
+    if (typeof valor === 'string' && /^\d{2}:\d{2}$/.test(valor)) return valor;
 
-      if (!motivo || !cajera || !referencia) {
-        status.innerHTML = "<span style='color: #f00;'>✗ COMPLETA TODOS LOS CAMPOS OBLIGATORIOS ✗</span>";
-        return;
-      }
+    // Si es un objeto Date o timestamp
+    const fecha = new Date(valor);
+    if (!isNaN(fecha)) {
+      return fecha.toLocaleTimeString("es-MX", {
+        hour: "2-digit", minute: "2-digit", hour12: false
+      });
+    }
 
+    // Si es string con "8:42:52 p.m."
+    if (typeof valor === 'string') {
       try {
-        html5QrCode = new Html5Qrcode("reader");
-        btnStart.disabled = true;
-        btnStop.disabled = false;
-        status.textContent = "» INICIANDO CÁMARA... «";
-        reader.classList.add('scanning');
+        if (valor.includes('p.m.') || valor.includes('a.m.')) {
+          const [horaPart] = valor.split(' ');
+          const [horas, minutos] = horaPart.split(':');
+          let horas24 = parseInt(horas);
+          if (valor.includes('p.m.') && horas24 < 12) horas24 += 12;
+          if (valor.includes('a.m.') && horas24 === 12) horas24 = 0;
+          return horas24.toString().padStart(2, '0') + ':' + minutos.padStart(2, '0');
+        }
+      } catch (e) { console.warn("Error formateando hora:", valor, e); }
+    }
+    return valor;
+  }
 
-        html5QrCode.start(
-          { facingMode: "environment" },
-          { fps: 10, qrbox: 250 },
-          (decodedText) => {
-            const datosEnvio = {
-              curp: decodedText.trim(),
-              motivo: document.getElementById('motivo').value,
-              cajera: document.getElementById('cajera').value,
-              referencia: document.getElementById('referencia').value,
-              observaciones: document.getElementById('observaciones').value,
-              action: "insert"
-            };
+  // ===== 🔍 FILTRO DE TABLA =====
+  function filtrarTabla() {
+    const input = document.getElementById("busqueda").value.toLowerCase();
+    const filas = document.querySelectorAll("#tabla-pacientes tr");
 
-            // Enviar datos
-            enviarDatos(datosEnvio)
-              .then(response => {
-                status.innerHTML = "<span style='color: #0f0;'>✓ REGISTRO EXITOSO: " + response.folio + "</span>";
+    filas.forEach(fila => {
+      const coincide = [...fila.getElementsByTagName("td")]
+        .some(td => td.textContent.toLowerCase().includes(input));
+      fila.style.display = coincide ? "" : "none";
+    });
+  }
 
-                // Limpiar formulario
-                document.getElementById('motivo').value = '';
-                document.getElementById('referencia').value = '';
-                document.getElementById('observaciones').value = '';
+  // ===== 📋 CARGAR REGISTROS DESDE GOOGLE SHEETS =====
+  function cargarTabla() {
+    console.log("Cargando tabla desde:", URL_API);
+    const cuerpo = document.getElementById("tabla-pacientes");
+    cuerpo.innerHTML = "<tr><td colspan='16' style='text-align:center'>Cargando...</td></tr>";
 
-                // Recargar tabla
-                setTimeout(cargarTabla, 1000);
-              })
-              .catch(err => {
-                status.innerHTML = "<span style='color: #f00;'>✗ ERROR: " + err + "</span>";
-              });
+    fetch(URL_API + '?action=get')
+      .then(r => r.ok ? r.json() : Promise.reject(r.status))
+      .then(registros => {
+        cuerpo.innerHTML = "";
 
-            html5QrCode.stop().then(() => {
-              btnStart.disabled = false;
-              btnStop.disabled = true;
-              reader.classList.remove('scanning');
-            });
-          },
-          (errorMessage) => {
-            // Ignorar mensajes de error mientras se escanea
-          }
-        ).catch(err => {
-          console.error(err);
-          status.innerHTML = "<span style='color: #f00;'>✗ ERROR AL INICIAR CÁMARA ✗</span>";
-          btnStart.disabled = false;
-          btnStop.disabled = true;
-          reader.classList.remove('scanning');
+        if (!registros || registros.length === 0) {
+          cuerpo.innerHTML = "<tr><td colspan='16' style='text-align:center'>No hay registros disponibles.</td></tr>";
+          return;
+        }
+
+        registros.forEach(reg => {
+          const fila = document.createElement("tr");
+          const valores = [
+            reg.folio || reg.FOLIO || "",
+            formatearFecha(reg.fecha || reg.FECHA),
+            formatearHora(reg.hora || reg.HORA),
+            reg.curp || reg.CURP || "",
+            reg.paterno || reg.PATERNO || "",
+            reg.materno || reg.MATERNO || "",
+            reg.nombres || reg.NOMBRES || reg["NOMBRE(S)"] || "",
+            formatearFecha(reg.fecha_nacimiento || reg["FECHA DE NACIMIENTO"]),
+            reg.sexo || reg.SEXO || "",
+            reg.entidad || reg.ENTIDAD || "",
+            reg.motivo || reg.MOTIVO || "",
+            reg.edad || reg.EDAD || "",
+            reg.cajera || reg.CAJERA || "",
+            reg.referencia || reg["NUMERO DE REFERENCIA"] || "",
+            reg.observaciones || reg.OBSERVACIONES || ""
+          ];
+
+          valores.forEach(valor => {
+            const celda = document.createElement("td");
+            celda.textContent = valor;
+            celda.style.color = "#0f0";
+            fila.appendChild(celda);
+          });
+          cuerpo.appendChild(fila);
         });
-      } catch (err) {
+      })
+      .catch(err => {
+        console.error("Error al cargar registros:", err);
+        cuerpo.innerHTML = "<tr><td colspan='16' style='text-align:center; color:#f00;'>Error al cargar registros.</td></tr>";
+      });
+  }
+
+  // ===== 📤 ENVIAR DATOS =====
+  function enviarDatos(datos) {
+    const formData = new URLSearchParams();
+    for (const key in datos) formData.append(key, datos[key]);
+
+    return fetch(URL_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData
+    })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) return data;
+        throw new Error(data.error || "Error desconocido");
+      });
+  }
+
+  // ===== 📸 ESCANEO QR =====
+  const btnStart = document.getElementById('btnStart');
+  const btnStop = document.getElementById('btnStop');
+  const status = document.getElementById('status');
+  const reader = document.getElementById('reader');
+
+  btnStart.addEventListener('click', () => {
+    const motivo = document.getElementById('motivo').value;
+    const cajera = document.getElementById('cajera').value;
+    const referencia = document.getElementById('referencia').value;
+
+    if (!motivo || !cajera || !referencia) {
+      status.innerHTML = "<span style='color:#f00;'>✗ COMPLETA TODOS LOS CAMPOS ✗</span>";
+      return;
+    }
+
+    try {
+      html5QrCode = new Html5Qrcode("reader");
+      btnStart.disabled = true;
+      btnStop.disabled = false;
+      status.textContent = "» INICIANDO CÁMARA... «";
+      reader.classList.add('scanning');
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 250 },
+        (decodedText) => {
+          const datosEnvio = {
+            curp: decodedText.trim(),
+            motivo, cajera, referencia,
+            observaciones: document.getElementById('observaciones').value,
+            action: "insert"
+          };
+
+          enviarDatos(datosEnvio)
+            .then(response => {
+              status.innerHTML = `<span style='color:#0f0;'>✓ REGISTRO EXITOSO: ${response.folio}</span>`;
+              document.getElementById('motivo').value = '';
+              document.getElementById('referencia').value = '';
+              document.getElementById('observaciones').value = '';
+              setTimeout(cargarTabla, 1000);
+            })
+            .catch(err => {
+              status.innerHTML = `<span style='color:#f00;'>✗ ERROR: ${err}</span>`;
+            })
+            .finally(() => {
+              html5QrCode.stop().then(() => {
+                btnStart.disabled = false;
+                btnStop.disabled = true;
+                reader.classList.remove('scanning');
+              });
+            });
+        }
+      ).catch(err => {
         console.error(err);
-        status.innerHTML = "<span style='color: #f00;'>ERROR: NO SE CARGÓ HTML5QRCODE</span>";
+        status.innerHTML = "<span style='color:#f00;'>✗ ERROR AL INICIAR CÁMARA ✗</span>";
+      });
+    } catch (err) {
+      console.error(err);
+      status.innerHTML = "<span style='color:#f00;'>ERROR: NO SE CARGÓ HTML5QRCODE</span>";
+    }
+  });
+
+  btnStop.addEventListener('click', () => {
+    if (html5QrCode?.isScanning) {
+      html5QrCode.stop().then(() => {
+        status.textContent = "» ESCANEO DETENIDO «";
         btnStart.disabled = false;
         btnStop.disabled = true;
         reader.classList.remove('scanning');
-      }
-    });
-
-    btnStop.addEventListener('click', () => {
-      if (html5QrCode && html5QrCode.isScanning) {
-        html5QrCode.stop().then(() => {
-          status.textContent = "» ESCANEO DETENIDO «";
-          btnStart.disabled = false;
-          btnStop.disabled = true;
-          reader.classList.remove('scanning');
-        }).catch(err => {
-          console.error(err);
-          status.textContent = "» ERROR AL DETENER ESCANEO «";
-          btnStart.disabled = false;
-          btnStop.disabled = true;
-          reader.classList.remove('scanning');
-        });
-      }
-    });
-  </script>
-  <script>
-    // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
-    function verificarAutenticacion() {
-      const usuario = localStorage.getItem('usuario');
-      const rol = localStorage.getItem('rol');
-      const loginTime = localStorage.getItem('loginTime');
-
-      if (!usuario || !rol || !loginTime) {
-        console.log('❌ No hay sesión activa');
-        window.location.href = 'index.html';
-        return;
-      }
-
-      // Verificar expiración (24 horas)
-      const ahora = new Date().getTime();
-      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
-
-      if (horasTranscurridas > 24) {
-        console.log('⏰ Sesión expirada');
-        localStorage.clear();
-        window.location.href = 'index.html';
-        return;
-      }
-
-      console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
-
-      // Mostrar en el header
-      const userElement = document.getElementById('user-info');
-      if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-      }
-    }
-
-    // Cerrar sesión
-    function cerrarSesion() {
-      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        localStorage.clear();
-
-        // ✅ Ajusta la ruta de redirección al LOGIN REAL
-        // Si el login está en la raíz del proyecto:
-        window.location.href = '/estadisticas/login.html';
-        // o, si estás dentro de una subcarpeta (por ejemplo, /panel/):
-        // window.location.href = '../login.html';
-      }
-    }
-
-    // Verificar al cargar la página
-    window.addEventListener('load', verificarAutenticacion);
-
-    // Hacer función global
-    window.cerrarSesion = cerrarSesion;
-
-    function verificarAutenticacion() {
-      const usuario = localStorage.getItem('usuario');
-      const rol = localStorage.getItem('rol');
-      const loginTime = localStorage.getItem('loginTime');
-
-      // ✅ Si no hay sesión activa, manda al login sin parpadeo
-      if (!usuario || !rol || !loginTime) {
-        console.warn('❌ No hay sesión activa');
-        window.location.replace('/login.html');
-        return;
-      }
-
-      // Verificar expiración (24 horas)
-      const ahora = Date.now();
-      const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
-
-      if (horasTranscurridas > 24) {
-        console.warn('⏰ Sesión expirada');
-        localStorage.clear();
-        window.location.replace('estadisticas/login.html');
-        return;
-      }
-
-      console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
-
-      const userElement = document.getElementById('user-info');
-      if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-      }
-    }
-
-  </script>
-  <script>
-    fetch('/estadisticas/comun/header.html')
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById('header').innerHTML = html;
-
-        // Cargar sesión.js después de insertar el HTML
-        const s = document.createElement('script');
-        s.src = '/estadisticas/comun/sesion_bk.js';
-
-        s.onload = () => {
-          console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
-          verificarAutenticacion();
-        };
-
-        document.body.appendChild(s);
       });
+    }
+  });
 
-    fetch('/estadisticas/comun/footer.html')
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById('footer').innerHTML = html;
+  // ===== 👤 SESIÓN =====
+  function verificarAutenticacion() {
+    const usuario = localStorage.getItem('usuario');
+    const rol = localStorage.getItem('rol');
+    const loginTime = localStorage.getItem('loginTime');
 
-        // Ya existe footerText
-        const footer = document.getElementById('footerText');
-        if (footer) {
-          footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-        }
-      });
-  </script>
+    if (!usuario || !rol || !loginTime) {
+      console.warn('❌ No hay sesión activa');
+      window.location.replace('/login.html');
+      return;
+    }
+
+    const ahora = Date.now();
+    const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+    if (horasTranscurridas > 24) {
+      console.warn('⏰ Sesión expirada');
+      localStorage.clear();
+      window.location.replace('/estadisticas/login.html');
+      return;
+    }
+
+    console.log(`✅ Sesión activa: ${usuario} (${rol})`);
+    const userElement = document.getElementById('user-info');
+    if (userElement) userElement.innerHTML = `${usuario} (${rol})`;
+  }
+
+  function cerrarSesion() {
+    if (confirm('¿Cerrar sesión?')) {
+      localStorage.clear();
+      window.location.replace('/estadisticas/login.html');
+    }
+  }
+  window.cerrarSesion = cerrarSesion;
+
+  // ===== ⚙️ EVENTOS DE INICIO =====
+  window.addEventListener("load", () => {
+    verificarAutenticacion();
+    cargarTabla();
+
+    document.getElementById("busqueda").addEventListener("keyup", filtrarTabla);
+    document.getElementById("btnRefresh").addEventListener("click", cargarTabla);
+  });
+
+  // ===== 🧩 CARGA HEADER Y FOOTER =====
+  fetch('/estadisticas/comun/header.html')
+    .then(r => r.text())
+    .then(html => { document.getElementById('header').innerHTML = html; });
+
+  fetch('/estadisticas/comun/footer.html')
+    .then(r => r.text())
+    .then(html => {
+      document.getElementById('footer').innerHTML = html;
+      const footer = document.getElementById('footerText');
+      if (footer) footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+    });
+</script>
+
 </body>
 
 </html>
