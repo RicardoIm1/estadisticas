@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas y Archivo Clínico</title>
+    <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
+</head>
+<style>
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(10px);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, .15);
+        transition: transform .2s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-4px);
+    }
+
+    .card h4 {
+        margin: 0 0 6px;
+        font-size: 14px;
+        letter-spacing: .5px;
+    }
+
+    .card small {
+        opacity: .8;
+        font-size: 12px;
+    }
+</style>
+
+<body>
+    <div class="glass" id="dashboard">
+        <h5>SIMAH</h5>
+        <div id="header"></div>
+        <div class="grid">
+            <div id="cards" class="cards-grid"></div>
+
+            <div class="paginacion">
+                <button onclick="cambiarPagina(-1)">←</button>
+                <span id="paginaActual"></span>
+                <button onclick="cambiarPagina(1)">→</button>
+            </div>
+
+        </div>
+        <div id="footer"></div>
+    </div>
+    <script>
+        fetch('/estadisticas/comun/header.html')
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById('header').innerHTML = html;
+
+                // Cargar sesión.js después de insertar el HTML
+                const s = document.createElement('script');
+                s.src = '/estadisticas/comun/sesion_bk.js';
+
+                s.onload = () => {
+                    console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
+                    verificarAutenticacion();
+                };
+
+                document.body.appendChild(s);
+            });
+
+        fetch('/estadisticas/comun/footer.html')
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById('footer').innerHTML = html;
+
+                // Ya existe footerText
+                const footer = document.getElementById('footerText');
+                if (footer) {
+                    footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+                }
+            });
+    </script>
+    <script src="/estadisticas/comun/estadoSistema.js"></script>
+    <script src="/estadisticas/comun/sesion_bk.js"></script>
+</body>
+
+</html>
