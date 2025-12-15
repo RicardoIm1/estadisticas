@@ -56,39 +56,15 @@
         width: 60%;
         /*     padding: 0.5rem; */
     }
-
-    .input-busqueda {
-        /* padding: 6px 10px;
-    font-size: 12px; */
-        width: 100%;
-        padding: 10px 16px;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 8px;
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        font-size: 14px;
-        transition: all 0.3s ease;
-    }
-
-    .input-busqueda:focus {
-        outline: none;
-        border-color: rgba(255, 255, 255, 0.4);
-        background: rgba(255, 255, 255, 0.15);
-    }
-
-    .input-busqueda::placeholder {
-        color: rgba(255, 255, 255, 0.6);
-    }
 </style>
 
 <body>
     <div class="glass" id="dashboard">
-        <h5>REGISTROS RESCATADOS DE SIMAH</h5>
+        <h5>REGISTROS RESCATADOS  DE SIMAH</h5>
         <div id="headerb"></div>
         <div class="grid">
             <div id="cards" class="cards-grid"></div>
 
-            <span id="paginaActual"></span>
             <div class="paginacion">
                 <button onclick="cambiarPagina(-1)">←</button>
                 <span id="paginaActual"></span>
@@ -99,18 +75,13 @@
         <div id="footer"></div>
     </div>
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbyi9y3JE6BaDmwR6PNdJM8vEP8NgpD8oZWJSrgI6J1NqoXDAYpkXmV9FhBLS9u-OI-9/exec';
-
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
         let page = 1;
-        let query = "";
-        let timer = null;
 
         async function cargar() {
             try {
-                const url = `${API_URL}?page=${page}&q=${encodeURIComponent(query)}`;
-                const res = await fetch(url);
+                const res = await fetch(`${API_URL}?page=${page}`);
                 const data = await res.json();
-
                 render(data);
 
                 document.getElementById("paginaActual").innerText =
@@ -130,15 +101,10 @@
             const cont = document.getElementById("cards");
             cont.innerHTML = "";
 
-            if (!data.rows || !data.rows.length) {
-                cont.innerHTML = `<em>No se encontraron resultados</em>`;
-                return;
-            }
-
             data.rows.forEach(r => {
                 cont.innerHTML += `
         <div class="card">
-          <strong>${r.nombre}</strong><br>
+          <span>${r.nombre}</span><br>
           <small>Expediente: ${r.expediente}</small><br>
           <small>${r.servicio}</small><br>
           <small>${r.fecha}</small>
@@ -147,27 +113,32 @@
             });
         }
 
-        // 🔍 búsqueda con debounce
-        document.addEventListener("DOMContentLoaded", () => {
-            const input = document.getElementById("buscador");
+        window.addEventListener("load", cargar);
 
-            input.addEventListener("input", e => {
-                clearTimeout(timer);
-                timer = setTimeout(() => {
-                    query = e.target.value.trim();
-                    page = 1;
-                    cargar();
-                }, 300);
-            });
-
-            cargar();
-        });
+        // ---------------------- Formatear fecha y hora ----------------------
+        function formatearFecha(fechaISO) {
+            if (!fechaISO) return "";
+            const d = new Date(fechaISO);
+            if (isNaN(d)) return fechaISO;
+            const dia = String(d.getDate()).padStart(2, '0');
+            const mes = String(d.getMonth() + 1).padStart(2, '0');
+            const anio = d.getFullYear();
+            return `${dia}/${mes}/${anio}`;
+        }
+        function formatearHora(valor) {
+            if (!valor) return "";
+            const d = new Date(valor);
+            if (!isNaN(d)) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            if (/^\d{1,2}:\d{2}$/.test(valor)) return valor;
+            return "";
+        }
     </script>
+
     <script>
-        fetch('/estadisticas/comun/header.html')
+        fetch('/estadisticas/comun/headerb.html')
             .then(r => r.text())
             .then(html => {
-                document.getElementById('header').innerHTML = html;
+                document.getElementById('headerb').innerHTML = html;
 
                 // Cargar sesión.js después de insertar el HTML
                 const s = document.createElement('script');
