@@ -105,13 +105,18 @@
         let timer = null;
 
         async function cargar() {
-            const url = `${API_URL}?page=${page}&q=${encodeURIComponent(query)}`;
-            const res = await fetch(url);
-            const data = await res.json();
-            render(data);
+            try {
+                const url = `${API_URL}?page=${page}&q=${encodeURIComponent(query)}`;
+                const res = await fetch(url);
+                const data = await res.json();
 
-            document.getElementById("paginaActual").innerText =
-                `Página ${data.page} de ${Math.ceil(data.total / data.pageSize)}`;
+                render(data);
+
+                document.getElementById("paginaActual").innerText =
+                    `Página ${data.page} de ${Math.ceil(data.total / data.pageSize)}`;
+            } catch (e) {
+                console.error("Error cargando datos:", e);
+            }
         }
 
         function cambiarPagina(delta) {
@@ -124,7 +129,7 @@
             const cont = document.getElementById("cards");
             cont.innerHTML = "";
 
-            if (!data.rows.length) {
+            if (!data.rows || !data.rows.length) {
                 cont.innerHTML = `<em>No se encontraron resultados</em>`;
                 return;
             }
@@ -132,16 +137,16 @@
             data.rows.forEach(r => {
                 cont.innerHTML += `
         <div class="card">
-          <span>${r.nombre}</span><br>
-          <frecuencia>Expediente: ${r.expediente}</frecuencia><br>
-          <frecuencia>${r.servicio}</frecuencia><br>
-          <frecuencia>${r.fecha}</frecuencia>
+          <strong>${r.nombre}</strong><br>
+          <small>Expediente: ${r.expediente}</small><br>
+          <small>${r.servicio}</small><br>
+          <small>${r.fecha}</small>
         </div>
       `;
             });
         }
 
-        // 🔍 Búsqueda en tiempo real con debounce
+        // 🔍 búsqueda con debounce
         document.addEventListener("DOMContentLoaded", () => {
             const input = document.getElementById("buscador");
 
@@ -151,13 +156,12 @@
                     query = e.target.value.trim();
                     page = 1;
                     cargar();
-                }, 300); // ← dulce spot
+                }, 300);
             });
 
             cargar();
         });
     </script>
-
     <script>
         fetch('/estadisticas/comun/header.html')
             .then(r => r.text())
