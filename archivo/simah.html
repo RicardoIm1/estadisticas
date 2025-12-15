@@ -99,19 +99,19 @@
     </div>
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
+
         let page = 1;
+        let query = "";
+        let timer = null;
 
         async function cargar() {
-            try {
-                const res = await fetch(`${API_URL}?page=${page}`);
-                const data = await res.json();
-                render(data);
+            const url = `${API_URL}?page=${page}&q=${encodeURIComponent(query)}`;
+            const res = await fetch(url);
+            const data = await res.json();
+            render(data);
 
-                document.getElementById("paginaActual").innerText =
-                    `Página ${data.page} de ${Math.ceil(data.total / data.pageSize)}`;
-            } catch (e) {
-                console.error("Error cargando datos:", e);
-            }
+            document.getElementById("paginaActual").innerText =
+                `Página ${data.page} de ${Math.ceil(data.total / data.pageSize)}`;
         }
 
         function cambiarPagina(delta) {
@@ -124,10 +124,15 @@
             const cont = document.getElementById("cards");
             cont.innerHTML = "";
 
+            if (!data.rows.length) {
+                cont.innerHTML = `<em>No se encontraron resultados</em>`;
+                return;
+            }
+
             data.rows.forEach(r => {
                 cont.innerHTML += `
         <div class="card">
-          <span>${r.nombre}</span><br>
+          <strong>${r.nombre}</strong><br>
           <small>Expediente: ${r.expediente}</small><br>
           <small>${r.servicio}</small><br>
           <small>${r.fecha}</small>
@@ -136,6 +141,23 @@
             });
         }
 
+        // 🔍 Búsqueda en tiempo real con debounce
+        document.addEventListener("DOMContentLoaded", () => {
+            const input = document.getElementById("buscador");
+
+            input.addEventListener("input", e => {
+                clearTimeout(timer);
+                timer = setTimeout(() => {
+                    query = e.target.value.trim();
+                    page = 1;
+                    cargar();
+                }, 300); // ← dulce spot
+            });
+
+            cargar();
+        });
+    </script>
+    <script>
         window.addEventListener("load", cargar);
         function obtenerRegistros(page, q) {
             const sh = SpreadsheetApp.openById(SHEET_ID).getSheetByName(SHEET_NAME);
