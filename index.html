@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,200 +10,23 @@
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
 </head>
-
 <body>
   <div class="glass" id="dashboard">
-    <h5>ESTADÍSTICAS</h5>
+    <h5>Base</h5>
     <div id="header"></div>
     <div class="grid">
-      <a href="/estadisticas/capacitacion/" style="text-decoration: none; color: inherit;" target="_self">
-        <div class="celda">
-          <h3><i class="fa-solid fa-solid fa-graduation-cap"></i> Capacitación</h3>
-          <p>Formatos y Presentaciones</p>
-        </div>
-      </a>
-      <a href="/estadisticas/censo/" style="text-decoration: none; color: inherit;" target="_self">
-        <div class="celda">
-          <h3><i class="fa-solid fa-book-open"></i> Censo</h3>
-          <p>Ocupación por servicio</p>
-        </div>
-      </a>
-      <a href="/estadisticas/defunciones/" style="text-decoration: none; color: inherit;" target="_self">
-        <div class="celda">
-          <h3><i class="fa-solid fa-cross"></i> Defunciones</h3>
-          <p>Defunciones Generales</p>
-        </div>
-      </a>
-<!--       <a href="/estadisticas/defunciones/" style="text-decoration: none; color: inherit;" target="_self">
-        <div class="celda">
-          <h3><i class="fa-solid fa-person-breastfeeding"></i> Nacimientos</h3>
-          <p>Nacimientos</p>
-        </div>
-      </a> -->
-      <a href="/estadisticas/archivo/h_faltantes.html"
-        target="_self" style="text-decoration: none; color: inherit;" target="_self">
-        <div class="celda">
-          <h3><i class="fa-solid fa-file-lines"></i> Hojas Faltantes</h3>
-          <p>Hojas de Egresos incompletas o mal llenadas</p>
-        </div>
-      </a>
-<!--       <a href="/estadisticas/caja/" style="text-decoration: none; color: inherit;" target="_self">
-        <div class="celda">
-          <h3><i class="fa-solid fa-door-open"></i> Pacientes Registrados</h3>
-          <p>Acceso por Urgencias</p>
-        </div>
-      </a> -->
-<!--       <a href="/estadisticas/control/reporte.html" style="text-decoration: none; color: inherit;" target="_self">
-        <div class="celda">
-          <h3><i class="fa-solid fa-gears"></i> Reporte de actividades</h3>
-          <p>Informe de avances para Gantt</p>
-        </div>
-      </a> -->
+      <div class="glass grid">
+        <a href="/estadisticas/est/" style="text-decoration: none; color: inherit;" target="_self">
+          <div class="celda">
+            <h3><i class="fa-solid fa-solid fa-graduation-cap"></i> Estadísticas</h3>
+            <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit.</p>
+          </div>
+        </a>
+
+      </div>
     </div>
     <div id="footer"></div>
   </div>
-  <script>
-    const INFORMES = [
-      "SINBA BD EGRESOS", "SINBA BD URGENCIAS", "SINBA BD LESIONES", "SINBA BD NACIMIENTOS",
-      "SINBA BD DEFUNCIONES", "SINBA GERENCIAL", "RESUMEN DEFUNCIONES",
-      "CONCENTRADO GENERAL DEL CENSO", "CORTA ESTANCIA", "PRINCIPALES CAUSAS DE EGRESO",
-      "EXPEDIENTES CLINICOS NUEVOS", "LABORATORIO", "TAMIZ NEONATAL", "CAPACITACIONES DE ENFERMERIA",
-      "VACUNAS", "CARTILLAS DE SALUD", "REHABILITACION", "EPIDEMIOLOGIA", "TRABAJO SOCIAL",
-      "SERVICIO DE AMBULANCIAS"
-    ];
-
-    const LLAVE = "informes_matriz_v2";
-
-    function obtenerDatos() {
-      return JSON.parse(localStorage.getItem(LLAVE)) || { meses: {} };
-    }
-
-    function guardarDatos(obj) {
-      localStorage.setItem(LLAVE, JSON.stringify(obj));
-    }
-
-    function generarMesesAñoActual() {
-      const y = new Date().getFullYear();
-      const m = [];
-      for (let i = 1; i <= 12; i++) {
-        m.push(`${y}-${String(i).padStart(2, "0")}`);
-      }
-      return m;
-    }
-
-    function generarMatrizAuto() {
-      const meses = generarMesesAñoActual();
-      const matriz = document.getElementById("matriz");
-      matriz.innerHTML = "";
-
-      matriz.style.gridTemplateColumns = `auto repeat(${meses.length}, auto)`;
-
-      const datos = obtenerDatos();
-
-      // TITULOS
-      matriz.appendChild(crearCeldaTitulo("Informes"));
-      meses.forEach(m => matriz.appendChild(crearCeldaTitulo(m)));
-
-      // FILAS
-      INFORMES.forEach(informe => {
-        matriz.appendChild(crearCeldaFija(informe));
-
-        meses.forEach(mes => {
-          if (!datos.meses[mes]) datos.meses[mes] = {};
-          if (!datos.meses[mes][informe]) {
-            datos.meses[mes][informe] = { ruta: "", completo: false };
-          }
-
-          matriz.appendChild(crearCeldaEditable(mes, informe, datos));
-        });
-      });
-
-      guardarDatos(datos);
-    }
-
-    function crearCeldaTitulo(texto) {
-      const d = document.createElement("div");
-      d.className = "celda col-titulo";
-      d.textContent = texto;
-      return d;
-    }
-
-    function crearCeldaFija(texto) {
-      const d = document.createElement("div");
-      d.className = "celda celda-fija";
-      d.textContent = texto;
-      return d;
-    }
-
-    function crearCeldaEditable(mes, informe, datos) {
-      const d = document.createElement("div");
-      d.className = "celda";
-
-      const reg = datos.meses[mes][informe];
-
-      const box = document.createElement("div");
-      box.className = "card-informe";
-      if (reg.ruta) box.classList.add("activo");
-
-      const chk = document.createElement("input");
-      chk.type = "checkbox";
-      chk.checked = reg.completo;
-
-      const inp = document.createElement("input");
-      inp.type = "text";
-      inp.value = reg.ruta;
-      inp.placeholder = "Evidencia";
-      inp.className = "input-evidencia";
-
-      // Color persistente al cargar
-      if (reg.ruta) d.classList.add("celda-llena");
-
-
-      // --- ÚNICO LISTENER PARA inp ---
-      inp.addEventListener("input", () => {
-        reg.ruta = inp.value.trim();
-        reg.completo = reg.ruta !== "";
-        chk.checked = reg.completo;
-        box.classList.toggle("activo", reg.completo);
-
-        d.classList.toggle("celda-llena", reg.completo);
-
-        guardarDatos(datos);
-      });
-
-
-      // --- CLICK EN CELDA COMPLETA ---
-      d.addEventListener("click", (e) => {
-        if (e.target.tagName === "INPUT") return;
-
-        if (reg.ruta && reg.ruta.trim() !== "") {
-          let url = reg.ruta.trim();
-          if (!/^https?:\/\//i.test(url)) url = "https://" + url;
-          window.open(url, "_self");
-        }
-      });
-
-      chk.addEventListener("change", () => {
-        reg.completo = chk.checked;
-        if (!reg.completo) reg.ruta = "";
-
-        inp.value = reg.ruta;
-        box.classList.toggle("activo", reg.completo);
-        d.classList.toggle("celda-llena", reg.completo);
-
-        guardarDatos(datos);
-      });
-
-      // Ensamble
-      box.appendChild(chk);
-      box.appendChild(inp);
-      d.appendChild(box);
-      return d;
-    }
-
-    // GENERACIÓN AUTOMÁTICA AL ABRIR LA PÁGINA
-    window.addEventListener("load", generarMatrizAuto);
-  </script>
   <script>
     fetch('/estadisticas/comun/header.html')
       .then(r => r.text())
@@ -238,5 +60,4 @@
   <script src="/estadisticas/comun/estadoSistema.js"></script>
   <script src="/estadisticas/comun/sesion_bk.js"></script>
 </body>
-
 </html>
