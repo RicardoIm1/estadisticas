@@ -217,10 +217,34 @@
 
             registros.forEach(reg => {
                 const fila =
-                    "<tr>" + headers.map(h => `<td>${reg[h] ?? ""}</td>`).join("") + "</tr>";
+                    "<tr>" +
+                    headers.map(h => {
+                        let valor = reg[h] ?? "";
+
+                        if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
+                            valor = formatearFecha(valor);
+                        }
+
+                        return `<td>${valor}</td>`;
+                    }).join("") +
+                    "</tr>";
+
                 tablaBody.innerHTML += fila;
             });
         }
+        function formatearFecha(valor) {
+            if (!valor) return "";
+
+            const fecha = new Date(valor);
+            if (isNaN(fecha)) return valor;
+
+            const dia = String(fecha.getDate()).padStart(2, "0");
+            const mes = String(fecha.getMonth() + 1).padStart(2, "0");
+            const anio = fecha.getFullYear();
+
+            return `${dia}/${mes}/${anio}`;
+        }
+
     </script>
     <script>
         fetch('/estadisticas/comun/header.html')
