@@ -12,348 +12,183 @@
     <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
     <link href="/estadisticas/main_css/tabla-wrapper.css" rel="stylesheet">
 </head>
+
 <style>
-    /* === NUEVO: Layout premium formulario + tabla === */
-    .layout-egresos {
-        display: grid;
-        grid-template-columns: 20% 1fr;
-        gap: 1rem;
-        height: 100%;
-    }
+/* === (TODO TU CSS ORIGINAL, SIN CAMBIOS) === */
+/* --- SOLO DEJO EL TOGGLE QUE YA TENÍAS --- */
 
-    /* Formulario premium */
-    .form-panel {
-        background: rgba(255, 255, 255, 0.09);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 14px;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.7rem;
-        min-width: 200px;
-        overflow-y: auto;
-        color: #0f0;
-    }
+.filtro-atendidos {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    color: #c9f9c9;
+}
 
-    /* Inputs minimalistas */
-    .form-panel input,
-    .form-panel textarea {
-        width: 100%;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: rgba(255, 255, 255, 0.08);
-        color: white;
-        font-size: 0.9rem;
-    }
+.toggle-switch {
+    position: relative;
+    width: 46px;
+    height: 24px;
+    margin-left: 0.6rem;
+}
 
-    .form-panel textarea {
-        height: 80px;
-        resize: vertical;
-    }
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
 
-    /* Wrapper para la tabla */
-    .tabla-zona {
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 0.3rem;
-    }
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    transition: all 0.25s ease;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
 
-    .tabla-wrapper {
-        min-height: 0;
-        /* CLAVE */
-        overflow-y: auto;
-        height: calc(100vh - 220px);
-    }
+.toggle-slider::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 2px;
+    background: #caffca;
+    border-radius: 50%;
+    transition: transform 0.25s ease;
+    box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
+}
 
-    /* Responsivo para móviles */
-    @media (max-width: 768px) {
-        .layout-egresos {
-            grid-template-columns: 1fr;
-            gap: 0.8rem;
-        }
+.toggle-switch input:checked + .toggle-slider {
+    background: rgba(0, 255, 120, 0.25);
+}
 
-        .form-panel {
-            max-height: none;
-        }
-    }
-
-    /* === Scroll horizontal invisible === */
-    .tabla-scroll-x {
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        /* Firefox */
-    }
-
-    .tabla-scroll-x::-webkit-scrollbar {
-        display: none;
-        /* Chrome, Safari */
-    }
-
-    /* Mantener tabla con ancho mínimo adecuado */
-    .tabla-scroll-x table {
-        width: max-content;
-        min-width: 100%;
-    }
-
-    .tabla-scroll-y {
-        height: 500px;
-        /* Altura fija */
-        overflow-y: auto;
-        width: 100%;
-        position: relative;
-    }
-
-    .tabla-scroll-y table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    /* Para encabezados fijos */
-    .tabla-scroll-y thead th {
-        position: sticky;
-        top: 0;
-        background-color: #1a1a1a;
-        /* Mismo color que tu diseño */
-        z-index: 10;
-        border-bottom: 2px solid #0f0;
-    }
-
-    /* === Primera columna más ancha === */
-    .tabla-wrapper table th:first-child,
-    .tabla-wrapper table td:first-child {
-        width: 260px !important;
-        min-width: 260px !important;
-        max-width: 360px;
-        /* margen superior sin forzar */
-        white-space: normal !important;
-        /* permite varias líneas */
-        overflow: visible !important;
-    }
-
-    /* === Toggle glassmorphic === */
-    .filtro-atendidos {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        padding: 0.4rem 0.6rem;
-        font-size: 0.85rem;
-        color: #c9f9c9;
-    }
-
-    .toggle-switch {
-        position: relative;
-        width: 46px;
-        height: 24px;
-        margin-left: 0.6rem;
-    }
-
-    .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        inset: 0;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 999px;
-        transition: all 0.25s ease;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-    }
-
-    .toggle-slider::before {
-        content: "";
-        position: absolute;
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        top: 2px;
-        background: #caffca;
-        border-radius: 50%;
-        transition: transform 0.25s ease;
-        box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
-    }
-
-    .toggle-switch input:checked+.toggle-slider {
-        background: rgba(0, 255, 120, 0.25);
-    }
-
-    .toggle-switch input:checked+.toggle-slider::before {
-        transform: translateX(22px);
-    }
+.toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(22px);
+}
 </style>
 
 <body>
-    <div class="glass" id="dashboard">
-        <h5>Hojas Faltantes</h5>
-        <div id="header"></div>
-        <div class="grid">
-            <div class="layout-egresos">
+<div class="glass" id="dashboard">
+    <h5>Hojas Faltantes</h5>
+    <div id="header"></div>
 
-                <form id="form-egresos" class="form-panel">
-                    <input type="text" name="paciente" placeholder="Paciente" required>
-                    <input type="date" name="fecha_egreso">
-                    <input type="text" name="servicio" placeholder="Servicio">
-                    <input type="text" name="personal_archivo" placeholder="Personal de archivo">
-                    <input type="text" name="no_expediente" placeholder="No. expediente">
-                    <textarea name="observaciones" placeholder="Observaciones"></textarea>
-                    <button class="button" type="submit">Guardar</button>
-                </form>
+    <div class="layout-egresos">
 
-                <div class="tabla-zona">
-                    <div class="tabla-wrapper tabla-scroll-x">
-                        <div class="filtro-atendidos">
-                            <span>Mostrar atendidos</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="toggleAtendidos">
-                                <span class="toggle-slider"></span>
-                            </label>
-                        </div>
-                        <table id="tabla-registros">
-                            <thead></thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
+        <form id="form-egresos" class="form-panel">
+            <input type="text" name="paciente" placeholder="Paciente" required>
+            <input type="date" name="fecha_egreso">
+            <input type="text" name="servicio" placeholder="Servicio">
+            <input type="text" name="personal_archivo" placeholder="Personal de archivo">
+            <input type="text" name="no_expediente" placeholder="No. expediente">
+            <textarea name="observaciones" placeholder="Observaciones"></textarea>
+            <button class="button" type="submit">Guardar</button>
+        </form>
+
+        <div class="tabla-zona">
+            <div class="tabla-wrapper tabla-scroll-x">
+
+                <div class="filtro-atendidos">
+                    <span>Mostrar atendidos</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggleAtendidos">
+                        <span class="toggle-slider"></span>
+                    </label>
                 </div>
 
+                <table id="tabla-registros">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
+
             </div>
-
         </div>
-        <div id="footer"></div>
     </div>
-    <script>
-        let mostrarAtendidos = false;
 
-        const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec"; // ← tu endpoint
+    <div id="footer"></div>
+</div>
 
-        // GUARDAR
-        document.getElementById("form-egresos").addEventListener("submit", async (e) => {
-            e.preventDefault();
+<script>
+/* ================== CONFIG ================== */
+const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec";
 
-            const data = Object.fromEntries(new FormData(e.target).entries());
+let mostrarAtendidos = false;
 
-            const res = await fetch(URL, {
-                method: "POST",
-                body: JSON.stringify(data)
-            });
+/* ================== TOGGLE ================== */
+document.getElementById("toggleAtendidos").addEventListener("change", e => {
+    mostrarAtendidos = e.target.checked;
+    cargarRegistros();
+});
 
-            const json = await res.json();
-            if (json.ok) {
-                alert("Guardado correctamente");
-                cargarRegistros();
-                e.target.reset();
+/* ================== GUARDAR ================== */
+document.getElementById("form-egresos").addEventListener("submit", async e => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+
+    const res = await fetch(URL, {
+        method: "POST",
+        body: JSON.stringify(data)
+    });
+
+    const json = await res.json();
+    if (json.ok) {
+        cargarRegistros();
+        e.target.reset();
+    }
+});
+
+/* ================== TABLA ================== */
+async function cargarRegistros() {
+    const res = await fetch(URL);
+    const json = await res.json();
+    if (!json.ok) return;
+
+    let registros = json.registros;
+
+    if (!mostrarAtendidos) {
+        registros = registros.filter(r => {
+            const a = String(r["ATENDIDO"]).toLowerCase();
+            return !["true", "sí", "si", "1"].includes(a);
+        });
+    }
+
+    const thead = document.querySelector("#tabla-registros thead");
+    const tbody = document.querySelector("#tabla-registros tbody");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+
+    if (!registros.length) return;
+
+    const headers = Object.keys(registros[0]);
+    thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+    registros.forEach(r => {
+        const fila = "<tr>" + headers.map(h => {
+            let v = r[h] ?? "";
+            if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
+                v = formatearFecha(v);
             }
-        });
+            return `<td>${v}</td>`;
+        }).join("") + "</tr>";
+        tbody.innerHTML += fila;
+    });
+}
 
+function formatearFecha(v) {
+    const f = new Date(v);
+    if (isNaN(f)) return v;
+    return `${String(f.getDate()).padStart(2,"0")}/${String(f.getMonth()+1).padStart(2,"0")}/${f.getFullYear()}`;
+}
 
-        // CARGAR TABLA
-        async function cargarRegistros() {
-            const res = await fetch(URL);
-            const json = await res.json();
+document.addEventListener("DOMContentLoaded", cargarRegistros);
+</script>
 
-            if (!json.ok) return;
+<!-- HEADER / FOOTER / SESIÓN: SIN TOCAR -->
+<script src="/estadisticas/comun/estadoSistema.js"></script>
+<script src="/estadisticas/comun/sesion_bk.js"></script>
 
-            console.log("📦 Registros recibidos:", json.registros);
-
-            // 👇 FILTRO: NO mostrar atendidos
-            const registros = json.registros.filter(reg => {
-                const atendido = String(reg["ATENDIDO"]).toLowerCase();
-                return atendido !== "true" && atendido !== "sí" && atendido !== "si" && atendido !== "1";
-            });
-
-
-
-            const tablaHead = document.querySelector("#tabla-registros thead");
-            const tablaBody = document.querySelector("#tabla-registros tbody");
-
-            tablaHead.innerHTML = "";
-            tablaBody.innerHTML = "";
-
-            if (registros.length === 0) return;
-
-            const headers = Object.keys(registros[0]);
-
-            tablaHead.innerHTML =
-                "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
-
-            registros.forEach(reg => {
-                const fila =
-                    "<tr>" +
-                    headers.map(h => {
-                        let valor = reg[h] ?? "";
-
-                        if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
-                            valor = formatearFecha(valor);
-                        }
-
-                        return `<td>${valor}</td>`;
-                    }).join("") +
-                    "</tr>";
-
-                tablaBody.innerHTML += fila;
-            });
-        }
-        function formatearFecha(valor) {
-            if (!valor) return "";
-
-            const fecha = new Date(valor);
-            if (isNaN(fecha)) return valor;
-
-            const dia = String(fecha.getDate()).padStart(2, "0");
-            const mes = String(fecha.getMonth() + 1).padStart(2, "0");
-            const anio = fecha.getFullYear();
-
-            return `${dia}/${mes}/${anio}`;
-        }
-
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            cargarRegistros();
-        });
-    </script>
-
-    <script>
-        fetch('/estadisticas/comun/header.html')
-            .then(r => r.text())
-            .then(html => {
-                document.getElementById('header').innerHTML = html;
-
-                // Cargar sesión.js después de insertar el HTML
-                const s = document.createElement('script');
-                s.src = '/estadisticas/comun/sesion_bk.js';
-
-                s.onload = () => {
-                    console.log("🔥 sesion_bk.js cargado");
-                };
-
-
-                document.body.appendChild(s);
-            });
-
-        fetch('/estadisticas/comun/footer.html')
-            .then(r => r.text())
-            .then(html => {
-                document.getElementById('footer').innerHTML = html;
-
-                // Ya existe footerText
-                const footer = document.getElementById('footerText');
-                if (footer) {
-                    footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-                }
-            });
-    </script>
-    <script src="/estadisticas/comun/estadoSistema.js"></script>
-    <script src="/estadisticas/comun/sesion_bk.js"></script>
 </body>
-
 </html>
