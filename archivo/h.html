@@ -149,6 +149,7 @@
 
     <script>
         const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec";
+        let registrosCache = [];   // 👈 memoria local
         let mostrarAtendidos = false;
         let textoBusqueda = "";
 
@@ -164,63 +165,120 @@
 
         document.getElementById("form-egresos").addEventListener("submit", async e => {
             e.preventDefault();
+
             try {
                 const data = Object.fromEntries(new FormData(e.target).entries());
-                const res = await fetch(URL, { method: "POST", body: JSON.stringify(data) });
+
+                const res = await fetch(URL, {
+                    method: "POST",
+                    body: JSON.stringify(data)
+                });
+
                 const json = await res.json();
 
                 if (json.ok) {
                     estadoSistema("Registro guardado correctamente", "ok");
-                    cargarRegistros();
+
+                    // ✨ Insertar al inicio SIN recargar
+                    registrosCache.unshift(json.registro ?? data);
+
+                    renderTabla();      // solo re-pinta
                     e.target.reset();
                 } else {
                     estadoSistema("Error al guardar", "error");
                 }
+
             } catch {
                 estadoSistema("Error de conexión", "error");
             }
         });
 
-        async function cargarRegistros() {
-            const res = await fetch(URL);
-            const json = await res.json();
-            if (!json.ok) {
-                estadoSistema("Error al cargar registros", "error");
-                return;
-            }
+        document.getElementById("toggleAtendidos").addEventListener("change", e => {
+            mostrarAtendidos = e.target.checked;
+            renderTabla();
+        });
 
-            let registros = json.registros;
+        document.getElementById("buscadorTabla").addEventListener("input", e => {
+            textoBusqueda = e.target.value.toLowerCase().trim();
+            renderTabla();
+        });
+
+        // ⏱️ Guardamos todo en memoria
+        registrosCache = json.registros.reverse(); // 👈 más recientes arriba
+
+        renderTabla();
+
+
+        let registros = json.registros;
+
+        if (!mostrarAtendidos) {
+            registros = registros.filter(r => !["true", "sí", "si", "1"].includes(String(r["ATENDIDO"]).toLowerCase()));
+        }
+
+        if (textoBusqueda) {
+            registros = registros.filter(r =>
+                Object.values(r).some(v => String(v).toLowerCase().includes(textoBusqueda))
+            );
+        }
+
+        const thead = document.querySelector("#tabla-registros thead");
+        const tbody = document.querySelector("#tabla-registros tbody");
+        thead.innerHTML = "";
+        tbody.innerHTML = "";
+
+        if (!registros.length) return;
+
+        const headers = Object.keys(registros[0]);
+        thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+        registros.forEach(r => {
+            tbody.innerHTML += "<tr>" + headers.map(h => `<td>${r[h] ?? ""}</td>`).join("") + "</tr>";
+        });
+
+
+        document.addEventListener("DOMContentLoaded", cargarRegistros);
+
+        function renderTabla() {
+            let registros = [...registrosCache];
 
             if (!mostrarAtendidos) {
-                registros = registros.filter(r => !["true", "sí", "si", "1"].includes(String(r["ATENDIDO"]).toLowerCase()));
+                registros = registros.filter(r =>
+                    !["true", "sí", "si", "1"].includes(String(r["ATENDIDO"]).toLowerCase())
+                );
             }
 
             if (textoBusqueda) {
                 registros = registros.filter(r =>
-                    Object.values(r).some(v => String(v).toLowerCase().includes(textoBusqueda))
+                    Object.values(r).some(v =>
+                        String(v).toLowerCase().includes(textoBusqueda)
+                    )
                 );
             }
 
             const thead = document.querySelector("#tabla-registros thead");
             const tbody = document.querySelector("#tabla-registros tbody");
+
             thead.innerHTML = "";
             tbody.innerHTML = "";
 
             if (!registros.length) return;
 
             const headers = Object.keys(registros[0]);
-            thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+            thead.innerHTML =
+                "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
 
             registros.forEach(r => {
-                tbody.innerHTML += "<tr>" + headers.map(h => `<td>${r[h] ?? ""}</td>`).join("") + "</tr>";
+                const tr = document.createElement("tr");
+                tr.innerHTML = headers.map(h => `<td>${r[h] ?? ""}</td>`).join("");
+                tbody.appendChild(tr);
             });
         }
 
-        document.addEventListener("DOMContentLoaded", cargarRegistros);
     </script>
 
     <!-- HEADER / FOOTER / SESIÓN: SIN TOCAR -->
     <script src="/estadisticas/comun/estadoSistema.js"></script>
     <script src="/estadisticas/comun/sesion_bk.js"></script>
 </body>
+
 </html>
