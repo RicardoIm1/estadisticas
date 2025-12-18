@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadísticas y Archivo Clínico</title>
+
+  <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
+
+  <style>
+    /* 🎯 CONTENEDOR PRINCIPAL CON GRID */
+    .grid {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      min-height: 0;
+      gap: 20px;
+    }
+
+    /* CARDS GRID - Usa todo el ancho disponible y 4 columnas por página */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 4 columnas fijas */
+      gap: 16px;
+      width: 100%;
+      overflow-y: auto; /* Scroll vertical si es necesario */
+    }
+
+    /* PAGINACIÓN - Centrada debajo de las cards */
+    .paginacion {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      margin-top: auto;
+    }
+
+    .paginacion button {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .paginacion button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .paginacion span {
+      font-weight: 600;
+      color: white;
+    }
+
+    /* CARD INDIVIDUAL */
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, .15);
+      transition: transform .2s ease;
+      min-height: 100px;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+    }
+
+    .card span {
+      font-weight: 600;
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .card small {
+      opacity: .8;
+      font-size: 12px;
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    /* 🔍 BUSCADOR */
+    .buscador {
+      margin: 12px 0 20px;
+      position: relative;
+    }
+
+    .buscador input {
+      width: 100%;
+      padding: 10px 38px 10px 14px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .buscador i {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: .6;
+    }
+
+    /* RESPONSIVE - Ajuste para pantallas pequeñas */
+    @media (max-width: 1200px) {
+      .cards-grid {
+        grid-template-columns: repeat(3, 1fr); /* 3 columnas en tablets grandes */
+      }
+    }
+
+    @media (max-width: 900px) {
+      .cards-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
+      }
+    }
+
+    @media (max-width: 600px) {
+      .cards-grid {
+        grid-template-columns: 1fr; /* 1 columna en móviles */
+      }
+      
+      .paginacion {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="glass" id="dashboard">
+    <h5>🛟 REGISTROS RESCATADOS DE SIMAH</h5>
+
+    <div id="header"></div>
+
+    <!-- 🔍 BUSCADOR -->
+    <div class="buscador">
+      <input type="text" id="busqueda" placeholder="Buscar por nombre, expediente o servicio…">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+
+    <!-- 🎯 CONTENEDOR GRID PRINCIPAL -->
+    <div class="grid">
+      <!-- FILA 1: CARDS (4 por página) -->
+      <div id="cards" class="cards-grid"></div>
+      
+      <!-- FILA 2: PAGINACIÓN -->
+      <div class="paginacion">
+        <button onclick="cambiarPagina(-1)">← Anterior</button>
+        <span id="paginaActual"></span>
+        <button onclick="cambiarPagina(1)">Siguiente →</button>
+      </div>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script>
+    fetch('/estadisticas/comun/header.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('header').innerHTML = html;
+        const s = document.createElement('script');
+        s.src = '/estadisticas/comun/sesion_bk.js';
+        s.onload = () => verificarAutenticacion();
+        document.body.appendChild(s);
+      });
+
+    fetch('/estadisticas/comun/footer.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('footer').innerHTML = html;
+        const footer = document.getElementById('footerText');
+        if (footer) {
+          footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+        }
+      });
+  </script>
+
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
+
+    let page = 1;
+    let datosOriginales = [];
+    let totalPages = 1;
+
+    async function cambiarPagina(d) {
+      const newPage = page + d;
+      if (newPage >= 1 && newPage <= totalPages) {
+        page = newPage;
+        await cargar();
+      }
+    }
+
+    async function cargar() {
+      const res = await fetch(`${API_URL}?page=${page}`);
+      const data = await res.json();
+      datosOriginales = data.rows || [];
+      totalPages = Math.ceil((data.total || 0) / 4); // Asumiendo 4 items por página
+      
+      document.getElementById("paginaActual").textContent = `Página ${page} de ${totalPages}`;
+      render(datosOriginales);
+    }
+
+    function render(rows) {
+      const cont = document.getElementById("cards");
+      cont.innerHTML = "";
+
+      if (!rows.length) {
+        cont.innerHTML = '<div class="card" style="grid-column: 1 / -1; text-align: center; padding: 30px;"><small>No hay resultados</small></div>';
+        return;
+      }
+
+      // Mostrar máximo 4 cards por página
+      const itemsPerPage = 4;
+      const startIndex = (page - 1) * itemsPerPage;
+      const endIndex = startIndex + itemsPerPage;
+      const pageItems = rows.slice(startIndex, endIndex);
+
+      pageItems.forEach(r => {
+        cont.innerHTML += `
+          <div class="card">
+            <span>${r.nombre || 'Sin nombre'}</span>
+            <small>Expediente: ${r.expediente || 'N/A'}</small>
+            <small>Servicio: ${r.servicio || 'N/A'}</small>
+            <small>${r.fecha || 'Sin fecha'}</small>
+          </div>
+        `;
+      });
+
+      // Rellenar espacios vacíos si hay menos de 4 items
+      const emptySlots = itemsPerPage - pageItems.length;
+      for (let i = 0; i < emptySlots; i++) {
+        cont.innerHTML += '<div class="card" style="visibility: hidden;"></div>';
+      }
+    }
+
+    // 🔍 BÚSQUEDA EN TIEMPO REAL
+    document.getElementById("busqueda").addEventListener("input", e => {
+      const q = e.target.value.toLowerCase();
+
+      const filtrados = datosOriginales.filter(r =>
+        (r.nombre && r.nombre.toLowerCase().includes(q)) ||
+        (r.expediente && r.expediente.toLowerCase().includes(q)) ||
+        (r.servicio && r.servicio.toLowerCase().includes(q))
+      );
+
+      render(filtrados);
+    });
+
+    window.onload = cargar;
+  </script>
+
+  <script src="/estadisticas/comun/estadoSistema.js"></script>
+  <script src="/estadisticas/comun/sesion_bk.js"></script>
+
+</body>
+
+</html>
