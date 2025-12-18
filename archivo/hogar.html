@@ -19,21 +19,27 @@
     .grid {
       display: grid;
       grid-template-rows: 1fr auto;
-      min-height: 0;
+      /* fila 1: cards | fila 2: paginación */
+      height: 100%;
+      /* 👈 clave */
       gap: 20px;
     }
 
+
     /* CARDS GRID - Usa todo el ancho disponible y 4 columnas por página */
     .cards-grid {
+      grid-row: 1;
       display: grid;
-      grid-template-columns: repeat(4, 1fr); /* 4 columnas fijas */
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px;
       width: 100%;
-      overflow-y: auto; /* Scroll vertical si es necesario */
+      overflow-y: auto;
     }
+
 
     /* PAGINACIÓN - Centrada debajo de las cards */
     .paginacion {
+      grid-row: 2;
       display: flex;
       justify-content: center;
       align-items: center;
@@ -41,8 +47,8 @@
       padding: 15px;
       background: rgba(255, 255, 255, 0.05);
       border-radius: 10px;
-      margin-top: auto;
     }
+
 
     .paginacion button {
       background: rgba(255, 255, 255, 0.1);
@@ -120,21 +126,24 @@
     /* RESPONSIVE - Ajuste para pantallas pequeñas */
     @media (max-width: 1200px) {
       .cards-grid {
-        grid-template-columns: repeat(3, 1fr); /* 3 columnas en tablets grandes */
+        grid-template-columns: repeat(3, 1fr);
+        /* 3 columnas en tablets grandes */
       }
     }
 
     @media (max-width: 900px) {
       .cards-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 columnas en tablets */
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 columnas en tablets */
       }
     }
 
     @media (max-width: 600px) {
       .cards-grid {
-        grid-template-columns: 1fr; /* 1 columna en móviles */
+        grid-template-columns: 1fr;
+        /* 1 columna en móviles */
       }
-      
+
       .paginacion {
         flex-direction: column;
         gap: 10px;
@@ -160,7 +169,7 @@
     <div class="grid">
       <!-- FILA 1: CARDS (4 por página) -->
       <div id="cards" class="cards-grid"></div>
-      
+
       <!-- FILA 2: PAGINACIÓN -->
       <div class="paginacion">
         <button onclick="cambiarPagina(-1)">← Anterior</button>
@@ -214,7 +223,7 @@
       const data = await res.json();
       datosOriginales = data.rows || [];
       totalPages = Math.ceil((data.total || 0) / 4); // Asumiendo 4 items por página
-      
+
       document.getElementById("paginaActual").textContent = `Página ${page} de ${totalPages}`;
       render(datosOriginales);
     }
