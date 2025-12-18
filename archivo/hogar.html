@@ -206,6 +206,8 @@
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
 
+    const ITEMS_PER_PAGE = 20;
+
     let page = 1;
     let datosOriginales = [];
     let totalPages = 1;
@@ -234,32 +236,27 @@
       cont.innerHTML = "";
 
       if (!rows.length) {
-        cont.innerHTML = '<div class="card" style="grid-column: 1 / -1; text-align: center; padding: 30px;"><small>No hay resultados</small></div>';
+        cont.innerHTML = `
+      <div class="card" style="grid-column: 1 / -1; text-align:center; padding:30px;">
+        <small>No hay resultados</small>
+      </div>`;
         return;
       }
 
-      // Mostrar máximo 4 cards por página
-      const ITEMS_PER_PAGE = 20;
       const startIndex = (page - 1) * ITEMS_PER_PAGE;
       const endIndex = startIndex + ITEMS_PER_PAGE;
       const pageItems = rows.slice(startIndex, endIndex);
 
       pageItems.forEach(r => {
-        cont.innerHTML += `
-          <div class="card">
-            <span>${r.nombre || 'Sin nombre'}</span>
-            <small>Expediente: ${r.expediente || 'N/A'}</small>
-            <small>Servicio: ${r.servicio || 'N/A'}</small>
-            <small>${r.fecha || 'Sin fecha'}</small>
-          </div>
-        `;
+        cont.insertAdjacentHTML("beforeend", `
+      <div class="card">
+        <span>${r.nombre || 'Sin nombre'}</span>
+        <small>Expediente: ${r.expediente || 'N/A'}</small>
+        <small>Servicio: ${r.servicio || 'N/A'}</small>
+        <small>${r.fecha || 'Sin fecha'}</small>
+      </div>
+    `);
       });
-
-      // Rellenar espacios vacíos si hay menos de 4 items
-      const emptySlots = ITEMS_PER_PAGE - pageItems.length;
-      for (let i = 0; i < emptySlots; i++) {
-        cont.innerHTML += '<div class="card" style="visibility: hidden;"></div>';
-      }
     }
 
     // 🔍 BÚSQUEDA EN TIEMPO REAL
