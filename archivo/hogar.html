@@ -202,23 +202,21 @@
         }
       });
   </script>
-  
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
+
     const ITEMS_PER_PAGE = 20;
 
     let page = 1;
-    let totalPages = 1;
     let datosOriginales = [];
-
-    document.getElementById("prevBtn").onclick = () => cambiarPagina(-1);
-    document.getElementById("nextBtn").onclick = () => cambiarPagina(1);
+    let totalPages = 1;
 
     async function cambiarPagina(d) {
       const newPage = page + d;
-      if (newPage < 1 || newPage > totalPages) return;
-      page = newPage;
-      await cargar();
+      if (newPage >= 1 && newPage <= totalPages) {
+        page = newPage;
+        await cargar();
+      }
     }
 
     async function cargar() {
@@ -240,31 +238,41 @@
 
       if (!rows.length) {
         cont.innerHTML = `
-          <div class="card" style="grid-column:1/-1;text-align:center">
-            <small>No hay resultados</small>
-          </div>`;
+        <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 30px;">
+          <small>No hay resultados</small>
+        </div>`;
         return;
       }
 
       rows.forEach(r => {
         cont.insertAdjacentHTML("beforeend", `
-          <div class="card">
-            <span>${r.nombre || 'Sin nombre'}</span>
-            <small>Expediente: ${r.expediente || 'N/A'}</small>
-            <small>Servicio: ${r.servicio || 'N/A'}</small>
-            <small>${r.fecha || 'Sin fecha'}</small>
-          </div>
-        `);
+        <div class="card">
+          <span>${r.nombre || 'Sin nombre'}</span>
+          <small>Expediente: ${r.expediente || 'N/A'}</small>
+          <small>Servicio: ${r.servicio || 'N/A'}</small>
+          <small>${r.fecha || 'Sin fecha'}</small>
+        </div>
+      `);
       });
+
+      // 👉 aplica color por estado del sistema (si existe)
+      if (typeof aplicarEstadoSistema === "function") {
+        aplicarEstadoSistema();
+      }
     }
 
+    // 🔍 BÚSQUEDA RÁPIDA EN MEMORIA
     document.getElementById("busqueda").addEventListener("input", e => {
-      const q = e.target.value.toLowerCase();
-      const filtrados = datosOriginales.filter(r =>
-        (r.nombre || '').toLowerCase().includes(q) ||
-        (r.expediente || '').toLowerCase().includes(q) ||
-        (r.servicio || '').toLowerCase().includes(q)
-      );
+      const q = e.target.value.trim().toLowerCase();
+
+      const filtrados = q
+        ? datosOriginales.filter(r =>
+          (r.nombre || '').toLowerCase().includes(q) ||
+          (r.expediente || '').toLowerCase().includes(q) ||
+          (r.servicio || '').toLowerCase().includes(q)
+        )
+        : datosOriginales;
+
       render(filtrados);
     });
 
