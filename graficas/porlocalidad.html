@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard Clínico</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: "Inter", system-ui, sans-serif;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 30px;
+    }
+    h1 {
+      font-weight: 600;
+      margin-bottom: 30px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 30px;
+    }
+    canvas {
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📈 Análisis de Pacientes</h1>
+
+<div class="grid">
+  <canvas id="sexoChart"></canvas>
+  <canvas id="municipioChart"></canvas>
+  <canvas id="derechoChart"></canvas>
+</div>
+
+<script>
+google.script.run.withSuccessHandler(render).obtenerDatos();
+
+function render(data) {
+  // ---- SEXO ----
+  new Chart(document.getElementById('sexoChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(data.sexo),
+      datasets: [{
+        label: 'Pacientes',
+        data: Object.values(data.sexo),
+        backgroundColor: ['#38bdf8', '#f472b6']
+      }]
+    },
+    options: {
+      plugins: {
+        title: { display: true, text: 'Pacientes por sexo' }
+      }
+    }
+  });
+
+  // ---- MUNICIPIOS ----
+  const mun = Object.entries(data.municipios)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,10);
+
+  new Chart(document.getElementById('municipioChart'), {
+    type: 'bar',
+    data: {
+      labels: mun.map(m=>m[0]),
+      datasets: [{
+        label: 'Pacientes',
+        data: mun.map(m=>m[1]),
+        backgroundColor: '#34d399'
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: {
+        title: { display: true, text: 'Top 10 municipios' }
+      }
+    }
+  });
+
+  // ---- DERECHOHABIENCIA POR ENTIDAD ----
+  const entidades = Object.keys(data.entidadDerecho);
+  const derechos = [...new Set(entidades.flatMap(e=>Object.keys(data.entidadDerecho[e])))];
+
+  const datasets = derechos.map((d,i)=>({
+    label: d,
+    data: entidades.map(e => data.entidadDerecho[e][d] || 0),
+    tension: 0.4
+  }));
+
+  new Chart(document.getElementById('derechoChart'), {
+    type: 'line',
+    data: {
+      labels: entidades,
+      datasets
+    },
+    options: {
+      plugins: {
+        title: { display: true, text: 'Derechohabiencia por entidad' }
+      }
+    }
+  });
+}
+</script>
+
+</body>
+</html>
