@@ -202,82 +202,88 @@
         }
       });
   </script>
-  <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
+<script>
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
 
-    const ITEMS_PER_PAGE = 20;
+  const ITEMS_PER_PAGE = 20;
 
-    let page = 1;
-    let datosOriginales = [];
-    let totalPages = 1;
+  let page = 1;
+  let totalPages = 1;
+  let query = ""; // 🔍 búsqueda actual
 
-    async function cambiarPagina(d) {
-      const newPage = page + d;
-      if (newPage >= 1 && newPage <= totalPages) {
-        page = newPage;
-        await cargar();
-      }
+  // 🔄 CAMBIAR DE PÁGINA
+  async function cambiarPagina(delta) {
+    const newPage = page + delta;
+    if (newPage >= 1 && newPage <= totalPages) {
+      page = newPage;
+      await cargar();
     }
+  }
 
-    async function cargar() {
-      const res = await fetch(`${API_URL}?page=${page}`);
-      const data = await res.json();
-
-      datosOriginales = data.rows || [];
-      totalPages = Math.ceil((data.total || 0) / ITEMS_PER_PAGE);
-
-      document.getElementById("paginaActual").textContent =
-        `Página ${page} de ${totalPages}`;
-
-      render(datosOriginales);
-    }
-
-    function render(rows) {
-      const cont = document.getElementById("cards");
-      cont.innerHTML = "";
-
-      if (!rows.length) {
-        cont.innerHTML = `
-        <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 30px;">
-          <small>No hay resultados</small>
-        </div>`;
-        return;
-      }
-
-      rows.forEach(r => {
-        cont.insertAdjacentHTML("beforeend", `
-        <div class="card">
-          <span>${r.nombre || 'Sin nombre'}</span>
-          <small>Expediente: ${r.expediente || 'N/A'}</small>
-          <small>Servicio: ${r.servicio || 'N/A'}</small>
-          <small>${r.fecha || 'Sin fecha'}</small>
-        </div>
-      `);
-      });
-
-      // 👉 aplica color por estado del sistema (si existe)
-      if (typeof aplicarEstadoSistema === "function") {
-        aplicarEstadoSistema();
-      }
-    }
-
-    // 🔍 BÚSQUEDA RÁPIDA EN MEMORIA
-    document.getElementById("busqueda").addEventListener("input", e => {
-      const q = e.target.value.trim().toLowerCase();
-
-      const filtrados = q
-        ? datosOriginales.filter(r =>
-          (r.nombre || '').toLowerCase().includes(q) ||
-          (r.expediente || '').toLowerCase().includes(q) ||
-          (r.servicio || '').toLowerCase().includes(q)
-        )
-        : datosOriginales;
-
-      render(filtrados);
+  // 📥 CARGA DESDE BACKEND (CON BÚSQUEDA REAL)
+  async function cargar() {
+    const params = new URLSearchParams({
+      page,
+      q: query
     });
 
-    window.onload = cargar;
-  </script>
+    const res = await fetch(`${API_URL}?${params.toString()}`);
+    const data = await res.json();
+
+    const rows = data.registros || [];
+    totalPages = Math.max(1, Math.ceil((data.total || 0) / ITEMS_PER_PAGE));
+
+    document.getElementById("paginaActual").textContent =
+      `Página ${page} de ${totalPages}`;
+
+    render(rows);
+  }
+
+  // 🎴 RENDER DE CARDS
+  function render(rows) {
+    const cont = document.getElementById("cards");
+    cont.innerHTML = "";
+
+    if (!rows.length) {
+      cont.innerHTML = `
+        <div class="card" style="grid-column: 1 / -1; text-align:center; padding:30px;">
+          <small>No hay resultados</small>
+        </div>`;
+      return;
+    }
+
+    rows.forEach(r => {
+      cont.insertAdjacentHTML("beforeend", `
+        <div class="card" data-estado="${r.estado || ''}">
+          <span>${r.paciente || r.nombre || 'Sin nombre'}</span>
+          <small>Expediente: ${r.no_expediente || r.expediente || 'N/A'}</small>
+          <small>Servicio: ${r.servicio || 'N/A'}</small>
+          <small>${r.fecha_egreso || r.fecha || 'Sin fecha'}</small>
+        </div>
+      `);
+    });
+
+    // 🎨 aplica color según estado del sistema
+    if (typeof aplicarEstadoSistema === "function") {
+      aplicarEstadoSistema();
+    }
+  }
+
+  // 🔍 BÚSQUEDA REAL (BACKEND, NO MEMORIA)
+  let debounceTimer;
+  document.getElementById("busqueda").addEventListener("input", e => {
+    clearTimeout(debounceTimer);
+
+    debounceTimer = setTimeout(() => {
+      query = e.target.value.trim();
+      page = 1; // siempre vuelve a la primera página
+      cargar();
+    }, 300); // debounce elegante
+  });
+
+  window.onload = cargar;
+</script>
+
 
   <script src="/estadisticas/comun/estadoSistema.js"></script>
   <script src="/estadisticas/comun/sesion_bk.js"></script>
