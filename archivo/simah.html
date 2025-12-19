@@ -205,8 +205,6 @@
   </script>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
-
     const ITEMS_PER_PAGE = 20;
 
     let page = 1;
@@ -218,21 +216,22 @@
       const newPage = page + delta;
       if (newPage >= 1 && newPage <= totalPages) {
         page = newPage;
-        await cargar();
+        mostrarPagina();
       }
     }
 
+    // 📥 CARGAR JSON LOCAL
     async function cargar() {
-      const res = await fetch('/estadisticas/archivo/datos.json');
+      const res = await fetch('/estadisticas/archivo/datos.json'); // ruta al JSON
       const data = await res.json();
 
-      datosOriginales = data.rows || [];
+      datosOriginales = data.rows || []; // siempre definido
       totalPages = Math.ceil(datosOriginales.length / ITEMS_PER_PAGE);
 
       mostrarPagina();
     }
 
-
+    // 📄 MOSTRAR PÁGINA
     function mostrarPagina() {
       const inicio = (page - 1) * ITEMS_PER_PAGE;
       const fin = inicio + ITEMS_PER_PAGE;
@@ -242,6 +241,7 @@
       render(paginaDatos);
     }
 
+    // 🎨 RENDER DE CARDS
     function render(rows) {
       const cont = document.getElementById("cards");
       cont.innerHTML = "";
@@ -253,15 +253,14 @@
 
       rows.forEach(r => {
         cont.innerHTML += `
-    <div class="card">
-      <span>${r["NOMBRE DEL PACIENTE"] || ""}</span>
-      <small>Expediente: ${r["EXPEDIENTE"] || ""}</small>
-      <small>Servicio: ${r["SERVICIO"] || ""}</small>
-      <small>${r["FECHA DE REGISTRO"] || ""}</small>
-    </div>
-  `;
+        <div class="card">
+          <span>${r["NOMBRE DEL PACIENTE"] || ""}</span>
+          <small>Expediente: ${r["EXPEDIENTE"] || ""}</small>
+          <small>Servicio: ${r["SERVICIO"] || ""}</small>
+          <small>${r["FECHA DE REGISTRO"] || ""}</small>
+        </div>
+      `;
       });
-
     }
 
     // 🔍 BÚSQUEDA EN TIEMPO REAL
