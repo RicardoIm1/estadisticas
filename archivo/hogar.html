@@ -164,8 +164,8 @@
     <div class="buscador">
       <input type="text" id="busqueda" placeholder="Buscar por nombre, expediente o servicio…">
       <i class="fa-solid fa-magnifying-glass"></i>
-    </div> 
-    
+    </div>
+
     <!-- 🎯 CONTENEDOR GRID PRINCIPAL -->
     <div class="grid">
       <!-- FILA 1: CARDS (4 por página) -->
@@ -203,7 +203,7 @@
         }
       });
   </script>
-  
+
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
 
@@ -220,25 +220,6 @@
         page = newPage;
         await cargar();
       }
-    }
-
-    // 📥 CARGA DESDE BACKEND (CON BÚSQUEDA REAL)
-    async function cargar() {
-      const params = new URLSearchParams({
-        page,
-        q: query
-      });
-
-      const res = await fetch(`${API_URL}?${params.toString()}`);
-      const data = await res.json();
-
-      const rows = data.registros || [];
-      totalPages = Math.max(1, Math.ceil((data.total || 0) / ITEMS_PER_PAGE));
-
-      document.getElementById("paginaActual").textContent =
-        `Página ${page} de ${totalPages}`;
-
-      render(rows);
     }
 
     // 🎴 RENDER DE CARDS
@@ -274,20 +255,25 @@
       }
     }
 
-    // 🔍 BÚSQUEDA REAL (BACKEND, NO MEMORIA)
-    let debounceTimer;
-    document.getElementById("busqueda").addEventListener("input", e => {
-      clearTimeout(debounceTimer);
-
-      debounceTimer = setTimeout(() => {
-        query = e.target.value.trim();
-        page = 1; // siempre vuelve a la primera página
-        cargar();
-      }, 300); // debounce elegante
-    });
-
-    window.onload = cargar;
   </script>
+  <script>
+    async function cargar() {
+      const res = await fetch(`${API_URL}?page=${page}&q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+
+      totalPages = Math.ceil(data.total / 20);
+      document.getElementById("paginaActual").textContent = `Página ${page} de ${totalPages}`;
+
+      render(data.rows);
+    }
+
+    document.getElementById("busqueda").addEventListener("input", e => {
+      query = e.target.value.trim();
+      page = 1;
+      cargar();
+    });
+  </script>
+
 
 
   <script src="/estadisticas/comun/estadoSistema.js"></script>
