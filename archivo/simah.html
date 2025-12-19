@@ -207,12 +207,19 @@
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbzUxd6Yvvb1F2hnJdUHEwm-_og3yTfXnDIuotE_B5VEvS2GnqBIN99lg-_rp6tDjUmg/exec';
 
-    let page = 1;
-    let datosOriginales = [];
+    const ITEMS_PER_PAGE = 20;
 
-    function cambiarPagina(d) {
-      page = Math.max(1, page + d);
-      cargar();
+    let page = 1;
+    let totalPages = 1;
+    let query = ""; // 🔍 búsqueda actual
+
+    // 🔄 CAMBIAR DE PÁGINA
+    async function cambiarPagina(delta) {
+      const newPage = page + delta;
+      if (newPage >= 1 && newPage <= totalPages) {
+        page = newPage;
+        await cargar();
+      }
     }
 
     async function cargar() {
