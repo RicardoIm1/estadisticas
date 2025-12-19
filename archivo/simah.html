@@ -232,14 +232,34 @@
     }
 
     // 📄 MOSTRAR PÁGINA
+    let datosFiltrados = [];
+
     function mostrarPagina() {
+      const base = datosFiltrados.length ? datosFiltrados : datosOriginales;
       const inicio = (page - 1) * ITEMS_PER_PAGE;
       const fin = inicio + ITEMS_PER_PAGE;
-      const paginaDatos = datosOriginales.slice(inicio, fin);
+      const paginaDatos = base.slice(inicio, fin);
 
+      totalPages = Math.ceil(base.length / ITEMS_PER_PAGE);
       document.getElementById("paginaActual").textContent = `Página ${page} de ${totalPages}`;
       render(paginaDatos);
     }
+
+    // 🔍 BÚSQUEDA EN TIEMPO REAL
+    document.getElementById("busqueda").addEventListener("input", e => {
+      const q = e.target.value.toLowerCase();
+
+      datosFiltrados = datosOriginales.filter(r =>
+        (r["NOMBRE DEL PACIENTE"] || "").toString().toLowerCase().includes(q) ||
+        (r["EXPEDIENTE"] || "").toString().toLowerCase().includes(q) ||
+        (r["SERVICIO"] || "").toString().toLowerCase().includes(q) ||
+        (r["FECHA DE REGISTRO"] || "").toString().toLowerCase().includes(q)
+      );
+
+      page = 1; // reinicia a la primera página
+      mostrarPagina();
+    });
+
 
     // 🎨 RENDER DE CARDS
     function render(rows) {
@@ -262,20 +282,6 @@
       `;
       });
     }
-
-    // 🔍 BÚSQUEDA EN TIEMPO REAL
-    document.getElementById("busqueda").addEventListener("input", e => {
-      const q = e.target.value.toLowerCase();
-
-      const filtrados = datosOriginales.filter(r =>
-        (r["NOMBRE DEL PACIENTE"] || "").toString().toLowerCase().includes(q) ||
-        (r["EXPEDIENTE"] || "").toString().toLowerCase().includes(q) ||
-        (r["SERVICIO"] || "").toString().toLowerCase().includes(q) ||
-        (r["FECHA DE REGISTRO"] || "").toString().toLowerCase().includes(q)
-      );
-
-      render(filtrados);
-    });
 
     window.onload = cargar;
   </script>
