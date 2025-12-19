@@ -251,17 +251,22 @@
       });
     }
 
-    // 🔍 BÚSQUEDA EN TIEMPO REAL
+    // 🎨 aplica color según estado del sistema
+    if (typeof aplicarEstadoSistema === "function") {
+      aplicarEstadoSistema();
+    }
+
+
+    // 🔍 BÚSQUEDA REAL (BACKEND, NO MEMORIA)
+    let debounceTimer;
     document.getElementById("busqueda").addEventListener("input", e => {
-      const q = e.target.value.toLowerCase();
+      clearTimeout(debounceTimer);
 
-      const filtrados = datosOriginales.filter(r =>
-        r.nombre.toLowerCase().includes(q) ||
-        r.expediente.toLowerCase().includes(q) ||
-        r.servicio.toLowerCase().includes(q)
-      );
-
-      render(filtrados);
+      debounceTimer = setTimeout(() => {
+        query = e.target.value.trim();
+        page = 1; // siempre vuelve a la primera página
+        cargar();
+      }, 300); // debounce elegante
     });
 
     window.onload = cargar;
