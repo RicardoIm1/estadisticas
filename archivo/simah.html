@@ -223,32 +223,21 @@
     }
 
     async function cargar() {
-      const res = await fetch(`${API_URL}?page=${page}`);
+      const res = await fetch(API_URL);
       const data = await res.json();
-      datosOriginales = data.rows;
-      document.getElementById("paginaActual").textContent = `Página ${page}`;
-      render(datosOriginales);
+      datosOriginales = data.rows;   // ya tienes todo
+      totalPages = Math.ceil(datosOriginales.length / ITEMS_PER_PAGE);
+
+      mostrarPagina();
     }
 
-    function render(rows) {
-      const cont = document.getElementById("cards");
-      cont.innerHTML = "";
+    function mostrarPagina() {
+      const inicio = (page - 1) * ITEMS_PER_PAGE;
+      const fin = inicio + ITEMS_PER_PAGE;
+      const paginaDatos = datosOriginales.slice(inicio, fin);
 
-      if (!rows.length) {
-        cont.innerHTML = "<small>No hay resultados</small>";
-        return;
-      }
-
-      rows.forEach(r => {
-        cont.innerHTML += `
-          <div class="card">
-            <span>${r.nombre}</span>
-            <small>Expediente: ${r.expediente}</small>
-            <small>Servicio: ${r.servicio}</small>
-            <small>${r.fecha}</small>
-          </div>
-        `;
-      });
+      document.getElementById("paginaActual").textContent = `Página ${page} de ${totalPages}`;
+      render(paginaDatos);
     }
 
     // 🎨 aplica color según estado del sistema
