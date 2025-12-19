@@ -257,16 +257,17 @@
     }
 
 
-    // 🔍 BÚSQUEDA REAL (BACKEND, NO MEMORIA)
-    let debounceTimer;
+    // 🔍 BÚSQUEDA EN TIEMPO REAL
     document.getElementById("busqueda").addEventListener("input", e => {
-      clearTimeout(debounceTimer);
+      const q = e.target.value.toLowerCase();
 
-      debounceTimer = setTimeout(() => {
-        query = e.target.value.trim();
-        page = 1; // siempre vuelve a la primera página
-        cargar();
-      }, 300); // debounce elegante
+      const filtrados = datosOriginales.filter(r =>
+        r.nombre.toLowerCase().includes(q) ||
+        r.expediente.toLowerCase().includes(q) ||
+        r.servicio.toLowerCase().includes(q)
+      );
+
+      render(filtrados);
     });
 
     window.onload = cargar;
