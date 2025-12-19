@@ -223,33 +223,20 @@
     }
 
     async function cargar() {
-      const res = await fetch(`${API_URL}?page=${page}`);
+      const res = await fetch(`${API_URL}?page=${page}&q=${encodeURIComponent(query)}`);
       const data = await res.json();
-      datosOriginales = data.rows;
-      document.getElementById("paginaActual").textContent = `Página ${page}`;
-      render(datosOriginales);
+
+      totalPages = Math.ceil(data.total / 20);
+      document.getElementById("paginaActual").textContent = `Página ${page} de ${totalPages}`;
+
+      render(data.rows);
     }
 
-    function render(rows) {
-      const cont = document.getElementById("cards");
-      cont.innerHTML = "";
-
-      if (!rows.length) {
-        cont.innerHTML = "<small>No hay resultados</small>";
-        return;
-      }
-
-      rows.forEach(r => {
-        cont.innerHTML += `
-          <div class="card">
-            <span>${r.nombre}</span>
-            <small>Expediente: ${r.expediente}</small>
-            <small>Servicio: ${r.servicio}</small>
-            <small>${r.fecha}</small>
-          </div>
-        `;
-      });
-    }
+    document.getElementById("busqueda").addEventListener("input", e => {
+      query = e.target.value.trim();
+      page = 1;
+      cargar();
+    });
 
     // 🎨 aplica color según estado del sistema
     if (typeof aplicarEstadoSistema === "function") {
