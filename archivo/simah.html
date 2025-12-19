@@ -211,7 +211,7 @@
 
     let page = 1;
     let totalPages = 1;
-    let query = ""; // 🔍 búsqueda actual
+    let datosOriginales = [];
 
     // 🔄 CAMBIAR DE PÁGINA
     async function cambiarPagina(delta) {
@@ -223,10 +223,12 @@
     }
 
     async function cargar() {
-      const res = await fetch(API_URL);
+      const res = await fetch(`${API_URL}?all=true`); // 👈 trae todo
       const data = await res.json();
-      datosOriginales = data.registros;   // ahora tienes toda la hoja
+
+      datosOriginales = data.rows || [];   // 👈 siempre definido
       totalPages = Math.ceil(datosOriginales.length / ITEMS_PER_PAGE);
+
       mostrarPagina();
     }
 
@@ -239,10 +241,6 @@
       render(paginaDatos);
     }
 
-    // 🎨 aplica color según estado del sistema
-    if (typeof aplicarEstadoSistema === "function") {
-      aplicarEstadoSistema();
-    }
     function render(rows) {
       const cont = document.getElementById("cards");
       cont.innerHTML = "";
@@ -254,25 +252,24 @@
 
       rows.forEach(r => {
         cont.innerHTML += `
-      <div class="card">
-        <span>${r.nombre}</span>
-        <small>Expediente: ${r.expediente}</small>
-        <small>Servicio: ${r.servicio}</small>
-        <small>${r.fecha}</small>
-      </div>
-    `;
+        <div class="card">
+          <span>${r.nombre}</span>
+          <small>Expediente: ${r.expediente}</small>
+          <small>Servicio: ${r.servicio}</small>
+          <small>${r.fecha}</small>
+        </div>
+      `;
       });
     }
-
 
     // 🔍 BÚSQUEDA EN TIEMPO REAL
     document.getElementById("busqueda").addEventListener("input", e => {
       const q = e.target.value.toLowerCase();
 
       const filtrados = datosOriginales.filter(r =>
-        r.nombre.toLowerCase().includes(q) ||
-        r.expediente.toLowerCase().includes(q) ||
-        r.servicio.toLowerCase().includes(q)
+        (r.nombre || "").toLowerCase().includes(q) ||
+        (r.expediente || "").toLowerCase().includes(q) ||
+        (r.servicio || "").toLowerCase().includes(q)
       );
 
       render(filtrados);
@@ -280,6 +277,7 @@
 
     window.onload = cargar;
   </script>
+
 
   <script src="/estadisticas/comun/estadoSistema.js"></script>
   <script src="/estadisticas/comun/sesion_bk.js"></script>
