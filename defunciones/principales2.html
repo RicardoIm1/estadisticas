@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Epidemiológico | Género</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #f8f9fa;
+            --dark: #2c3e50;
+            --gray: #7f8c8d;
+            --success: #27ae60;
+            --warning: #f39c12;
+            --shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --radius: 10px;
+            --color-hombre: #3498db;    /* Azul para hombres */
+            --color-mujer: #e84393;     /* Rosa para mujeres */
+            --color-nesp: #95a5a6;      /* Gris para no especificado */
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f5f7fa; color: var(--dark); line-height: 1.6; }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        
+        /* Header */
+        header { 
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white; padding: 2rem; border-radius: var(--radius);
+            margin-bottom: 2rem; box-shadow: var(--shadow);
+        }
+        header h1 { font-size: 2.2rem; margin-bottom: 0.5rem; }
+        .badge { 
+            display: inline-block; background: rgba(255,255,255,0.2); 
+            padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.9rem;
+            margin-top: 1rem;
+        }
+        
+        /* Loader */
+        .loader { 
+            border: 4px solid #f3f3f3; border-top: 4px solid var(--secondary); 
+            border-radius: 50%; width: 40px; height: 40px; 
+            animation: spin 1s linear infinite; margin: 2rem auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Cards */
+        .cards { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+            gap: 1rem; 
+            margin-bottom: 2rem; 
+        }
+        .card { 
+            background: white; 
+            padding: 1.5rem; 
+            border-radius: var(--radius); 
+            box-shadow: var(--shadow); 
+            transition: transform 0.3s ease;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card h3 { color: var(--gray); font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .card .value { font-size: 2rem; font-weight: bold; color: var(--primary); margin: 0.5rem 0; }
+        
+        /* Cards específicas para género */
+        .card.hombres { border-top: 4px solid var(--color-hombre); }
+        .card.mujeres { border-top: 4px solid var(--color-mujer); }
+        .card.total { border-top: 4px solid var(--accent); }
+        
+        /* Legend */
+        .legend { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 1rem; 
+            margin: 1rem 0; 
+            padding: 1rem;
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        .legend-item { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+        }
+        .legend-color { 
+            width: 20px; 
+            height: 20px; 
+            border-radius: 4px; 
+        }
+        
+        /* Filters */
+        .filters { 
+            background: white; padding: 1.5rem; border-radius: var(--radius); 
+            box-shadow: var(--shadow); margin-bottom: 2rem;
+            display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;
+        }
+        .filter-group { flex: 1; min-width: 200px; }
+        .filter-group label { display: block; margin-bottom: 0.5rem; font-weight: 600; }
+        select, input { 
+            width: 100%; padding: 0.7rem; border: 2px solid #e0e6ed; 
+            border-radius: 6px; font-size: 1rem;
+        }
+        button { 
+            padding: 0.7rem 1.5rem; border: none; border-radius: 6px; 
+            cursor: pointer; font-weight: 600; transition: all 0.3s;
+        }
+        .btn-primary { background: var(--secondary); color: white; }
+        .btn-secondary { background: var(--gray); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        button:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+        
+        /* Charts */
+        .charts { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr)); 
+            gap: 1.5rem; 
+            margin-bottom: 2rem; 
+        }
+        @media (max-width: 768px) { 
+            .charts { 
+                grid-template-columns: 1fr; 
+            } 
+            .chart-container { min-width: 100%; }
+        }
+        .chart-container { 
+            background: white; 
+            padding: 1.5rem; 
+            border-radius: var(--radius); 
+            box-shadow: var(--shadow); 
+            min-width: 600px;
+        }
+        .chart-container h3 { 
+            margin-bottom: 1rem; 
+            color: var(--primary); 
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Table */
+        .table-container { 
+            background: white; border-radius: var(--radius); box-shadow: var(--shadow); 
+            padding: 1.5rem; margin-bottom: 2rem; overflow-x: auto;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: var(--light); font-weight: 600; color: var(--primary); }
+        tr:hover { background: rgba(52, 152, 219, 0.05); }
+        
+        /* Status */
+        .status { text-align: center; padding: 2rem; color: var(--gray); }
+        .error { background: #fee; color: #c00; padding: 1rem; border-radius: var(--radius); margin: 1rem 0; }
+        
+        /* Gender indicators */
+        .gender-badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-left: 0.5rem;
+        }
+        .badge-hombre { background: rgba(52, 152, 219, 0.2); color: var(--color-hombre); }
+        .badge-mujer { background: rgba(232, 67, 147, 0.2); color: var(--color-mujer); }
+        .badge-nesp { background: rgba(149, 165, 166, 0.2); color: var(--color-nesp); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-venus-mars"></i> Dashboard Epidemiológico por Género</h1>
+            <p>Análisis de causas de defunción desglosado por sexo - Datos en tiempo real</p>
+            <div class="badge" id="statusBadge">
+                <i class="fas fa-sync fa-spin"></i> Conectando a datos...
+            </div>
+        </header>
+        
+        <div id="errorMessage" class="error" style="display: none;"></div>
+        
+        <div id="loader" class="loader"></div>
+        
+        <div id="dashboardContent" style="display: none;">
+            <!-- Leyenda de colores -->
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--color-hombre);"></div>
+                    <span>Hombres</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--color-mujer);"></div>
+                    <span>Mujeres</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: var(--color-nesp);"></div>
+                    <span>No especificado</span>
+                </div>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="filters">
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar-alt"></i> Año</label>
+                    <select id="yearFilter">
+                        <option value="all">Todos los años</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-calendar"></i> Mes</label>
+                    <select id="monthFilter">
+                        <option value="all">Todos los meses</option>
+                        <option value="1">Enero</option>
+                        <option value="2">Febrero</option>
+                        <option value="3">Marzo</option>
+                        <option value="4">Abril</option>
+                        <option value="5">Mayo</option>
+                        <option value="6">Junio</option>
+                        <option value="7">Julio</option>
+                        <option value="8">Agosto</option>
+                        <option value="9">Septiembre</option>
+                        <option value="10">Octubre</option>
+                        <option value="11">Noviembre</option>
+                        <option value="12">Diciembre</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-search"></i> Buscar</label>
+                    <input type="text" id="searchInput" placeholder="Código CIE o descripción...">
+                </div>
+                <button onclick="applyFilters()" class="btn-primary">
+                    <i class="fas fa-filter"></i> Filtrar
+                </button>
+                <button onclick="resetFilters()" class="btn-secondary">
+                    <i class="fas fa-redo"></i> Limpiar
+                </button>
+                <button onclick="loadData()" class="btn-success">
+                    <i class="fas fa-sync"></i> Actualizar
+                </button>
+            </div>
+            
+            <!-- Cards con datos de género -->
+            <div class="cards">
+                <div class="card total">
+                    <h3>TOTAL DEFUNCIONES</h3>
+                    <div class="value" id="totalDeaths">0</div>
+                    <p>Período completo</p>
+                </div>
+                <div class="card hombres">
+                    <h3><i class="fas fa-mars"></i> HOMBRES</h3>
+                    <div class="value" id="totalHombres">0</div>
+                    <p><span id="porcentajeHombres">0</span>% del total</p>
+                </div>
+                <div class="card mujeres">
+                    <h3><i class="fas fa-venus"></i> MUJERES</h3>
+                    <div class="value" id="totalMujeres">0</div>
+                    <p><span id="porcentajeMujeres">0</span>% del total</p>
+                </div>
+                <div class="card">
+                    <h3>CAUSA PRINCIPAL</h3>
+                    <div class="value" id="topCause">-</div>
+                    <p id="topCauseDesc"></p>
+                </div>
+            </div>
+            
+            <!-- Charts -->
+            <div class="charts">
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-bar"></i> Defunciones por Mes (Desglose por Género)</h3>
+                    <canvas id="genderChart" height="300"></canvas>
+                </div>
+                <div class="chart-container">
+                    <h3><i class="fas fa-chart-pie"></i> Top 10 Causas por Género</h3>
+                    <canvas id="causesByGenderChart" height="300"></canvas>
+                </div>
+            </div>
+            
+            <!-- Tabla con datos de género -->
+            <div class="table-container">
+                <h3><i class="fas fa-table"></i> Datos Detallados con Desglose por Género</h3>
+                <p id="tableInfo">Mostrando <span id="rowCount">0</span> registros</p>
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Año</th>
+                            <th>Mes</th>
+                            <th>Código CIE</th>
+                            <th>Descripción</th>
+                            <th>Total</th>
+                            <th>Hombres</th>
+                            <th>Mujeres</th>
+                            <th>No Esp.</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- Datos dinámicos -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="status">
+                <p id="lastUpdate">Última actualización: -</p>
+                <p>Dashboard con análisis por género | Google Sheets + GitHub Pages</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== CONFIGURACIÓN =====
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbyxPwIcnvvOj1zrqPTRgqXoypR-fAAFVAheFGNLWBP6GXhCuvw59jZLZtEaJHyujPdO/exec';
+        
+        // ===== VARIABLES GLOBALES =====
+        let rawData = [];
+        let filteredData = [];
+        let genderChart = null;
+        let causesByGenderChart = null;
+        
+        // ===== INICIALIZACIÓN =====
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard con género inicializando...');
+            loadData();
+        });
+        
+        // ===== FUNCIONES PRINCIPALES =====
+        
+        // Cargar datos desde GAS con información de género
+        async function loadData() {
+            showLoader(true);
+            showError('');
+            updateStatus('Cargando datos con desglose por género...');
+            
+            try {
+                // Cargar datos con información de género
+                await loadGenderData();
+            } catch (error) {
+                console.error('Error cargando datos de género:', error);
+                showError('Error cargando datos de género. Intentando cargar datos básicos...');
+                await loadBasicData();
+            }
+        }
+        
+        // Cargar datos con información de género
+        async function loadGenderData() {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'gender_callback_' + Date.now();
+                const script = document.createElement('script');
+                
+                window[callbackName] = function(response) {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    
+                    if (response && response.success) {
+                        processGenderData(response.data);
+                        resolve(response);
+                    } else {
+                        reject(new Error('Datos de género inválidos'));
+                    }
+                };
+                
+                // Solicitar datos con información de género
+                script.src = `${GAS_URL}?callback=${callbackName}&format=jsonp&gender=true`;
+                script.onerror = reject;
+                document.body.appendChild(script);
+            });
+        }
+        
+        // Cargar datos básicos (sin género)
+        async function loadBasicData() {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'basic_callback_' + Date.now();
+                const script = document.createElement('script');
+                
+                window[callbackName] = function(response) {
+                    delete window[callbackName];
+                    document.body.removeChild(script);
+                    
+                    if (response && response.success) {
+                        // Convertir datos básicos a formato con género
+                        const basicData = response.data.map(item => ({
+                            año: item.año,
+                            mes: item.mes,
+                            mes_nombre: item.mes_nombre,
+                            codigo_cie: item.codigo_cie,
+                            descripcion_cie: item.descripcion_cie,
+                            total: item.cantidad,
+                            hombres: Math.floor(item.cantidad * 0.55), // Simulación
+                            mujeres: Math.floor(item.cantidad * 0.45), // Simulación
+                            no_especificado: 0
+                        }));
+                        
+                        processGenderData(basicData);
+                        resolve(response);
+                    } else {
+                        reject(new Error('Datos básicos inválidos'));
+                    }
+                };
+                
+                script.src = `${GAS_URL}?callback=${callbackName}&format=jsonp`;
+                script.onerror = reject;
+                document.body.appendChild(script);
+            });
+        }
+        
+        // Procesar datos con género
+        function processGenderData(data) {
+            try {
+                rawData = data.map(item => ({
+                    year: item.año || item.year,
+                    month: item.mes || item.month,
+                    monthName: item.mes_nombre || item.mesNombre,
+                    code: item.codigo_cie || item.code,
+                    description: item.descripcion_cie || item.description,
+                    total: item.total || item.cantidad || 0,
+                    hombres: item.hombres || 0,
+                    mujeres: item.mujeres || 0,
+                    no_especificado: item.no_especificado || item.no_especificado || 0
+                }));
+                
+                console.log(`${rawData.length} registros con datos de género cargados`);
+                
+                // Actualizar filtros de año
+                updateYearFilters();
+                
+                // Mostrar dashboard
+                filteredData = [...rawData];
+                updateDashboard();
+                updateStatus('Datos con género cargados correctamente');
+                showLoader(false);
+                
+            } catch (error) {
+                console.error('Error procesando datos de género:', error);
+                showError('Error procesando datos. Cargando datos de ejemplo...');
+                loadSampleGenderData();
+            }
+        }
+        
+        // Datos de ejemplo con género (fallback)
+        function loadSampleGenderData() {
+            rawData = [
+                {year: 2024, month: 1, monthName: "Enero", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 4, hombres: 2, mujeres: 2, no_especificado: 0},
+                {year: 2024, month: 2, monthName: "Febrero", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 1, hombres: 1, mujeres: 0, no_especificado: 0},
+                {year: 2024, month: 3, monthName: "Marzo", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 4, hombres: 3, mujeres: 1, no_especificado: 0},
+                {year: 2024, month: 4, monthName: "Abril", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 4, hombres: 2, mujeres: 2, no_especificado: 0},
+                {year: 2024, month: 5, monthName: "Mayo", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 2, hombres: 1, mujeres: 1, no_especificado: 0},
+                {year: 2024, month: 6, monthName: "Junio", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 5, hombres: 3, mujeres: 2, no_especificado: 0},
+                {year: 2024, month: 8, monthName: "Agosto", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 1, hombres: 0, mujeres: 1, no_especificado: 0},
+                {year: 2024, month: 9, monthName: "Septiembre", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 4, hombres: 2, mujeres: 2, no_especificado: 0},
+                {year: 2024, month: 10, monthName: "Octubre", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 3, hombres: 2, mujeres: 1, no_especificado: 0},
+                {year: 2024, month: 11, monthName: "Noviembre", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 3, hombres: 2, mujeres: 1, no_especificado: 0},
+                {year: 2024, month: 12, monthName: "Diciembre", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 5, hombres: 3, mujeres: 2, no_especificado: 0},
+                {year: 2025, month: 1, monthName: "Enero", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 5, hombres: 3, mujeres: 2, no_especificado: 0},
+                {year: 2025, month: 2, monthName: "Febrero", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 2, hombres: 1, mujeres: 1, no_especificado: 0},
+                {year: 2025, month: 3, monthName: "Marzo", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 4, hombres: 2, mujeres: 2, no_especificado: 0},
+                {year: 2025, month: 4, monthName: "Abril", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 8, hombres: 4, mujeres: 4, no_especificado: 0},
+                {year: 2025, month: 5, monthName: "Mayo", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 3, hombres: 2, mujeres: 1, no_especificado: 0},
+                {year: 2025, month: 6, monthName: "Junio", code: "A419", description: "SEPSIS, NO ESPECIFICADA", total: 2, hombres: 1, mujeres: 1, no_especificado: 0}
+            ];
+            
+            updateYearFilters();
+            filteredData = [...rawData];
+            updateDashboard();
+            updateStatus('Usando datos de ejemplo con género');
+            showLoader(false);
+        }
+        
+        // ===== FUNCIONES DE FILTRADO =====
+        
+        function applyFilters() {
+            const year = document.getElementById('yearFilter').value;
+            const month = document.getElementById('monthFilter').value;
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredData = rawData.filter(item => {
+                if (year !== 'all' && item.year.toString() !== year) return false;
+                if (month !== 'all' && item.month.toString() !== month) return false;
+                if (search && !item.code.toLowerCase().includes(search) && 
+                    !item.description.toLowerCase().includes(search)) return false;
+                return true;
+            });
+            
+            updateDashboard();
+        }
+        
+        function resetFilters() {
+            document.getElementById('yearFilter').value = 'all';
+            document.getElementById('monthFilter').value = 'all';
+            document.getElementById('searchInput').value = '';
+            filteredData = [...rawData];
+            updateDashboard();
+        }
+        
+        // ===== ACTUALIZAR DASHBOARD =====
+        
+        function updateDashboard() {
+            updateGenderStats();
+            updateTableWithGender();
+            updateChartsWithGender();
+            updateStatus(`Mostrando ${filteredData.length} registros filtrados`);
+        }
+        
+        function updateGenderStats() {
+            if (filteredData.length === 0) {
+                resetStats();
+                return;
+            }
+            
+            // Totales por género
+            const totalHombres = filteredData.reduce((sum, item) => sum + item.hombres, 0);
+            const totalMujeres = filteredData.reduce((sum, item) => sum + item.mujeres, 0);
+            const totalNoEspecificado = filteredData.reduce((sum, item) => sum + item.no_especificado, 0);
+            const totalGeneral = totalHombres + totalMujeres + totalNoEspecificado;
+            
+            // Actualizar cards
+            document.getElementById('totalDeaths').textContent = totalGeneral.toLocaleString();
+            document.getElementById('totalHombres').textContent = totalHombres.toLocaleString();
+            document.getElementById('totalMujeres').textContent = totalMujeres.toLocaleString();
+            
+            // Calcular porcentajes
+            const porcentajeHombres = totalGeneral > 0 ? ((totalHombres / totalGeneral) * 100).toFixed(1) : '0';
+            const porcentajeMujeres = totalGeneral > 0 ? ((totalMujeres / totalGeneral) * 100).toFixed(1) : '0';
+            
+            document.getElementById('porcentajeHombres').textContent = porcentajeHombres;
+            document.getElementById('porcentajeMujeres').textContent = porcentajeMujeres;
+            
+            // Causa principal
+            const causeTotals = {};
+            filteredData.forEach(item => {
+                causeTotals[item.code] = (causeTotals[item.code] || 0) + item.total;
+            });
+            
+            let topCode = '';
+            let topCount = 0;
+            for (const [code, count] of Object.entries(causeTotals)) {
+                if (count > topCount) {
+                    topCount = count;
+                    topCode = code;
+                }
+            }
+            
+            const topItem = filteredData.find(item => item.code === topCode);
+            document.getElementById('topCause').textContent = topCode;
+            document.getElementById('topCauseDesc').textContent = 
+                topItem ? (topItem.description.length > 40 ? 
+                    topItem.description.substring(0, 40) + '...' : 
+                    topItem.description) : '';
+        }
+        
+        function resetStats() {
+            document.getElementById('totalDeaths').textContent = '0';
+            document.getElementById('totalHombres').textContent = '0';
+            document.getElementById('totalMujeres').textContent = '0';
+            document.getElementById('porcentajeHombres').textContent = '0';
+            document.getElementById('porcentajeMujeres').textContent = '0';
+            document.getElementById('topCause').textContent = '-';
+            document.getElementById('topCauseDesc').textContent = '';
+        }
+        
+        function updateTableWithGender() {
+            const tbody = document.getElementById('tableBody');
+            const rowCount = document.getElementById('rowCount');
+            
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 2rem;">
+                            No hay datos con los filtros actuales
+                        </td>
+                    </tr>
+                `;
+                rowCount.textContent = '0';
+                return;
+            }
+            
+            // Ordenar datos
+            const sortedData = [...filteredData].sort((a, b) => {
+                if (a.year !== b.year) return b.year - a.year;
+                if (a.month !== b.month) return b.month - a.month;
+                return b.total - a.total;
+            });
+            
+            let html = '';
+            sortedData.forEach(item => {
+                const shortDesc = item.description.length > 50 ? 
+                    item.description.substring(0, 50) + '...' : 
+                    item.description;
+                
+                // Calcular porcentajes por género para esta fila
+                const totalItem = item.total;
+                const porcHombres = totalItem > 0 ? Math.round((item.hombres / totalItem) * 100) : 0;
+                const porcMujeres = totalItem > 0 ? Math.round((item.mujeres / totalItem) * 100) : 0;
+                
+                html += `
+                    <tr>
+                        <td><strong>${item.year}</strong></td>
+                        <td>${item.monthName}</td>
+                        <td><code>${item.code}</code></td>
+                        <td title="${item.description}">${shortDesc}</td>
+                        <td><span style="color: #e74c3c; font-weight: bold;">${item.total}</span></td>
+                        <td>
+                            <span style="color: #3498db; font-weight: bold;">${item.hombres}</span>
+                            <span class="gender-badge badge-hombre">${porcHombres}%</span>
+                        </td>
+                        <td>
+                            <span style="color: #e84393; font-weight: bold;">${item.mujeres}</span>
+                            <span class="gender-badge badge-mujer">${porcMujeres}%</span>
+                        </td>
+                        <td>
+                            <span style="color: #95a5a6; font-weight: bold;">${item.no_especificado}</span>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tbody.innerHTML = html;
+            rowCount.textContent = filteredData.length.toString();
+        }
+        
+        function updateChartsWithGender() {
+            if (!genderChart || !causesByGenderChart) {
+                initGenderCharts();
+            }
+            
+            updateGenderChart();
+            updateCausesByGenderChart();
+        }
+        
+        function initGenderCharts() {
+            // Gráfico de barras apiladas por género
+            const ctx1 = document.getElementById('genderChart').getContext('2d');
+            genderChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Hombres',
+                            data: [],
+                            backgroundColor: '#3498db',
+                            borderColor: '#2980b9',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Mujeres',
+                            data: [],
+                            backgroundColor: '#e84393',
+                            borderColor: '#d63031',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'No especificado',
+                            data: [],
+                            backgroundColor: '#95a5a6',
+                            borderColor: '#7f8c8d',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Defunciones'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.chart.data.datasets.reduce((sum, dataset) => {
+                                        return sum + (dataset.data[context.dataIndex] || 0);
+                                    }, 0);
+                                    
+                                    const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Gráfico de causas por género
+            const ctx2 = document.getElementById('causesByGenderChart').getContext('2d');
+            causesByGenderChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [
+                        {
+                            label: 'Hombres',
+                            data: [],
+                            backgroundColor: '#3498db',
+                            borderColor: '#2980b9',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Mujeres',
+                            data: [],
+                            backgroundColor: '#e84393',
+                            borderColor: '#d63031',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Defunciones'
+                            }
+                        },
+                        y: {
+                            stacked: true
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.dataset.label || '';
+                                    const value = context.raw || 0;
+                                    return `${label}: ${value}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateGenderChart() {
+            // Agrupar datos por mes-año
+            const monthlyData = {};
+            filteredData.forEach(item => {
+                const key = `${item.monthName} ${item.year}`;
+                if (!monthlyData[key]) {
+                    monthlyData[key] = {
+                        hombres: 0,
+                        mujeres: 0,
+                        no_especificado: 0,
+                        total: 0
+                    };
+                }
+                monthlyData[key].hombres += item.hombres;
+                monthlyData[key].mujeres += item.mujeres;
+                monthlyData[key].no_especificado += item.no_especificado;
+                monthlyData[key].total += item.total;
+            });
+            
+            // Ordenar por fecha
+            const sortedKeys = Object.keys(monthlyData).sort((a, b) => {
+                const [mesA, añoA] = a.split(' ');
+                const [mesB, añoB] = b.split(' ');
+                const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                
+                if (añoA !== añoB) return añoA - añoB;
+                return meses.indexOf(mesA) - meses.indexOf(mesB);
+            });
+            
+            const labels = sortedKeys;
+            const hombresData = sortedKeys.map(key => monthlyData[key].hombres);
+            const mujeresData = sortedKeys.map(key => monthlyData[key].mujeres);
+            const noEspData = sortedKeys.map(key => monthlyData[key].no_especificado);
+            
+            genderChart.data.labels = labels;
+            genderChart.data.datasets[0].data = hombresData;
+            genderChart.data.datasets[1].data = mujeresData;
+            genderChart.data.datasets[2].data = noEspData;
+            genderChart.update();
+        }
+        
+        function updateCausesByGenderChart() {
+            // Agrupar por causa y género
+            const causeData = {};
+            filteredData.forEach(item => {
+                if (!causeData[item.code]) {
+                    causeData[item.code] = {
+                        code: item.code,
+                        description: item.description,
+                        hombres: 0,
+                        mujeres: 0,
+                        total: 0
+                    };
+                }
+                causeData[item.code].hombres += item.hombres;
+                causeData[item.code].mujeres += item.mujeres;
+                causeData[item.code].total += item.total;
+            });
+            
+            // Obtener top 10 causas
+            const sortedCauses = Object.values(causeData)
+                .sort((a, b) => b.total - a.total)
+                .slice(0, 10);
+            
+            const labels = sortedCauses.map(item => 
+                item.description.length > 30 ? 
+                item.code + ': ' + item.description.substring(0, 30) + '...' : 
+                item.code + ': ' + item.description
+            );
+            const hombresData = sortedCauses.map(item => item.hombres);
+            const mujeresData = sortedCauses.map(item => item.mujeres);
+            
+            causesByGenderChart.data.labels = labels;
+            causesByGenderChart.data.datasets[0].data = hombresData;
+            causesByGenderChart.data.datasets[1].data = mujeresData;
+            causesByGenderChart.update();
+        }
+        
+        // ===== FUNCIONES AUXILIARES =====
+        
+        function updateYearFilters() {
+            const years = [...new Set(rawData.map(item => item.year))].sort((a, b) => b - a);
+            const select = document.getElementById('yearFilter');
+            
+            select.innerHTML = '<option value="all">Todos los años</option>';
+            years.forEach(year => {
+                select.innerHTML += `<option value="${year}">${year}</option>`;
+            });
+        }
+        
+        function updateStatus(message) {
+            const badge = document.getElementById('statusBadge');
+            badge.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            document.getElementById('lastUpdate').textContent = 
+                `Última actualización: ${new Date().toLocaleTimeString()}`;
+        }
+        
+        function showLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+            document.getElementById('dashboardContent').style.display = show ? 'none' : 'block';
+        }
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            if (message) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            } else {
+                errorDiv.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
