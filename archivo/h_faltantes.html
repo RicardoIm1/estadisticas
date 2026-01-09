@@ -12,245 +12,229 @@
     <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
     <link href="/estadisticas/main_css/tabla-wrapper.css" rel="stylesheet">
 </head>
-
 <style>
     /* === NUEVO: Layout premium formulario + tabla === */
+.layout-egresos {
+    display: grid;
+    grid-template-columns: 20% 1fr;
+    gap: 1rem;
+    height: calc(100vh - 160px);
+    min-height: 0;
+}
+
+/* Formulario premium */
+.form-panel {
+    background: rgba(255, 255, 255, 0.09);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.7rem;
+    min-width: 200px;
+    overflow-y: auto;
+    color: #0f0;
+}
+
+/* Inputs minimalistas */
+.form-panel input,
+.form-panel textarea {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.08);
+    color: #0f0;
+    font-size: 0.9rem;
+}
+
+.form-panel textarea {
+    height: 80px;
+    resize: vertical;
+}
+
+/* Wrapper para la tabla */
+.tabla-zona {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 0.3rem;
+    min-height: 0;
+}
+
+/* CONTENEDOR PRINCIPAL - Scroll vertical aquí */
+.tabla-wrapper {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto; /* Scroll vertical */
+    position: relative;
+}
+
+/* Para encabezados fijos - IMPORTANTE */
+.tabla-wrapper table thead th {
+    position: sticky;
+    top: 0;
+    background-color: #1a1a1a;
+    z-index: 10;
+    border-bottom: 2px solid #0f0;
+}
+
+/* CONTENEDOR PARA SCROLL HORIZONTAL */
+.tabla-scroll-x {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    max-width: 100%;
+}
+
+.tabla-scroll-x::-webkit-scrollbar {
+    height: 6px;
+}
+
+.tabla-scroll-x::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 0, 0.3);
+    border-radius: 3px;
+}
+
+/* Tabla con ancho mínimo */
+.tabla-scroll-x table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+}
+
+/* Primera columna más ancha */
+.tabla-scroll-x table th:first-child,
+.tabla-scroll-x table td:first-child {
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 360px;
+    white-space: normal !important;
+    overflow: visible !important;
+}
+
+/* Estilo para las celdas */
+.tabla-scroll-x table td {
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+/* Buscador y filtros */
+.buscador-tabla {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.6rem;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    margin-bottom: 0.4rem;
+    justify-content: space-between;
+}
+
+.filtro-atendidos {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    font-size: 0.85rem;
+    color: #c9f9c9;
+}
+
+.toggle-switch {
+    position: relative;
+    width: 46px;
+    height: 24px;
+    margin-left: 0.6rem;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 999px;
+    transition: all 0.25s ease;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.toggle-slider::before {
+    content: "";
+    position: absolute;
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    top: 2px;
+    background: #caffca;
+    border-radius: 50%;
+    transition: transform 0.25s ease;
+    box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
+}
+
+.toggle-switch input:checked+.toggle-slider {
+    background: rgba(0, 255, 120, 0.25);
+}
+
+.toggle-switch input:checked+.toggle-slider::before {
+    transform: translateX(22px);
+}
+
+.buscador-tabla input[type="text"] {
+    flex: 1;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 0.85rem;
+    outline: none;
+    min-width: 200px;
+}
+
+.buscador-tabla input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.buscador-tabla i {
+    font-size: 0.85rem;
+    color: #9fffa0;
+}
+
+/* Responsivo para móviles */
+@media (max-width: 768px) {
     .layout-egresos {
-        display: grid;
-        grid-template-columns: 20% 1fr;
-        gap: 1rem;
-        height: calc(100vh - 160px);
-        min-height: 0;
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
     }
 
-    /* Formulario premium */
     .form-panel {
-        background: rgba(255, 255, 255, 0.09);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 14px;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.7rem;
-        min-width: 200px;
-        overflow-y: auto;
-        color: #0f0;
-    }
-
-    /* Inputs minimalistas */
-    .form-panel input,
-    .form-panel textarea {
-        width: 100%;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: rgba(255, 255, 255, 0.08);
-        /* color: white; */
-        color: #0f0;
-        font-size: 0.9rem;
-    }
-
-    .form-panel textarea {
-        height: 80px;
-        resize: vertical;
-    }
-
-    /* Wrapper para la tabla */
-    .tabla-zona {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 0.3rem;
-        min-height: 0;
-    }
-
-    .tabla-wrapper {
-        /* height: calc(100vh - 220px); */
-        height: 100%;
-        min-height: 0;
-        overflow-y: auto;
-    }
-
-    /* Responsivo para móviles */
-    @media (max-width: 768px) {
-        .layout-egresos {
-            grid-template-columns: 1fr;
-            gap: 0.8rem;
-        }
-
-        .form-panel {
-            max-height: none;
-        }
-    }
-
-    /* === Scroll horizontal invisible === */
-    .tabla-scroll-x {
-        overflow-x: auto;
-        overflow-y: hidden;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        /* Firefox */
-    }
-
-    .tabla-scroll-x::-webkit-scrollbar {
-        display: none;
-        /* Chrome, Safari */
-    }
-
-    /* Mantener tabla con ancho mínimo adecuado */
-    .tabla-scroll-x table {
-        width: max-content;
-        min-width: 100%;
-    }
-
-    .tabla-scroll-y {
-        height: 500px;
-        /* Altura fija */
-        overflow-y: auto;
-        width: 100%;
-        position: relative;
-    }
-
-    .tabla-scroll-y table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    /* Para encabezados fijos */
-    .tabla-scroll-y thead th {
-        position: sticky;
-        top: 0;
-        background-color: #1a1a1a;
-        /* Mismo color que tu diseño */
-        z-index: 10;
-        border-bottom: 2px solid #0f0;
-    }
-
-    /* === Primera columna más ancha === */
-    .tabla-wrapper table th:first-child,
-    .tabla-wrapper table td:first-child {
-        width: 260px !important;
-        min-width: 260px !important;
-        max-width: 360px;
-        /* margen superior sin forzar */
-        white-space: normal !important;
-        /* permite varias líneas */
-        overflow: visible !important;
-    }
-
-    tabl{
-        overflow-y: hidden;
-    }
-
-    .filtro-atendidos {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        padding: 0.4rem 0.6rem;
-        font-size: 0.85rem;
-        color: #c9f9c9;
-    }
-
-    .toggle-switch {
-        position: relative;
-        width: 46px;
-        height: 24px;
-        margin-left: 0.6rem;
-    }
-
-    .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        inset: 0;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 999px;
-        transition: all 0.25s ease;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-    }
-
-    .toggle-slider::before {
-        content: "";
-        position: absolute;
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        top: 2px;
-        background: #caffca;
-        border-radius: 50%;
-        transition: transform 0.25s ease;
-        box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
-    }
-
-    .toggle-switch input:checked+.toggle-slider {
-        background: rgba(0, 255, 120, 0.25);
-    }
-
-    .toggle-switch input:checked+.toggle-slider::before {
-        transform: translateX(22px);
-    }
-
-    .buscador {
-        margin: 12px 0 18px;
-        position: relative;
-    }
-
-    .buscador input {
-        width: 100%;
-        padding: 10px 40px 10px 14px;
-        border-radius: 12px;
-        border: none;
-        background: rgba(255, 255, 255, .12);
-        color: #fff;
-        font-size: 14px;
-        outline: none;
-    }
-
-    .buscador i {
-        position: absolute;
-        right: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        opacity: .6;
+        max-height: none;
     }
 
     .buscador-tabla {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.4rem 0.6rem;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 10px;
-        margin-bottom: 0.4rem;
-        justify-content: ;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.8rem;
     }
 
-    .buscador-tabla i {
-        font-size: 0.85rem;
-        color: #9fffa0;
+    .buscador-tabla input[type="text"] {
+        min-width: unset;
     }
 
-    .buscador-tabla input {
-        flex: 1;
-        background: transparent;
-        border: none;
-        outline: none;
-        color: #fff;
-        font-size: 0.85rem;
+    .filtro-atendidos {
+        justify-content: space-between;
     }
-
-    .buscador-tabla input::placeholder {
-        color: rgba(255, 255, 255, 0.5);
-    }
+}
 </style>
 
 <body>
@@ -270,24 +254,27 @@
             </form>
 
             <div class="tabla-zona">
-                <div class="tabla-wrapper tabla-scroll-x">
-                    <div class="buscador-tabla">
-                        <div class="filtro-atendidos">
-                            <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="buscadorTabla" placeholder="Buscar en la tabla…">
-                        </div>
-                        <span>Mostrar atendidos</span>
-                        <label class="toggle-switch">
-                            <input type="checkbox" id="toggleAtendidos">
-                            <span class="toggle-slider"></span>
-                        </label>
+                <div class="buscador-tabla">
+                    <div class="filtro-atendidos">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="buscadorTabla" placeholder="Buscar en la tabla…">
                     </div>
+                    <span>Mostrar atendidos</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggleAtendidos">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
 
-                    <table id="tabla-registros">
-                        <thead></thead>
-                        <tbody></tbody>
-                    </table>
-
+                <!-- CONTENEDOR PRINCIPAL CON SCROLL VERTICAL -->
+                <div class="tabla-wrapper">
+                    <!-- CONTENEDOR CON SCROLL HORIZONTAL -->
+                    <div class="tabla-scroll-x">
+                        <table id="tabla-registros">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
