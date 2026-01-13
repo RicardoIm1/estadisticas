@@ -57,12 +57,15 @@
 const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec";
 
 let registrosOriginales = [];
-let mostrarAtendidos = false;
 let textoBusqueda = "";
+let mostrarTodo = false;
+
+// 👉 COLUMNA G (índice 6)
+const INDEX_CHECKLIST = 6;
 
 /* ================= EVENTOS ================= */
 document.getElementById("toggleAtendidos").addEventListener("change", e => {
-    mostrarAtendidos = e.target.checked;
+    mostrarTodo = e.target.checked;
     aplicarFiltros();
 });
 
@@ -75,31 +78,26 @@ document.getElementById("buscadorTabla").addEventListener("input", e => {
 document.addEventListener("DOMContentLoaded", cargarRegistros);
 
 async function cargarRegistros() {
-    try {
-        const res = await fetch(URL);
-        const json = await res.json();
-        if (!json.ok) throw "Error backend";
-        registrosOriginales = json.registros || [];
-        aplicarFiltros();
-    } catch (e) {
-        document.querySelector("#tabla-registros tbody").innerHTML = `
-            <tr><td colspan="20" style="color:#f55;text-align:center;padding:20px">
-                Error al cargar datos
-            </td></tr>`;
-    }
+    const res = await fetch(URL);
+    const json = await res.json();
+    registrosOriginales = json.registros || [];
+    aplicarFiltros();
 }
 
 /* ================= FILTROS ================= */
 function aplicarFiltros() {
     let data = [...registrosOriginales];
 
-    if (!mostrarAtendidos) {
+    // 👉 SOLO NO ACTIVOS EN CHECKLIST (columna G)
+    if (!mostrarTodo) {
         data = data.filter(r => {
-            const a = String(r["ATENDIDO"] || "").toLowerCase();
-            return !["si","sí","true","1","x"].includes(a);
+            const valores = Object.values(r);
+            const checklist = String(valores[INDEX_CHECKLIST] || "").toLowerCase();
+            return !["si","sí","true","1","x","✔"].includes(checklist);
         });
     }
 
+    // Buscador global
     if (textoBusqueda) {
         data = data.filter(r =>
             Object.values(r).some(v =>
@@ -121,14 +119,14 @@ function renderTabla(registros) {
 
     if (!registros.length) {
         tbody.innerHTML = `
-            <tr><td colspan="20" style="color:#aaa;text-align:center;padding:20px">
-                No hay registros
+            <tr><td colspan="20" style="text-align:center;color:#aaa;padding:20px">
+                No hay pendientes 🎯
             </td></tr>`;
         return;
     }
 
     const headers = Object.keys(registros[0]);
-    thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+    thead.innerHTML = "<tr>" + headers.map(h => `<th>${h || "✔"}</th>`).join("") + "</tr>";
 
     registros.forEach(r => {
         const fila = "<tr>" + headers.map(h => {
