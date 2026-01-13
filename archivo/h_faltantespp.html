@@ -1,55 +1,54 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadísticas y Archivo Clínico</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Estadísticas y Archivo Clínico</title>
 
-    <link rel="shortcut icon" href="/estadisticas/img/favicon.ico">
-    <link rel="icon" href="/estadisticas/img/favicon.ico">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
-    <link href="/estadisticas/main_css/tabla-wrapper.css" rel="stylesheet">
+<link rel="shortcut icon" href="/estadisticas/img/favicon.ico">
+<link rel="icon" href="/estadisticas/img/favicon.ico">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
+<link href="/estadisticas/main_css/tabla-wrapper.css" rel="stylesheet">
 </head>
 
 <body>
 <div class="glass" id="dashboard">
 
-    <h5>Hojas Incompletas de Hospitalización</h5>
-    <div id="header"></div>
+<h5>Hojas Incompletas de Hospitalización</h5>
+<div id="header"></div>
 
-    <div class="layout-egresos">
-        <div class="tabla-zona">
+<div class="layout-egresos">
+<div class="tabla-zona">
 
-            <div class="buscador-tabla">
-                <div class="filtro-atendidos">
-                    <i class="fa-solid fa-magnifying-glass"></i>
-                    <input type="text" id="buscadorTabla" placeholder="Buscar en la tabla…">
-                </div>
-
-                <div class="filtro-atendidos">
-                    <span>Mostrar atendidos</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="toggleAtendidos">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="tabla-wrapper">
-                <div class="tabla-scroll-x">
-                    <table id="tabla-registros">
-                        <thead></thead>
-                        <tbody></tbody>
-                    </table>
-                </div>
-            </div>
-
-        </div>
+<div class="buscador-tabla">
+    <div class="filtro-atendidos">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="buscadorTabla" placeholder="Buscar en la tabla…">
     </div>
 
-    <div id="footer"></div>
+    <div class="filtro-atendidos">
+        <span>Mostrar todo</span>
+        <label class="toggle-switch">
+            <input type="checkbox" id="toggleAtendidos">
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+</div>
+
+<div class="tabla-wrapper">
+    <div class="tabla-scroll-x">
+        <table id="tabla-registros">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+</div>
+</div>
+
+<div id="footer"></div>
 </div>
 
 <script>
@@ -60,8 +59,8 @@ let registrosOriginales = [];
 let textoBusqueda = "";
 let mostrarTodo = false;
 
-// 👉 COLUMNA G (índice 6)
-const INDEX_CHECKLIST = 6;
+let headersGlobales = [];
+const INDEX_CHECKLIST = 6; // columna G real
 
 /* ================= EVENTOS ================= */
 document.getElementById("toggleAtendidos").addEventListener("change", e => {
@@ -78,26 +77,30 @@ document.getElementById("buscadorTabla").addEventListener("input", e => {
 document.addEventListener("DOMContentLoaded", cargarRegistros);
 
 async function cargarRegistros() {
-    const res = await fetch(URL);
-    const json = await res.json();
-    registrosOriginales = json.registros || [];
-    aplicarFiltros();
+    try {
+        const res = await fetch(URL);
+        const json = await res.json();
+        registrosOriginales = json.registros || [];
+        aplicarFiltros();
+    } catch {
+        document.querySelector("#tabla-registros tbody").innerHTML = `
+        <tr><td colspan="20" style="text-align:center;color:#f55;padding:20px">
+            Error al cargar datos
+        </td></tr>`;
+    }
 }
 
 /* ================= FILTROS ================= */
 function aplicarFiltros() {
     let data = [...registrosOriginales];
 
-    // 👉 SOLO NO ACTIVOS EN CHECKLIST (columna G)
-    if (!mostrarTodo) {
+    if (!mostrarTodo && headersGlobales.length) {
         data = data.filter(r => {
-            const valores = Object.values(r);
-            const checklist = String(valores[INDEX_CHECKLIST] || "").toLowerCase();
+            const checklist = String(headersGlobales.map(h => r[h])[INDEX_CHECKLIST] || "").toLowerCase();
             return !["si","sí","true","1","x","✔"].includes(checklist);
         });
     }
 
-    // Buscador global
     if (textoBusqueda) {
         data = data.filter(r =>
             Object.values(r).some(v =>
@@ -119,17 +122,20 @@ function renderTabla(registros) {
 
     if (!registros.length) {
         tbody.innerHTML = `
-            <tr><td colspan="20" style="text-align:center;color:#aaa;padding:20px">
-                No hay pendientes 🎯
-            </td></tr>`;
+        <tr><td colspan="20" style="text-align:center;color:#aaa;padding:20px">
+            No hay pendientes 🎯
+        </td></tr>`;
         return;
     }
 
-    const headers = Object.keys(registros[0]);
-    thead.innerHTML = "<tr>" + headers.map(h => `<th>${h || "✔"}</th>`).join("") + "</tr>";
+    headersGlobales = Object.keys(registros[0]);
+
+    thead.innerHTML = "<tr>" +
+        headersGlobales.map(h => `<th>${h || "✔"}</th>`).join("") +
+        "</tr>";
 
     registros.forEach(r => {
-        const fila = "<tr>" + headers.map(h => {
+        const fila = "<tr>" + headersGlobales.map(h => {
             let v = r[h] ?? "";
             if (esFecha(h)) v = formatearFecha(v);
             return `<td>${v}</td>`;
