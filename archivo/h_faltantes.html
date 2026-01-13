@@ -327,13 +327,20 @@
 
             let registros = json.registros;
 
-            // filtro atendidos
+            // filtro checklist (columna G)
             if (!mostrarAtendidos) {
                 registros = registros.filter(r => {
-                    const a = String(r["ATENDIDO"]).toLowerCase();
-                    return !["true", "sí", "si", "1"].includes(a);
+                    // Columna G (checklist): true / false / vacío
+                    const checklist = String(
+                        Object.values(r)[6] ?? ""
+                    ).toLowerCase();
+
+                    // Mostrar SOLO los que NO tienen checklist activo
+                    return !["true", "sí", "si", "1", "checked"].includes(checklist);
                 });
+                console.log("Registros sin checklist activo:", registros.length);
             }
+
 
             // filtro búsqueda en tiempo real
             if (textoBusqueda) {
