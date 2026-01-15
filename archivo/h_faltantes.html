@@ -241,163 +241,176 @@
 <body>
     <div class="glass" id="dashboard">
         <h5>Hojas Incompletas de Hospitalización</h5>
-        <div id="header"></div>
-        <div class="layout-egresos">
-
-            <form id="form-egresos" class="form-panel">
-                <input type="text" name="paciente" placeholder="Paciente" required>
-                <input type="date" name="fecha_egreso">
-                <input type="text" name="servicio" placeholder="Servicio">
-                <input type="text" name="personal_archivo" placeholder="Personal de archivo">
-                <input type="text" name="no_expediente" placeholder="No. expediente">
-                <textarea name="observaciones" placeholder="Observaciones"></textarea>
-                <button class="button" type="submit">Guardar</button>
-            </form>
-
-            <div class="tabla-zona">
-                <div class="buscador-tabla">
-                    <div class="filtro-atendidos">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                        <input type="text" id="buscadorTabla" placeholder="Buscar en la tabla…">
-                    </div>
-                    <span>Mostrar atendidos</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="toggleAtendidos">
-                        <span class="toggle-slider"></span>
-                    </label>
+        <div class="header">
+            <div class="logo">
+                <a href="#"> <img src="/estadisticas/img/logo-hrpv.png" alt="Logo" width="120"></a>
+            </div>
+            <div>
+                <div class="usuario">
+                    <i class="fa-solid fa-user-circle"></i>
+                    <span id="user-info"></span>
+                    <!-- Botón de cerrar sesión -->
+                    <button onclick="cerrarSesion()" class="btn-salir-ultra">
+                        Salir
+                    </button>
                 </div>
+            </div>
+            <div class="layout-egresos">
 
-                <!-- CONTENEDOR PRINCIPAL CON SCROLL VERTICAL -->
-                <div class="tabla-wrapper">
-                    <!-- CONTENEDOR CON SCROLL HORIZONTAL -->
-                    <div class="tabla-scroll-x">
-                        <table id="tabla-registros">
-                            <thead></thead>
-                            <tbody></tbody>
-                        </table>
+                <form id="form-egresos" class="form-panel">
+                    <input type="text" name="paciente" placeholder="Paciente" required>
+                    <input type="date" name="fecha_egreso">
+                    <input type="text" name="servicio" placeholder="Servicio">
+                    <input type="text" name="personal_archivo" placeholder="Personal de archivo">
+                    <input type="text" name="no_expediente" placeholder="No. expediente">
+                    <textarea name="observaciones" placeholder="Observaciones"></textarea>
+                    <button class="button" type="submit">Guardar</button>
+                </form>
+
+                <div class="tabla-zona">
+                    <div class="buscador-tabla">
+                        <div class="filtro-atendidos">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="buscadorTabla" placeholder="Buscar en la tabla…">
+                        </div>
+                        <span>Mostrar atendidos</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleAtendidos">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- CONTENEDOR PRINCIPAL CON SCROLL VERTICAL -->
+                    <div class="tabla-wrapper">
+                        <!-- CONTENEDOR CON SCROLL HORIZONTAL -->
+                        <div class="tabla-scroll-x">
+                            <table id="tabla-registros">
+                                <thead></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div id="footer"></div>
         </div>
 
-        <div id="footer"></div>
-    </div>
+        <script>
+            /* ================== CONFIG ================== */
+            const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec";
 
-    <script>
-        /* ================== CONFIG ================== */
-        const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec";
+            let mostrarAtendidos = false;
+            let textoBusqueda = "";
 
-        let mostrarAtendidos = false;
-        let textoBusqueda = "";
-
-        /* ================== TOGGLE ================== */
-        document.getElementById("toggleAtendidos").addEventListener("change", e => {
-            mostrarAtendidos = e.target.checked;
-            cargarRegistros();
-        });
-
-        /* ================== BUSCADOR ================== */
-        document.getElementById("buscadorTabla").addEventListener("input", e => {
-            textoBusqueda = e.target.value.toLowerCase().trim();
-            cargarRegistros();
-        });
-
-        /* ================== GUARDAR ================== */
-        document.getElementById("form-egresos").addEventListener("submit", async e => {
-            e.preventDefault();
-            const data = Object.fromEntries(new FormData(e.target).entries());
-
-            const res = await fetch(URL, {
-                method: "POST",
-                body: JSON.stringify(data)
-            });
-
-            const json = await res.json();
-            if (json.ok) {
+            /* ================== TOGGLE ================== */
+            document.getElementById("toggleAtendidos").addEventListener("change", e => {
+                mostrarAtendidos = e.target.checked;
                 cargarRegistros();
-                e.target.reset();
-            }
-        });
+            });
 
-        /* ================== TABLA ================== */
-        async function cargarRegistros() {
-            const res = await fetch(URL);
-            const json = await res.json();
-            if (!json.ok) return;
+            /* ================== BUSCADOR ================== */
+            document.getElementById("buscadorTabla").addEventListener("input", e => {
+                textoBusqueda = e.target.value.toLowerCase().trim();
+                cargarRegistros();
+            });
 
-            let registros = json.registros;
+            /* ================== GUARDAR ================== */
+            document.getElementById("form-egresos").addEventListener("submit", async e => {
+                e.preventDefault();
+                const data = Object.fromEntries(new FormData(e.target).entries());
 
-            // filtro checklist (columna G)
-            if (!mostrarAtendidos) {
-                registros = registros.filter(r => {
-                    // Columna H (checklist): true / false / vacío
-                    const checklist = String(
-                        Object.values(r)[7] ?? ""
-                    ).toLowerCase();
-
-                    // Mostrar SOLO los que NO tienen checklist activo
-                    return !["true", "sí", "si", "1", "checked"].includes(checklist);
+                const res = await fetch(URL, {
+                    method: "POST",
+                    body: JSON.stringify(data)
                 });
-                console.log("Registros sin checklist activo:", registros.length);
-            }
 
-
-            // filtro búsqueda en tiempo real
-            if (textoBusqueda) {
-                registros = registros.filter(r =>
-                    Object.values(r).some(v =>
-                        String(v).toLowerCase().includes(textoBusqueda)
-                    )
-                );
-            }
-
-            const thead = document.querySelector("#tabla-registros thead");
-            const tbody = document.querySelector("#tabla-registros tbody");
-            thead.innerHTML = "";
-            tbody.innerHTML = "";
-
-            if (!registros.length) return;
-
-            const headers = Object.keys(registros[0]);
-            thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
-
-            registros.forEach(r => {
-                const fila = "<tr>" + headers.map(h => {
-                    let v = r[h] ?? "";
-                    if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
-                        v = formatearFecha(v);
-                    }
-                    return `<td>${v}</td>`;
-                }).join("") + "</tr>";
-                tbody.innerHTML += fila;
-            });
-        }
-
-        function formatearFecha(v) {
-            const f = new Date(v);
-            if (isNaN(f)) return v;
-            return `${String(f.getDate()).padStart(2, "0")}/${String(f.getMonth() + 1).padStart(2, "0")}/${f.getFullYear()}`;
-        }
-
-        document.addEventListener("DOMContentLoaded", cargarRegistros);
-    </script>
-    <script>
-        // 🔍 Búsqueda en tiempo real con debounce
-        document.addEventListener("DOMContentLoaded", () => {
-            const input = document.getElementById("buscador");
-
-            input.addEventListener("input", e => {
-                clearTimeout(timer);
-                timer = setTimeout(() => {
-                    query = e.target.value.trim();
-                    page = 1;
-                    cargar();
-                }, 300); // ← dulce spot
+                const json = await res.json();
+                if (json.ok) {
+                    cargarRegistros();
+                    e.target.reset();
+                }
             });
 
-            cargar();
-    </script>
-    <script>
+            /* ================== TABLA ================== */
+            async function cargarRegistros() {
+                const res = await fetch(URL);
+                const json = await res.json();
+                if (!json.ok) return;
+
+                let registros = json.registros;
+
+                // filtro checklist (columna G)
+                if (!mostrarAtendidos) {
+                    registros = registros.filter(r => {
+                        // Columna H (checklist): true / false / vacío
+                        const checklist = String(
+                            Object.values(r)[7] ?? ""
+                        ).toLowerCase();
+
+                        // Mostrar SOLO los que NO tienen checklist activo
+                        return !["true", "sí", "si", "1", "checked"].includes(checklist);
+                    });
+                    console.log("Registros sin checklist activo:", registros.length);
+                }
+
+
+                // filtro búsqueda en tiempo real
+                if (textoBusqueda) {
+                    registros = registros.filter(r =>
+                        Object.values(r).some(v =>
+                            String(v).toLowerCase().includes(textoBusqueda)
+                        )
+                    );
+                }
+
+                const thead = document.querySelector("#tabla-registros thead");
+                const tbody = document.querySelector("#tabla-registros tbody");
+                thead.innerHTML = "";
+                tbody.innerHTML = "";
+
+                if (!registros.length) return;
+
+                const headers = Object.keys(registros[0]);
+                thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+                registros.forEach(r => {
+                    const fila = "<tr>" + headers.map(h => {
+                        let v = r[h] ?? "";
+                        if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
+                            v = formatearFecha(v);
+                        }
+                        return `<td>${v}</td>`;
+                    }).join("") + "</tr>";
+                    tbody.innerHTML += fila;
+                });
+            }
+
+            function formatearFecha(v) {
+                const f = new Date(v);
+                if (isNaN(f)) return v;
+                return `${String(f.getDate()).padStart(2, "0")}/${String(f.getMonth() + 1).padStart(2, "0")}/${f.getFullYear()}`;
+            }
+
+            document.addEventListener("DOMContentLoaded", cargarRegistros);
+        </script>
+        <script>
+            // 🔍 Búsqueda en tiempo real con debounce
+            document.addEventListener("DOMContentLoaded", () => {
+                const input = document.getElementById("buscador");
+
+                input.addEventListener("input", e => {
+                    clearTimeout(timer);
+                    timer = setTimeout(() => {
+                        query = e.target.value.trim();
+                        page = 1;
+                        cargar();
+                    }, 300); // ← dulce spot
+                });
+
+                cargar();
+        </script>
+        <script>
             fetch('/estadisticas/comun/header.html')
                 .then(r => r.text())
                 .then(html => {
@@ -426,10 +439,10 @@
                         footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
                     }
                 });
-    </script>
-    <!-- HEADER / FOOTER / SESIÓN: SIN TOCAR -->
-    <script src="/estadisticas/comun/estadoSistema.js"></script>
-    <script src="/estadisticas/comun/sesion_bk.js"></script>
+        </script>
+        <!-- HEADER / FOOTER / SESIÓN: SIN TOCAR -->
+        <script src="/estadisticas/comun/estadoSistema.js"></script>
+        <script src="/estadisticas/comun/sesion_bk.js"></script>
 
 </body>
 
