@@ -203,60 +203,68 @@
       chk.type = "checkbox";
       chk.checked = reg.completo;
 
+      // Input visible
       const inp = document.createElement("input");
       inp.type = "text";
       inp.value = reg.ruta;
-      inp.placeholder = "Evidencia";
+      inp.placeholder = "Evidencia (URL o archivo)";
       inp.className = "input-evidencia";
 
-      // Color persistente al cargar
-      if (reg.ruta) d.classList.add("celda-llena");
+      // Input oculto tipo file
+      const fileInput = document.createElement("input");
+      fileInput.type = "file";
+      fileInput.style.display = "none";
 
+      // --- CLICK EN EL INPUT DE TEXTO ---
+      inp.addEventListener("click", () => {
+        if (reg.ruta && reg.ruta.trim() !== "") {
+          // Si ya hay una URL guardada → abrirla
+          let url = reg.ruta.trim();
+          if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+          window.open(url, "_blank");
+        } else {
+          // Si no hay nada → abrir selector de archivo
+          fileInput.click();
+        }
+      });
 
-      // --- ÚNICO LISTENER PARA inp ---
+      // --- CUANDO SE SELECCIONA UN ARCHIVO ---
+      fileInput.addEventListener("change", () => {
+        if (fileInput.files.length > 0) {
+          const archivo = fileInput.files[0];
+          // Creamos una URL temporal para el archivo
+          const urlArchivo = URL.createObjectURL(archivo);
+
+          reg.ruta = urlArchivo;   // Guardamos la URL
+          reg.completo = true;
+          chk.checked = true;
+
+          inp.value = reg.ruta;
+          box.classList.add("activo");
+          d.classList.add("celda-llena");
+
+          guardarDatos(datos);
+        }
+      });
+
+      // Listener para cambios manuales en el texto (ej. pegar una URL)
       inp.addEventListener("input", () => {
         reg.ruta = inp.value.trim();
         reg.completo = reg.ruta !== "";
         chk.checked = reg.completo;
         box.classList.toggle("activo", reg.completo);
-
         d.classList.toggle("celda-llena", reg.completo);
-
         guardarDatos(datos);
-      });
-
-
-      // --- CLICK EN CELDA COMPLETA ---
-      d.addEventListener("click", (e) => {
-        if (e.target.tagName === "INPUT") return;
-
-        if (reg.ruta && reg.ruta.trim() !== "") {
-          let url = reg.ruta.trim();
-          if (!/^https?:\/\//i.test(url)) url = "https://" + url;
-          window.open(url, "_self");
-        }
       });
 
       chk.addEventListener("change", () => {
         reg.completo = chk.checked;
         if (!reg.completo) reg.ruta = "";
-
         inp.value = reg.ruta;
-        box.classList.toggle("activo", reg.completo);
-        d.classList.toggle("celda-llena", reg.completo);
+        box.classList.toggle
 
-        guardarDatos(datos);
-      });
-
-      // Ensamble
-      box.appendChild(chk);
-      box.appendChild(inp);
-      d.appendChild(box);
-      return d;
-    }
-
-    // GENERACIÓN AUTOMÁTICA AL ABRIR LA PÁGINA
-    window.addEventListener("load", generarMatrizAuto);
+        // GENERACIÓN AUTOMÁTICA AL ABRIR LA PÁGINA
+        window.addEventListener("load", generarMatrizAuto);
   </script>
 
 </body>
