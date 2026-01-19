@@ -3,116 +3,809 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard de Hábitos</title>
+    <title>Dashboard de Egresos Hospitalarios</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
     <style>
-        /* Tus estilos aquí */
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        .chart-container { height: 300px; margin: 20px 0; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f0f7ff;
+            color: #2c3e50;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a5fb4 0%, #26a269 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 6px 20px rgba(26, 95, 180, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 900px;
+        }
+        
+        .controls-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            min-width: 200px;
+        }
+        
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a5fb4;
+            font-size: 0.95rem;
+        }
+        
+        select {
+            padding: 10px 15px;
+            border: 2px solid #e0e7ff;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: white;
+            transition: border 0.3s;
+        }
+        
+        select:focus {
+            border-color: #1a5fb4;
+            outline: none;
+        }
+        
+        .data-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .summary-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-left: 5px solid #1a5fb4;
+        }
+        
+        .summary-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #1a5fb4;
+            margin: 10px 0;
+        }
+        
+        .summary-label {
+            color: #666;
+            font-size: 0.95rem;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .chart-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .chart-title {
+            font-size: 1.3rem;
+            color: #1a5fb4;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f7ff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .chart-title i {
+            font-size: 1.5rem;
+        }
+        
+        .chart-container {
+            height: 350px;
+            position: relative;
+        }
+        
+        .data-table-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
+            overflow-x: auto;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        th {
+            background: #1a5fb4;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:hover {
+            background: #f8faff;
+        }
+        
+        .concept-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin: 2px;
+        }
+        
+        .egresos { background: #e3f2fd; color: #1565c0; }
+        .urgencias { background: #e8f5e9; color: #2e7d32; }
+        .lesiones { background: #fff3e0; color: #ef6c00; }
+        .externas { background: #fce4ec; color: #ad1457; }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #ddd;
+        }
+        
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-card {
+                padding: 15px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+        }
     </style>
 </head>
 <body>
-    <h1>📊 Dashboard de Hábitos</h1>
-    
-    <div class="chart-container">
-        <canvas id="myChart"></canvas>
+    <div class="container">
+        <header>
+            <h1>🏥 Dashboard de Egresos Hospitalarios</h1>
+            <p class="subtitle">Análisis estadístico de las principales causas de egresos, urgencias y lesiones hospitalarias (2024-2025)</p>
+        </header>
+        
+        <div class="controls-panel">
+            <div class="filter-group">
+                <label for="filter-concepto">Concepto:</label>
+                <select id="filter-concepto">
+                    <option value="all">Todos los conceptos</option>
+                    <option value="PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS">Egresos Hospitalarios</option>
+                    <option value="PRINCIPALES CAUSAS DE URGENCIAS">Urgencias</option>
+                    <option value="PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES">Afecciones en Lesiones</option>
+                    <option value="PRINCIPALES CAUSAS EXTERNAS EN LESIONES">Causas Externas Lesiones</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-year">Año:</label>
+                <select id="filter-year">
+                    <option value="all">Todos los años</option>
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                </select>
+            </div>
+            
+            <div class="filter-group">
+                <label for="filter-top">Top N:</label>
+                <select id="filter-top">
+                    <option value="10">Top 10</option>
+                    <option value="15">Top 15</option>
+                    <option value="20">Top 20</option>
+                    <option value="all">Todos</option>
+                </select>
+            </div>
+            
+            <button id="update-btn" style="
+                background: linear-gradient(135deg, #1a5fb4 0%, #26a269 100%);
+                color: white;
+                border: none;
+                padding: 12px 25px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                align-self: flex-end;
+                transition: opacity 0.3s;
+            ">Actualizar Dashboard</button>
+        </div>
+        
+        <div class="data-summary">
+            <div class="summary-card">
+                <div class="summary-value" id="total-cases">0</div>
+                <div class="summary-label">Total de Casos</div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="summary-value" id="avg-volume">0</div>
+                <div class="summary-label">Volumen Promedio</div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="summary-value" id="top-cause">-</div>
+                <div class="summary-label">Causa Principal</div>
+            </div>
+            
+            <div class="summary-card">
+                <div class="summary-value" id="year-growth">0%</div>
+                <div class="summary-label">Crecimiento Anual</div>
+            </div>
+        </div>
+        
+        <div class="dashboard-grid">
+            <div class="chart-card">
+                <h2 class="chart-title"><i>📊</i> Distribución por Concepto</h2>
+                <div class="chart-container">
+                    <canvas id="conceptChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2 class="chart-title"><i>📈</i> Evolución Anual por Concepto</h2>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2 class="chart-title"><i>🏆</i> Top Causas por Volumen</h2>
+                <div class="chart-container">
+                    <canvas id="topCausesChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h2 class="chart-title"><i>🔍</i> Comparativa 2024 vs 2025</h2>
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="data-table-container">
+            <h2 class="chart-title"><i>📋</i> Datos Detallados</h2>
+            <div id="table-loading">Cargando datos...</div>
+            <table id="data-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Concepto</th>
+                        <th>Año</th>
+                        <th>Orden</th>
+                        <th>Causa</th>
+                        <th>Volumen</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+        
+        <footer>
+            <p>Dashboard Epidemiológico Hospitalario | Datos 2024-2025</p>
+            <p>Visualización de datos de salud pública con Chart.js</p>
+        </footer>
     </div>
-    
-    <div id="data-table"></div>
-    
+
     <script>
-        // CONFIGURACIÓN - REEMPLAZA ESTO:
-        const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzYoUt1CJu7mmh0KI03G_gbV1dgjsP8L0WCtJVDnOG6pTba8O52TP_9Xl9HLXuO65Br/exec'; // Tu URL aquí
-        
-        // Función principal
-        async function loadData() {
-            try {
-                console.log('Cargando datos desde:', APPS_SCRIPT_URL);
-                
-                // Para Apps Script, necesitamos usar 'no-cors' o proxy
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const response = await fetch(proxyUrl + APPS_SCRIPT_URL);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    displayData(result.data);
-                    createChart(result.data);
-                } else {
-                    throw new Error(result.error);
-                }
-                
-            } catch (error) {
-                console.error('Error cargando datos:', error);
-                document.getElementById('data-table').innerHTML = 
-                    `<p style="color: red;">Error cargando datos: ${error.message}</p>
-                     <p>Usando datos de ejemplo...</p>`;
-                loadSampleData();
-            }
-        }
-        
-        function displayData(data) {
-            let tableHTML = '<table border="1" cellpadding="10">';
+        // Datos de ejemplo basados en lo que proporcionaste
+        const hospitalData = [
+            // EGRESOS HOSPITALARIOS 2024
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, orden: 1, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 324},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, orden: 2, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 276},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, orden: 3, causa: "161 Parto único espontáneo", volumen: 201},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, orden: 4, causa: "159 Aborto (solo morbilidad)", volumen: 127},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, orden: 5, causa: "163 Ciertas afecciones originadas en el período perinatal", volumen: 95},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, orden: 6, causa: "119 Apendicitis", volumen: 74},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, orden: 7, causa: "126 Colelitiasis y colecistitis", volumen: 56},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, orden: 8, causa: "061 Diabetes mellitus", volumen: 55},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, orden: 9, causa: "120 Hernia de la cavidad abdominal", volumen: 43},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, orden: 10, causa: "097 Enfermedades del corazón", volumen: 43},
             
-            // Encabezados
-            tableHTML += '<tr>';
-            data[0].forEach(header => {
-                tableHTML += `<th>${header}</th>`;
+            // EGRESOS HOSPITALARIOS 2025
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 272},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, orden: 2, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 253},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, orden: 3, causa: "161 Parto único espontáneo", volumen: 223},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, orden: 4, causa: "159 Aborto (solo morbilidad)", volumen: 122},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, orden: 5, causa: "163 Ciertas afecciones originadas en el período perinatal", volumen: 83},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, orden: 6, causa: "061 Diabetes mellitus", volumen: 71},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, orden: 7, causa: "126 Colelitiasis y colecistitis", volumen: 60},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, orden: 8, causa: "097 Enfermedades del corazón", volumen: 51},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, orden: 9, causa: "119 Apendicitis", volumen: 50},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, orden: 10, causa: "105 Neumonía e influenza", volumen: 39},
+            
+            // URGENCIAS 2024
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 2018},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, orden: 2, causa: "179 Supervisión de embarazo normal", volumen: 1293},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, orden: 3, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 405},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, orden: 4, causa: "104 Infecciones respiratorias agudas, excepto neumonía e influenza", volumen: 362},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, orden: 5, causa: "126 Colelitiasis y colecistitis", volumen: 261},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, orden: 6, causa: "001 Enfermedades infecciosas intestinales", volumen: 244},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, orden: 7, causa: "128 Infecciones de la piel y del tejido subcutáneo", volumen: 152},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, orden: 8, causa: "097 Enfermedades del corazón", volumen: 144},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, orden: 9, causa: "061 Diabetes mellitus", volumen: 139},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, orden: 10, causa: "124 Síndrome del colon irritable y otros trastornos funcionales del intestino", volumen: 135},
+            
+            // URGENCIAS 2025
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 1924},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, orden: 2, causa: "179 Supervisión de embarazo normal", volumen: 1162},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, orden: 3, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 332},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, orden: 4, causa: "104 Infecciones respiratorias agudas, excepto neumonía e influenza", volumen: 311},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, orden: 5, causa: "001 Enfermedades infecciosas intestinales", volumen: 283},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, orden: 6, causa: "126 Colelitiasis y colecistitis", volumen: 186},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, orden: 7, causa: "097 Enfermedades del corazón", volumen: 166},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, orden: 8, causa: "061 Diabetes mellitus", volumen: 148},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, orden: 9, causa: "128 Infecciones de la piel y del tejido subcutáneo", volumen: 147},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, orden: 10, causa: "124 Síndrome del colon irritable y otros trastornos funcionales del intestino", volumen: 139}
+        ];
+
+        let filteredData = [...hospitalData];
+        let charts = {};
+
+        // Inicializar dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            initDashboard();
+            setupEventListeners();
+        });
+
+        function initDashboard() {
+            updateSummaryStats();
+            renderCharts();
+            populateTable();
+        }
+
+        function updateSummaryStats() {
+            // Total de casos
+            const totalCases = filteredData.reduce((sum, item) => sum + item.volumen, 0);
+            document.getElementById('total-cases').textContent = totalCases.toLocaleString();
+            
+            // Volumen promedio
+            const avgVolume = totalCases / filteredData.length;
+            document.getElementById('avg-volume').textContent = avgVolume.toFixed(1);
+            
+            // Causa principal
+            const topCause = filteredData.reduce((max, item) => 
+                item.volumen > max.volumen ? item : max, 
+                {volumen: 0, causa: '-'}
+            );
+            document.getElementById('top-cause').textContent = 
+                topCause.causa.substring(0, 30) + (topCause.causa.length > 30 ? '...' : '');
+            
+            // Crecimiento anual (simulado)
+            const year2024 = filteredData.filter(d => d.año === 2024).reduce((s, d) => s + d.volumen, 0);
+            const year2025 = filteredData.filter(d => d.año === 2025).reduce((s, d) => s + d.volumen, 0);
+            const growth = year2024 > 0 ? ((year2025 - year2024) / year2024 * 100).toFixed(1) : 0;
+            document.getElementById('year-growth').textContent = 
+                year2024 > 0 ? `${growth}%` : 'N/A';
+        }
+
+        function renderCharts() {
+            renderConceptChart();
+            renderTrendChart();
+            renderTopCausesChart();
+            renderComparisonChart();
+        }
+
+        function renderConceptChart() {
+            const ctx = document.getElementById('conceptChart').getContext('2d');
+            
+            // Agrupar por concepto
+            const conceptGroups = {};
+            filteredData.forEach(item => {
+                const shortConcept = item.concepto.replace('PRINCIPALES CAUSAS DE ', '');
+                if (!conceptGroups[shortConcept]) {
+                    conceptGroups[shortConcept] = 0;
+                }
+                conceptGroups[shortConcept] += item.volumen;
             });
-            tableHTML += '</tr>';
             
-            // Filas
-            for (let i = 1; i < Math.min(data.length, 10); i++) {
-                tableHTML += '<tr>';
-                data[i].forEach(cell => {
-                    tableHTML += `<td>${cell}</td>`;
-                });
-                tableHTML += '</tr>';
-            }
+            const labels = Object.keys(conceptGroups);
+            const data = Object.values(conceptGroups);
             
-            tableHTML += '</table>';
-            document.getElementById('data-table').innerHTML = tableHTML;
-        }
-        
-        function createChart(data) {
-            // Extraer datos para el gráfico
-            const ctx = document.getElementById('myChart').getContext('2d');
+            // Colores por concepto
+            const conceptColors = {
+                'EGRESOS HOSPITALARIOS': '#1a5fb4',
+                'URGENCIAS': '#26a269',
+                'AFECCIONES EN LESIONES': '#e5a50a',
+                'CAUSAS EXTERNAS EN LESIONES': '#c64600'
+            };
             
-            // Suponiendo que la columna 1 es "Calidad de Vida"
-            const labels = data.slice(1).map((row, index) => `Día ${index + 1}`);
-            const values = data.slice(1).map(row => parseInt(row[1]) || 0);
+            const colors = labels.map(label => {
+                for (const [key, color] of Object.entries(conceptColors)) {
+                    if (label.includes(key)) return color;
+                }
+                return '#888';
+            });
             
-            new Chart(ctx, {
-                type: 'line',
+            if (charts.conceptChart) charts.conceptChart.destroy();
+            
+            charts.conceptChart = new Chart(ctx, {
+                type: 'pie',
                 data: {
                     labels: labels,
                     datasets: [{
-                        label: 'Calidad de Vida',
-                        data: values,
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 1,
+                        borderColor: '#fff'
                     }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                padding: 20,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.parsed;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = ((value / total) * 100).toFixed(1);
+                                    return `${context.label}: ${value.toLocaleString()} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
                 }
             });
         }
-        
-        function loadSampleData() {
-            const sampleData = [
-                ['Fecha', 'Calidad de Vida', 'Horas de Sueño'],
-                ['2024-01-01', 8, 7.5],
-                ['2024-01-02', 7, 6.5],
-                ['2024-01-03', 9, 8.0]
-            ];
-            displayData(sampleData);
-            createChart(sampleData);
+
+        function renderTrendChart() {
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            
+            // Agrupar por año y concepto
+            const trends = {};
+            filteredData.forEach(item => {
+                const shortConcept = item.concepto.replace('PRINCIPALES CAUSAS DE ', '');
+                if (!trends[shortConcept]) {
+                    trends[shortConcept] = {2024: 0, 2025: 0};
+                }
+                trends[shortConcept][item.año] += item.volumen;
+            });
+            
+            const concepts = Object.keys(trends);
+            const years = [2024, 2025];
+            
+            const conceptColors = {
+                'EGRESOS HOSPITALARIOS': '#1a5fb4',
+                'URGENCIAS': '#26a269',
+                'AFECCIONES EN LESIONES': '#e5a50a',
+                'CAUSAS EXTERNAS EN LESIONES': '#c64600'
+            };
+            
+            const datasets = concepts.map(concept => {
+                const data = years.map(year => trends[concept][year] || 0);
+                let color = '#888';
+                for (const [key, col] of Object.entries(conceptColors)) {
+                    if (concept.includes(key)) {
+                        color = col;
+                        break;
+                    }
+                }
+                
+                return {
+                    label: concept,
+                    data: data,
+                    borderColor: color,
+                    backgroundColor: color + '40',
+                    borderWidth: 3,
+                    fill: false,
+                    tension: 0.3
+                };
+            });
+            
+            if (charts.trendChart) charts.trendChart.destroy();
+            
+            charts.trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: years,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Casos'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
         }
-        
-        // Iniciar cuando la página cargue
-        document.addEventListener('DOMContentLoaded', loadData);
+
+        function renderTopCausesChart() {
+            const ctx = document.getElementById('topCausesChart').getContext('2d');
+            
+            // Ordenar por volumen y tomar top N
+            const topN = parseInt(document.getElementById('filter-top').value) || 10;
+            const sortedData = [...filteredData]
+                .sort((a, b) => b.volumen - a.volumen)
+                .slice(0, topN);
+            
+            const labels = sortedData.map(item => {
+                const shortCause = item.causa.length > 40 ? 
+                    item.causa.substring(0, 40) + '...' : 
+                    item.causa;
+                return shortCause;
+            });
+            
+            const data = sortedData.map(item => item.volumen);
+            
+            // Color por año
+            const colors = sortedData.map(item => 
+                item.año === 2024 ? '#1a5fb4' : '#26a269'
+            );
+            
+            if (charts.topCausesChart) charts.topCausesChart.destroy();
+            
+            charts.topCausesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Volumen',
+                        data: data,
+                        backgroundColor: colors,
+                        borderColor: colors.map(c => c.replace('0.8', '1')),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Casos'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    const index = context[0].dataIndex;
+                                    return sortedData[index].causa;
+                                },
+                                label: function(context) {
+                                    return `Volumen: ${context.parsed.x.toLocaleString()}`;
+                                },
+                                afterLabel: function(context) {
+                                    const index = context.dataIndex;
+                                    const item = sortedData[index];
+                                    return `Año: ${item.año} | Concepto: ${item.concepto.replace('PRINCIPALES CAUSAS DE ', '')}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderComparisonChart() {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            
+            // Comparar causas comunes entre 2024 y 2025
+            const topCauses2024 = filteredData
+                .filter(d => d.año === 2024)
+                .sort((a, b) => b.volumen - a.volumen)
+                .slice(0, 5);
+            
+            const topCauses2025 = filteredData
+                .filter(d => d.año === 2025)
+                .sort((a, b) => b.volumen - a.volumen)
+                .slice(0, 5);
+            
+            // Crear conjunto de todas las causas top
+            const allCauses = new Set();
+            topCauses2024.forEach(d => allCauses.add(d.causa));
+            topCauses2025.forEach(d => allCauses.add(d.causa));
+            
+            const causes = Array.from(allCauses).slice(0, 8);
+            
+            const data2024 = causes.map(cause => {
+                const found = topCauses2024.find(d => d.causa === cause);
+                return found ? found.volumen : 0;
+            });
+            
+            const data2025 = causes.map(cause => {
+                const found = topCauses2025.find(d => d.causa === cause);
+                return found ? found.volumen : 0;
+            });
+            
+            const shortLabels = causes.map(c => {
+                // Extraer número y parte del nombre
+                const match = c.match(/^(\d+)\s+(.+)/);
+                if (match) {
+                    return `${match[1]} ${match[2].substring(0, 20)}...`;
+                }
+                return c.substring(0, 25) + '...';
+            });
+            
+            if (charts.comparisonChart) charts.comparisonChart.destroy();
+            
+            charts.comparisonChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: shortLabels,
+                    datasets: [
+                        {
+                            label: '2024',
+                            data: data2024,
+                            backgroundColor: '#1a5fb4',
+                            borderColor: '#1a5fb4',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '2025',
+                            data: data2025,
+                            backgroundColor: '#26a269',
+                            borderColor: '#26a269',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Número de Casos'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+        }
+
+        function populateTable() {
+            const tableBody = document.getElementById('table-body');
+            const loading = document.getElementById('table-loading');
+            const table = document.getElementById('data-table');
+            
+            tableBody.innerHTML = '';
+            
+            filteredData.forEach(item => {
+                const row = document.createElement('tr');
+                
+                // Determinar clase para el concepto
+                let conceptClass = '';
+                if (item.concepto.includes('EGRESOS')) conceptClass = 'egresos';
+                else if (item.concepto.includes('URGENCIAS')) conceptClass = 'urgencias';
+                else if (item.concepto.includes('AFECCIONES')) conceptClass = 'lesiones';
+                else if (item.concepto.includes('EXTERNAS')) conceptClass = 'externas';
+                
+                row.innerHTML = `
+                    <td><span class="concept-badge ${conceptClass}">${item.concepto.replace('PRINCIPALES CAUSAS DE ', '')}</span></td>
+                    <td><strong>${item.año}</strong></td>
+                    <td>${item.orden}</td>
+                    <td>${item.causa}</td>
+                    <td><strong>${item.volumen.toLocaleString()}</strong></td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            loading.style.display = 'none';
+            table.style.display = 'table';
+        }
+
+        function setupEventListeners() {
+            document.getElementById('update-btn').addEventListener('click', updateDashboard);
+            
+            // Actualizar automáticamente al cambiar filtros
+            ['filter-concepto', 'filter-year', 'filter-top'].forEach(id => {
+                document.getElementById(id).addEventListener('change', updateDashboard);
+            });
+        }
+
+        function updateDashboard() {
+            const conceptoFilter = document.getElementById('filter-concepto').value;
+            const yearFilter = document.getElementById('filter-year').value;
+            
+            // Aplicar filtros
+            filteredData = hospitalData.filter(item => {
+                const matchesConcepto = conceptoFilter === 'all' || item.concepto === conceptoFilter;
+                const matchesYear = yearFilter === 'all' || item.año.toString() === yearFilter;
+                return matchesConcepto && matchesYear;
+            });
+            
+            updateSummaryStats();
+            renderCharts();
+            populateTable();
+        }
     </script>
 </body>
 </html>
