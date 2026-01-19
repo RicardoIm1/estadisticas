@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadísticas y Archivo Clínico</title>
+    <title>Dashboard Epidemiológico Hospitalario</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -13,19 +12,19 @@
             box-sizing: border-box;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-
+        
         body {
             background-color: #f8fafc;
             color: #1e293b;
             padding: 20px;
             line-height: 1.6;
         }
-
+        
         .container {
             max-width: 1600px;
             margin: 0 auto;
         }
-
+        
         header {
             background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
             color: white;
@@ -34,18 +33,18 @@
             margin-bottom: 30px;
             box-shadow: 0 10px 25px rgba(30, 64, 175, 0.2);
         }
-
+        
         h1 {
             font-size: 2.5rem;
             margin-bottom: 10px;
         }
-
+        
         .subtitle {
             font-size: 1.1rem;
             opacity: 0.9;
             max-width: 900px;
         }
-
+        
         .controls-panel {
             background: white;
             padding: 25px;
@@ -57,19 +56,19 @@
             gap: 20px;
             align-items: end;
         }
-
+        
         .filter-group {
             display: flex;
             flex-direction: column;
         }
-
+        
         label {
             font-weight: 600;
             margin-bottom: 8px;
             color: #1e40af;
             font-size: 0.95rem;
         }
-
+        
         select {
             padding: 12px 15px;
             border: 2px solid #e2e8f0;
@@ -78,13 +77,13 @@
             background: white;
             transition: all 0.3s;
         }
-
+        
         select:focus {
             border-color: #1e40af;
             outline: none;
             box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
         }
-
+        
         button {
             padding: 12px 30px;
             background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 100%);
@@ -97,19 +96,19 @@
             transition: all 0.3s;
             grid-column: span 2;
         }
-
+        
         button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(30, 64, 175, 0.2);
         }
-
+        
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
-
+        
         .metric-card {
             background: white;
             border-radius: 12px;
@@ -117,42 +116,31 @@
             box-shadow: 0 6px 15px rgba(0, 0, 0, 0.08);
             border-top: 4px solid;
         }
-
-        .metric-card:nth-child(1) {
-            border-color: #3b82f6;
-        }
-
-        .metric-card:nth-child(2) {
-            border-color: #10b981;
-        }
-
-        .metric-card:nth-child(3) {
-            border-color: #f59e0b;
-        }
-
-        .metric-card:nth-child(4) {
-            border-color: #ef4444;
-        }
-
+        
+        .metric-card:nth-child(1) { border-color: #3b82f6; }
+        .metric-card:nth-child(2) { border-color: #10b981; }
+        .metric-card:nth-child(3) { border-color: #f59e0b; }
+        .metric-card:nth-child(4) { border-color: #ef4444; }
+        
         .metric-value {
             font-size: 2.5rem;
             font-weight: 700;
             margin: 10px 0;
             color: #1e293b;
         }
-
+        
         .metric-label {
             color: #64748b;
             font-size: 0.95rem;
         }
-
+        
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
             gap: 25px;
             margin-bottom: 30px;
         }
-
+        
         .chart-card {
             background: white;
             border-radius: 12px;
@@ -160,11 +148,11 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
             transition: transform 0.3s;
         }
-
+        
         .chart-card:hover {
             transform: translateY(-5px);
         }
-
+        
         .chart-title {
             font-size: 1.3rem;
             color: #1e40af;
@@ -175,12 +163,12 @@
             align-items: center;
             gap: 10px;
         }
-
+        
         .chart-container {
             height: 400px;
             position: relative;
         }
-
+        
         .data-table-container {
             background: white;
             border-radius: 12px;
@@ -189,13 +177,13 @@
             margin-top: 30px;
             overflow-x: auto;
         }
-
+        
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-
+        
         th {
             background: #f8fafc;
             color: #1e40af;
@@ -206,16 +194,16 @@
             position: sticky;
             top: 0;
         }
-
+        
         td {
             padding: 14px 20px;
             border-bottom: 1px solid #f1f5f9;
         }
-
+        
         tr:hover {
             background: #f8fafc;
         }
-
+        
         .concept-tag {
             display: inline-block;
             padding: 6px 14px;
@@ -226,27 +214,12 @@
             background: #e0e7ff;
             color: #3730a3;
         }
-
-        .concept-egresos {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .concept-urgencias {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .concept-aafecciones {
-            background: #fef3c7;
-            color: #92400e;
-        }
-
-        .concept-externas {
-            background: #fce7f3;
-            color: #9d174d;
-        }
-
+        
+        .concept-egresos { background: #dbeafe; color: #1e40af; }
+        .concept-urgencias { background: #dcfce7; color: #166534; }
+        .concept-aafecciones { background: #fef3c7; color: #92400e; }
+        .concept-externas { background: #fce7f3; color: #9d174d; }
+        
         footer {
             text-align: center;
             margin-top: 40px;
@@ -255,38 +228,37 @@
             font-size: 0.9rem;
             border-top: 1px solid #e2e8f0;
         }
-
+        
         @media (max-width: 768px) {
             .charts-grid {
                 grid-template-columns: 1fr;
             }
-
+            
             .chart-card {
                 padding: 20px;
             }
-
+            
             .controls-panel {
                 grid-template-columns: 1fr;
             }
-
+            
             button {
                 grid-column: 1;
             }
-
+            
             h1 {
                 font-size: 2rem;
             }
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <header>
-            <h1>Principales Diagnósticos</h1>
+            <h1>🏥 Dashboard Epidemiológico Hospitalario</h1>
             <p class="subtitle">Análisis comparativo de las principales causas de atención hospitalaria 2024-2025</p>
         </header>
-
+        
         <div class="controls-panel">
             <div class="filter-group">
                 <label for="filter-concepto">Tipo de Atención:</label>
@@ -298,7 +270,7 @@
                     <option value="EXTERNAS">Causas Externas</option>
                 </select>
             </div>
-
+            
             <div class="filter-group">
                 <label for="filter-year">Año:</label>
                 <select id="filter-year">
@@ -307,7 +279,7 @@
                     <option value="2025">2025</option>
                 </select>
             </div>
-
+            
             <div class="filter-group">
                 <label for="filter-top">Mostrar Top:</label>
                 <select id="filter-top">
@@ -317,7 +289,7 @@
                     <option value="all">Todos</option>
                 </select>
             </div>
-
+            
             <div class="filter-group">
                 <label for="filter-chart">Tipo de Gráfico:</label>
                 <select id="filter-chart">
@@ -326,36 +298,36 @@
                     <option value="pie">Pastel</option>
                 </select>
             </div>
-
+            
             <button id="update-btn">Actualizar Dashboard</button>
         </div>
-
+        
         <div class="metrics-grid">
             <div class="metric-card">
                 <div class="metric-label">Total de Casos</div>
                 <div class="metric-value" id="total-cases">0</div>
                 <div class="metric-label" id="total-change">Carga total del sistema</div>
             </div>
-
+            
             <div class="metric-card">
                 <div class="metric-label">Causa Más Frecuente</div>
                 <div class="metric-value" id="top-cause">-</div>
                 <div class="metric-label" id="top-volume">Volumen</div>
             </div>
-
+            
             <div class="metric-card">
                 <div class="metric-label">Promedio por Causa</div>
                 <div class="metric-value" id="avg-per-cause">0</div>
                 <div class="metric-label">Casos promedio</div>
             </div>
-
+            
             <div class="metric-card">
                 <div class="metric-label">Variación 2024-2025</div>
                 <div class="metric-value" id="year-change">0%</div>
                 <div class="metric-label" id="change-direction">Crecimiento/Reducción</div>
             </div>
         </div>
-
+        
         <div class="charts-grid">
             <div class="chart-card">
                 <h2 class="chart-title"><i>📊</i> Distribución por Tipo de Atención</h2>
@@ -363,21 +335,21 @@
                     <canvas id="distributionChart"></canvas>
                 </div>
             </div>
-
+            
             <div class="chart-card">
                 <h2 class="chart-title"><i>📈</i> Evolución Temporal por Año</h2>
                 <div class="chart-container">
                     <canvas id="trendChart"></canvas>
                 </div>
             </div>
-
+            
             <div class="chart-card">
                 <h2 class="chart-title"><i>🏆</i> Principales Causas Específicas</h2>
                 <div class="chart-container">
                     <canvas id="causesChart"></canvas>
                 </div>
             </div>
-
+            
             <div class="chart-card">
                 <h2 class="chart-title"><i>🔍</i> Comparativa Anual Detallada</h2>
                 <div class="chart-container">
@@ -385,7 +357,7 @@
                 </div>
             </div>
         </div>
-
+        
         <div class="data-table-container">
             <h2 class="chart-title"><i>📋</i> Base de Datos Epidemiológica</h2>
             <div id="table-loading">Cargando datos estadísticos...</div>
@@ -401,7 +373,7 @@
                 <tbody id="table-body"></tbody>
             </table>
         </div>
-
+        
         <footer>
             <p>© 2024 Sistema de Monitoreo Epidemiológico Hospitalario | Datos estadísticos 2024-2025</p>
             <p>Visualización desarrollada con Chart.js para análisis de salud pública</p>
@@ -409,113 +381,205 @@
     </div>
 
     <script>
-        // DATOS COMPLETOS basados en tu estructura
+        // DATOS COMPLETOS con TODAS las categorías
         const hospitalData = [
-            // EGRESOS HOSPITALARIOS 2024
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 324 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 276 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "161 Parto único espontáneo", volumen: 201 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "159 Aborto (solo morbilidad)", volumen: 127 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "163 Ciertas afecciones originadas en el período perinatal", volumen: 95 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "119 Apendicitis", volumen: 74 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "126 Colelitiasis y colecistitis", volumen: 56 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "061 Diabetes mellitus", volumen: 55 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "120 Hernia de la cavidad abdominal", volumen: 43 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "097 Enfermedades del corazón", volumen: 43 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "036 Fiebre del dengue hemorrágico", volumen: 36 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "128 Infecciones de la piel y del tejido subcutáneo", volumen: 30 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "105 Neumonía e influenza", volumen: 29 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "098 Enfermedades cerebrovasculares", volumen: 28 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "125 Enfermedades del hígado", volumen: 24 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "058 Anemias", volumen: 19 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "053 Leiomioma uterino", volumen: 19 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "184 Personas en contacto con los servicios de salud para procedimientos específicos y atención de la salud", volumen: 19 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "015 Septicemia", volumen: 18 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "139 Insuficiencia renal", volumen: 18 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "Las demás de las Principales", volumen: 201 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "Síntomas signos y hallazgos anormales clínicos y de laboratorio no clasificados en otra parte", volumen: 17 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "Las demás", volumen: 167 },
-
-            // EGRESOS HOSPITALARIOS 2025
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 272 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 253 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "161 Parto único espontáneo", volumen: 223 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "159 Aborto (solo morbilidad)", volumen: 122 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "163 Ciertas afecciones originadas en el período perinatal", volumen: 83 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "061 Diabetes mellitus", volumen: 71 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "126 Colelitiasis y colecistitis", volumen: 60 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "097 Enfermedades del corazón", volumen: 51 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "119 Apendicitis", volumen: 50 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "105 Neumonía e influenza", volumen: 39 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "120 Hernia de la cavidad abdominal", volumen: 37 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "128 Infecciones de la piel y del tejido subcutáneo", volumen: 32 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "098 Enfermedades cerebrovasculares", volumen: 27 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "125 Enfermedades del hígado", volumen: 21 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "015 Septicemia", volumen: 20 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "049 Tumores malignos", volumen: 17 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "127 Pancreatitis aguda y otras enfermedades del páncreas", volumen: 16 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "081 Epilepsia", volumen: 15 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "139 Insuficiencia renal", volumen: 13 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "184 Personas en contacto con los servicios de salud para procedimientos específicos y atención de la salud", volumen: 13 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "Las demás de las Principales", volumen: 178 },
-            { concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "Las demás", volumen: 188 },
-
-            // URGENCIAS 2024
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 2018 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "179 Supervisión de embarazo normal", volumen: 1293 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 405 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "104 Infecciones respiratorias agudas, excepto neumonía e influenza", volumen: 362 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "126 Colelitiasis y colecistitis", volumen: 261 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "001 Enfermedades infecciosas intestinales", volumen: 244 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "128 Infecciones de la piel y del tejido subcutáneo", volumen: 152 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "097 Enfermedades del corazón", volumen: 144 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "061 Diabetes mellitus", volumen: 139 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "124 Síndrome del colon irritable y otros trastornos funcionales del intestino", volumen: 135 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "159 Aborto (solo morbilidad)", volumen: 107 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "119 Apendicitis", volumen: 106 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "184 Personas en contacto con los servicios de salud para procedimientos específicos y atención de la salud", volumen: 100 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "110 Bronquitis crónica, enfisema y asma", volumen: 88 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "035 Fiebre del dengue", volumen: 84 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "073 Trastornos neuróticos, trastornos relacionados con el estrés y trastornos somatomorfos", volumen: 76 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "135 Trastornos de los tejidos blandos", volumen: 75 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "117 Gastritis y duodenitis", volumen: 74 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "120 Hernia de la cavidad abdominal", volumen: 48 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "095 Otitis media, trastornos de la trompa de eustaquio y mastoiditis", volumen: 44 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "Las demás de las Principales", volumen: 694 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "Síntomas signos y hallazgos anormales clínicos y de laboratorio no clasificados en otra parte", volumen: 703 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "Las demás", volumen: 812 },
-
-            // URGENCIAS 2025
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 1924 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "179 Supervisión de embarazo normal", volumen: 1162 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 332 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "104 Infecciones respiratorias agudas, excepto neumonía e influenza", volumen: 311 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "001 Enfermedades infecciosas intestinales", volumen: 283 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "126 Colelitiasis y colecistitis", volumen: 186 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "097 Enfermedades del corazón", volumen: 166 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "061 Diabetes mellitus", volumen: 148 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "128 Infecciones de la piel y del tejido subcutáneo", volumen: 147 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "124 Síndrome del colon irritable y otros trastornos funcionales del intestino", volumen: 139 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "159 Aborto (solo morbilidad)", volumen: 131 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "073 Trastornos neuróticos, trastornos relacionados con el estrés y trastornos somatomorfos", volumen: 86 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "110 Bronquitis crónica, enfisema y asma", volumen: 70 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "119 Apendicitis", volumen: 64 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "135 Trastornos de los tejidos blandos", volumen: 59 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "117 Gastritis y duodenitis", volumen: 55 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "120 Hernia de la cavidad abdominal", volumen: 54 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "095 Otitis media, trastornos de la trompa de eustaquio y mastoiditis", volumen: 42 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "184 Personas en contacto con los servicios de salud para procedimientos específicos y atención de la salud", volumen: 42 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "142 Cólico renal, no especificado", volumen: 40 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "Las demás de las Principales", volumen: 650 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "Síntomas signos y hallazgos anormales clínicos y de laboratorio no clasificados en otra parte", volumen: 651 },
-            { concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "Las demás", volumen: 864 }
+            // =========== EGRESOS HOSPITALARIOS 2024 ===========
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 324},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 276},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "161 Parto único espontáneo", volumen: 201},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "159 Aborto (solo morbilidad)", volumen: 127},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "163 Ciertas afecciones originadas en el período perinatal", volumen: 95},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "119 Apendicitis", volumen: 74},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "126 Colelitiasis y colecistitis", volumen: 56},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "061 Diabetes mellitus", volumen: 55},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "120 Hernia de la cavidad abdominal", volumen: 43},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "097 Enfermedades del corazón", volumen: 43},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "036 Fiebre del dengue hemorrágico", volumen: 36},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "128 Infecciones de la piel y del tejido subcutáneo", volumen: 30},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "105 Neumonía e influenza", volumen: 29},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "098 Enfermedades cerebrovasculares", volumen: 28},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "125 Enfermedades del hígado", volumen: 24},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "058 Anemias", volumen: 19},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "053 Leiomioma uterino", volumen: 19},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "184 Personas en contacto con los servicios de salud para procedimientos específicos y atención de la salud", volumen: 19},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "015 Septicemia", volumen: 18},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "139 Insuficiencia renal", volumen: 18},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "Las demás de las Principales", volumen: 201},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "Síntomas signos y hallazgos anormales clínicos y de laboratorio no clasificados en otra parte", volumen: 17},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2024, causa: "Las demás", volumen: 167},
+            
+            // =========== EGRESOS HOSPITALARIOS 2025 ===========
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 272},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 253},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "161 Parto único espontáneo", volumen: 223},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "159 Aborto (solo morbilidad)", volumen: 122},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "163 Ciertas afecciones originadas en el período perinatal", volumen: 83},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "061 Diabetes mellitus", volumen: 71},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "126 Colelitiasis y colecistitis", volumen: 60},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "097 Enfermedades del corazón", volumen: 51},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "119 Apendicitis", volumen: 50},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "105 Neumonía e influenza", volumen: 39},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "120 Hernia de la cavidad abdominal", volumen: 37},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "128 Infecciones de la piel y del tejido subcutáneo", volumen: 32},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "098 Enfermedades cerebrovasculares", volumen: 27},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "125 Enfermedades del hígado", volumen: 21},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "015 Septicemia", volumen: 20},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "049 Tumores malignos", volumen: 17},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "127 Pancreatitis aguda y otras enfermedades del páncreas", volumen: 16},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "081 Epilepsia", volumen: 15},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "139 Insuficiencia renal", volumen: 13},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "184 Personas en contacto con los servicios de salud para procedimientos específicos y atención de la salud", volumen: 13},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "Las demás de las Principales", volumen: 178},
+            {concepto: "PRINCIPALES CAUSAS DE EGRESOS HOSPITALARIOS", año: 2025, causa: "Las demás", volumen: 188},
+            
+            // =========== URGENCIAS 2024 ===========
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 2018},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "179 Supervisión de embarazo normal", volumen: 1293},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 405},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "104 Infecciones respiratorias agudas, excepto neumonía e influenza", volumen: 362},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "126 Colelitiasis y colecistitis", volumen: 261},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "001 Enfermedades infecciosas intestinales", volumen: 244},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "128 Infecciones de la piel y del tejido subcutáneo", volumen: 152},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "097 Enfermedades del corazón", volumen: 144},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "061 Diabetes mellitus", volumen: 139},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "124 Síndrome del colon irritable y otros trastornos funcionales del intestino", volumen: 135},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "159 Aborto (solo morbilidad)", volumen: 107},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "119 Apendicitis", volumen: 106},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "184 Personas en contacto con los servicios de salud para procedimientos específicos y atención de la salud", volumen: 100},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "110 Bronquitis crónica, enfisema y asma", volumen: 88},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "035 Fiebre del dengue", volumen: 84},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "073 Trastornos neuróticos, trastornos relacionados con el estrés y trastornos somatomorfos", volumen: 76},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "135 Trastornos de los tejidos blandos", volumen: 75},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "117 Gastritis y duodenitis", volumen: 74},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "120 Hernia de la cavidad abdominal", volumen: 48},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "095 Otitis media, trastornos de la trompa de eustaquio y mastoiditis", volumen: 44},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "Las demás de las Principales", volumen: 694},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "Síntomas signos y hallazgos anormales clínicos y de laboratorio no clasificados en otra parte", volumen: 703},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2024, causa: "Las demás", volumen: 812},
+            
+            // =========== URGENCIAS 2025 ===========
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 1924},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "179 Supervisión de embarazo normal", volumen: 1162},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 332},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "104 Infecciones respiratorias agudas, excepto neumonía e influenza", volumen: 311},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "001 Enfermedades infecciosas intestinales", volumen: 283},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "126 Colelitiasis y colecistitis", volumen: 186},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "097 Enfermedades del corazón", volumen: 166},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "061 Diabetes mellitus", volumen: 148},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "128 Infecciones de la piel y del tejido subcutáneo", volumen: 147},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "124 Síndrome del colon irritable y otros trastornos funcionales del intestino", volumen: 139},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "159 Aborto (solo morbilidad)", volumen: 131},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "073 Trastornos neuróticos, trastornos relacionados con el estrés y trastornos somatomorfos", volumen: 86},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "110 Bronquitis crónica, enfisema y asma", volumen: 70},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "119 Apendicitis", volumen: 64},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "135 Trastornos de los tejidos blandos", volumen: 59},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "117 Gastritis y duodenitis", volumen: 55},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "120 Hernia de la cavidad abdominal", volumen: 54},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "095 Otitis media, trastornos de la trompa de eustaquio y mastoiditis", volumen: 42},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "184 Personas en contacto con los servicios de salud para procedimientos específicos y atención de la salud", volumen: 42},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "142 Cólico renal, no especificado", volumen: 40},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "Las demás de las Principales", volumen: 650},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "Síntomas signos y hallazgos anormales clínicos y de laboratorio no clasificados en otra parte", volumen: 651},
+            {concepto: "PRINCIPALES CAUSAS DE URGENCIAS", año: 2025, causa: "Las demás", volumen: 864},
+            
+            // =========== AFECCIONES EN LESIONES 2024 ===========
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", volumen: 124},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "EFECTO TÓXICO DEL CONTACTO CON ANIMALES VENENOSOS", volumen: 93},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "HERIDA DE LA CABEZA", volumen: 56},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "TRAUMATISMO INTRACRANEAL", volumen: 30},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "HERIDA DE LA MUÑECA Y DE LA MANO", volumen: 22},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "HERIDA DE LA PIERNA", volumen: 22},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "FRACTURA DEL ANTEBRAZO", volumen: 22},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "FRACTURA DE LA PIERNA, INCLUSIVE DEL TOBILLO", volumen: 15},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "HERIDA DEL HOMBRO Y DEL BRAZO", volumen: 13},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "HERIDA DEL TOBILLO Y DEL PIE", volumen: 9},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "HERIDA DEL ANTEBRAZO Y DEL CODO", volumen: 8},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "FRACTURA DEL FÉMUR", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "FRACTURA DEL PIE, EXCEPTO DEL TOBILLO", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "AMPUTACIÓN TRAUMÁTICA DE LA MUÑECA Y DE LA MANO", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "FRACTURA A NIVEL DE LA MUÑECA Y DE LA MANO", volumen: 6},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "LUXACIÓN, ESGUINCE Y TORCEDURA DE ARTICULACIONES Y LIGAMENTOS DEL CUELLO", volumen: 6},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "FRACTURA DE LAS COSTILLAS, DEL ESTERNÓN Y DE LA COLUMNA TORÁCICA [DORSAL]", volumen: 6},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "LUXACIÓN, ESGUINCE Y TORCEDURA DE ARTICULACIONES Y LIGAMENTOS DEL TOBILLO Y DEL PIE", volumen: 6},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "TRAUMATISMO SUPERFICIAL DEL TOBILLO Y DEL PIE", volumen: 5},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "TRAUMATISMO SUPERFICIAL DE LA PIERNA", volumen: 5},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2024, causa: "LAS DEMÁS LESIONES", volumen: 73},
+            
+            // =========== AFECCIONES EN LESIONES 2025 ===========
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", volumen: 75},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "EFECTO TÓXICO DEL CONTACTO CON ANIMALES VENENOSOS", volumen: 62},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "HERIDA DE LA CABEZA", volumen: 58},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "TRAUMATISMO INTRACRANEAL", volumen: 29},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "HERIDA DE LA MUÑECA Y DE LA MANO", volumen: 24},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "FRACTURA DE LA PIERNA, INCLUSIVE DEL TOBILLO", volumen: 22},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "TRAUMATISMO SUPERFICIAL DE LA CABEZA", volumen: 19},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "HERIDA DEL TOBILLO Y DEL PIE", volumen: 18},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "HERIDA DE LA PIERNA", volumen: 16},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "TRAUMATISMOS SUPERFICIALES QUE AFECTAN MÚLTIPLES REGIONES DEL CUERPO", volumen: 13},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "LUXACIÓN, ESGUINCE Y TORCEDURA DE ARTICULACIONES Y LIGAMENTOS DEL TOBILLO Y DEL PIE", volumen: 11},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "FRACTURA DEL FÉMUR", volumen: 9},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "FRACTURA DEL ANTEBRAZO", volumen: 9},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "HERIDA DEL HOMBRO Y DEL BRAZO", volumen: 9},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "TRAUMATISMO DE REGIONES NO ESPECIFICADAS DEL CUERPO", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "HERIDA DEL ANTEBRAZO Y DEL CODO", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "TRAUMATISMO SUPERFICIAL DEL ANTEBRAZO Y DEL CODO", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "FRACTURA DEL PIE, EXCEPTO DEL TOBILLO", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "FRACTURA DEL HOMBRO Y DEL BRAZO", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "FRACTURA A NIVEL DE LA MUÑECA Y DE LA MANO", volumen: 6},
+            {concepto: "PRINCIPALES CAUSAS DE AFECCIONES EN LESIONES", año: 2025, causa: "LAS DEMÁS LESIONES", volumen: 81},
+            
+            // =========== CAUSAS EXTERNAS EN LESIONES 2024 ===========
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "MOTOCICLISTA LESIONADO EN OTROS ACCIDENTES DE TRANSPORTE, Y EN LOS NO ESPECIFICADOS", volumen: 114},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "CONTACTO TRAUMÁTICO CON ESCORPIÓN", volumen: 88},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "CAÍDA EN EL MISMO NIVEL POR DESLIZAMIENTO, TROPEZÓN Y TRASPIÉ", volumen: 63},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "AGRESIÓN CON FUERZA CORPORAL", volumen: 62},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "MORDEDURA O ATAQUE DE PERRO", volumen: 16},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "AGRESIÓN CON OBJETO ROMO O SIN FILO", volumen: 15},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "CONTACTO TRAUMÁTICO CON OBJETO CORTANTE, DE INTENCIÓN NO DETERMINADA", volumen: 15},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "APORREO, GOLPE, MORDEDURA, PATADA, RASGUÑO O TORCEDURA INFLIGIDOS POR OTRA PERSONA", volumen: 10},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "CONTACTO TRAUMÁTICO CON VIDRIO CORTANTE", volumen: 9},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "GOLPE CONTRA O GOLPEADO POR OTROS OBJETOS", volumen: 8},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "CONTACTO TRAUMÁTICO CON OBJETO ROMO O SIN FILO, DE INTENCIÓN NO DETERMINADA", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "OCUPANTE DE AUTOMÓVIL LESIONADO EN OTROS ACCIDENTES DE TRANSPORTE, Y EN LOS NO ESPECIFICADOS", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "OCUPANTE DE AUTOMÓVIL LESIONADO POR COLISIÓN CON PEATÓN O ANIMAL", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "EXPOSICIÓN A OTRAS FUERZAS MECÁNICAS INANIMADAS, Y LAS NO ESPECIFICADAS", volumen: 6},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "CAÍDA DESDE, FUERA O A TRAVÉS DE UN EDIFICIO U OTRA CONSTRUCCIÓN", volumen: 6},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "PEATÓN LESIONADO POR COLISIÓN CON VEHÍCULO DE PEDAL", volumen: 6},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "PEATÓN LESIONADO POR COLISIÓN CON VEHÍCULO DE MOTOR DE DOS O TRES RUEDAS", volumen: 5},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "CAÍDA EN O DESDE ESCALERA O ESCALONES", volumen: 5},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "CAÍDA EN O DESDE ESCALERA MANUALES", volumen: 5},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "ATRAPADO, APLASTADO, TRABADO O APRETADO EN O ENTRE OBJETOS", volumen: 4},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2024, causa: "LAS DEMÁS LESIONES", volumen: 84},
+            
+            // =========== CAUSAS EXTERNAS EN LESIONES 2025 ===========
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "AGRESIÓN CON FUERZA CORPORAL", volumen: 64},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "MOTOCICLISTA LESIONADO EN OTROS ACCIDENTES DE TRANSPORTE, Y EN LOS NO ESPECIFICADOS", volumen: 58},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "CAÍDA EN EL MISMO NIVEL POR DESLIZAMIENTO, TROPEZÓN Y TRASPIÉ", volumen: 48},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "CONTACTO TRAUMÁTICO CON ESCORPIÓN", volumen: 38},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "CONTACTO TRAUMÁTICO CON OTROS OBJETOS AFILADOS", volumen: 21},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "OTROS MALTRATOS", volumen: 17},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "AGRESIÓN CON OBJETO ROMO O SIN FILO", volumen: 15},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "MORDEDURA O ATAQUE DE PERRO", volumen: 14},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "MOTOCICLISTA LESIONADO EN ACCIDENTE DE TRANSPORTE SIN COLISIÓN", volumen: 13},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "CONTACTO TRAUMÁTICO CON OTROS ANIMALES VENENOSOS ESPECIFICADOS", volumen: 12},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "CAÍDA EN O DESDE ESCALERA O ESCALONES", volumen: 12},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "GOLPE CONTRA O GOLPEADO POR OTROS OBJETOS", volumen: 10},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "CONTACTO TRAUMÁTICO CON VIDRIO CORTANTE", volumen: 8},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "CAÍDA NO ESPECIFICADA", volumen: 8},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "CAÍDA DESDE, FUERA O A TRAVÉS DE UN EDIFICIO U OTRA CONSTRUCCIÓN", volumen: 8},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "AGRESIÓN CON OBJETO CORTANTE", volumen: 7},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "MOTOCICLISTA LESIONADO POR COLISIÓN CON AUTOMÓVIL, CAMIONETA O FURGONETA", volumen: 6},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "GOLPE POR OBJETO ARROJADO, PROYECTADO O QUE CAE", volumen: 6},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "OCUPANTE DE AUTOMÓVIL LESIONADO EN OTROS ACCIDENTES DE TRANSPORTE, Y EN LOS NO ESPECIFICADOS", volumen: 5},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "CONTACTO TRAUMÁTICO CON ANIMALES Y PLANTAS VENENOSOS NO ESPECIFICADOS", volumen: 5},
+            {concepto: "PRINCIPALES CAUSAS EXTERNAS EN LESIONES", año: 2025, causa: "LAS DEMÁS LESIONES", volumen: 121}
         ];
 
         let filteredData = [...hospitalData];
         let charts = {};
 
         // Inicializar dashboard
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             initDashboard();
             setupEventListeners();
         });
@@ -530,32 +594,32 @@
             // Total de casos
             const totalCases = filteredData.reduce((sum, item) => sum + item.volumen, 0);
             document.getElementById('total-cases').textContent = totalCases.toLocaleString();
-
+            
             // Causa más frecuente
-            const topCause = filteredData.reduce((max, item) =>
-                item.volumen > max.volumen ? item : max,
-                { volumen: 0, causa: '-' }
+            const topCause = filteredData.reduce((max, item) => 
+                item.volumen > max.volumen ? item : max, 
+                {volumen: 0, causa: '-'}
             );
-            document.getElementById('top-cause').textContent =
-                topCause.causa.split(' ')[0]; // Solo el código
-            document.getElementById('top-volume').textContent =
+            document.getElementById('top-cause').textContent = 
+                topCause.causa.split(' ')[0]; // Solo el código o primera palabra
+            document.getElementById('top-volume').textContent = 
                 `${topCause.volumen.toLocaleString()} casos`;
-
+            
             // Promedio por causa
             const avgPerCause = totalCases / filteredData.length;
             document.getElementById('avg-per-cause').textContent = avgPerCause.toFixed(0);
-
+            
             // Variación anual
             const year2024 = hospitalData.filter(d => d.año === 2024)
                 .reduce((s, d) => s + d.volumen, 0);
             const year2025 = hospitalData.filter(d => d.año === 2025)
                 .reduce((s, d) => s + d.volumen, 0);
             const change = ((year2025 - year2024) / year2024 * 100).toFixed(1);
-            document.getElementById('year-change').textContent =
+            document.getElementById('year-change').textContent = 
                 Math.abs(change) + '%';
-            document.getElementById('change-direction').textContent =
+            document.getElementById('change-direction').textContent = 
                 change >= 0 ? 'Crecimiento' : 'Reducción';
-            document.getElementById('year-change').style.color =
+            document.getElementById('year-change').style.color = 
                 change >= 0 ? '#10b981' : '#ef4444';
         }
 
@@ -568,30 +632,32 @@
 
         function renderDistributionChart() {
             const ctx = document.getElementById('distributionChart').getContext('2d');
-
-            // Agrupar por tipo de atención (simplificado)
+            
+            // Agrupar por tipo de atención
             const distribution = {
                 'EGRESOS': 0,
                 'URGENCIAS': 0,
                 'AFECCIONES': 0,
                 'EXTERNAS': 0
             };
-
+            
             filteredData.forEach(item => {
                 if (item.concepto.includes('EGRESOS')) distribution.EGRESOS += item.volumen;
                 else if (item.concepto.includes('URGENCIAS')) distribution.URGENCIAS += item.volumen;
                 else if (item.concepto.includes('AFECCIONES')) distribution.AFECCIONES += item.volumen;
                 else if (item.concepto.includes('EXTERNAS')) distribution.EXTERNAS += item.volumen;
             });
-
+            
             const labels = Object.keys(distribution);
             const data = Object.values(distribution);
             const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
-
+            
             if (charts.distributionChart) charts.distributionChart.destroy();
-
+            
+            const chartType = document.getElementById('filter-chart').value;
+            
             charts.distributionChart = new Chart(ctx, {
-                type: document.getElementById('filter-chart').value,
+                type: chartType,
                 data: {
                     labels: labels,
                     datasets: [{
@@ -611,7 +677,7 @@
                         },
                         tooltip: {
                             callbacks: {
-                                label: function (context) {
+                                label: function(context) {
                                     const value = context.parsed;
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const percentage = ((value / total) * 100).toFixed(1);
@@ -626,28 +692,28 @@
 
         function renderTrendChart() {
             const ctx = document.getElementById('trendChart').getContext('2d');
-
+            
             // Agrupar por año
             const years = [2024, 2025];
             const tipos = ['EGRESOS', 'URGENCIAS', 'AFECCIONES', 'EXTERNAS'];
-
+            
             const datasets = tipos.map(tipo => {
                 const data = years.map(year => {
                     return filteredData
-                        .filter(d => d.año === year &&
-                            d.concepto.includes(tipo === 'EGRESOS' ? 'EGRESOS' :
-                                tipo === 'URGENCIAS' ? 'URGENCIAS' :
-                                    tipo === 'AFECCIONES' ? 'AFECCIONES' : 'EXTERNAS'))
+                        .filter(d => d.año === year && 
+                            d.concepto.includes(tipo === 'EGRESOS' ? 'EGRESOS' : 
+                                             tipo === 'URGENCIAS' ? 'URGENCIAS' : 
+                                             tipo === 'AFECCIONES' ? 'AFECCIONES' : 'EXTERNAS'))
                         .reduce((sum, d) => sum + d.volumen, 0);
                 });
-
+                
                 const colors = {
                     'EGRESOS': '#3b82f6',
                     'URGENCIAS': '#10b981',
                     'AFECCIONES': '#f59e0b',
                     'EXTERNAS': '#ef4444'
                 };
-
+                
                 return {
                     label: tipo,
                     data: data,
@@ -658,9 +724,9 @@
                     tension: 0.3
                 };
             });
-
+            
             if (charts.trendChart) charts.trendChart.destroy();
-
+            
             charts.trendChart = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -690,35 +756,40 @@
 
         function renderCausesChart() {
             const ctx = document.getElementById('causesChart').getContext('2d');
-
+            
             // Tomar top N causas
             const topN = parseInt(document.getElementById('filter-top').value) || 10;
             const sortedData = [...filteredData]
                 .sort((a, b) => b.volumen - a.volumen)
                 .slice(0, topN);
-
+            
             // Acortar nombres para mejor visualización
             const labels = sortedData.map(item => {
                 const match = item.causa.match(/^(\d+)\s+(.+)/);
                 if (match) {
                     return `${match[1]} ${match[2].substring(0, 25)}${match[2].length > 25 ? '...' : ''}`;
                 }
-                return item.causa.length > 30 ?
-                    item.causa.substring(0, 30) + '...' :
+                // Para lesiones, tomar las primeras palabras
+                return item.causa.length > 30 ? 
+                    item.causa.substring(0, 30) + '...' : 
                     item.causa;
             });
-
+            
             const data = sortedData.map(item => item.volumen);
-
-            // Color por año
-            const colors = sortedData.map(item =>
-                item.año === 2024 ? '#3b82f6' : '#10b981'
-            );
-
+            
+            // Color por tipo de atención
+            const colors = sortedData.map(item => {
+                if (item.concepto.includes('EGRESOS')) return '#3b82f6';
+                if (item.concepto.includes('URGENCIAS')) return '#10b981';
+                if (item.concepto.includes('AFECCIONES')) return '#f59e0b';
+                if (item.concepto.includes('EXTERNAS')) return '#ef4444';
+                return '#888';
+            });
+            
             if (charts.causesChart) charts.causesChart.destroy();
-
+            
             const chartType = document.getElementById('filter-chart').value === 'pie' ? 'pie' : 'bar';
-
+            
             charts.causesChart = new Chart(ctx, {
                 type: chartType,
                 data: {
@@ -751,11 +822,11 @@
                         },
                         tooltip: {
                             callbacks: {
-                                title: function (context) {
+                                title: function(context) {
                                     const index = context[0].dataIndex;
                                     return sortedData[index].causa;
                                 },
-                                label: function (context) {
+                                label: function(context) {
                                     const value = context.parsed;
                                     const item = sortedData[context.dataIndex];
                                     return [
@@ -773,26 +844,35 @@
 
         function renderComparisonChart() {
             const ctx = document.getElementById('comparisonChart').getContext('2d');
-
+            
             // Comparar causas específicas entre años
-            const causasComunes = ['166 Traumatismos', '160 Causas obstétricas', '161 Parto único', '159 Aborto', '163 Perinatal'];
-
+            const causasComunes = [
+                'Traumatismos', 
+                'Causas obstétricas', 
+                'Parto único', 
+                'Aborto', 
+                'Ciertas afecciones',
+                'Diabetes mellitus',
+                'Enfermedades corazón',
+                'Infecciones piel'
+            ];
+            
             const data2024 = causasComunes.map(causa => {
-                const found = filteredData.find(d =>
-                    d.año === 2024 && d.causa.includes(causa.split(' ')[0])
+                const found = filteredData.find(d => 
+                    d.año === 2024 && d.causa.toLowerCase().includes(causa.toLowerCase())
                 );
                 return found ? found.volumen : 0;
             });
-
+            
             const data2025 = causasComunes.map(causa => {
-                const found = filteredData.find(d =>
-                    d.año === 2025 && d.causa.includes(causa.split(' ')[0])
+                const found = filteredData.find(d => 
+                    d.año === 2025 && d.causa.toLowerCase().includes(causa.toLowerCase())
                 );
                 return found ? found.volumen : 0;
             });
-
+            
             if (charts.comparisonChart) charts.comparisonChart.destroy();
-
+            
             charts.comparisonChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -839,21 +919,21 @@
             const tableBody = document.getElementById('table-body');
             const loading = document.getElementById('table-loading');
             const table = document.getElementById('data-table');
-
+            
             tableBody.innerHTML = '';
-
+            
             filteredData.forEach(item => {
                 const row = document.createElement('tr');
-
+                
                 // Determinar clase del concepto
                 let conceptClass = 'concept-tag';
                 let conceptoShort = item.concepto.replace('PRINCIPALES CAUSAS DE ', '');
-
+                
                 if (item.concepto.includes('EGRESOS')) conceptClass += ' concept-egresos';
                 else if (item.concepto.includes('URGENCIAS')) conceptClass += ' concept-urgencias';
                 else if (item.concepto.includes('AFECCIONES')) conceptClass += ' concept-aafecciones';
                 else if (item.concepto.includes('EXTERNAS')) conceptClass += ' concept-externas';
-
+                
                 row.innerHTML = `
                     <td><span class="${conceptClass}">${conceptoShort}</span></td>
                     <td><strong>${item.año}</strong></td>
@@ -862,17 +942,17 @@
                         ${item.volumen.toLocaleString()}
                     </strong></td>
                 `;
-
+                
                 tableBody.appendChild(row);
             });
-
+            
             loading.style.display = 'none';
             table.style.display = 'table';
         }
 
         function setupEventListeners() {
             document.getElementById('update-btn').addEventListener('click', updateDashboard);
-
+            
             // Actualizar automáticamente al cambiar filtros
             ['filter-concepto', 'filter-year', 'filter-top', 'filter-chart'].forEach(id => {
                 document.getElementById(id).addEventListener('change', updateDashboard);
@@ -882,27 +962,27 @@
         function updateDashboard() {
             const conceptoFilter = document.getElementById('filter-concepto').value;
             const yearFilter = document.getElementById('filter-year').value;
-
+            
             // Aplicar filtros
             filteredData = hospitalData.filter(item => {
                 let matchesConcepto = true;
                 if (conceptoFilter !== 'all') {
                     matchesConcepto = item.concepto.includes(
-                        conceptoFilter === 'EGRESOS' ? 'EGRESOS' :
-                            conceptoFilter === 'URGENCIAS' ? 'URGENCIAS' :
-                                conceptoFilter === 'AFECCIONES' ? 'AFECCIONES' : 'EXTERNAS'
+                        conceptoFilter === 'EGRESOS' ? 'EGRESOS HOSPITALARIOS' :
+                        conceptoFilter === 'URGENCIAS' ? 'URGENCIAS' :
+                        conceptoFilter === 'AFECCIONES' ? 'AFECCIONES EN LESIONES' : 
+                        'EXTERNAS EN LESIONES'
                     );
                 }
-
+                
                 const matchesYear = yearFilter === 'all' || item.año.toString() === yearFilter;
                 return matchesConcepto && matchesYear;
             });
-
+            
             updateMetrics();
             renderCharts();
             populateTable();
         }
     </script>
 </body>
-
 </html>
