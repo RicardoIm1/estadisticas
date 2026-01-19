@@ -1,1166 +1,374 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Hospitalario</title>
+    <title>Dashboard Hospitalario - Sin CORS Issues</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --primary: #1a237e;
-            --primary-light: #534bae;
-            --primary-dark: #000051;
-            --secondary: #283593;
-            --accent: #3949ab;
-            --success: #2e7d32;
-            --warning: #f57c00;
-            --danger: #c62828;
-            --light: #f5f7fa;
-            --dark: #333;
-            --gray: #757575;
-            --border: #e0e0e0;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-            animation: fadeIn 0.5s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 40px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-            background-size: 30px 30px;
-            opacity: 0.1;
-            animation: float 20s linear infinite;
-        }
-
-        @keyframes float {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .header-content {
-            position: relative;
-            z-index: 2;
-        }
-
-        h1 {
-            font-size: 2.8rem;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        h1 i {
-            color: #64ffda;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
-        }
-
-        .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 25px;
-            max-width: 800px;
-        }
-
-        .info-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 12px 20px;
-            border-radius: 50px;
-            backdrop-filter: blur(10px);
-            margin-top: 10px;
-        }
-
-        .controls {
-            padding: 25px 40px;
-            background: var(--light);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .filters {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-
-        select {
-            padding: 12px 25px;
-            border-radius: 10px;
-            border: 2px solid var(--border);
-            background: white;
-            font-size: 1rem;
-            min-width: 200px;
-            cursor: pointer;
-            transition: all 0.3s;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%231a237e' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 15px center;
-            background-size: 16px;
-            padding-right: 45px;
-            appearance: none;
-        }
-
-        select:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(57, 73, 171, 0.1);
-        }
-
-        .btn {
-            padding: 14px 30px;
-            border-radius: 10px;
-            border: none;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 10px;
-            transition: all 0.3s;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(26, 35, 126, 0.3);
-        }
-
-        .btn-primary:active {
-            transform: translateY(-1px);
-        }
-
-        .btn-outline {
-            background: transparent;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-        }
-
-        .btn-outline:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.95);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            transition: opacity 0.3s;
-        }
-
-        .spinner {
-            width: 80px;
-            height: 80px;
-            border: 8px solid rgba(26, 35, 126, 0.1);
-            border-top: 8px solid var(--primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 30px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .loading-text {
-            font-size: 1.2rem;
-            color: var(--primary);
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .loading-dots {
-            display: flex;
-            gap: 5px;
-        }
-
-        .loading-dots span {
-            width: 10px;
-            height: 10px;
-            background: var(--primary);
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .loading-dots span:nth-child(1) {
-            animation-delay: -0.32s;
-        }
-
-        .loading-dots span:nth-child(2) {
-            animation-delay: -0.16s;
-        }
-
-        @keyframes bounce {
-
-            0%,
-            80%,
-            100% {
-                transform: scale(0);
-            }
-
-            40% {
-                transform: scale(1);
-            }
-        }
-
-        .error-message {
-            background: linear-gradient(135deg, #ff5252 0%, #c62828 100%);
-            color: white;
-            padding: 25px 40px;
-            margin: 20px 40px;
-            border-radius: 15px;
-            display: none;
-            animation: slideIn 0.3s ease-out;
-            box-shadow: 0 10px 30px rgba(198, 40, 40, 0.2);
-        }
-
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateX(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .warning-message {
-            background: linear-gradient(135deg, #ffb74d 0%, #f57c00 100%);
-            color: white;
-            padding: 25px 40px;
-            margin: 20px 40px;
-            border-radius: 15px;
-            display: none;
-            animation: slideIn 0.3s ease-out;
-            box-shadow: 0 10px 30px rgba(245, 124, 0, 0.2);
-        }
-
-        .dashboard-content {
-            padding: 40px;
-            display: none;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-
-        .stat-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--border);
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 5px;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-        }
-
-        .stat-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-        }
-
-        .stat-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-        }
-
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 15px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            box-shadow: 0 10px 20px rgba(26, 35, 126, 0.2);
-        }
-
-        .stat-title {
-            font-size: 1.1rem;
-            color: var(--gray);
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .stat-subtitle {
-            font-size: 0.9rem;
-            color: var(--gray);
-            opacity: 0.8;
-        }
-
-        .stat-value {
-            font-size: 3rem;
-            font-weight: 800;
-            color: var(--dark);
-            margin: 15px 0;
-            line-height: 1;
-        }
-
-        .stat-change {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .change-up {
-            background: rgba(46, 125, 50, 0.1);
-            color: var(--success);
-        }
-
-        .change-down {
-            background: rgba(198, 40, 40, 0.1);
-            color: var(--danger);
-        }
-
-        .charts-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
-            gap: 30px;
-            margin-bottom: 50px;
-        }
-
-        .chart-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--border);
-        }
-
-        .chart-title {
-            font-size: 1.4rem;
-            color: var(--primary);
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .chart-wrapper {
-            height: 400px;
-            position: relative;
-        }
-
-        .tables-section {
-            margin-top: 40px;
-        }
-
-        .section-title {
-            font-size: 1.8rem;
-            color: var(--primary);
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 3px solid var(--primary);
-        }
-
-        .tables-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
-            gap: 30px;
-        }
-
-        .table-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-            border: 1px solid var(--border);
-        }
-
-        .table-title {
-            font-size: 1.3rem;
-            color: var(--primary);
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        thead {
-            background: linear-gradient(135deg, var(--light) 0%, #e8eaf6 100%);
-        }
-
-        th {
-            padding: 18px 20px;
-            text-align: left;
-            font-weight: 600;
-            color: var(--primary);
-            border-bottom: 2px solid var(--border);
-        }
-
-        td {
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        tr:hover {
-            background: rgba(26, 35, 126, 0.02);
-        }
-
-        .volumen-cell {
-            font-weight: 700;
-            color: var(--primary);
-            font-size: 1.1rem;
-        }
-
-        .orden-cell {
-            width: 60px;
-            text-align: center;
-            background: var(--light);
-            font-weight: 700;
-            color: var(--primary);
-            border-radius: 8px;
-        }
-
-        footer {
-            padding: 30px 40px;
-            background: var(--light);
-            color: var(--gray);
-            border-top: 1px solid var(--border);
-            text-align: center;
-        }
-
-        .footer-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 20px;
-        }
-
-        .status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .status-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--success);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-
-            0%,
-            100% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        @media (max-width: 768px) {
-
-            .charts-container,
-            .tables-container {
-                grid-template-columns: 1fr;
-            }
-
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .filters {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            select {
-                width: 100%;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
-
-            .stat-value {
-                font-size: 2.5rem;
-            }
-
-            .chart-wrapper {
-                height: 300px;
-            }
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; border-radius: 15px; padding: 0; overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        header { background: linear-gradient(135deg, #1a237e 0%, #283593 100%); color: white; padding: 30px; text-align: center; }
+        h1 { font-size: 2.5rem; margin-bottom: 10px; }
+        .controls { background: #f8f9fa; padding: 20px; display: flex; gap: 15px; flex-wrap: wrap; justify-content: center; }
+        button { background: #1a237e; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        button:hover { background: #283593; transform: translateY(-2px); transition: all 0.3s; }
+        .loading { text-align: center; padding: 60px; font-size: 1.2rem; color: #666; }
+        .error { background: #ff5252; color: white; padding: 20px; margin: 20px; border-radius: 10px; text-align: center; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; padding: 30px; }
+        .stat-card { background: white; border: 1px solid #e0e0e0; border-radius: 10px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .stat-value { font-size: 2.5rem; font-weight: bold; color: #1a237e; margin: 10px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #1a237e; color: white; }
+        tr:hover { background: #f5f5f5; }
+        .chart-container { height: 400px; margin: 30px; }
+        footer { text-align: center; padding: 20px; background: #f8f9fa; color: #666; border-top: 1px solid #e0e0e0; }
+        .tab { display: inline-block; padding: 10px 20px; cursor: pointer; background: #e0e0e0; margin: 5px; border-radius: 5px; }
+        .tab.active { background: #1a237e; color: white; }
+        .tab-content { display: none; padding: 20px; }
+        .tab-content.active { display: block; }
     </style>
 </head>
-
 <body>
     <div class="container">
         <header>
-            <div class="header-content">
-                <h1><i class="fas fa-hospital-alt"></i> Dashboard Hospitalario Inteligente</h1>
-                <p class="subtitle">Análisis comparativo en tiempo real de los principales diagnósticos del 2do
-                    Cuatrimestre 2024 vs 2025</p>
-                <div class="info-badge">
-                    <i class="fas fa-sync-alt fa-spin"></i>
-                    <span>Conectado a Google Sheets - Datos en tiempo real</span>
-                </div>
+            <h1>🏥 Dashboard Hospitalario</h1>
+            <p>Datos del 2do Cuatrimestre 2024 vs 2025</p>
+            <div style="margin-top: 15px; font-size: 0.9rem; opacity: 0.9;">
+                <i class="fas fa-bolt"></i> Sin problemas de CORS - Conexión directa
             </div>
         </header>
-
+        
         <div class="controls">
-            <div class="filters">
-                <select id="categorySelect">
-                    <option value="all">Todas las Categorías</option>
-                    <option value="egresos_hospitalarios">🏥 Egresos Hospitalarios</option>
-                    <option value="urgencias">🚑 Urgencias</option>
-                    <option value="afecciones_lesiones">🤕 Afecciones en Lesiones</option>
-                    <option value="causas_externas">⚠️ Causas Externas</option>
-                </select>
-
-                <select id="yearSelect">
-                    <option value="both">📅 2024 y 2025</option>
-                    <option value="2024">📊 Solo 2024</option>
-                    <option value="2025">🚀 Solo 2025</option>
-                </select>
-
-                <select id="limitSelect">
-                    <option value="10">📋 Top 10</option>
-                    <option value="20">📈 Top 20</option>
-                    <option value="all">📊 Todos</option>
-                </select>
-            </div>
-
-            <div class="actions">
-                <button class="btn btn-primary" id="refreshBtn">
-                    <i class="fas fa-sync-alt"></i> Actualizar Datos
-                </button>
-                <button class="btn btn-outline" id="exportBtn">
-                    <i class="fas fa-download"></i> Exportar
-                </button>
+            <button onclick="loadData()">
+                <span>🔄 Cargar Datos</span>
+            </button>
+            <button onclick="testConnection()">
+                <span>🔗 Probar Conexión</span>
+            </button>
+            <button onclick="window.open('<?= ScriptApp.getService().getUrl() ?>?api=data', '_blank')">
+                <span>📊 Ver JSON</span>
+            </button>
+        </div>
+        
+        <div id="message"></div>
+        
+        <div id="loading" class="loading" style="display: none;">
+            <h2>⏳ Cargando datos...</h2>
+            <p>Conectando directamente con Google Sheets</p>
+            <div style="margin-top: 20px; font-size: 0.9rem; color: #666;">
+                Esta versión no usa fetch() para evitar problemas de CORS
             </div>
         </div>
-
-        <div id="errorMessage" class="error-message">
-            <!-- Mensajes de error -->
+        
+        <div class="tabs" style="background: #f1f1f1; padding: 10px; text-align: center;">
+            <div class="tab active" onclick="showTab('stats')">📈 Estadísticas</div>
+            <div class="tab" onclick="showTab('charts')">📊 Gráficos</div>
+            <div class="tab" onclick="showTab('tables')">📋 Tablas</div>
+            <div class="tab" onclick="showTab('raw')">📄 Datos Crudos</div>
         </div>
-
-        <div id="warningMessage" class="warning-message">
-            <!-- Mensajes de advertencia -->
+        
+        <div id="stats-tab" class="tab-content active">
+            <div class="stats" id="stats"></div>
         </div>
-
-        <div id="loading" class="loading-overlay">
-            <div class="spinner"></div>
-            <div class="loading-text">Cargando datos desde Google Sheets</div>
-            <div class="loading-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <p style="margin-top: 20px; color: var(--gray); max-width: 400px; text-align: center;">
-                Conectando con la base de datos...
-            </p>
-        </div>
-
-        <div id="dashboardContent" class="dashboard-content">
-            <div class="stats-grid" id="statsGrid">
-                <!-- Estadísticas se cargarán aquí -->
-            </div>
-
-            <div class="charts-container">
-                <div class="chart-card">
-                    <h3 class="chart-title"><i class="fas fa-chart-line"></i> Comparativa por Categoría</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="comparisonChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="chart-card">
-                    <h3 class="chart-title"><i class="fas fa-chart-pie"></i> Distribución Top 5 Diagnósticos</h3>
-                    <div class="chart-wrapper">
-                        <canvas id="top5Chart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <div class="tables-section">
-                <h2 class="section-title"><i class="fas fa-table"></i> Tablas de Datos Detallados</h2>
-                <div class="tables-container" id="tablesContainer">
-                    <!-- Tablas se cargarán aquí -->
-                </div>
+        
+        <div id="charts-tab" class="tab-content">
+            <div class="chart-container">
+                <canvas id="chart"></canvas>
             </div>
         </div>
-
+        
+        <div id="tables-tab" class="tab-content">
+            <div id="tables"></div>
+        </div>
+        
+        <div id="raw-tab" class="tab-content">
+            <pre id="raw-data" style="background: #f5f5f5; padding: 20px; border-radius: 10px; overflow: auto; max-height: 500px;"></pre>
+        </div>
+        
         <footer>
-            <div class="footer-content">
-                <div class="status-indicator">
-                    <div class="status-dot"></div>
-                    <span>Sistema operativo</span>
-                </div>
-
-                <div>
-                    <p>Dashboard Hospitalario v1.0 • Actualizado: <span id="lastUpdate">--:--</span></p>
-                    <p style="margin-top: 5px; font-size: 0.9rem;">
-                        <i class="fas fa-database"></i> Fuente: Google Sheets •
-                        <i class="fas fa-code"></i> Desarrollado con Google Apps Script
-                    </p>
-                </div>
-
-                <div>
-                    <a href="https://docs.google.com/spreadsheets/d/1wp-rIwbrozjN8SMCPjnVEdxg6ypM2wb7dK4wodaUslM/edit"
-                        target="_blank" class="btn btn-outline" style="padding: 8px 15px; font-size: 0.9rem;">
-                        <i class="fas fa-external-link-alt"></i> Ver Spreadsheet
-                    </a>
-                </div>
-            </div>
+            <p>Conectado directamente a: <?= ScriptApp.getService().getUrl() ?></p>
+            <p style="margin-top: 10px; font-size: 0.9rem;">
+                Actualizado: <span id="update-time">--:--</span> | 
+                <span id="data-status" style="color: #4CAF50;">● Conectado</span>
+            </p>
         </footer>
     </div>
 
     <script>
         // ============================================
-        // CONFIGURACIÓN - URL DE TU WEB APP
+        // SOLUCIÓN DEFINITIVA - SIN FETCH, SIN CORS
         // ============================================
-        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz2q0w5YWvR7eHiCQul9Bg1YDlHnP2nUX_aIE5ngttN9Hm_E8jXI197X1OuBgG3Nes/exec';
-        // ============================================
-
+        
+        // URL de tu Web App - IMPORTANTE: Usar <?= ?> para obtener dinámicamente
+        const WEB_APP_URL = '<?= ScriptApp.getService().getUrl() ?>';
+        console.log('URL de la Web App:', WEB_APP_URL);
+        
         let dashboardData = null;
-        let charts = {};
-
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('🚀 Dashboard inicializado');
-            console.log('🔗 URL de la Web App:', WEB_APP_URL);
-
-            // Configurar eventos
-            setupEventListeners();
-
-            // Cargar datos automáticamente
-            setTimeout(loadData, 500);
+        let chart = null;
+        
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Dashboard inicializado');
+            updateStatus('🟡 Esperando datos...');
+            
+            // Cargar datos automáticamente después de 1 segundo
+            setTimeout(loadData, 1000);
         });
-
-        function setupEventListeners() {
-            document.getElementById('refreshBtn').addEventListener('click', function () {
-                console.log('🔄 Botón de actualización clickeado');
-                showLoading(true);
-                loadData();
-            });
-
-            document.getElementById('categorySelect').addEventListener('change', function () {
-                console.log('📊 Categoría cambiada:', this.value);
-                renderDashboard();
-            });
-
-            document.getElementById('yearSelect').addEventListener('change', function () {
-                console.log('📅 Año cambiado:', this.value);
-                renderDashboard();
-            });
-
-            document.getElementById('limitSelect').addEventListener('change', function () {
-                console.log('📈 Límite cambiado:', this.value);
-                renderTables();
-            });
-
-            document.getElementById('exportBtn').addEventListener('click', function () {
-                exportData();
-            });
-        }
-
-        function showLoading(show) {
-            const loadingEl = document.getElementById('loading');
-            const dashboardEl = document.getElementById('dashboardContent');
-
-            if (loadingEl) {
-                loadingEl.style.display = show ? 'flex' : 'none';
-            }
-
-            if (dashboardEl) {
-                dashboardEl.style.display = show ? 'none' : 'block';
-            }
-
-            if (show) {
-                console.log('⏳ Mostrando pantalla de carga...');
-            }
-        }
-
-        function showMessage(message, type = 'error') {
-            const errorEl = document.getElementById('errorMessage');
-            const warningEl = document.getElementById('warningMessage');
-
-            // Ocultar ambos primero
-            errorEl.style.display = 'none';
-            warningEl.style.display = 'none';
-
-            // Mostrar el mensaje apropiado
-            if (type === 'error') {
-                errorEl.innerHTML = `
-                    <div style="display: flex; align-items: flex-start; gap: 15px;">
-                        <i class="fas fa-exclamation-circle fa-2x"></i>
-                        <div>
-                            <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Error</h3>
-                            <p>${message}</p>
-                        </div>
-                    </div>
-                `;
-                errorEl.style.display = 'block';
-                console.error('❌ Error:', message);
-            } else if (type === 'warning') {
-                warningEl.innerHTML = `
-                    <div style="display: flex; align-items: flex-start; gap: 15px;">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                        <div>
-                            <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Advertencia</h3>
-                            <p>${message}</p>
-                        </div>
-                    </div>
-                `;
-                warningEl.style.display = 'block';
-                console.warn('⚠️ Advertencia:', message);
-            }
-        }
-
-        function hideMessages() {
-            document.getElementById('errorMessage').style.display = 'none';
-            document.getElementById('warningMessage').style.display = 'none';
-        }
-
-        async function loadData() {
-            console.log('📥 Iniciando carga de datos...');
-            hideMessages();
-            showLoading(true);
-
-            try {
-                // Usar JSONP para evitar problemas de CORS
-                await loadDataWithJSONP();
-
-            } catch (error) {
-                console.error('💥 Error en loadData:', error);
-
-                // Intentar con método alternativo
-                try {
-                    await loadDataWithProxy();
-                } catch (proxyError) {
-                    console.error('💥 Error con proxy:', proxyError);
-
-                    // Cargar datos de ejemplo como último recurso
-                    showMessage(`
-                <div style="display: flex; align-items: flex-start; gap: 15px;">
-                    <i class="fas fa-info-circle fa-2x"></i>
-                    <div>
-                        <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Usando datos de ejemplo</h3>
-                        <p>No se pudo conectar con el servidor. Mostrando datos de demostración.</p>
-                        <p><small>Para ver datos reales, abre esta URL directamente: 
-                        <a href="${WEB_APP_URL}" target="_blank" style="color: white;">${WEB_APP_URL}</a></small></p>
-                    </div>
+        
+        // Mostrar mensaje
+        function showMessage(text, type = 'info') {
+            const messageEl = document.getElementById('message');
+            if (!messageEl) return;
+            
+            messageEl.innerHTML = `
+                <div class="${type === 'error' ? 'error' : 'info'}" style="background: ${type === 'error' ? '#ff5252' : '#4CAF50'};">
+                    ${text}
                 </div>
-            `, 'warning');
-
-                    loadSampleData();
-                    showLoading(false);
-                }
+            `;
+            messageEl.style.display = 'block';
+            
+            // Auto-ocultar después de 5 segundos
+            if (type !== 'error') {
+                setTimeout(() => {
+                    messageEl.style.display = 'none';
+                }, 5000);
             }
         }
-
-        // Método 1: JSONP (funciona sin CORS)
-        function loadDataWithJSONP() {
-            return new Promise((resolve, reject) => {
-                // Crear función callback global
-                window.jsonpCallback = function (data) {
-                    console.log('✅ Datos recibidos via JSONP:', data);
-
-                    // Limpiar el script
-                    const script = document.getElementById('jsonpScript');
-                    if (script) script.remove();
-
-                    if (data && data.success) {
-                        dashboardData = data.data;
-                        console.log('🎉 Datos cargados exitosamente via JSONP');
-
-                        // Actualizar timestamp
-                        const now = new Date();
-                        document.getElementById('lastUpdate').textContent =
-                            `${now.toLocaleDateString('es-ES')} ${now.toLocaleTimeString('es-ES')}`;
-
-                        // Renderizar dashboard
-                        renderDashboard();
-                        showLoading(false);
-                        resolve();
-                    } else {
-                        reject(new Error(data?.error || 'Error en datos JSONP'));
-                    }
-                };
-
-                // Crear script para JSONP
-                const script = document.createElement('script');
-                script.id = 'jsonpScript';
-                script.src = `${WEB_APP_URL}?api=data&callback=jsonpCallback&t=${Date.now()}`;
-
-                // Manejar errores
-                script.onerror = () => {
-                    reject(new Error('Error cargando script JSONP'));
-                };
-
-                // Agregar timeout
-                const timeoutId = setTimeout(() => {
-                    if (script.parentNode) {
-                        script.parentNode.removeChild(script);
-                    }
-                    reject(new Error('Timeout en JSONP'));
-                }, 10000);
-
-                script.onload = () => {
-                    clearTimeout(timeoutId);
-                };
-
-                document.head.appendChild(script);
-            });
-        }
-
-        // Método 2: Usar proxy CORS
-        async function loadDataWithProxy() {
-            // Usar un proxy CORS público (solo para desarrollo)
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-            const targetUrl = `${WEB_APP_URL}?api=data&t=${Date.now()}`;
-
-            console.log('🔗 Usando proxy CORS:', proxyUrl + targetUrl);
-
-            const response = await fetch(proxyUrl + targetUrl, {
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                }
-            });
-
-            if (!response.ok) {
-                throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
+        
+        // Actualizar estado
+        function updateStatus(status) {
+            const statusEl = document.getElementById('data-status');
+            if (statusEl) {
+                statusEl.innerHTML = status;
             }
-
-            const result = await response.json();
-
-            if (result.success) {
-                dashboardData = result.data;
-                console.log('🎉 Datos cargados exitosamente via proxy');
-
-                // Actualizar timestamp
+            
+            const timeEl = document.getElementById('update-time');
+            if (timeEl) {
                 const now = new Date();
-                document.getElementById('lastUpdate').textContent =
-                    `${now.toLocaleDateString('es-ES')} ${now.toLocaleTimeString('es-ES')}`;
-
-                renderDashboard();
-                showLoading(false);
-            } else {
-                throw new Error(result.error || 'Error en datos del proxy');
+                timeEl.textContent = now.toLocaleTimeString('es-ES');
             }
         }
-
-        function loadSampleData() {
-            console.log('🔄 Cargando datos de ejemplo...');
-
-            // Datos de ejemplo realistas basados en tu spreadsheet
-            dashboardData = {
-                egresos_hospitalarios: {
-                    '2024': [
-                        { orden: 1, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 324 },
-                        { orden: 2, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 276 },
-                        { orden: 3, causa: "161 Parto único espontáneo", volumen: 201 },
-                        { orden: 4, causa: "159 Aborto (solo morbilidad)", volumen: 127 },
-                        { orden: 5, causa: "163 Ciertas afecciones originadas en el período perinatal", volumen: 95 }
-                    ],
-                    '2025': [
-                        { orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 272 },
-                        { orden: 2, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 253 },
-                        { orden: 3, causa: "161 Parto único espontáneo", volumen: 223 },
-                        { orden: 4, causa: "159 Aborto (solo morbilidad)", volumen: 122 },
-                        { orden: 5, causa: "163 Ciertas afecciones originadas en el período perinatal", volumen: 83 }
-                    ]
-                },
-                urgencias: {
-                    '2024': [
-                        { orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 2018 },
-                        { orden: 2, causa: "179 Supervisión de embarazo normal", volumen: 1293 },
-                        { orden: 3, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 405 },
-                        { orden: 4, causa: "104 Infecciones respiratorias agudas, excepto neumonía e influenza", volumen: 362 },
-                        { orden: 5, causa: "126 Colelitiasis y colecistitis", volumen: 261 }
-                    ],
-                    '2025': [
-                        { orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 1924 },
-                        { orden: 2, causa: "179 Supervisión de embarazo normal", volumen: 1162 },
-                        { orden: 3, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 332 },
-                        { orden: 4, causa: "104 Infecciones respiratorias agudas, excepto neumonía e influenza", volumen: 311 },
-                        { orden: 5, causa: "001 Enfermedades infecciosas intestinales", volumen: 283 }
-                    ]
-                },
-                statistics: {
-                    egresos_hospitalarios: {
-                        '2024': { total: 1023, count: 5, topCause: "160 Causas obstétricas directas...", topVolume: 324 },
-                        '2025': { total: 953, count: 5, topCause: "166 Traumatismos, envenenamientos...", topVolume: 272 }
-                    },
-                    urgencias: {
-                        '2024': { total: 4339, count: 5, topCause: "166 Traumatismos, envenenamientos...", topVolume: 2018 },
-                        '2025': { total: 4012, count: 5, topCause: "166 Traumatismos, envenenamientos...", topVolume: 1924 }
+        
+        // Mostrar/ocultar tabs
+        function showTab(tabName) {
+            // Ocultar todos los tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar tab seleccionado
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+        
+        // ============================================
+        // MÉTODO PRINCIPAL - SIN FETCH
+        // ============================================
+        
+        function loadData() {
+            console.log('Iniciando carga de datos...');
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('message').style.display = 'none';
+            updateStatus('🟡 Cargando...');
+            
+            // Método 1: Usar iframe para evitar CORS
+            loadDataViaIframe();
+        }
+        
+        function loadDataViaIframe() {
+            console.log('Usando método iframe...');
+            
+            // Crear iframe oculto
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = WEB_APP_URL + '?api=data&format=json&callback=handleData';
+            
+            // Configurar evento de carga
+            iframe.onload = function() {
+                console.log('Iframe cargado');
+                
+                try {
+                    // Intentar acceder al contenido
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    const text = iframeDoc.body.textContent;
+                    
+                    if (text) {
+                        const data = JSON.parse(text);
+                        processData(data);
+                    } else {
+                        throw new Error('Iframe vacío');
                     }
-                },
-                metadata: {
-                    totalRows: 150,
-                    processedAt: new Date().toLocaleString('es-ES'),
-                    note: "Datos de ejemplo - Conecta a Google Sheets para datos reales"
+                } catch (error) {
+                    console.warn('Error con iframe:', error);
+                    // Intentar método alternativo
+                    loadDataViaScriptTag();
                 }
             };
-
-            showMessage(`
-                <div style="display: flex; align-items: flex-start; gap: 15px;">
-                    <i class="fas fa-info-circle fa-2x"></i>
-                    <div>
-                        <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Modo de Demostración</h3>
-                        <p>Actualmente estás viendo datos de ejemplo. Para ver los datos reales:</p>
-                        <ol style="margin: 10px 0; padding-left: 20px;">
-                            <li>Asegúrate de que la Web App esté desplegada correctamente</li>
-                            <li>Verifica que tengas acceso al Google Sheets</li>
-                            <li>Haz clic en "Actualizar Datos" para intentar nuevamente</li>
-                        </ol>
-                        <a href="${WEB_APP_URL}?api=data" target="_blank" style="color: white; text-decoration: underline;">
-                            Probar conexión directa
-                        </a>
-                    </div>
-                </div>
-            `, 'warning');
-
-            renderDashboard();
-            showLoading(false);
+            
+            iframe.onerror = function() {
+                console.warn('Error cargando iframe');
+                loadDataViaScriptTag();
+            };
+            
+            document.body.appendChild(iframe);
+            
+            // Timeout
+            setTimeout(() => {
+                if (document.body.contains(iframe)) {
+                    document.body.removeChild(iframe);
+                }
+                if (!dashboardData) {
+                    loadDataViaScriptTag();
+                }
+            }, 10000);
         }
-
-        function renderDashboard() {
-            if (!dashboardData) {
-                showMessage('No hay datos disponibles. Haz clic en "Actualizar Datos"', 'error');
-                return;
-            }
-
-            console.log('🎨 Renderizando dashboard...');
-
-            try {
+        
+        function loadDataViaScriptTag() {
+            console.log('Usando método script tag (JSONP)...');
+            
+            // Crear script para JSONP
+            const script = document.createElement('script');
+            script.src = WEB_APP_URL + '?api=data&callback=handleJsonpData&t=' + Date.now();
+            
+            // Función global para JSONP
+            window.handleJsonpData = function(data) {
+                console.log('Datos recibidos via JSONP:', data);
+                processData(data);
+                
+                // Limpiar script
+                if (script.parentNode) {
+                    script.parentNode.removeChild(script);
+                }
+            };
+            
+            script.onerror = function() {
+                console.error('Error cargando script JSONP');
+                document.getElementById('loading').style.display = 'none';
+                showMessage(`
+                    <strong>Error de conexión</strong><br>
+                    No se pudo cargar los datos. Posibles soluciones:<br>
+                    1. Asegúrate de que la Web App esté desplegada<br>
+                    2. Verifica tu conexión a internet<br>
+                    3. Prueba en otro navegador<br><br>
+                    <button onclick="loadSampleData()" style="background: white; color: #ff5252; border: none; padding: 10px; border-radius: 5px; cursor: pointer;">
+                        Cargar datos de ejemplo
+                    </button>
+                `, 'error');
+                updateStatus('🔴 Error de conexión');
+            };
+            
+            document.head.appendChild(script);
+        }
+        
+        // Procesar datos recibidos
+        function processData(result) {
+            console.log('Procesando datos:', result);
+            
+            if (result && result.success) {
+                dashboardData = result.data;
+                
+                // Renderizar todo
                 renderStats();
-                renderCharts();
+                renderChart();
                 renderTables();
-                console.log('✅ Dashboard renderizado exitosamente');
-            } catch (error) {
-                console.error('💥 Error al renderizar:', error);
-                showMessage(`Error al mostrar los datos: ${error.message}`, 'error');
+                renderRawData();
+                
+                document.getElementById('loading').style.display = 'none';
+                showMessage('✅ Datos cargados correctamente', 'success');
+                updateStatus('🟢 Conectado');
+                
+                console.log('Dashboard actualizado correctamente');
+                
+            } else {
+                throw new Error(result?.error || 'Error en los datos recibidos');
             }
         }
-
-        function renderStats() {
-            const statsGrid = document.getElementById('statsGrid');
-            if (!statsGrid) return;
-
-            const categories = [
-                { key: 'egresos_hospitalarios', name: 'Egresos Hospitalarios', icon: 'fas fa-procedures', color: '#1a237e' },
-                { key: 'urgencias', name: 'Urgencias', icon: 'fas fa-ambulance', color: '#283593' },
-                { key: 'afecciones_lesiones', name: 'Afecciones Lesiones', icon: 'fas fa-user-injured', color: '#303f9f' },
-                { key: 'causas_externas', name: 'Causas Externas', icon: 'fas fa-car-crash', color: '#3949ab' }
-            ];
-
-            let html = '';
-
-            categories.forEach(cat => {
-                const stats = dashboardData.statistics && dashboardData.statistics[cat.key];
-
-                if (stats && stats['2025'] && stats['2024']) {
-                    const total2025 = stats['2025'].total;
-                    const total2024 = stats['2024'].total;
-                    const change = total2024 > 0 ? ((total2025 - total2024) / total2024 * 100) : 0;
-
-                    const changeClass = change >= 0 ? 'change-up' : 'change-down';
-                    const changeIcon = change >= 0 ? 'fas fa-arrow-up' : 'fas fa-arrow-down';
-                    const changeText = change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
-
-                    html += `
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div>
-                                <div class="stat-title">${cat.name}</div>
-                                <div class="stat-subtitle">2do Cuatrimestre 2025</div>
-                                <div class="stat-value">${total2025.toLocaleString('es-ES')}</div>
-                            </div>
-                            <div class="stat-icon" style="background: linear-gradient(135deg, ${cat.color}, ${cat.color}dd)">
-                                <i class="${cat.icon}"></i>
-                            </div>
-                        </div>
-                        <div style="margin-top: 20px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span style="color: #666;">
-                                    <i class="fas fa-calendar"></i> 2024: ${total2024.toLocaleString('es-ES')}
-                                </span>
-                                <span class="stat-change ${changeClass}">
-                                    <i class="${changeIcon}"></i> ${changeText}
-                                </span>
-                            </div>
-                            <div style="font-size: 0.9rem; color: #666; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-                                <i class="fas fa-star"></i> Principal: ${stats['2025'].topCause.substring(0, 50)}${stats['2025'].topCause.length > 50 ? '...' : ''}
-                            </div>
-                        </div>
-                    </div>
-                    `;
+        
+        // Función de prueba de conexión
+        function testConnection() {
+            console.log('Probando conexión...');
+            showMessage('🔍 Probando conexión con el servidor...');
+            
+            const testScript = document.createElement('script');
+            testScript.src = WEB_APP_URL + '?api=data&callback=testCallback&t=' + Date.now();
+            
+            window.testCallback = function(data) {
+                if (data && data.success) {
+                    showMessage('✅ Conexión exitosa. Datos disponibles.', 'success');
+                    console.log('Test exitoso:', data);
                 } else {
+                    showMessage('⚠️ Conexión establecida pero error en datos', 'error');
+                }
+                
+                if (testScript.parentNode) {
+                    testScript.parentNode.removeChild(testScript);
+                }
+            };
+            
+            testScript.onerror = function() {
+                showMessage('❌ No se pudo establecer conexión', 'error');
+            };
+            
+            document.head.appendChild(testScript);
+        }
+        
+        // ============================================
+        // RENDERIZADO
+        // ============================================
+        
+        function renderStats() {
+            const statsEl = document.getElementById('stats');
+            if (!statsEl || !dashboardData) return;
+            
+            let html = '';
+            const categories = ['egresos_hospitalarios', 'urgencias', 'afecciones_lesiones', 'causas_externas'];
+            
+            categories.forEach(cat => {
+                const stats = dashboardData.statistics?.[cat];
+                if (stats && stats['2025']) {
+                    const total2025 = stats['2025'].total;
+                    const total2024 = stats['2024']?.total || 0;
+                    const change = total2024 > 0 ? ((total2025 - total2024) / total2024 * 100).toFixed(1) : 'N/A';
+                    
                     html += `
                     <div class="stat-card">
-                        <div class="stat-header">
-                            <div>
-                                <div class="stat-title">${cat.name}</div>
-                                <div class="stat-subtitle">Datos no disponibles</div>
-                                <div class="stat-value">--</div>
+                        <h3>${cat.replace('_', ' ').toUpperCase()}</h3>
+                        <div class="stat-value">${total2025.toLocaleString()}</div>
+                        <div style="color: #666;">
+                            <div>2024: ${total2024.toLocaleString()}</div>
+                            <div style="margin-top: 10px; ${change >= 0 ? 'color: #4CAF50' : 'color: #ff5252'}">
+                                ${change !== 'N/A' ? (change >= 0 ? '▲ +' : '▼ ') + change + '%' : 'Sin datos 2024'}
                             </div>
-                            <div class="stat-icon" style="background: #ccc;">
-                                <i class="${cat.icon}"></i>
-                            </div>
-                        </div>
-                        <div style="margin-top: 20px; color: #999; font-style: italic;">
-                            <i class="fas fa-info-circle"></i> No hay datos para esta categoría
                         </div>
                     </div>
                     `;
                 }
             });
-
-            statsGrid.innerHTML = html;
+            
+            statsEl.innerHTML = html || '<div class="stat-card"><p>No hay estadísticas disponibles</p></div>';
         }
-
-        function renderCharts() {
-            // Destruir gráficos anteriores
-            Object.values(charts).forEach(chart => {
-                if (chart && typeof chart.destroy === 'function') {
-                    chart.destroy();
-                }
-            });
-            charts = {};
-
-            // Gráfico 1: Comparativa por categoría
-            renderComparisonChart();
-
-            // Gráfico 2: Top 5 diagnósticos
-            renderTop5Chart();
-        }
-
-        function renderComparisonChart() {
-            const ctx = document.getElementById('comparisonChart');
-            if (!ctx) return;
-
-            const categories = ['egresos_hospitalarios', 'urgencias', 'afecciones_lesiones', 'causas_externas'];
-            const labels = ['Egresos', 'Urgencias', 'Lesiones', 'Causas Ext.'];
-
-            const data2024 = categories.map(cat => {
-                const stats = dashboardData.statistics && dashboardData.statistics[cat];
-                return stats && stats['2024'] ? stats['2024'].total : 0;
-            });
-
-            const data2025 = categories.map(cat => {
-                const stats = dashboardData.statistics && dashboardData.statistics[cat];
-                return stats && stats['2025'] ? stats['2025'].total : 0;
-            });
-
-            charts.comparison = new Chart(ctx, {
+        
+        function renderChart() {
+            const ctx = document.getElementById('chart');
+            if (!ctx || !dashboardData) return;
+            
+            // Destruir gráfico anterior
+            if (chart) {
+                chart.destroy();
+            }
+            
+            const categories = ['egresos_hospitalarios', 'urgencias'];
+            const labels = ['Egresos', 'Urgencias'];
+            const data2024 = categories.map(cat => dashboardData.statistics?.[cat]?.['2024']?.total || 0);
+            const data2025 = categories.map(cat => dashboardData.statistics?.[cat]?.['2025']?.total || 0);
+            
+            chart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
@@ -1168,275 +376,113 @@
                         {
                             label: '2024',
                             data: data2024,
-                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
-                            borderColor: 'rgba(54, 162, 235, 1)',
-                            borderWidth: 1,
-                            borderRadius: 10,
-                            borderSkipped: false
+                            backgroundColor: 'rgba(54, 162, 235, 0.7)'
                         },
                         {
                             label: '2025',
                             data: data2025,
-                            backgroundColor: 'rgba(255, 99, 132, 0.8)',
-                            borderColor: 'rgba(255, 99, 132, 1)',
-                            borderWidth: 1,
-                            borderRadius: 10,
-                            borderSkipped: false
+                            backgroundColor: 'rgba(255, 99, 132, 0.7)'
                         }
                     ]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: false,
                     plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: {
-                                font: {
-                                    size: 14,
-                                    family: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif"
-                                },
-                                padding: 20
-                            }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleFont: { size: 14 },
-                            bodyFont: { size: 13 },
-                            padding: 12,
-                            callbacks: {
-                                label: function (context) {
-                                    const label = context.dataset.label || '';
-                                    const value = context.raw || 0;
-                                    return `${label}: ${value.toLocaleString('es-ES')} casos`;
-                                }
-                            }
+                        title: {
+                            display: true,
+                            text: 'Comparativa 2024 vs 2025'
                         }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0, 0, 0, 0.05)'
-                            },
-                            ticks: {
-                                font: {
-                                    size: 12
-                                },
-                                callback: function (value) {
-                                    return value.toLocaleString('es-ES');
-                                }
-                            },
-                            title: {
-                                display: true,
-                                text: 'Número de Casos',
-                                font: {
-                                    size: 14,
-                                    weight: 'bold'
-                                }
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            },
-                            ticks: {
-                                font: {
-                                    size: 13,
-                                    weight: '600'
-                                }
-                            }
-                        }
-                    },
-                    animation: {
-                        duration: 1000,
-                        easing: 'easeOutQuart'
                     }
                 }
             });
         }
-
-        function renderTop5Chart() {
-            const ctx = document.getElementById('top5Chart');
-            if (!ctx) return;
-
-            // Obtener top 5 de egresos hospitalarios 2025
-            const top5Data = dashboardData.egresos_hospitalarios &&
-                dashboardData.egresos_hospitalarios['2025'] ?
-                dashboardData.egresos_hospitalarios['2025'].slice(0, 5) : [];
-
-            if (top5Data.length === 0) {
-                ctx.parentElement.innerHTML = '<p style="color: #666; text-align: center; padding: 50px;">No hay datos disponibles</p>';
-                return;
-            }
-
-            const colors = ['#1a237e', '#283593', '#303f9f', '#3949ab', '#5c6bc0'];
-
-            charts.top5 = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: top5Data.map(item =>
-                        `${item.orden}. ${item.causa.substring(0, 30)}${item.causa.length > 30 ? '...' : ''}`
-                    ),
-                    datasets: [{
-                        data: top5Data.map(item => item.volumen),
-                        backgroundColor: colors,
-                        borderWidth: 2,
-                        borderColor: 'white',
-                        hoverOffset: 15
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '60%',
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                font: {
-                                    size: 12
-                                },
-                                padding: 20,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function (context) {
-                                    const label = context.label || '';
-                                    const value = context.raw || 0;
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((value / total) * 100).toFixed(1);
-                                    return `${label}: ${value.toLocaleString('es-ES')} casos (${percentage}%)`;
-                                }
-                            }
-                        }
-                    },
-                    animation: {
-                        animateScale: true,
-                        animateRotate: true
-                    }
-                }
-            });
-        }
-
+        
         function renderTables() {
-            const container = document.getElementById('tablesContainer');
-            if (!container) return;
-
-            const category = document.getElementById('categorySelect').value;
-            const year = document.getElementById('yearSelect').value;
-            const limit = parseInt(document.getElementById('limitSelect').value) || 10;
-
-            const categoriesToShow = category === 'all'
-                ? ['egresos_hospitalarios', 'urgencias', 'afecciones_lesiones', 'causas_externas']
-                : [category];
-
-            const yearsToShow = year === 'both' ? ['2024', '2025'] : [year];
-
+            const tablesEl = document.getElementById('tables');
+            if (!tablesEl || !dashboardData) return;
+            
             let html = '';
-
-            categoriesToShow.forEach(cat => {
-                yearsToShow.forEach(yr => {
-                    const data = dashboardData[cat] && dashboardData[cat][yr];
-
-                    if (data && data.length > 0) {
-                        const categoryNames = {
-                            'egresos_hospitalarios': 'Egresos Hospitalarios',
-                            'urgencias': 'Urgencias',
-                            'afecciones_lesiones': 'Afecciones en Lesiones',
-                            'causas_externas': 'Causas Externas en Lesiones'
-                        };
-
-                        const displayData = limit === 'all' ? data : data.slice(0, limit);
-                        const total = displayData.reduce((sum, item) => sum + item.volumen, 0);
-
-                        html += `
-                        <div class="table-card">
-                            <h3 class="table-title">
-                                <i class="fas fa-list-ol"></i> ${categoryNames[cat]} - ${yr}
-                                <span style="font-size: 0.9rem; color: #666; margin-left: 10px;">
-                                    (Total: ${total.toLocaleString('es-ES')} casos)
-                                </span>
-                            </h3>
-                            <div style="overflow-x: auto;">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 80px;">#</th>
-                                            <th>Diagnóstico</th>
-                                            <th style="width: 120px;">Volumen</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${displayData.map(item => `
-                                            <tr>
-                                                <td class="orden-cell">${item.orden}</td>
-                                                <td>${item.causa}</td>
-                                                <td class="volumen-cell">${item.volumen.toLocaleString('es-ES')}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        `;
-                    }
-                });
+            
+            // Mostrar solo egresos hospitalarios y urgencias por defecto
+            const showCategories = ['egresos_hospitalarios', 'urgencias'];
+            
+            showCategories.forEach(cat => {
+                const data2025 = dashboardData.sections?.[cat]?.['2025'];
+                if (data2025 && data2025.length > 0) {
+                    html += `
+                    <div style="margin-bottom: 30px;">
+                        <h3>${cat.replace('_', ' ').toUpperCase()} - 2025 (Top 10)</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Diagnóstico</th>
+                                    <th>Volumen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data2025.slice(0, 10).map(item => `
+                                    <tr>
+                                        <td>${item.orden}</td>
+                                        <td>${item.causa.substring(0, 60)}${item.causa.length > 60 ? '...' : ''}</td>
+                                        <td><strong>${item.volumen.toLocaleString()}</strong></td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    `;
+                }
             });
-
-            container.innerHTML = html || `
-                <div class="table-card">
-                    <h3 class="table-title"><i class="fas fa-info-circle"></i> Información</h3>
-                    <p style="color: #666; text-align: center; padding: 40px;">
-                        No hay datos disponibles para los filtros seleccionados.
-                    </p>
-                </div>
-            `;
+            
+            tablesEl.innerHTML = html || '<p>No hay datos para mostrar</p>';
         }
-
-        function exportData() {
-            if (!dashboardData) {
-                alert('No hay datos para exportar');
-                return;
+        
+        function renderRawData() {
+            const rawEl = document.getElementById('raw-data');
+            if (rawEl && dashboardData) {
+                rawEl.textContent = JSON.stringify(dashboardData, null, 2);
             }
-
-            // Crear datos en formato CSV
-            let csvContent = "data:text/csv;charset=utf-8,";
-            csvContent += "Categoría,Año,Orden,Diagnóstico,Volumen\n";
-
-            const categories = ['egresos_hospitalarios', 'urgencias', 'afecciones_lesiones', 'causas_externas'];
-
-            categories.forEach(cat => {
-                ['2024', '2025'].forEach(yr => {
-                    const data = dashboardData[cat] && dashboardData[cat][yr];
-                    if (data) {
-                        data.forEach(item => {
-                            const row = [
-                                cat,
-                                yr,
-                                item.orden,
-                                `"${item.causa.replace(/"/g, '""')}"`,
-                                item.volumen
-                            ].join(',');
-                            csvContent += row + "\n";
-                        });
+        }
+        
+        // Datos de ejemplo para emergencias
+        function loadSampleData() {
+            console.log('Cargando datos de ejemplo...');
+            
+            dashboardData = {
+                sections: {
+                    egresos_hospitalarios: {
+                        '2025': [
+                            { orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 272 },
+                            { orden: 2, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 253 }
+                        ]
+                    },
+                    urgencias: {
+                        '2025': [
+                            { orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 1924 },
+                            { orden: 2, causa: "179 Supervisión de embarazo normal", volumen: 1162 }
+                        ]
                     }
-                });
-            });
-
-            // Crear enlace de descarga
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `dashboard_hospitalario_${new Date().toISOString().split('T')[0]}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+                },
+                statistics: {
+                    egresos_hospitalarios: {
+                        '2025': { total: 525, count: 2 }
+                    },
+                    urgencias: {
+                        '2025': { total: 3086, count: 2 }
+                    }
+                }
+            };
+            
+            renderStats();
+            renderChart();
+            renderTables();
+            renderRawData();
+            
+            document.getElementById('loading').style.display = 'none';
+            showMessage('⚠️ Mostrando datos de ejemplo. Los datos reales no se pudieron cargar.', 'error');
+            updateStatus('🟡 Modo demostración');
         }
     </script>
 </body>
-
 </html>
