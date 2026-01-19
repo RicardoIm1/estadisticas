@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -720,31 +721,75 @@
             </div>
         </footer>
     </div>
-
     <script>
         // ============================================
-        // SOLUCIÓN SIMPLIFICADA - SIN FETCH, SIN CORS
+        // SOLUCIÓN HÍBRIDA - FUNCIONA SIEMPRE
         // ============================================
-        
+
         let dashboardData = null;
         let charts = {};
+        let isGoogleScriptEnvironment = false;
+
+        // Detectar si estamos en Apps Script
+        function detectEnvironment() {
+            try {
+                // Verificar si google.script.run existe
+                if (typeof google !== 'undefined' && google.script && google.script.run) {
+                    console.log('✅ Entorno: Apps Script (google.script.run disponible)');
+                    isGoogleScriptEnvironment = true;
+                    return 'apps_script';
+                }
+
+                // Verificar si estamos en el dominio de Google
+                if (window.location.hostname.includes('googleusercontent.com') ||
+                    window.location.hostname.includes('script.google.com')) {
+                    console.log('✅ Entorno: Google Apps Script Web App');
+                    return 'google_domain';
+                }
+
+                console.log('🌐 Entorno: Externo (GitHub Pages, servidor local, etc.)');
+                return 'external';
+
+            } catch (error) {
+                console.log('⚠️ No se pudo detectar el entorno, asumiendo externo');
+                return 'external';
+            }
+        }
 
         // Inicializar inmediatamente
         document.addEventListener('DOMContentLoaded', function () {
             console.log('🚀 Dashboard inicializado');
-            
+            const env = detectEnvironment();
+
             // Configurar eventos
             setupEventListeners();
-            
-            // Cargar datos usando el método seguro
-            loadDataSafe();
+
+            // Cargar datos según el entorno
+            if (env === 'apps_script') {
+                // Método óptimo para Apps Script
+                loadDataViaGoogleScript();
+            } else if (env === 'google_domain') {
+                // Método para Web Apps de Google
+                loadDataViaJSONP();
+            } else {
+                // Método para entornos externos
+                loadDataViaFetch();
+            }
         });
 
         function setupEventListeners() {
             document.getElementById('refreshBtn').addEventListener('click', function () {
                 console.log('🔄 Actualizando datos...');
                 showLoading(true);
-                loadDataSafe();
+                const env = detectEnvironment();
+
+                if (env === 'apps_script') {
+                    loadDataViaGoogleScript();
+                } else if (env === 'google_domain') {
+                    loadDataViaJSONP();
+                } else {
+                    loadDataViaFetch();
+                }
             });
 
             document.getElementById('categorySelect').addEventListener('change', function () {
@@ -791,26 +836,26 @@
             // Mostrar el mensaje apropiado
             if (type === 'error') {
                 errorEl.innerHTML = `
-                    <div style="display: flex; align-items: flex-start; gap: 15px;">
-                        <i class="fas fa-exclamation-circle fa-2x"></i>
-                        <div>
-                            <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Error</h3>
-                            <p>${message}</p>
-                        </div>
+                <div style="display: flex; align-items: flex-start; gap: 15px;">
+                    <i class="fas fa-exclamation-circle fa-2x"></i>
+                    <div>
+                        <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Error</h3>
+                        <p>${message}</p>
                     </div>
-                `;
+                </div>
+            `;
                 errorEl.style.display = 'block';
                 console.error('❌ Error:', message);
             } else if (type === 'warning') {
                 warningEl.innerHTML = `
-                    <div style="display: flex; align-items: flex-start; gap: 15px;">
-                        <i class="fas fa-exclamation-triangle fa-2x"></i>
-                        <div>
-                            <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Advertencia</h3>
-                            <p>${message}</p>
-                        </div>
+                <div style="display: flex; align-items: flex-start; gap: 15px;">
+                    <i class="fas fa-exclamation-triangle fa-2x"></i>
+                    <div>
+                        <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Advertencia</h3>
+                        <p>${message}</p>
                     </div>
-                `;
+                </div>
+            `;
                 warningEl.style.display = 'block';
                 console.warn('⚠️ Advertencia:', message);
             }
@@ -821,106 +866,286 @@
             document.getElementById('warningMessage').style.display = 'none';
         }
 
-        // MÉTODO SEGURO - Usar google.script.run
-        function loadDataSafe() {
-            console.log('📥 Cargando datos de forma segura...');
+        // ============================================
+        // MÉTODOS DE CARGA DE DATOS
+        // ============================================
+
+        // MÉTODO 1: Para Apps Script (google.script.run disponible)
+        function loadDataViaGoogleScript() {
+            console.log('📥 Usando google.script.run...');
             hideMessages();
             showLoading(true);
 
-            // Usar google.script.run que funciona dentro de Apps Script
             google.script.run
-                .withSuccessHandler(function(data) {
-                    console.log('✅ Datos recibidos:', data);
-                    
-                    if (data.success) {
-                        dashboardData = data.data;
-                        updateDashboard();
-                        showLoading(false);
-                    } else {
-                        throw new Error(data.error || 'Error en los datos');
-                    }
+                .withSuccessHandler(function (data) {
+                    console.log('✅ Datos recibidos via google.script.run:', data);
+                    processData(data);
                 })
-                .withFailureHandler(function(error) {
-                    console.error('❌ Error:', error);
-                    showMessage(`Error al cargar datos: ${error.message}`);
-                    loadSampleData();
-                    showLoading(false);
+                .withFailureHandler(function (error) {
+                    console.error('❌ Error en google.script.run:', error);
+                    showMessage(`Error: ${error.message}. Intentando método alternativo...`, 'warning');
+                    // Intentar método alternativo
+                    loadDataViaJSONP();
                 })
                 .getDataForHtml();
         }
 
+        // MÉTODO 2: Para Web Apps de Google (JSONP)
+        function loadDataViaJSONP() {
+            console.log('📥 Usando JSONP...');
+
+            return new Promise((resolve, reject) => {
+                // URL de tu Web App
+                const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbz95-Kf5U2dYICNanlUacOWWcyxykRVOLNp08vsvpnEEk5IokN1Q8zL6LlukKfjYSc/exec';
+
+                // Crear función callback global
+                window.jsonpCallback = function (data) {
+                    console.log('✅ Datos recibidos via JSONP:', data);
+
+                    // Limpiar el script
+                    const script = document.getElementById('jsonpScript');
+                    if (script) script.remove();
+
+                    if (data && data.success) {
+                        processData(data);
+                        resolve();
+                    } else {
+                        reject(new Error(data?.error || 'Error en datos JSONP'));
+                    }
+                };
+
+                // Crear script para JSONP
+                const script = document.createElement('script');
+                script.id = 'jsonpScript';
+                script.src = `${WEB_APP_URL}?api=data&callback=jsonpCallback&t=${Date.now()}`;
+
+                // Manejar errores
+                script.onerror = () => {
+                    reject(new Error('Error cargando script JSONP'));
+                };
+
+                // Agregar timeout
+                const timeoutId = setTimeout(() => {
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    reject(new Error('Timeout en JSONP'));
+                }, 10000);
+
+                script.onload = () => {
+                    clearTimeout(timeoutId);
+                };
+
+                document.head.appendChild(script);
+            }).catch(error => {
+                console.error('❌ Error en JSONP:', error);
+                showMessage(`Error JSONP: ${error.message}. Intentando fetch...`, 'warning');
+                loadDataViaFetch();
+            });
+        }
+
+        // MÉTODO 3: Para entornos externos (Fetch con CORS)
+        async function loadDataViaFetch() {
+            console.log('📥 Usando fetch...');
+            hideMessages();
+            showLoading(true);
+
+            try {
+                // Intentar varias URLs posibles
+                const urls = [
+                    'https://script.google.com/macros/s/AKfycbz95-Kf5U2dYICNanlUacOWWcyxykRVOLNp08vsvpnEEk5IokN1Q8zL6LlukKfjYSc/exec?api=data',
+                    'https://corsproxy.io/?https://script.google.com/macros/s/AKfycbz95-Kf5U2dYICNanlUacOWWcyxykRVOLNp08vsvpnEEk5IokN1Q8zL6LlukKfjYSc/exec?api=data'
+                ];
+
+                let response = null;
+                let lastError = null;
+
+                // Intentar cada URL
+                for (const url of urls) {
+                    try {
+                        console.log(`🔗 Intentando: ${url}`);
+                        response = await fetch(url, {
+                            method: 'GET',
+                            mode: 'cors',
+                            headers: {
+                                'Accept': 'application/json'
+                            }
+                        });
+
+                        if (response.ok) {
+                            console.log(`✅ Conexión exitosa con: ${url}`);
+                            break;
+                        }
+                    } catch (error) {
+                        lastError = error;
+                        console.warn(`⚠️ Falló: ${url}`, error);
+                        continue;
+                    }
+                }
+
+                if (!response || !response.ok) {
+                    throw new Error(lastError?.message || 'No se pudo conectar con ninguna URL');
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    processData(result);
+                } else {
+                    throw new Error(result.error || 'Error en los datos recibidos');
+                }
+
+            } catch (error) {
+                console.error('❌ Error en fetch:', error);
+                showMessage(`Error: ${error.message}. Cargando datos de ejemplo...`, 'warning');
+                loadSampleData();
+            }
+        }
+
+        // Procesar datos recibidos
+        function processData(result) {
+            console.log('📊 Procesando datos...');
+
+            if (result && result.success) {
+                dashboardData = result.data;
+                updateDashboard();
+                showLoading(false);
+                hideMessages();
+
+                console.log('✅ Datos procesados correctamente');
+            } else {
+                throw new Error(result?.error || 'Error en los datos');
+            }
+        }
+
         function updateDashboard() {
             if (!dashboardData) return;
-            
+
             // Actualizar timestamp
             const now = new Date();
-            document.getElementById('lastUpdate').textContent = 
+            document.getElementById('lastUpdate').textContent =
                 `${now.toLocaleDateString('es-ES')} ${now.toLocaleTimeString('es-ES')}`;
-            
+
             // Renderizar dashboard
             renderDashboard();
-            
+
             console.log('✅ Dashboard actualizado');
         }
 
         function loadSampleData() {
             console.log('🔄 Cargando datos de ejemplo...');
 
-            // Datos de ejemplo realistas
+            // Datos de ejemplo completos
             dashboardData = {
                 sections: {
                     egresos_hospitalarios: {
                         '2024': [
                             { orden: 1, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 324 },
                             { orden: 2, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 276 },
-                            { orden: 3, causa: "161 Parto único espontáneo", volumen: 201 }
+                            { orden: 3, causa: "161 Parto único espontáneo", volumen: 201 },
+                            { orden: 4, causa: "159 Aborto (solo morbilidad)", volumen: 127 },
+                            { orden: 5, causa: "163 Ciertas afecciones originadas en el período perinatal", volumen: 95 }
                         ],
                         '2025': [
                             { orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 272 },
                             { orden: 2, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 253 },
-                            { orden: 3, causa: "161 Parto único espontáneo", volumen: 223 }
+                            { orden: 3, causa: "161 Parto único espontáneo", volumen: 223 },
+                            { orden: 4, causa: "159 Aborto (solo morbilidad)", volumen: 122 },
+                            { orden: 5, causa: "163 Ciertas afecciones originadas en el período perinatal", volumen: 83 }
                         ]
                     },
                     urgencias: {
                         '2024': [
                             { orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 2018 },
                             { orden: 2, causa: "179 Supervisión de embarazo normal", volumen: 1293 },
-                            { orden: 3, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 405 }
+                            { orden: 3, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 405 },
+                            { orden: 4, causa: "104 Infecciones respiratorias agudas, excepto neumonía e influenza", volumen: 362 },
+                            { orden: 5, causa: "126 Colelitiasis y colecistitis", volumen: 261 }
                         ],
                         '2025': [
                             { orden: 1, causa: "166 Traumatismos, envenenamientos y algunas otras consecuencias de causas externas", volumen: 1924 },
                             { orden: 2, causa: "179 Supervisión de embarazo normal", volumen: 1162 },
-                            { orden: 3, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 332 }
+                            { orden: 3, causa: "160 Causas obstétricas directas, excepto aborto y parto único espontáneo (solo morbilidad)", volumen: 332 },
+                            { orden: 4, causa: "104 Infecciones respiratorias agudas, excepto neumonía e influenza", volumen: 311 },
+                            { orden: 5, causa: "001 Enfermedades infecciosas intestinales", volumen: 283 }
+                        ]
+                    },
+                    afecciones_lesiones: {
+                        '2024': [
+                            { orden: 1, causa: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", volumen: 124 },
+                            { orden: 2, causa: "EFECTO TÓXICO DEL CONTACTO CON ANIMALES VENENOSOS", volumen: 93 }
+                        ],
+                        '2025': [
+                            { orden: 1, causa: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", volumen: 75 },
+                            { orden: 2, causa: "EFECTO TÓXICO DEL CONTACTO CON ANIMALES VENENOSOS", volumen: 62 }
+                        ]
+                    },
+                    causas_externas: {
+                        '2024': [
+                            { orden: 1, causa: "MOTOCICLISTA LESIONADO EN OTROS ACCIDENTES DE TRANSPORTE, Y EN LOS NO ESPECIFICADOS", volumen: 114 },
+                            { orden: 2, causa: "CONTACTO TRAUMÁTICO CON ESCORPIÓN", volumen: 88 }
+                        ],
+                        '2025': [
+                            { orden: 1, causa: "AGRESIÓN CON FUERZA CORPORAL", volumen: 64 },
+                            { orden: 2, causa: "MOTOCICLISTA LESIONADO EN OTROS ACCIDENTES DE TRANSPORTE, Y EN LOS NO ESPECIFICADOS", volumen: 58 }
                         ]
                     }
                 },
                 statistics: {
                     egresos_hospitalarios: {
-                        '2024': { 
-                            total: 801, 
-                            count: 3, 
-                            topCause: "160 Causas obstétricas directas...", 
-                            topVolume: 324 
+                        '2024': {
+                            total: 1023,
+                            count: 5,
+                            topCause: "160 Causas obstétricas directas...",
+                            topVolume: 324
                         },
-                        '2025': { 
-                            total: 748, 
-                            count: 3, 
-                            topCause: "166 Traumatismos, envenenamientos...", 
-                            topVolume: 272 
+                        '2025': {
+                            total: 953,
+                            count: 5,
+                            topCause: "166 Traumatismos, envenenamientos...",
+                            topVolume: 272
                         }
                     },
                     urgencias: {
-                        '2024': { 
-                            total: 3716, 
-                            count: 3, 
-                            topCause: "166 Traumatismos, envenenamientos...", 
-                            topVolume: 2018 
+                        '2024': {
+                            total: 4339,
+                            count: 5,
+                            topCause: "166 Traumatismos, envenenamientos...",
+                            topVolume: 2018
                         },
-                        '2025': { 
-                            total: 3418, 
-                            count: 3, 
-                            topCause: "166 Traumatismos, envenenamientos...", 
-                            topVolume: 1924 
+                        '2025': {
+                            total: 4012,
+                            count: 5,
+                            topCause: "166 Traumatismos, envenenamientos...",
+                            topVolume: 1924
+                        }
+                    },
+                    afecciones_lesiones: {
+                        '2024': {
+                            total: 217,
+                            count: 2,
+                            topCause: "TRAUMATISMOS MÚLTIPLES...",
+                            topVolume: 124
+                        },
+                        '2025': {
+                            total: 137,
+                            count: 2,
+                            topCause: "TRAUMATISMOS MÚLTIPLES...",
+                            topVolume: 75
+                        }
+                    },
+                    causas_externas: {
+                        '2024': {
+                            total: 202,
+                            count: 2,
+                            topCause: "MOTOCICLISTA LESIONADO...",
+                            topVolume: 114
+                        },
+                        '2025': {
+                            total: 122,
+                            count: 2,
+                            topCause: "AGRESIÓN CON FUERZA CORPORAL",
+                            topVolume: 64
                         }
                     }
                 },
@@ -932,22 +1157,31 @@
             };
 
             showMessage(`
-                <div style="display: flex; align-items: flex-start; gap: 15px;">
-                    <i class="fas fa-info-circle fa-2x"></i>
-                    <div>
-                        <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Modo de Demostración</h3>
-                        <p>Actualmente estás viendo datos de ejemplo. Para ver los datos reales:</p>
-                        <ol style="margin: 10px 0; padding-left: 20px;">
-                            <li>Asegúrate de que la Web App esté desplegada correctamente</li>
-                            <li>Verifica que tengas acceso al Google Sheets</li>
-                            <li>Haz clic en "Actualizar Datos" para intentar nuevamente</li>
-                        </ol>
-                    </div>
+            <div style="display: flex; align-items: flex-start; gap: 15px;">
+                <i class="fas fa-info-circle fa-2x"></i>
+                <div>
+                    <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Modo de Demostración</h3>
+                    <p>Actualmente estás viendo datos de ejemplo. Para ver los datos reales:</p>
+                    <ol style="margin: 10px 0; padding-left: 20px;">
+                        <li>Abre la Web App directamente: 
+                            <a href="https://script.google.com/macros/s/AKfycbz95-Kf5U2dYICNanlUacOWWcyxykRVOLNp08vsvpnEEk5IokN1Q8zL6LlukKfjYSc/exec" 
+                               target="_blank" style="color: white; text-decoration: underline;">
+                               https://script.google.com/macros/s/AKfycbz95-Kf5U2dYICNanlUacOWWcyxykRVOLNp08vsvpnEEk5IokN1Q8zL6LlukKfjYSc/exec
+                            </a>
+                        </li>
+                        <li>O instala una extensión de CORS para desarrollo</li>
+                    </ol>
                 </div>
-            `, 'warning');
+            </div>
+        `, 'warning');
 
             updateDashboard();
+            showLoading(false);
         }
+
+        // ============================================
+        // FUNCIONES DE RENDERIZADO (MANTENER IGUAL)
+        // ============================================
 
         function renderDashboard() {
             if (!dashboardData) {
@@ -994,50 +1228,50 @@
                     const changeText = change >= 0 ? `+${change.toFixed(1)}%` : `${change.toFixed(1)}%`;
 
                     html += `
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div>
-                                <div class="stat-title">${cat.name}</div>
-                                <div class="stat-subtitle">2do Cuatrimestre 2025</div>
-                                <div class="stat-value">${total2025.toLocaleString('es-ES')}</div>
-                            </div>
-                            <div class="stat-icon" style="background: linear-gradient(135deg, ${cat.color}, ${cat.color}dd)">
-                                <i class="${cat.icon}"></i>
-                            </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">${cat.name}</div>
+                            <div class="stat-subtitle">2do Cuatrimestre 2025</div>
+                            <div class="stat-value">${total2025.toLocaleString('es-ES')}</div>
                         </div>
-                        <div style="margin-top: 20px;">
-                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                                <span style="color: #666;">
-                                    <i class="fas fa-calendar"></i> 2024: ${total2024.toLocaleString('es-ES')}
-                                </span>
-                                <span class="stat-change ${changeClass}">
-                                    <i class="${changeIcon}"></i> ${changeText}
-                                </span>
-                            </div>
-                            <div style="font-size: 0.9rem; color: #666; padding: 10px; background: #f8f9fa; border-radius: 8px;">
-                                <i class="fas fa-star"></i> Principal: ${(stats['2025'].topCause || '').substring(0, 50)}${(stats['2025'].topCause || '').length > 50 ? '...' : ''}
-                            </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, ${cat.color}, ${cat.color}dd)">
+                            <i class="${cat.icon}"></i>
                         </div>
                     </div>
-                    `;
+                    <div style="margin-top: 20px;">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                            <span style="color: #666;">
+                                <i class="fas fa-calendar"></i> 2024: ${total2024.toLocaleString('es-ES')}
+                            </span>
+                            <span class="stat-change ${changeClass}">
+                                <i class="${changeIcon}"></i> ${changeText}
+                            </span>
+                        </div>
+                        <div style="font-size: 0.9rem; color: #666; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                            <i class="fas fa-star"></i> Principal: ${(stats['2025'].topCause || '').substring(0, 50)}${(stats['2025'].topCause || '').length > 50 ? '...' : ''}
+                        </div>
+                    </div>
+                </div>
+                `;
                 } else {
                     html += `
-                    <div class="stat-card">
-                        <div class="stat-header">
-                            <div>
-                                <div class="stat-title">${cat.name}</div>
-                                <div class="stat-subtitle">Datos no disponibles</div>
-                                <div class="stat-value">--</div>
-                            </div>
-                            <div class="stat-icon" style="background: #ccc;">
-                                <i class="${cat.icon}"></i>
-                            </div>
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <div>
+                            <div class="stat-title">${cat.name}</div>
+                            <div class="stat-subtitle">Datos no disponibles</div>
+                            <div class="stat-value">--</div>
                         </div>
-                        <div style="margin-top: 20px; color: #999; font-style: italic;">
-                            <i class="fas fa-info-circle"></i> No hay datos para esta categoría
+                        <div class="stat-icon" style="background: #ccc;">
+                            <i class="${cat.icon}"></i>
                         </div>
                     </div>
-                    `;
+                    <div style="margin-top: 20px; color: #999; font-style: italic;">
+                        <i class="fas fa-info-circle"></i> No hay datos para esta categoría
+                    </div>
+                </div>
+                `;
                 }
             });
 
@@ -1269,47 +1503,47 @@
                         const total = displayData.reduce((sum, item) => sum + (item.volumen || 0), 0);
 
                         html += `
-                        <div class="table-card">
-                            <h3 class="table-title">
-                                <i class="fas fa-list-ol"></i> ${categoryNames[cat] || cat} - ${yr}
-                                <span style="font-size: 0.9rem; color: #666; margin-left: 10px;">
-                                    (Total: ${total.toLocaleString('es-ES')} casos)
-                                </span>
-                            </h3>
-                            <div style="overflow-x: auto;">
-                                <table>
-                                    <thead>
+                    <div class="table-card">
+                        <h3 class="table-title">
+                            <i class="fas fa-list-ol"></i> ${categoryNames[cat] || cat} - ${yr}
+                            <span style="font-size: 0.9rem; color: #666; margin-left: 10px;">
+                                (Total: ${total.toLocaleString('es-ES')} casos)
+                            </span>
+                        </h3>
+                        <div style="overflow-x: auto;">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px;">#</th>
+                                        <th>Diagnóstico</th>
+                                        <th style="width: 120px;">Volumen</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${displayData.map(item => `
                                         <tr>
-                                            <th style="width: 80px;">#</th>
-                                            <th>Diagnóstico</th>
-                                            <th style="width: 120px;">Volumen</th>
+                                            <td class="orden-cell">${item.orden || ''}</td>
+                                            <td>${item.causa || ''}</td>
+                                            <td class="volumen-cell">${(item.volumen || 0).toLocaleString('es-ES')}</td>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        ${displayData.map(item => `
-                                            <tr>
-                                                <td class="orden-cell">${item.orden || ''}</td>
-                                                <td>${item.causa || ''}</td>
-                                                <td class="volumen-cell">${(item.volumen || 0).toLocaleString('es-ES')}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
+                                    `).join('')}
+                                </tbody>
+                            </table>
                         </div>
-                        `;
+                    </div>
+                    `;
                     }
                 });
             });
 
             container.innerHTML = html || `
-                <div class="table-card">
-                    <h3 class="table-title"><i class="fas fa-info-circle"></i> Información</h3>
-                    <p style="color: #666; text-align: center; padding: 40px;">
-                        No hay datos disponibles para los filtros seleccionados.
-                    </p>
-                </div>
-            `;
+            <div class="table-card">
+                <h3 class="table-title"><i class="fas fa-info-circle"></i> Información</h3>
+                <p style="color: #666; text-align: center; padding: 40px;">
+                    No hay datos disponibles para los filtros seleccionados.
+                </p>
+            </div>
+        `;
         }
 
         function exportData() {
@@ -1352,5 +1586,7 @@
             document.body.removeChild(link);
         }
     </script>
+
 </body>
+
 </html>
