@@ -251,33 +251,36 @@
       const q = e.target.value.toLowerCase().trim();
 
       if (q === "") {
-        datosFiltrados = []; // 👈 vuelve a usar datosOriginales
+        datosFiltrados = [];
       } else {
         datosFiltrados = datosOriginales.filter(r =>
           (r["NOMBRE DEL PACIENTE"] || "").toString().toLowerCase().includes(q) ||
           (r["EXPEDIENTE"] || "").toString().toLowerCase().includes(q) ||
-          (r["SERVICIO"] || "").toString().toLowerCase().includes(q) ||
-          (r["FECHA DE REGISTRO"] || "").toString().toLowerCase().includes(q)
+          (r["SERVICIO"] || "").toString().toLowerCase().includes(q) || // si aún quieres incluir servicio
+          (r["FECHA DE REGISTRO"] || "").toString().toLowerCase().includes(q) ||
+          (r["estado"] || "").toString().toLowerCase().includes(q) ||
+          (r["sexo"] || "").toString().toLowerCase().includes(q) ||
+          (r["fecha_nac"] || "").toString().toLowerCase().includes(q) ||
+          (r["tel_part"] || "").toString().toLowerCase().includes(q)
         );
       }
 
-      page = 1; // reinicia a la primera página
+      page = 1;
       mostrarPagina();
     });
 
-
     // 🎨 RENDER DE CARDS
-function render(rows) {
-  const cont = document.getElementById("cards");
-  cont.innerHTML = "";
+    function render(rows) {
+      const cont = document.getElementById("cards");
+      cont.innerHTML = "";
 
-  if (!rows.length) {
-    cont.innerHTML = "<small>No hay resultados</small>";
-    return;
-  }
+      if (!rows.length) {
+        cont.innerHTML = "<small>No hay resultados</small>";
+        return;
+      }
 
-  rows.forEach(r => {
-    cont.innerHTML += `
+      rows.forEach(r => {
+        cont.innerHTML += `
       <div class="card">
         <span><b>${r["NOMBRE DEL PACIENTE"] || ""}</b></span>
         <small>Expediente: ${r["EXPEDIENTE"] || ""}</small>
@@ -288,9 +291,9 @@ function render(rows) {
         <small>Teléfono: ${r["tel_part"] || ""}</small>
       </div>
     `;
-  });
-}
-  window.onload = cargar;
+      });
+    }
+    window.onload = cargar;
   </script>
 
   <script src="/estadisticas/comun/estadoSistema.js"></script>
