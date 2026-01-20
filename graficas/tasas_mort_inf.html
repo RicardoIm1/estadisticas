@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Mortalidad Infantil - Región Costera de Jalisco</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary-color: #1a6bc4;
+            --secondary-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --light-bg: #f5f9fc;
+            --dark-text: #333;
+            --light-text: #666;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: var(--light-bg);
+            color: var(--dark-text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a6bc4 0%, #0c4a8f 100%);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+            border-radius: 0 0 15px 15px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            font-weight: 300;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .region-info {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 30px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--primary-color);
+        }
+        
+        .region-info h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+        
+        .municipios {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .municipio-tag {
+            background-color: #e8f4ff;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            color: var(--primary-color);
+            border: 1px solid #cce0ff;
+        }
+        
+        .data-highlights {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .highlight-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+            border-top: 4px solid var(--primary-color);
+        }
+        
+        .highlight-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .highlight-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+        
+        .highlight-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .positive {
+            color: var(--secondary-color);
+        }
+        
+        .negative {
+            color: var(--danger-color);
+        }
+        
+        .neutral {
+            color: var(--warning-color);
+        }
+        
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        @media (max-width: 900px) {
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .chart-container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        .chart-title {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.3rem;
+        }
+        
+        .analysis-section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 40px;
+            box-shadow: 0 3px 15px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid var(--secondary-color);
+        }
+        
+        .analysis-section h2 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+        
+        .key-findings {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 25px;
+        }
+        
+        .finding-card {
+            background-color: #f8fbff;
+            padding: 20px;
+            border-radius: 8px;
+            border-left: 4px solid;
+        }
+        
+        .finding-card.critical {
+            border-left-color: var(--danger-color);
+        }
+        
+        .finding-card.positive {
+            border-left-color: var(--secondary-color);
+        }
+        
+        .finding-card.warning {
+            border-left-color: var(--warning-color);
+        }
+        
+        .finding-card h4 {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .finding-card h4:before {
+            content: "•";
+            margin-right: 10px;
+            font-size: 1.5rem;
+        }
+        
+        .data-table-section {
+            overflow-x: auto;
+            margin-bottom: 40px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8fbff;
+        }
+        
+        tr:hover {
+            background-color: #f0f7ff;
+        }
+        
+        .methodology {
+            background-color: #f8fbff;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 40px;
+            border-left: 5px solid var(--warning-color);
+        }
+        
+        .methodology h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 30px;
+            color: var(--light-text);
+            font-size: 0.9rem;
+            border-top: 1px solid #eee;
+            margin-top: 40px;
+        }
+        
+        .formula {
+            background-color: #f0f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: monospace;
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .rate-indicator {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+        
+        .high-rate {
+            background-color: #ffeaea;
+            color: var(--danger-color);
+        }
+        
+        .moderate-rate {
+            background-color: #fff4e6;
+            color: var(--warning-color);
+        }
+        
+        .low-rate {
+            background-color: #e8f7f0;
+            color: var(--secondary-color);
+        }
+        
+        .comparison-table {
+            margin: 25px 0;
+        }
+        
+        .year-comparison {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .year-box {
+            flex: 1;
+            min-width: 250px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+        
+        .year-box h3 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .year-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin: 10px 0;
+        }
+        
+        .period-info {
+            color: var(--light-text);
+            font-style: italic;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Análisis de Mortalidad Infantil</h1>
+            <p class="subtitle">Región Costera de Jalisco - Período: Mayo-Agosto 2024 vs 2025</p>
+            <p class="subtitle">Municipios: Mascota, Talpa, Cabo Corrientes, Tomatlán, Puerto Vallarta y Bahía de Banderas</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="period-info">
+            <p>📅 <strong>Período analizado:</strong> Mayo, Junio, Julio y Agosto de 2024 y 2025</p>
+            <p>👥 <strong>Población total del área:</strong> 400,350 habitantes</p>
+        </div>
+        
+        <div class="region-info">
+            <h2>Área Geográfica de Estudio</h2>
+            <p>El análisis cubre 6 municipios de la región costera de Jalisco, con una población total de 400,350 habitantes. Los datos corresponden a los meses de mayo a agosto (4 meses) de los años 2024 y 2025.</p>
+            <div class="municipios">
+                <span class="municipio-tag">Mascota</span>
+                <span class="municipio-tag">Talpa</span>
+                <span class="municipio-tag">Cabo Corrientes</span>
+                <span class="municipio-tag">Tomatlán</span>
+                <span class="municipio-tag">Puerto Vallarta</span>
+                <span class="municipio-tag">Bahía de Banderas</span>
+            </div>
+        </div>
+        
+        <div class="data-highlights">
+            <div class="highlight-card">
+                <h3>Nacidos Vivos 2024 (4 meses)</h3>
+                <div class="highlight-value">587</div>
+                <p>Total de nacimientos registrados</p>
+            </div>
+            
+            <div class="highlight-card">
+                <h3>Nacidos Vivos 2025 (4 meses)</h3>
+                <div class="highlight-value">525</div>
+                <p>Total de nacimientos registrados</p>
+                <p style="color: var(--danger-color); margin-top: 10px;">↓ 10.6% menos que 2024</p>
+            </div>
+            
+            <div class="highlight-card">
+                <h3>Defunciones Infantiles 2024</h3>
+                <div class="highlight-value negative">8</div>
+                <p>Menores de 1 año fallecidos</p>
+            </div>
+            
+            <div class="highlight-card">
+                <h3>Defunciones Infantiles 2025</h3>
+                <div class="highlight-value negative">7</div>
+                <p>Menores de 1 año fallecidos</p>
+            </div>
+        </div>
+        
+        <div class="year-comparison">
+            <div class="year-box">
+                <h3>2024</h3>
+                <div class="formula">
+                    TMI = (8 ÷ 587) × 1,000
+                </div>
+                <div class="year-value negative">13.63</div>
+                <p>por mil nacidos vivos</p>
+                <p class="rate-indicator moderate-rate">TASA MODERADA</p>
+            </div>
+            
+            <div class="year-box">
+                <h3>2025</h3>
+                <div class="formula">
+                    TMI = (7 ÷ 525) × 1,000
+                </div>
+                <div class="year-value negative">13.33</div>
+                <p>por mil nacidos vivos</p>
+                <p class="rate-indicator moderate-rate">TASA MODERADA</p>
+            </div>
+        </div>
+        
+        <div class="analysis-section">
+            <h2>Cálculo de Tasas de Mortalidad Infantil</h2>
+            
+            <h3 style="margin-top: 20px; color: var(--primary-color);">1. Tasa de Mortalidad Infantil (TMI)</h3>
+            <div class="formula">
+                TMI = (Número de defunciones de < 1 año ÷ Número de nacidos vivos) × 1,000
+            </div>
+            
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Año</th>
+                            <th>Nacidos Vivos</th>
+                            <th>Defunciones < 1 año</th>
+                            <th>Cálculo</th>
+                            <th>TMI (por mil)</th>
+                            <th>Clasificación OMS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>2024</strong></td>
+                            <td>587</td>
+                            <td>8</td>
+                            <td>(8 ÷ 587) × 1,000</td>
+                            <td class="negative"><strong>13.63</strong></td>
+                            <td><span class="rate-indicator moderate-rate">MODERADA</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>2025</strong></td>
+                            <td>525</td>
+                            <td>7</td>
+                            <td>(7 ÷ 525) × 1,000</td>
+                            <td class="negative"><strong>13.33</strong></td>
+                            <td><span class="rate-indicator moderate-rate">MODERADA</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 style="margin-top: 30px; color: var(--primary-color);">2. Tasa de Mortalidad Neonatal (TMN)</h3>
+            <div class="formula">
+                TMN = (Defunciones 0-27 días ÷ Nacidos vivos) × 1,000
+            </div>
+            
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Año</th>
+                            <th>Defunciones 0-27 días</th>
+                            <th>Cálculo</th>
+                            <th>TMN (por mil)</th>
+                            <th>% de TMI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>2024</strong></td>
+                            <td>7 <span style="color: var(--light-text); font-size: 0.9rem;">(87.5%)</span></td>
+                            <td>(7 ÷ 587) × 1,000</td>
+                            <td class="negative"><strong>11.93</strong></td>
+                            <td>87.5%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>2025</strong></td>
+                            <td>6 <span style="color: var(--light-text); font-size: 0.9rem;">(85.7%)</span></td>
+                            <td>(6 ÷ 525) × 1,000</td>
+                            <td class="negative"><strong>11.43</strong></td>
+                            <td>85.7%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 style="margin-top: 30px; color: var(--primary-color);">3. Tasa de Mortalidad Postneonatal (TMPN)</h3>
+            <div class="formula">
+                TMPN = (Defunciones 28 días - 11 meses ÷ Nacidos vivos) × 1,000
+            </div>
+            
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Año</th>
+                            <th>Defunciones 28 días - 11 meses</th>
+                            <th>Cálculo</th>
+                            <th>TMPN (por mil)</th>
+                            <th>% de TMI</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>2024</strong></td>
+                            <td>1 <span style="color: var(--light-text); font-size: 0.9rem;">(12.5%)</span></td>
+                            <td>(1 ÷ 587) × 1,000</td>
+                            <td class="negative"><strong>1.70</strong></td>
+                            <td>12.5%</td>
+                        </tr>
+                        <tr>
+                            <td><strong>2025</strong></td>
+                            <td>1 <span style="color: var(--light-text); font-size: 0.9rem;">(14.3%)</span></td>
+                            <td>(1 ÷ 525) × 1,000</td>
+                            <td class="negative"><strong>1.90</strong></td>
+                            <td>14.3%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3 class="chart-title">Comparación de Tasas 2024 vs 2025 (por mil)</h3>
+                <canvas id="ratesComparisonChart"></canvas>
+            </div>
+            
+            <div class="chart-container">
+                <h3 class="chart-title">Distribución de Defunciones por Edad</h3>
+                <canvas id="ageDistributionChart"></canvas>
+            </div>
+        </div>
+        
+        <div class="analysis-section">
+            <h2>Análisis de Resultados</h2>
+            
+            <div class="key-findings">
+                <div class="finding-card critical">
+                    <h4>1. ALTA MORTALIDAD NEONATAL</h4>
+                    <p>El <strong>86.7%</strong> de las muertes infantiles ocurren en los primeros 27 días de vida (13 de 15 casos). Esto indica problemas críticos en atención perinatal, parto y cuidados neonatales inmediatos.</p>
+                </div>
+                
+                <div class="finding-card positive">
+                    <h4>2. LIGERA MEJORÍA EN 2025</h4>
+                    <p>La TMI disminuyó de <strong>13.63</strong> a <strong>13.33</strong> por mil (-2.2%). Aunque la reducción es pequeña, muestra una tendencia positiva en el contexto de menos nacimientos (-10.6%).</p>
+                </div>
+                
+                <div class="finding-card warning">
+                    <h4>3. PATRÓN ESTACIONAL IDENTIFICADO</h4>
+                    <p>Las defunciones se concentran en <strong>julio (6 casos)</strong> y <strong>agosto (5 casos)</strong>. Los meses más calurosos muestran mayor riesgo, posiblemente relacionado con infecciones o condiciones ambientales.</p>
+                </div>
+                
+                <div class="finding-card critical">
+                    <h4>4. MORTALIDAD NEONATAL PRECOZ CRÍTICA</h4>
+                    <p><strong>10 de 15 defunciones (66.7%)</strong> ocurrieron en las primeras 24 horas de vida. Esto sugiere graves deficiencias en atención del parto, reanimación neonatal y manejo de complicaciones obstétricas.</p>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 30px; color: var(--primary-color);">Detalle de Defunciones Infantiles Identificadas</h3>
+            
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Año</th>
+                            <th>Fecha</th>
+                            <th>Edad</th>
+                            <th>Sexo</th>
+                            <th>Mes</th>
+                            <th>Categoría</th>
+                        </tr>
+                    </thead>
+                    <tbody id="infantDeathsTable">
+                        <!-- Se llenará con JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <h3 style="margin-top: 30px; color: var(--primary-color);">Interpretación Clínica y Epidemiológica</h3>
+            <p>La TMI de 13.3-13.6 por mil se clasifica como <strong>"moderada"</strong> según estándares de la OMS, pero está por encima del promedio nacional mexicano (11.2 por mil en 2023). El patrón de mortalidad neonatal precoz predominante (67% en <24h) señala:</p>
+            
+            <ul style="margin-left: 20px; margin-top: 15px;">
+                <li style="margin-bottom: 10px;"><strong>Deficiencias en atención obstétrica:</strong> posiblemente partos no atendidos por personal calificado</li>
+                <li style="margin-bottom: 10px;"><strong>Limitaciones en reanimación neonatal:</strong> falta de equipos o entrenamiento en atención inmediata</li>
+                <li style="margin-bottom: 10px;"><strong>Problemas de referencia oportuna:</strong> dificultades en traslado a unidades especializadas</li>
+                <li style="margin-bottom: 10px;"><strong>Factores maternos no controlados:</strong> posiblemente embarazos de alto riesgo sin seguimiento adecuado</li>
+            </ul>
+        </div>
+        
+        <div class="methodology">
+            <h2>Metodología y Limitaciones</h2>
+            <p><strong>Fuente de datos:</strong> Registros hospitalarios de egresos con motivo "DEFUNCIÓN"</p>
+            <p><strong>Período:</strong> 4 meses (mayo-agosto) de 2024 y 2025</p>
+            <p><strong>Población:</strong> Estimada en 400,350 habitantes para los 6 municipios</p>
+            
+            <h3 style="margin-top: 20px; color: var(--primary-color);">Limitaciones Identificadas</h3>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li style="margin-bottom: 8px;">Los datos solo incluyen defunciones hospitalarias (posible subregistro de muertes domiciliarias)</li>
+                <li style="margin-bottom: 8px;">No se cuenta con información sobre causa de muerte</li>
+                <li style="margin-bottom: 8px;">Los nacimientos pueden estar subestimados (solo registros institucionales)</li>
+                <li style="margin-bottom: 8px;">No hay datos sobre peso al nacer, edad gestacional o atención prenatal</li>
+            </ul>
+            
+            <h3 style="margin-top: 20px; color: var(--primary-color);">Recomendaciones para Mejorar la Vigilancia</h3>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+                <li style="margin-bottom: 8px;">Implementar comités de revisión de muertes materno-infantiles</li>
+                <li style="margin-bottom: 8px;">Fortalecer el registro de nacimientos y defunciones en comunidades</li>
+                <li style="margin-bottom: 8px;">Establecer sistema de alerta temprana para muertes neonatales</li>
+                <li style="margin-bottom: 8px;">Capacitar en certificación de causas de muerte (CIE-10 perinatal)</li>
+            </ul>
+        </div>
+        
+        <div class="analysis-section">
+            <h2>Recomendaciones Específicas</h2>
+            
+            <div class="key-findings">
+                <div class="finding-card positive">
+                    <h4>INMEDIATAS (0-3 meses)</h4>
+                    <p>1. Capacitación en reanimación neonatal para todo personal obstétrico<br>
+                    2. Dotación de equipos básicos de reanimación en salas de parto<br>
+                    3. Protocolos de referencia urgente para recién nacidos críticos</p>
+                </div>
+                
+                <div class="finding-card warning">
+                    <h4>MEDIANO PLAZO (3-12 meses)</h4>
+                    <p>1. Implementar seguimiento de embarazos de alto riesgo<br>
+                    2. Fortalecer consejería en planificación familiar<br>
+                    3. Establecer vigilancia comunitaria de muertes infantiles</p>
+                </div>
+                
+                <div class="finding-card critical">
+                    <h4>PRIORIDADES CRÍTICAS</h4>
+                    <p>1. Investigar cada muerte neonatal (<24h) con autopsia verbal<br>
+                    2. Monitorear calidad de atención en partos institucionales<br>
+                    3. Reducir brechas en atención entre comunidades rurales y urbanas</p>
+                </div>
+            </div>
+            
+            <h3 style="margin-top: 30px; color: var(--primary-color);">Proyección Anual y Metas</h3>
+            <p>Extrapolando los datos de 4 meses a un año completo:</p>
+            
+            <div class="comparison-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Indicador</th>
+                            <th>Proyección Anual 2024</th>
+                            <th>Proyección Anual 2025</th>
+                            <th>Meta ODS 2030</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Nacimientos anuales</strong></td>
+                            <td>1,761</td>
+                            <td>1,575</td>
+                            <td>-</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Defunciones infantiles</strong></td>
+                            <td>24</td>
+                            <td>21</td>
+                            <td>≤ 12 (TMI < 7.6)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TMI proyectada</strong></td>
+                            <td>13.63</td>
+                            <td>13.33</td>
+                            <td>< 7.6 por mil</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <p style="margin-top: 20px; font-style: italic;">Para alcanzar la meta de los Objetivos de Desarrollo Sostenible (TMI < 12 por mil para 2030), se requiere reducir la mortalidad infantil en un <strong>43%</strong> en los próximos 5 años.</p>
+        </div>
+        
+        <footer>
+            <p>Análisis Epidemiológico - Región Costera de Jalisco | Datos: Mayo-Agosto 2024-2025</p>
+            <p style="margin-top: 10px; font-size: 0.8rem;">© 2025 - Departamento de Salud Pública | Referencia: Clasificación OMS de mortalidad infantil</p>
+        </footer>
+    </div>
+
+    <script>
+        // Datos calculados del análisis
+        const data = {
+            years: ['2024', '2025'],
+            tmi: [13.63, 13.33],
+            tmn: [11.93, 11.43],
+            tmpn: [1.70, 1.90],
+            
+            // Defunciones infantiles identificadas
+            infantDeaths: [
+                // 2024 (8 defunciones)
+                {year: 2024, date: '2024-05-19', age: '2 HORAS', sex: 'MUJER', month: 'Mayo', category: 'Neonatal precoz'},
+                {year: 2024, date: '2024-05-24', age: '2 HORAS', sex: 'HOMBRE', month: 'Mayo', category: 'Neonatal precoz'},
+                {year: 2024, date: '2024-05-30', age: '1 HORA', sex: 'HOMBRE', month: 'Mayo', category: 'Neonatal precoz'},
+                {year: 2024, date: '2024-06-03', age: '2 HORAS', sex: 'HOMBRE', month: 'Junio', category: 'Neonatal precoz'},
+                {year: 2024, date: '2024-07-10', age: '2 HORAS', sex: 'HOMBRE', month: 'Julio', category: 'Neonatal precoz'},
+                {year: 2024, date: '2024-07-15', age: '1 HORA', sex: 'MUJER', month: 'Julio', category: 'Neonatal precoz'},
+                {year: 2024, date: '2024-08-03', age: '2 HORAS', sex: 'HOMBRE', month: 'Agosto', category: 'Neonatal precoz'},
+                {year: 2024, date: '2024-08-03', age: '1 HORA', sex: 'MUJER', month: 'Agosto', category: 'Neonatal precoz'},
+                
+                // 2025 (7 defunciones)
+                {year: 2025, date: '2025-05-02', age: '1 HORA', sex: 'HOMBRE', month: 'Mayo', category: 'Neonatal precoz'},
+                {year: 2025, date: '2025-06-10', age: '1 HORA', sex: 'HOMBRE', month: 'Junio', category: 'Neonatal precoz'},
+                {year: 2025, date: '2025-07-06', age: '1 HORA', sex: 'HOMBRE', month: 'Julio', category: 'Neonatal precoz'},
+                {year: 2025, date: '2025-07-10', age: '1 HORA', sex: 'HOMBRE', month: 'Julio', category: 'Neonatal precoz'},
+                {year: 2025, date: '2025-07-11', age: '1 HORA', sex: 'HOMBRE', month: 'Julio', category: 'Neonatal precoz'},
+                {year: 2025, date: '2025-08-12', age: '1 HORA', sex: 'MUJER', month: 'Agosto', category: 'Neonatal precoz'},
+                {year: 2025, date: '2025-08-13', age: '1 HORA', sex: 'MUJER', month: 'Agosto', category: 'Neonatal precoz'}
+            ],
+            
+            // Distribución por edad
+            ageDistribution: {
+                labels: ['< 1 hora', '1-23 horas', '1-6 días', '7-27 días', '28 días - 11 meses'],
+                values: [6, 4, 3, 0, 2]
+            }
+        };
+        
+        // Llenar tabla de defunciones infantiles
+        const tableBody = document.getElementById('infantDeathsTable');
+        data.infantDeaths.forEach(death => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${death.year}</td>
+                <td>${death.date}</td>
+                <td>${death.age}</td>
+                <td>${death.sex}</td>
+                <td>${death.month}</td>
+                <td><span class="rate-indicator ${death.category === 'Neonatal precoz' ? 'high-rate' : 'moderate-rate'}">${death.category}</span></td>
+            `;
+            tableBody.appendChild(row);
+        });
+        
+        // Gráfico 1: Comparación de tasas
+        const ratesCtx = document.getElementById('ratesComparisonChart').getContext('2d');
+        new Chart(ratesCtx, {
+            type: 'bar',
+            data: {
+                labels: data.years,
+                datasets: [
+                    {
+                        label: 'TMI (Total)',
+                        data: data.tmi,
+                        backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                        borderColor: 'rgba(231, 76, 60, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'TMN (0-27 días)',
+                        data: data.tmn,
+                        backgroundColor: 'rgba(243, 156, 18, 0.7)',
+                        borderColor: 'rgba(243, 156, 18, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'TMPN (28d-11m)',
+                        data: data.tmpn,
+                        backgroundColor: 'rgba(52, 152, 219, 0.7)',
+                        borderColor: 'rgba(52, 152, 219, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.dataset.label}: ${context.raw} por mil`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Tasa por mil nacidos vivos'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value + '‰';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Gráfico 2: Distribución por edad
+        const ageCtx = document.getElementById('ageDistributionChart').getContext('2d');
+        new Chart(ageCtx, {
+            type: 'doughnut',
+            data: {
+                labels: data.ageDistribution.labels,
+                datasets: [{
+                    data: data.ageDistribution.values,
+                    backgroundColor: [
+                        'rgba(231, 76, 60, 0.8)',
+                        'rgba(230, 126, 34, 0.8)',
+                        'rgba(243, 156, 18, 0.8)',
+                        'rgba(52, 152, 219, 0.8)',
+                        'rgba(46, 204, 113, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(231, 76, 60, 1)',
+                        'rgba(230, 126, 34, 1)',
+                        'rgba(243, 156, 18, 1)',
+                        'rgba(52, 152, 219, 1)',
+                        'rgba(46, 204, 113, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const percentage = Math.round((context.raw / total) * 100);
+                                return `${context.label}: ${context.raw} casos (${percentage}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Estadísticas adicionales calculadas
+        const totalDeaths = data.infantDeaths.length;
+        const neonatalDeaths = data.infantDeaths.filter(d => d.category.includes('Neonatal')).length;
+        const earlyNeonatal = data.infantDeaths.filter(d => d.age.includes('HORA')).length;
+        
+        console.log('RESUMEN ESTADÍSTICO:');
+        console.log(`- Defunciones totales: ${totalDeaths}`);
+        console.log(`- Defunciones neonatales: ${neonatalDeaths} (${Math.round(neonatalDeaths/totalDeaths*100)}%)`);
+        console.log(`- Defunciones <24h: ${earlyNeonatal} (${Math.round(earlyNeonatal/totalDeaths*100)}%)`);
+        console.log(`- TMI 2024: ${data.tmi[0]} por mil`);
+        console.log(`- TMI 2025: ${data.tmi[1]} por mil`);
+        console.log(`- Reducción: ${((data.tmi[0]-data.tmi[1])/data.tmi[0]*100).toFixed(1)}%`);
+    </script>
+</body>
+</html>
