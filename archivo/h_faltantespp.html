@@ -247,20 +247,21 @@
 
         let mostrarAtendidos = false;
         let textoBusqueda = "";
+        let todosRegistros = []; // Guardar todos los registros originales
 
         /* ================== TOGGLE ================== */
         document.getElementById("toggleAtendidos").addEventListener("change", e => {
             mostrarAtendidos = e.target.checked;
-            cargarRegistros();
+            aplicarFiltros();
         });
 
         /* ================== BUSCADOR ================== */
         document.getElementById("buscadorTabla").addEventListener("input", e => {
             textoBusqueda = e.target.value.toLowerCase().trim();
-            cargarRegistros();
+            aplicarFiltros();
         });
 
-        /* ================== TABLA ================== */
+        /* ================== CARGAR DATOS ORIGINALES ================== */
         async function cargarRegistros() {
             setEstado('loading', 'Cargando registros...');
             
@@ -272,57 +273,119 @@
                     return;
                 }
 
-                let registros = json.registros;
-
-                // filtro checklist (columna H)
-                if (!mostrarAtendidos) {
-                    registros = registros.filter(r => {
-                        const checklist = String(
-                            Object.values(r)[8] ?? ""
-                        ).toLowerCase();
-
-                        return !["true", "sí", "si", "1", "checked"].includes(checklist);
-                    });
+                todosRegistros = json.registros;
+                console.log("Total de registros cargados:", todosRegistros.length);
+                
+                // Mostrar los primeros 5 registros para debug
+                if (todosRegistros.length > 0) {
+                    console.log("Primer registro:", todosRegistros[0]);
+                    console.log("Cabeceras:", Object.keys(todosRegistros[0]));
                 }
-
-                // filtro búsqueda en tiempo real
-                if (textoBusqueda) {
-                    registros = registros.filter(r =>
-                        Object.values(r).some(v =>
-                            String(v).toLowerCase().includes(textoBusqueda)
-                        )
-                    );
-                }
-
-                const thead = document.querySelector("#tabla-registros thead");
-                const tbody = document.querySelector("#tabla-registros tbody");
-                thead.innerHTML = "";
-                tbody.innerHTML = "";
-
-                if (!registros.length) {
-                    setEstado('success', 'No hay registros para mostrar');
-                    return;
-                }
-
-                const headers = Object.keys(registros[0]);
-                thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
-
-                registros.forEach(r => {
-                    const fila = "<tr>" + headers.map(h => {
-                        let v = r[h] ?? "";
-                        if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
-                            v = formatearFecha(v);
-                        }
-                        return `<td>${v}</td>`;
-                    }).join("") + "</tr>";
-                    tbody.innerHTML += fila;
-                });
-
-                setEstado('success', `Cargados ${registros.length} registros`);
+                
+                aplicarFiltros();
+                
             } catch (error) {
                 setEstado('error', 'Error al cargar registros');
                 console.error('Error:', error);
             }
+        }
+
+        /* ================== APLICAR FILTROS ================== */
+        function aplicarFiltros() {
+            if (todosRegistros.length === 0) return;
+
+            let registros = [...todosRegistros]; // Copia para filtrar
+
+            // 1. Primero filtro de checklist
+            if (!mostrarAtendidos) {
+                registros = registros.filter(r => {
+                    // Buscar la columna de checklist por diferentes nombres posibles
+                    const checklistValue = buscarValorChecklist(r);
+                    const valorChecklist = String(checklistValue ?? "").toLowerCase().trim();
+                    
+                    // Mostrar SOLO los que NO tienen checklist activo
+                    const esAtendido = ["true", "sí", "si", "1", "checked", "x", "✓", "✔"].includes(valorChecklist);
+                    return !esAtendido;
+                });
+                console.log(`Filtro "No atendidos": ${todosRegistros.length} → ${registros.length} registros`);
+            }
+
+            // 2. Luego filtro de búsqueda
+            if (textoBusqueda) {
+                registros = registros.filter(r =>
+                    Object.values(r).some(v =>
+                        String(v).toLowerCase().includes(textoBusqueda)
+                    )
+                );
+                console.log(`Filtro búsqueda "${textoBusqueda}": ${registros.length} registros`);
+            }
+
+            // 3. Renderizar la tabla
+            renderizarTabla(registros);
+        }
+
+        /* ================== BUSCAR VALOR DE CHECKLIST ================== */
+        function buscarValorChecklist(registro) {
+            // Buscar por diferentes nombres de columna posibles
+            const nombresChecklist = [
+                "CHECKLIST", "Checklist", "checklist",
+                "ATENDIDO", "Atendido", "atendido",
+                "REVISADO", "Revisado", "revisado",
+                "COMPLETADO", "Completado", "completado",
+                "ESTADO", "Estado", "estado"
+            ];
+            
+            // Buscar en las claves del registro
+            for (const key of Object.keys(registro)) {
+                if (nombresChecklist.includes(key)) {
+                    return registro[key];
+                }
+            }
+            
+            // Si no encuentra por nombre exacto, buscar por coincidencia parcial
+            for (const key of Object.keys(registro)) {
+                const keyLower = key.toLowerCase();
+                if (keyLower.includes('check') || 
+                    keyLower.includes('atend') || 
+                    keyLower.includes('revis') || 
+                    keyLower.includes('complet') ||
+                    keyLower.includes('estado')) {
+                    console.log(`Encontrado checklist en columna: "${key}" = "${registro[key]}"`);
+                    return registro[key];
+                }
+            }
+            
+            return "";
+        }
+
+        /* ================== RENDERIZAR TABLA ================== */
+        function renderizarTabla(registros) {
+            const thead = document.querySelector("#tabla-registros thead");
+            const tbody = document.querySelector("#tabla-registros tbody");
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            if (!registros.length) {
+                setEstado('success', 'No hay registros para mostrar con los filtros actuales');
+                return;
+            }
+
+            const headers = Object.keys(registros[0]);
+            thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+            registros.forEach(r => {
+                const fila = "<tr>" + headers.map(h => {
+                    let v = r[h] ?? "";
+                    // Formatear fechas si la columna parece ser una fecha
+                    if (h.includes('FECHA') || h.includes('FECHA') || h.includes('CUANDO') || h.includes('REGISTRADO')) {
+                        v = formatearFecha(v);
+                    }
+                    return `<td>${v}</td>`;
+                }).join("") + "</tr>";
+                tbody.innerHTML += fila;
+            });
+
+            setEstado('success', `Mostrando ${registros.length} registros`);
         }
 
         function formatearFecha(v) {
@@ -364,7 +427,7 @@
 
         // Cargar registros cuando todo esté listo
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(cargarRegistros, 500); // Pequeño delay para que cargue el estado del sistema
+            setTimeout(cargarRegistros, 500);
         });
     </script>
 </body>
