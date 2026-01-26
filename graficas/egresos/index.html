@@ -90,6 +90,14 @@
             font-size: 0.85rem;
             color: #6c757d;
         }
+
+        /* Agrega esto en la sección <style> */
+        .form-select option {
+            max-width: 300px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     </style>
 </head>
 
@@ -124,6 +132,14 @@
             <div class="col-12">
                 <div class="filter-card">
                     <div class="row g-3">
+                        <!-- Dentro de <div class="row g-3"> en los filtros -->
+                        <div class="col-md-3">
+                            <label class="form-label">Motivo de Egreso</label>
+                            <select id="filterReason" class="form-select">
+                                <option value="">Todos los motivos</option>
+                                <!-- Las opciones se cargarán dinámicamente -->
+                            </select>
+                        </div>
                         <div class="col-md-3">
                             <label class="form-label">Sexo</label>
                             <select id="filterSex" class="form-select">
@@ -335,6 +351,7 @@
             const sexFilter = document.getElementById('filterSex').value;
             const ageFilter = document.getElementById('filterAge').value;
             const yearFilter = document.getElementById('filterYear').value;
+            const reasonFilter = document.getElementById('filterReason').value; // NUEVO
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
             filteredData = allData.filter(item => {
@@ -347,7 +364,7 @@
                     if (item.edad < min || item.edad > max) return false;
                 }
 
-                // Filtro por año - manejar fechas nulas
+                // Filtro por año
                 if (yearFilter && item.fecha_egreso) {
                     try {
                         const itemYear = item.fecha_egreso.getFullYear().toString();
@@ -357,6 +374,9 @@
                         return false;
                     }
                 }
+
+                // NUEVO: Filtro por motivo de egreso
+                if (reasonFilter && item.motivo_egreso_desp !== reasonFilter) return false;
 
                 // Filtro por búsqueda
                 if (searchTerm) {
@@ -378,12 +398,12 @@
             renderCharts();
             renderTable();
         }
-
         // Actualiza la función updateFilterOptions para manejar fechas nulas
         function updateFilterOptions() {
             const yearSelect = document.getElementById('filterYear');
+            const reasonSelect = document.getElementById('filterReason'); // NUEVO
 
-            // Obtener años únicos de fechas válidas
+            // Obtener años únicos
             const years = [...new Set(
                 allData
                     .map(d => {
@@ -395,14 +415,27 @@
                     .filter(year => year !== null)
             )].sort((a, b) => b - a);
 
+            // Obtener motivos únicos (ordenados alfabéticamente)
+            const reasons = [...new Set(
+                allData
+                    .map(d => d.motivo_egreso_desp || 'No especificado')
+                    .filter(reason => reason && reason.trim() !== '')
+            )].sort();
+
+            // Llenar select de años
             let yearOptions = '<option value="">Todos los años</option>';
             years.forEach(year => {
                 yearOptions += `<option value="${year}">${year}</option>`;
             });
-
             yearSelect.innerHTML = yearOptions;
-        }
 
+            // NUEVO: Llenar select de motivos
+            let reasonOptions = '<option value="">Todos los motivos</option>';
+            reasons.forEach(reason => {
+                reasonOptions += `<option value="${reason}">${reason}</option>`;
+            });
+            reasonSelect.innerHTML = reasonOptions;
+        }
         // Para debug, agrega esta función temporal al inicio de loadData:
         async function loadData() {
             try {
@@ -483,6 +516,7 @@
             document.getElementById('filterSex').addEventListener('change', applyFilters);
             document.getElementById('filterAge').addEventListener('change', applyFilters);
             document.getElementById('filterYear').addEventListener('change', applyFilters);
+            document.getElementById('filterReason').addEventListener('change', applyFilters); // NUEVO
             document.getElementById('searchInput').addEventListener('input', applyFilters);
             document.getElementById('resetFilters').addEventListener('click', resetFilters);
         }
@@ -492,6 +526,7 @@
             document.getElementById('filterSex').value = '';
             document.getElementById('filterAge').value = '';
             document.getElementById('filterYear').value = '';
+            document.getElementById('filterReason').value = ''; // NUEVO
             document.getElementById('searchInput').value = '';
             applyFilters();
         }
