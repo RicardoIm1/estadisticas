@@ -728,6 +728,29 @@
             const labels = topReasons.map(r => r[0]);
             const data = topReasons.map(r => r[1]);
 
+            // Paleta de colores predefinida (10 colores)
+            const colorPalette = [
+                'rgba(255, 99, 132, 0.7)',    // Rojo
+                'rgba(54, 162, 235, 0.7)',    // Azul
+                'rgba(255, 206, 86, 0.7)',    // Amarillo
+                'rgba(75, 192, 192, 0.7)',    // Verde agua
+                'rgba(153, 102, 255, 0.7)',   // Morado
+                'rgba(255, 159, 64, 0.7)',    // Naranja
+                'rgba(201, 203, 207, 0.7)',   // Gris
+                'rgba(255, 105, 180, 0.7)',   // Rosado
+                'rgba(50, 205, 50, 0.7)',     // Verde claro
+                'rgba(30, 144, 255, 0.7)'     // Azul real
+            ];
+
+            // Crear colores para cada motivo
+            const backgroundColors = labels.map((_, index) =>
+                colorPalette[index % colorPalette.length]
+            );
+
+            const borderColors = backgroundColors.map(color =>
+                color.replace('0.7', '1')
+            );
+
             charts.reason = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -735,8 +758,8 @@
                     datasets: [{
                         label: 'Cantidad',
                         data: data,
-                        backgroundColor: 'rgba(28, 200, 138, 0.7)',
-                        borderColor: 'rgba(28, 200, 138, 1)',
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors,
                         borderWidth: 1
                     }]
                 },
@@ -746,6 +769,13 @@
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `${context.label}: ${context.raw} egresos`;
+                                }
+                            }
                         }
                     },
                     scales: {
@@ -762,7 +792,6 @@
 
             showChart('reasonChart', 'loading3');
         }
-
         // Gráfico de distribución por edad
         function createAgeChart() {
             const ctx = document.getElementById('ageChart').getContext('2d');
