@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Egresos Hospitalarios</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --success-color: #1cc88a;
+            --info-color: #36b9cc;
+            --warning-color: #f6c23e;
+            --danger-color: #e74a3b;
+        }
+        body {
+            background-color: #f8f9fc;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #224abe 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 0 0 15px 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        .stat-card {
+            border-left: 4px solid var(--primary-color);
+            transition: transform 0.3s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 30px;
+            height: 100%;
+        }
+        .filter-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 300px;
+            font-size: 1.2rem;
+        }
+        .data-table {
+            font-size: 0.9rem;
+        }
+        .data-table th {
+            background-color: #f8f9fc;
+            font-weight: 600;
+        }
+        .btn-filter {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+        }
+        .btn-filter:hover {
+            background-color: #3a5ccc;
+            color: white;
+        }
+        .last-update {
+            font-size: 0.85rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1><i class="fas fa-hospital me-2"></i>Dashboard de Egresos Hospitalarios</h1>
+                    <p class="lead mb-0">Visualización de datos en tiempo real desde Google Sheets</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <div class="last-update">
+                        <i class="fas fa-sync-alt me-1"></i>
+                        <span id="lastUpdate">Actualizando...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <div class="container">
+        <!-- Tarjetas de Estadísticas -->
+        <div class="row mb-4" id="statsContainer">
+            <!-- Las tarjetas se cargarán aquí -->
+        </div>
+
+        <!-- Filtros -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="filter-card">
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label class="form-label">Sexo</label>
+                            <select id="filterSex" class="form-select">
+                                <option value="">Todos</option>
+                                <option value="MUJER">Mujer</option>
+                                <option value="HOMBRE">Hombre</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Rango de Edad</label>
+                            <select id="filterAge" class="form-select">
+                                <option value="">Todas las edades</option>
+                                <option value="0-20">0-20 años</option>
+                                <option value="21-40">21-40 años</option>
+                                <option value="41-60">41-60 años</option>
+                                <option value="61-100">61-100 años</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Año</label>
+                            <select id="filterYear" class="form-select">
+                                <option value="">Todos los años</option>
+                                <!-- Se cargarán dinámicamente -->
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button id="resetFilters" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-redo me-1"></i> Reiniciar Filtros
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos -->
+        <div class="row mb-4">
+            <!-- Gráfico 1: Egresos por Mes -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h4><i class="fas fa-chart-line me-2"></i>Egresos por Mes</h4>
+                    <div class="loading" id="loading1">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                    <canvas id="monthlyChart" style="display: none;"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico 2: Distribución por Sexo -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h4><i class="fas fa-venus-mars me-2"></i>Distribución por Sexo</h4>
+                    <div class="loading" id="loading2">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                    <canvas id="genderChart" style="display: none;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- Gráfico 3: Motivos de Egreso -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h4><i class="fas fa-clipboard-list me-2"></i>Top 10 Motivos de Egreso</h4>
+                    <div class="loading" id="loading3">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                    <canvas id="reasonChart" style="display: none;"></canvas>
+                </div>
+            </div>
+
+            <!-- Gráfico 4: Distribución por Edad -->
+            <div class="col-lg-6">
+                <div class="chart-container">
+                    <h4><i class="fas fa-user-friends me-2"></i>Distribución por Edad</h4>
+                    <div class="loading" id="loading4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando...</span>
+                        </div>
+                    </div>
+                    <canvas id="ageChart" style="display: none;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Datos -->
+        <div class="row">
+            <div class="col-12">
+                <div class="chart-container">
+                    <h4><i class="fas fa-table me-2"></i>Datos Detallados</h4>
+                    <div class="mb-3">
+                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar en los datos...">
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover data-table">
+                            <thead>
+                                <tr>
+                                    <th>Fecha Egreso</th>
+                                    <th>Edad</th>
+                                    <th>Descripción</th>
+                                    <th>Sexo</th>
+                                    <th>Motivo Egreso</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTableBody">
+                                <!-- Los datos se cargarán aquí -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div id="paginationInfo"></div>
+                        <nav>
+                            <ul class="pagination mb-0" id="pagination">
+                                <!-- La paginación se generará aquí -->
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="mt-5 mb-4 text-center text-muted">
+            <p class="mb-0">Dashboard conectado a Google Sheets via Apps Script | 
+                <a href="https://script.google.com/macros/s/AKfycbwQRSMcXA72shDfQ-1KuwdQhxTZVEekWzvddGnw5btt52bUYFJw25uuRN1YZLhtFfGqVA/exec" target="_blank">
+                    Ver API
+                </a>
+            </p>
+        </footer>
+    </div>
+
+    <script>
+        // Configuración global
+        const API_URL = 'https://script.google.com/macros/s/AKfycbwQRSMcXA72shDfQ-1KuwdQhxTZVEekWzvddGnw5btt52bUYFJw25uuRN1YZLhtFfGqVA/exec';
+        
+        // Variables globales
+        let allData = [];
+        let filteredData = [];
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let charts = {};
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+            setupEventListeners();
+        });
+
+        // Cargar datos desde la API
+        async function loadData() {
+            try {
+                showLoading(true);
+                
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data || !data.rows || !Array.isArray(data.rows)) {
+                    throw new Error('Formato de datos inválido');
+                }
+                
+                // Limpiar y transformar datos
+                allData = cleanData(data.rows);
+                filteredData = [...allData];
+                
+                // Actualizar UI
+                updateLastUpdate();
+                updateStats();
+                updateFilterOptions();
+                renderCharts();
+                renderTable();
+                
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                showError(error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Limpiar y transformar datos
+        function cleanData(rows) {
+            return rows.map(row => {
+                // Convertir fecha
+                let fecha = row.fecha_egreso;
+                if (fecha && typeof fecha === 'string') {
+                    const dateMatch = fecha.match(/(\d{4})-(\d{2})-(\d{2})/);
+                    if (dateMatch) {
+                        fecha = new Date(dateMatch[1], dateMatch[2] - 1, dateMatch[3]);
+                    }
+                }
+                
+                // Convertir edad a número
+                let edad = row.edad;
+                if (edad && typeof edad === 'string') {
+                    const ageMatch = edad.match(/(\d+)/);
+                    if (ageMatch) {
+                        edad = parseInt(ageMatch[1]);
+                    }
+                }
+                
+                return {
+                    fecha_egreso: fecha,
+                    edad: edad,
+                    descripcion: row.descripcion || '',
+                    sexo_des: row.sexo_des || 'DESCONOCIDO',
+                    motivo_egreso_desp: row.motivo_egreso_desp || ''
+                };
+            }).filter(item => item.fecha_egreso); // Filtrar items sin fecha
+        }
+
+        // Configurar event listeners
+        function setupEventListeners() {
+            document.getElementById('filterSex').addEventListener('change', applyFilters);
+            document.getElementById('filterAge').addEventListener('change', applyFilters);
+            document.getElementById('filterYear').addEventListener('change', applyFilters);
+            document.getElementById('searchInput').addEventListener('input', applyFilters);
+            document.getElementById('resetFilters').addEventListener('click', resetFilters);
+        }
+
+        // Aplicar filtros
+        function applyFilters() {
+            const sexFilter = document.getElementById('filterSex').value;
+            const ageFilter = document.getElementById('filterAge').value;
+            const yearFilter = document.getElementById('filterYear').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredData = allData.filter(item => {
+                // Filtro por sexo
+                if (sexFilter && item.sexo_des !== sexFilter) return false;
+                
+                // Filtro por edad
+                if (ageFilter && item.edad) {
+                    const [min, max] = ageFilter.split('-').map(Number);
+                    if (item.edad < min || item.edad > max) return false;
+                }
+                
+                // Filtro por año
+                if (yearFilter && item.fecha_egreso) {
+                    const itemYear = item.fecha_egreso.getFullYear().toString();
+                    if (itemYear !== yearFilter) return false;
+                }
+                
+                // Filtro por búsqueda
+                if (searchTerm) {
+                    const searchable = [
+                        item.descripcion,
+                        item.motivo_egreso_desp,
+                        item.sexo_des,
+                        item.edad?.toString()
+                    ].join(' ').toLowerCase();
+                    
+                    if (!searchable.includes(searchTerm)) return false;
+                }
+                
+                return true;
+            });
+            
+            currentPage = 1;
+            updateStats();
+            renderCharts();
+            renderTable();
+        }
+
+        // Reiniciar filtros
+        function resetFilters() {
+            document.getElementById('filterSex').value = '';
+            document.getElementById('filterAge').value = '';
+            document.getElementById('filterYear').value = '';
+            document.getElementById('searchInput').value = '';
+            applyFilters();
+        }
+
+        // Actualizar estadísticas
+        function updateStats() {
+            const statsContainer = document.getElementById('statsContainer');
+            const total = filteredData.length;
+            
+            // Calcular estadísticas
+            const mujeres = filteredData.filter(d => d.sexo_des === 'MUJER').length;
+            const hombres = filteredData.filter(d => d.sexo_des === 'HOMBRE').length;
+            const avgAge = filteredData.reduce((sum, d) => sum + (d.edad || 0), 0) / filteredData.length || 0;
+            
+            // Obtener año más reciente
+            const years = filteredData.map(d => d.fecha_egreso?.getFullYear()).filter(Boolean);
+            const latestYear = years.length > 0 ? Math.max(...years) : 'N/A';
+            
+            const statsHTML = `
+                <div class="col-md-3">
+                    <div class="stat-card card shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                        Total Egresos
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${total}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-hospital fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card card shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                        Mujeres
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${mujeres}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-venus fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card card shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                        Edad Promedio
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${avgAge.toFixed(1)}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-user fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stat-card card shadow h-100 py-2">
+                        <div class="card-body">
+                            <div class="row no-gutters align-items-center">
+                                <div class="col mr-2">
+                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                        Año más Reciente
+                                    </div>
+                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${latestYear}</div>
+                                </div>
+                                <div class="col-auto">
+                                    <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            statsContainer.innerHTML = statsHTML;
+        }
+
+        // Actualizar opciones de filtro
+        function updateFilterOptions() {
+            const yearSelect = document.getElementById('filterYear');
+            const years = [...new Set(allData.map(d => d.fecha_egreso?.getFullYear()).filter(Boolean))].sort((a, b) => b - a);
+            
+            let yearOptions = '<option value="">Todos los años</option>';
+            years.forEach(year => {
+                yearOptions += `<option value="${year}">${year}</option>`;
+            });
+            
+            yearSelect.innerHTML = yearOptions;
+        }
+
+        // Renderizar gráficos
+        function renderCharts() {
+            // Destruir gráficos existentes
+            Object.values(charts).forEach(chart => {
+                if (chart) chart.destroy();
+            });
+            
+            // Crear nuevos gráficos
+            createMonthlyChart();
+            createGenderChart();
+            createReasonChart();
+            createAgeChart();
+        }
+
+        // Gráfico de egresos por mes
+        function createMonthlyChart() {
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            
+            // Agrupar por mes
+            const monthlyData = {};
+            filteredData.forEach(item => {
+                if (item.fecha_egreso) {
+                    const monthKey = `${item.fecha_egreso.getFullYear()}-${(item.fecha_egreso.getMonth() + 1).toString().padStart(2, '0')}`;
+                    monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
+                }
+            });
+            
+            // Ordenar por fecha
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const labels = sortedMonths.map(m => {
+                const [year, month] = m.split('-');
+                return `${month}/${year}`;
+            });
+            const data = sortedMonths.map(m => monthlyData[m]);
+            
+            charts.monthly = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Egresos',
+                        data: data,
+                        borderColor: 'rgba(78, 115, 223, 1)',
+                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Egresos'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            showChart('monthlyChart', 'loading1');
+        }
+
+        // Gráfico de distribución por sexo
+        function createGenderChart() {
+            const ctx = document.getElementById('genderChart').getContext('2d');
+            
+            const mujeres = filteredData.filter(d => d.sexo_des === 'MUJER').length;
+            const hombres = filteredData.filter(d => d.sexo_des === 'HOMBRE').length;
+            const otros = filteredData.length - mujeres - hombres;
+            
+            charts.gender = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Mujeres', 'Hombres', 'Otros/No especificado'],
+                    datasets: [{
+                        data: [mujeres, hombres, otros],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(201, 203, 207, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgb(255, 99, 132)',
+                            'rgb(54, 162, 235)',
+                            'rgb(201, 203, 207)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const value = context.raw;
+                                    const percentage = Math.round((value / total) * 100);
+                                    return `${context.label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            showChart('genderChart', 'loading2');
+        }
+
+        // Gráfico de motivos de egreso
+        function createReasonChart() {
+            const ctx = document.getElementById('reasonChart').getContext('2d');
+            
+            // Contar motivos
+            const reasonCounts = {};
+            filteredData.forEach(item => {
+                const motivo = item.motivo_egreso_desp || 'No especificado';
+                reasonCounts[motivo] = (reasonCounts[motivo] || 0) + 1;
+            });
+            
+            // Ordenar y tomar top 10
+            const topReasons = Object.entries(reasonCounts)
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10);
+            
+            const labels = topReasons.map(r => r[0]);
+            const data = topReasons.map(r => r[1]);
+            
+            charts.reason = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: data,
+                        backgroundColor: 'rgba(28, 200, 138, 0.7)',
+                        borderColor: 'rgba(28, 200, 138, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Egresos'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            showChart('reasonChart', 'loading3');
+        }
+
+        // Gráfico de distribución por edad
+        function createAgeChart() {
+            const ctx = document.getElementById('ageChart').getContext('2d');
+            
+            // Crear grupos de edad
+            const ageGroups = {
+                '0-20': 0,
+                '21-40': 0,
+                '41-60': 0,
+                '61-80': 0,
+                '81+': 0
+            };
+            
+            filteredData.forEach(item => {
+                if (item.edad) {
+                    if (item.edad <= 20) ageGroups['0-20']++;
+                    else if (item.edad <= 40) ageGroups['21-40']++;
+                    else if (item.edad <= 60) ageGroups['41-60']++;
+                    else if (item.edad <= 80) ageGroups['61-80']++;
+                    else ageGroups['81+']++;
+                }
+            });
+            
+            charts.age = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(ageGroups),
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: Object.values(ageGroups),
+                        backgroundColor: 'rgba(246, 194, 62, 0.7)',
+                        borderColor: 'rgba(246, 194, 62, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Pacientes'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Grupo de Edad'
+                            }
+                        }
+                    }
+                }
+            });
+            
+            showChart('ageChart', 'loading4');
+        }
+
+        // Mostrar gráfico y ocultar loading
+        function showChart(chartId, loadingId) {
+            document.getElementById(loadingId).style.display = 'none';
+            document.getElementById(chartId).style.display = 'block';
+        }
+
+        // Renderizar tabla
+        function renderTable() {
+            const tableBody = document.getElementById('dataTableBody');
+            const paginationInfo = document.getElementById('paginationInfo');
+            const pagination = document.getElementById('pagination');
+            
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const pageData = filteredData.slice(startIndex, endIndex);
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            
+            // Renderizar datos de la página
+            let tableHTML = '';
+            pageData.forEach(item => {
+                const fecha = item.fecha_egreso ? 
+                    item.fecha_egreso.toLocaleDateString('es-ES') : 
+                    'N/A';
+                
+                tableHTML += `
+                    <tr>
+                        <td>${fecha}</td>
+                        <td>${item.edad || 'N/A'}</td>
+                        <td>${item.descripcion || ''}</td>
+                        <td>${item.sexo_des || ''}</td>
+                        <td>${item.motivo_egreso_desp || ''}</td>
+                    </tr>
+                `;
+            });
+            
+            tableBody.innerHTML = tableHTML || '<tr><td colspan="5" class="text-center">No hay datos</td></tr>';
+            
+            // Actualizar info de paginación
+            paginationInfo.textContent = `Mostrando ${startIndex + 1}-${Math.min(endIndex, filteredData.length)} de ${filteredData.length} registros`;
+            
+            // Renderizar paginación
+            let paginationHTML = '';
+            
+            // Botón anterior
+            paginationHTML += `
+                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Anterior</a>
+                </li>
+            `;
+            
+            // Números de página
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                    paginationHTML += `
+                        <li class="page-item ${i === currentPage ? 'active' : ''}">
+                            <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                        </li>
+                    `;
+                } else if (i === currentPage - 3 || i === currentPage + 3) {
+                    paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                }
+            }
+            
+            // Botón siguiente
+            paginationHTML += `
+                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Siguiente</a>
+                </li>
+            `;
+            
+            pagination.innerHTML = paginationHTML;
+        }
+
+        // Cambiar página
+        function changePage(page) {
+            currentPage = page;
+            renderTable();
+        }
+
+        // Actualizar última actualización
+        function updateLastUpdate() {
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('lastUpdate').textContent = `Última actualización: ${formattedDate}`;
+        }
+
+        // Mostrar/ocultar loading
+        function showLoading(show) {
+            const loaders = document.querySelectorAll('.loading');
+            const canvases = document.querySelectorAll('canvas');
+            
+            if (show) {
+                loaders.forEach(loader => loader.style.display = 'flex');
+                canvases.forEach(canvas => canvas.style.display = 'none');
+            } else {
+                loaders.forEach(loader => loader.style.display = 'none');
+            }
+        }
+
+        // Mostrar error
+        function showError(message) {
+            const statsContainer = document.getElementById('statsContainer');
+            statsContainer.innerHTML = `
+                <div class="col-12">
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        Error: ${message}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Exponer función changePage globalmente
+        window.changePage = changePage;
+    </script>
+</body>
+</html>
