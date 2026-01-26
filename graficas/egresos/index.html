@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,39 +18,46 @@
             --warning-color: #f6c23e;
             --danger-color: #e74a3b;
         }
+
         body {
             background-color: #f8f9fc;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+
         .dashboard-header {
             background: linear-gradient(135deg, var(--primary-color) 0%, #224abe 100%);
             color: white;
             padding: 2rem 0;
             margin-bottom: 2rem;
             border-radius: 0 0 15px 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
         }
+
         .stat-card {
             border-left: 4px solid var(--primary-color);
             transition: transform 0.3s;
         }
+
         .stat-card:hover {
             transform: translateY(-5px);
         }
+
         .chart-container {
             background: white;
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
             margin-bottom: 30px;
             height: 100%;
         }
+
         .filter-card {
             background: white;
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
         }
+
         .loading {
             display: flex;
             justify-content: center;
@@ -57,28 +65,34 @@
             height: 300px;
             font-size: 1.2rem;
         }
+
         .data-table {
             font-size: 0.9rem;
         }
+
         .data-table th {
             background-color: #f8f9fc;
             font-weight: 600;
         }
+
         .btn-filter {
             background-color: var(--primary-color);
             color: white;
             border: none;
         }
+
         .btn-filter:hover {
             background-color: #3a5ccc;
             color: white;
         }
+
         .last-update {
             font-size: 0.85rem;
             color: #6c757d;
         }
     </style>
 </head>
+
 <body>
     <!-- Header -->
     <header class="dashboard-header">
@@ -240,8 +254,9 @@
 
         <!-- Footer -->
         <footer class="mt-5 mb-4 text-center text-muted">
-            <p class="mb-0">Dashboard conectado a Google Sheets via Apps Script | 
-                <a href="https://script.google.com/macros/s/AKfycbwQRSMcXA72shDfQ-1KuwdQhxTZVEekWzvddGnw5btt52bUYFJw25uuRN1YZLhtFfGqVA/exec" target="_blank">
+            <p class="mb-0">Dashboard conectado a Google Sheets via Apps Script |
+                <a href="https://script.google.com/macros/s/AKfycbwQRSMcXA72shDfQ-1KuwdQhxTZVEekWzvddGnw5btt52bUYFJw25uuRN1YZLhtFfGqVA/exec"
+                    target="_blank">
                     Ver API
                 </a>
             </p>
@@ -251,7 +266,7 @@
     <script>
         // Configuración global
         const API_URL = 'https://script.google.com/macros/s/AKfycbwQRSMcXA72shDfQ-1KuwdQhxTZVEekWzvddGnw5btt52bUYFJw25uuRN1YZLhtFfGqVA/exec';
-        
+
         // Variables globales
         let allData = [];
         let filteredData = [];
@@ -260,58 +275,44 @@
         let charts = {};
 
         // Inicialización
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadData();
             setupEventListeners();
         });
 
-        // Cargar datos desde la API
-        async function loadData() {
-            try {
-                showLoading(true);
-                
-                const response = await fetch(API_URL);
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (!data || !data.rows || !Array.isArray(data.rows)) {
-                    throw new Error('Formato de datos inválido');
-                }
-                
-                // Limpiar y transformar datos
-                allData = cleanData(data.rows);
-                filteredData = [...allData];
-                
-                // Actualizar UI
-                updateLastUpdate();
-                updateStats();
-                updateFilterOptions();
-                renderCharts();
-                renderTable();
-                
-            } catch (error) {
-                console.error('Error cargando datos:', error);
-                showError(error.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        // Limpiar y transformar datos
+        // Reemplaza la función cleanData completa con esta versión corregida
         function cleanData(rows) {
             return rows.map(row => {
-                // Convertir fecha
+                // Convertir fecha - manejar diferentes formatos
                 let fecha = row.fecha_egreso;
-                if (fecha && typeof fecha === 'string') {
-                    const dateMatch = fecha.match(/(\d{4})-(\d{2})-(\d{2})/);
-                    if (dateMatch) {
-                        fecha = new Date(dateMatch[1], dateMatch[2] - 1, dateMatch[3]);
+                let fechaObj = null;
+
+                if (fecha) {
+                    // Intentar diferentes formatos de fecha
+                    if (fecha instanceof Date && !isNaN(fecha)) {
+                        fechaObj = fecha;
+                    } else if (typeof fecha === 'string') {
+                        // Formato YYYY-MM-DD
+                        if (fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            fechaObj = new Date(fecha);
+                        }
+                        // Formato DD/MM/YYYY
+                        else if (fecha.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
+                            const parts = fecha.split('/');
+                            fechaObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                        }
+                        // Formato timestamp
+                        else if (fecha.match(/^\d+$/)) {
+                            fechaObj = new Date(parseInt(fecha));
+                        }
+
+                        // Verificar si la fecha es válida
+                        if (fechaObj && isNaN(fechaObj.getTime())) {
+                            fechaObj = null;
+                        }
                     }
                 }
-                
+
                 // Convertir edad a número
                 let edad = row.edad;
                 if (edad && typeof edad === 'string') {
@@ -319,16 +320,166 @@
                     if (ageMatch) {
                         edad = parseInt(ageMatch[1]);
                     }
+                } else if (edad && typeof edad === 'number') {
+                    edad = Math.floor(edad);
                 }
-                
+
                 return {
-                    fecha_egreso: fecha,
-                    edad: edad,
+                    fecha_egreso: fechaObj,
+                    edad: edad || 0,
                     descripcion: row.descripcion || '',
-                    sexo_des: row.sexo_des || 'DESCONOCIDO',
+                    sexo_des: (row.sexo_des || 'DESCONOCIDO').toUpperCase(),
                     motivo_egreso_desp: row.motivo_egreso_desp || ''
                 };
-            }).filter(item => item.fecha_egreso); // Filtrar items sin fecha
+            }).filter(item => item.edad > 0); // Filtrar items sin edad válida
+        }
+
+        // También actualiza la función applyFilters para manejar fechas nulas
+        function applyFilters() {
+            const sexFilter = document.getElementById('filterSex').value;
+            const ageFilter = document.getElementById('filterAge').value;
+            const yearFilter = document.getElementById('filterYear').value;
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+            filteredData = allData.filter(item => {
+                // Filtro por sexo
+                if (sexFilter && item.sexo_des !== sexFilter) return false;
+
+                // Filtro por edad
+                if (ageFilter && item.edad) {
+                    const [min, max] = ageFilter.split('-').map(Number);
+                    if (item.edad < min || item.edad > max) return false;
+                }
+
+                // Filtro por año - manejar fechas nulas
+                if (yearFilter && item.fecha_egreso) {
+                    try {
+                        const itemYear = item.fecha_egreso.getFullYear().toString();
+                        if (itemYear !== yearFilter) return false;
+                    } catch (error) {
+                        console.warn('Fecha inválida:', item.fecha_egreso);
+                        return false;
+                    }
+                }
+
+                // Filtro por búsqueda
+                if (searchTerm) {
+                    const searchable = [
+                        item.descripcion,
+                        item.motivo_egreso_desp,
+                        item.sexo_des,
+                        item.edad?.toString()
+                    ].join(' ').toLowerCase();
+
+                    if (!searchable.includes(searchTerm)) return false;
+                }
+
+                return true;
+            });
+
+            currentPage = 1;
+            updateStats();
+            renderCharts();
+            renderTable();
+        }
+
+        // Actualiza la función updateFilterOptions para manejar fechas nulas
+        function updateFilterOptions() {
+            const yearSelect = document.getElementById('filterYear');
+
+            // Obtener años únicos de fechas válidas
+            const years = [...new Set(
+                allData
+                    .map(d => {
+                        if (d.fecha_egreso && d.fecha_egreso instanceof Date && !isNaN(d.fecha_egreso.getTime())) {
+                            return d.fecha_egreso.getFullYear();
+                        }
+                        return null;
+                    })
+                    .filter(year => year !== null)
+            )].sort((a, b) => b - a);
+
+            let yearOptions = '<option value="">Todos los años</option>';
+            years.forEach(year => {
+                yearOptions += `<option value="${year}">${year}</option>`;
+            });
+
+            yearSelect.innerHTML = yearOptions;
+        }
+
+        // Para debug, agrega esta función temporal al inicio de loadData:
+        async function loadData() {
+            try {
+                showLoading(true);
+
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                // DEBUG: Ver estructura de datos
+                console.log('Datos recibidos:', data);
+                if (data.rows && data.rows.length > 0) {
+                    console.log('Primera fila:', data.rows[0]);
+                    console.log('Tipo de fecha_egreso:', typeof data.rows[0].fecha_egreso, 'Valor:', data.rows[0].fecha_egreso);
+                }
+
+                // Limpiar y transformar datos
+                allData = cleanData(data.rows);
+                console.log('Datos limpiados:', allData.slice(0, 3));
+
+                filteredData = [...allData];
+
+                // Actualizar UI
+                updateLastUpdate();
+                updateStats();
+                updateFilterOptions();
+                renderCharts();
+                renderTable();
+
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                showError(`Error: ${error.message}. Revisa la consola para más detalles.`);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // Cargar datos desde la API
+        async function loadData() {
+            try {
+                showLoading(true);
+
+                const response = await fetch(API_URL);
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                if (!data || !data.rows || !Array.isArray(data.rows)) {
+                    throw new Error('Formato de datos inválido');
+                }
+
+                // Limpiar y transformar datos
+                allData = cleanData(data.rows);
+                filteredData = [...allData];
+
+                // Actualizar UI
+                updateLastUpdate();
+                updateStats();
+                updateFilterOptions();
+                renderCharts();
+                renderTable();
+
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+                showError(error.message);
+            } finally {
+                showLoading(false);
+            }
         }
 
         // Configurar event listeners
@@ -338,50 +489,6 @@
             document.getElementById('filterYear').addEventListener('change', applyFilters);
             document.getElementById('searchInput').addEventListener('input', applyFilters);
             document.getElementById('resetFilters').addEventListener('click', resetFilters);
-        }
-
-        // Aplicar filtros
-        function applyFilters() {
-            const sexFilter = document.getElementById('filterSex').value;
-            const ageFilter = document.getElementById('filterAge').value;
-            const yearFilter = document.getElementById('filterYear').value;
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            
-            filteredData = allData.filter(item => {
-                // Filtro por sexo
-                if (sexFilter && item.sexo_des !== sexFilter) return false;
-                
-                // Filtro por edad
-                if (ageFilter && item.edad) {
-                    const [min, max] = ageFilter.split('-').map(Number);
-                    if (item.edad < min || item.edad > max) return false;
-                }
-                
-                // Filtro por año
-                if (yearFilter && item.fecha_egreso) {
-                    const itemYear = item.fecha_egreso.getFullYear().toString();
-                    if (itemYear !== yearFilter) return false;
-                }
-                
-                // Filtro por búsqueda
-                if (searchTerm) {
-                    const searchable = [
-                        item.descripcion,
-                        item.motivo_egreso_desp,
-                        item.sexo_des,
-                        item.edad?.toString()
-                    ].join(' ').toLowerCase();
-                    
-                    if (!searchable.includes(searchTerm)) return false;
-                }
-                
-                return true;
-            });
-            
-            currentPage = 1;
-            updateStats();
-            renderCharts();
-            renderTable();
         }
 
         // Reiniciar filtros
@@ -397,16 +504,16 @@
         function updateStats() {
             const statsContainer = document.getElementById('statsContainer');
             const total = filteredData.length;
-            
+
             // Calcular estadísticas
             const mujeres = filteredData.filter(d => d.sexo_des === 'MUJER').length;
             const hombres = filteredData.filter(d => d.sexo_des === 'HOMBRE').length;
             const avgAge = filteredData.reduce((sum, d) => sum + (d.edad || 0), 0) / filteredData.length || 0;
-            
+
             // Obtener año más reciente
             const years = filteredData.map(d => d.fecha_egreso?.getFullYear()).filter(Boolean);
             const latestYear = years.length > 0 ? Math.max(...years) : 'N/A';
-            
+
             const statsHTML = `
                 <div class="col-md-3">
                     <div class="stat-card card shadow h-100 py-2">
@@ -477,21 +584,8 @@
                     </div>
                 </div>
             `;
-            
-            statsContainer.innerHTML = statsHTML;
-        }
 
-        // Actualizar opciones de filtro
-        function updateFilterOptions() {
-            const yearSelect = document.getElementById('filterYear');
-            const years = [...new Set(allData.map(d => d.fecha_egreso?.getFullYear()).filter(Boolean))].sort((a, b) => b - a);
-            
-            let yearOptions = '<option value="">Todos los años</option>';
-            years.forEach(year => {
-                yearOptions += `<option value="${year}">${year}</option>`;
-            });
-            
-            yearSelect.innerHTML = yearOptions;
+            statsContainer.innerHTML = statsHTML;
         }
 
         // Renderizar gráficos
@@ -500,7 +594,7 @@
             Object.values(charts).forEach(chart => {
                 if (chart) chart.destroy();
             });
-            
+
             // Crear nuevos gráficos
             createMonthlyChart();
             createGenderChart();
@@ -511,7 +605,7 @@
         // Gráfico de egresos por mes
         function createMonthlyChart() {
             const ctx = document.getElementById('monthlyChart').getContext('2d');
-            
+
             // Agrupar por mes
             const monthlyData = {};
             filteredData.forEach(item => {
@@ -520,7 +614,7 @@
                     monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
                 }
             });
-            
+
             // Ordenar por fecha
             const sortedMonths = Object.keys(monthlyData).sort();
             const labels = sortedMonths.map(m => {
@@ -528,7 +622,7 @@
                 return `${month}/${year}`;
             });
             const data = sortedMonths.map(m => monthlyData[m]);
-            
+
             charts.monthly = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -565,18 +659,18 @@
                     }
                 }
             });
-            
+
             showChart('monthlyChart', 'loading1');
         }
 
         // Gráfico de distribución por sexo
         function createGenderChart() {
             const ctx = document.getElementById('genderChart').getContext('2d');
-            
+
             const mujeres = filteredData.filter(d => d.sexo_des === 'MUJER').length;
             const hombres = filteredData.filter(d => d.sexo_des === 'HOMBRE').length;
             const otros = filteredData.length - mujeres - hombres;
-            
+
             charts.gender = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -604,7 +698,7 @@
                         },
                         tooltip: {
                             callbacks: {
-                                label: function(context) {
+                                label: function (context) {
                                     const total = context.dataset.data.reduce((a, b) => a + b, 0);
                                     const value = context.raw;
                                     const percentage = Math.round((value / total) * 100);
@@ -615,29 +709,29 @@
                     }
                 }
             });
-            
+
             showChart('genderChart', 'loading2');
         }
 
         // Gráfico de motivos de egreso
         function createReasonChart() {
             const ctx = document.getElementById('reasonChart').getContext('2d');
-            
+
             // Contar motivos
             const reasonCounts = {};
             filteredData.forEach(item => {
                 const motivo = item.motivo_egreso_desp || 'No especificado';
                 reasonCounts[motivo] = (reasonCounts[motivo] || 0) + 1;
             });
-            
+
             // Ordenar y tomar top 10
             const topReasons = Object.entries(reasonCounts)
                 .sort((a, b) => b[1] - a[1])
                 .slice(0, 10);
-            
+
             const labels = topReasons.map(r => r[0]);
             const data = topReasons.map(r => r[1]);
-            
+
             charts.reason = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -669,14 +763,14 @@
                     }
                 }
             });
-            
+
             showChart('reasonChart', 'loading3');
         }
 
         // Gráfico de distribución por edad
         function createAgeChart() {
             const ctx = document.getElementById('ageChart').getContext('2d');
-            
+
             // Crear grupos de edad
             const ageGroups = {
                 '0-20': 0,
@@ -685,7 +779,7 @@
                 '61-80': 0,
                 '81+': 0
             };
-            
+
             filteredData.forEach(item => {
                 if (item.edad) {
                     if (item.edad <= 20) ageGroups['0-20']++;
@@ -695,7 +789,7 @@
                     else ageGroups['81+']++;
                 }
             });
-            
+
             charts.age = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -732,7 +826,7 @@
                     }
                 }
             });
-            
+
             showChart('ageChart', 'loading4');
         }
 
@@ -747,19 +841,19 @@
             const tableBody = document.getElementById('dataTableBody');
             const paginationInfo = document.getElementById('paginationInfo');
             const pagination = document.getElementById('pagination');
-            
+
             const startIndex = (currentPage - 1) * itemsPerPage;
             const endIndex = startIndex + itemsPerPage;
             const pageData = filteredData.slice(startIndex, endIndex);
             const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            
+
             // Renderizar datos de la página
             let tableHTML = '';
             pageData.forEach(item => {
-                const fecha = item.fecha_egreso ? 
-                    item.fecha_egreso.toLocaleDateString('es-ES') : 
+                const fecha = item.fecha_egreso ?
+                    item.fecha_egreso.toLocaleDateString('es-ES') :
                     'N/A';
-                
+
                 tableHTML += `
                     <tr>
                         <td>${fecha}</td>
@@ -770,22 +864,22 @@
                     </tr>
                 `;
             });
-            
+
             tableBody.innerHTML = tableHTML || '<tr><td colspan="5" class="text-center">No hay datos</td></tr>';
-            
+
             // Actualizar info de paginación
             paginationInfo.textContent = `Mostrando ${startIndex + 1}-${Math.min(endIndex, filteredData.length)} de ${filteredData.length} registros`;
-            
+
             // Renderizar paginación
             let paginationHTML = '';
-            
+
             // Botón anterior
             paginationHTML += `
                 <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
                     <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Anterior</a>
                 </li>
             `;
-            
+
             // Números de página
             for (let i = 1; i <= totalPages; i++) {
                 if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
@@ -798,14 +892,14 @@
                     paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
                 }
             }
-            
+
             // Botón siguiente
             paginationHTML += `
                 <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
                     <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Siguiente</a>
                 </li>
             `;
-            
+
             pagination.innerHTML = paginationHTML;
         }
 
@@ -832,7 +926,7 @@
         function showLoading(show) {
             const loaders = document.querySelectorAll('.loading');
             const canvases = document.querySelectorAll('canvas');
-            
+
             if (show) {
                 loaders.forEach(loader => loader.style.display = 'flex');
                 canvases.forEach(canvas => canvas.style.display = 'none');
@@ -858,4 +952,5 @@
         window.changePage = changePage;
     </script>
 </body>
+
 </html>
