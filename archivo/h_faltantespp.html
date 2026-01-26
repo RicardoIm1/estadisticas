@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,229 +10,196 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
     <link href="/estadisticas/main_css/tabla-wrapper.css" rel="stylesheet">
-</head>
-<style>
-    /* === NUEVO: Layout premium formulario + tabla === */
-    .layout-egresos {
-        display: grid;
-        grid-template-columns: 100% 1fr;
-        gap: 1rem;
-        height: calc(100vh - 160px);
-        min-height: 0;
-    }
-
-    /* Formulario premium */
-    .form-panel {
-        background: rgba(255, 255, 255, 0.09);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 14px;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.7rem;
-        min-width: 200px;
-        overflow-y: auto;
-        color: #0f0;
-    }
-
-    /* Inputs minimalistas */
-    .form-panel input,
-    .form-panel textarea {
-        width: 100%;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: rgba(255, 255, 255, 0.08);
-        color: #0f0;
-        font-size: 0.9rem;
-    }
-
-    .form-panel textarea {
-        height: 80px;
-        resize: vertical;
-    }
-
-    /* Wrapper para la tabla */
-    .tabla-zona {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 0.3rem;
-        min-height: 0;
-    }
-
-    /* CONTENEDOR PRINCIPAL - Scroll vertical aquí */
-    .tabla-wrapper {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        /* Scroll vertical */
-        position: relative;
-    }
-
-    /* Para encabezados fijos - IMPORTANTE */
-    .tabla-wrapper table thead th {
-        position: sticky;
-        top: 0;
-        /* background-color: #1a1a1a; */
-        z-index: 10;
-        border-bottom: 2px solid #0f0;
-    }
-
-    /* CONTENEDOR PARA SCROLL HORIZONTAL */
-    .tabla-scroll-x {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        max-width: 100%;
-    }
-
-    .tabla-scroll-x::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .tabla-scroll-x::-webkit-scrollbar-thumb {
-        background: rgba(0, 255, 0, 0.3);
-        border-radius: 3px;
-    }
-
-    /* Tabla con ancho mínimo */
-    .tabla-scroll-x table {
-        width: max-content;
-        min-width: 100%;
-        border-collapse: collapse;
-    }
-
-    /* Primera columna más ancha */
-    .tabla-scroll-x table th:first-child,
-    .tabla-scroll-x table td:first-child {
-        width: 260px !important;
-        min-width: 260px !important;
-        max-width: 360px;
-        white-space: normal !important;
-        overflow: visible !important;
-    }
-
-    /* Estilo para las celdas */
-    .tabla-scroll-x table td {
-        padding: 8px 12px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.9);
-        background: rgba(255, 255, 255, 0.03);
-    }
-
-    /* Buscador y filtros */
-    .buscador-tabla {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.4rem 0.6rem;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 10px;
-        margin-bottom: 0.4rem;
-        justify-content: space-between;
-    }
-
-    .filtro-atendidos {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        font-size: 0.85rem;
-        color: #c9f9c9;
-    }
-
-    .toggle-switch {
-        position: relative;
-        width: 46px;
-        height: 24px;
-        margin-left: 0.6rem;
-    }
-
-    .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        inset: 0;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 999px;
-        transition: all 0.25s ease;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-    }
-
-    .toggle-slider::before {
-        content: "";
-        position: absolute;
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        top: 2px;
-        background: #caffca;
-        border-radius: 50%;
-        transition: transform 0.25s ease;
-        box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
-    }
-
-    .toggle-switch input:checked+.toggle-slider {
-        background: rgba(0, 255, 120, 0.25);
-    }
-
-    .toggle-switch input:checked+.toggle-slider::before {
-        transform: translateX(22px);
-    }
-
-    .buscador-tabla input[type="text"] {
-        flex: 1;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: none;
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        font-size: 0.85rem;
-        outline: none;
-        min-width: 200px;
-    }
-
-    .buscador-tabla input::placeholder {
-        color: rgba(255, 255, 255, 0.5);
-    }
-
-    .buscador-tabla i {
-        font-size: 0.85rem;
-        color: #9fffa0;
-    }
-
-    /* Responsivo para móviles */
-    @media (max-width: 768px) {
+    <style>
+        /* === Layout solo para tabla === */
         .layout-egresos {
-            grid-template-columns: 1fr;
-            gap: 0.8rem;
+            display: grid;
+            grid-template-columns: 100%;
+            gap: 1rem;
+            height: calc(100vh - 160px);
+            min-height: 0;
         }
 
-        .form-panel {
-            max-height: none;
-        }
-
-        .buscador-tabla {
+        /* Wrapper para la tabla */
+        .tabla-zona {
+            flex: 1;
+            display: flex;
             flex-direction: column;
-            align-items: stretch;
-            gap: 0.8rem;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.3rem;
+            min-height: 0;
+        }
+
+        /* CONTENEDOR PRINCIPAL - Scroll vertical aquí */
+        .tabla-wrapper {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Para encabezados fijos - IMPORTANTE */
+        .tabla-wrapper table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 2px solid #0f0;
+            background: rgba(26, 26, 26, 0.95);
+        }
+
+        /* CONTENEDOR PARA SCROLL HORIZONTAL */
+        .tabla-scroll-x {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            max-width: 100%;
+        }
+
+        .tabla-scroll-x::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .tabla-scroll-x::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 0, 0.3);
+            border-radius: 3px;
+        }
+
+        /* Tabla con ancho mínimo */
+        .tabla-scroll-x table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Primera columna más ancha */
+        .tabla-scroll-x table th:first-child,
+        .tabla-scroll-x table td:first-child {
+            width: 260px !important;
+            min-width: 260px !important;
+            max-width: 360px;
+            white-space: normal !important;
+            overflow: visible !important;
+        }
+
+        /* Estilo para las celdas */
+        .tabla-scroll-x table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Buscador y filtros */
+        .buscador-tabla {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            margin-bottom: 0.4rem;
+            justify-content: space-between;
+        }
+
+        .filtro-atendidos {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            font-size: 0.85rem;
+            color: #c9f9c9;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 46px;
+            height: 24px;
+            margin-left: 0.6rem;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .toggle-slider::before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            top: 2px;
+            background: #caffca;
+            border-radius: 50%;
+            transition: transform 0.25s ease;
+            box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: rgba(0, 255, 120, 0.25);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(22px);
         }
 
         .buscador-tabla input[type="text"] {
-            min-width: unset;
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.85rem;
+            outline: none;
+            min-width: 200px;
         }
-    }
-</style>
 
+        .buscador-tabla input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .buscador-tabla i {
+            font-size: 0.85rem;
+            color: #9fffa0;
+        }
+
+        /* Responsivo para móviles */
+        @media (max-width: 768px) {
+            .layout-egresos {
+                gap: 0.8rem;
+            }
+
+            .buscador-tabla {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.8rem;
+            }
+
+            .buscador-tabla input[type="text"] {
+                min-width: unset;
+            }
+            
+            .filtro-atendidos {
+                justify-content: space-between;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
 <body>
     <div class="glass" id="dashboard">
         <h5>Hojas Incompletas de Hospitalización</h5>
@@ -271,6 +237,10 @@
         <div id="footer"></div>
     </div>
 
+    <!-- Scripts en orden CORRECTO -->
+    <!-- Primero estadoSistema.js -->
+    <script src="/estadisticas/comun/estadoSistema.js"></script>
+    
     <script>
         /* ================== CONFIG ================== */
         const URL = "https://script.google.com/macros/s/AKfycbyAvx8VqdO8HymSdFGJFgXUm_cTs0QzMmd_M__P-STBYizfBRaxxLS1CWP3AEfLSfVw/exec";
@@ -292,52 +262,67 @@
 
         /* ================== TABLA ================== */
         async function cargarRegistros() {
-            const res = await fetch(URL);
-            const json = await res.json();
-            if (!json.ok) return;
+            setEstado('loading', 'Cargando registros...');
+            
+            try {
+                const res = await fetch(URL);
+                const json = await res.json();
+                if (!json.ok) {
+                    setEstado('error', 'Error en la respuesta del servidor');
+                    return;
+                }
 
-            let registros = json.registros;
+                let registros = json.registros;
 
-            // filtro checklist (columna H)
-            if (!mostrarAtendidos) {
-                registros = registros.filter(r => {
-                    const checklist = String(
-                        Object.values(r)[8] ?? ""
-                    ).toLowerCase();
+                // filtro checklist (columna H)
+                if (!mostrarAtendidos) {
+                    registros = registros.filter(r => {
+                        const checklist = String(
+                            Object.values(r)[8] ?? ""
+                        ).toLowerCase();
 
-                    return !["true", "sí", "si", "1", "checked"].includes(checklist);
+                        return !["true", "sí", "si", "1", "checked"].includes(checklist);
+                    });
+                }
+
+                // filtro búsqueda en tiempo real
+                if (textoBusqueda) {
+                    registros = registros.filter(r =>
+                        Object.values(r).some(v =>
+                            String(v).toLowerCase().includes(textoBusqueda)
+                        )
+                    );
+                }
+
+                const thead = document.querySelector("#tabla-registros thead");
+                const tbody = document.querySelector("#tabla-registros tbody");
+                thead.innerHTML = "";
+                tbody.innerHTML = "";
+
+                if (!registros.length) {
+                    setEstado('success', 'No hay registros para mostrar');
+                    return;
+                }
+
+                const headers = Object.keys(registros[0]);
+                thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+                registros.forEach(r => {
+                    const fila = "<tr>" + headers.map(h => {
+                        let v = r[h] ?? "";
+                        if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
+                            v = formatearFecha(v);
+                        }
+                        return `<td>${v}</td>`;
+                    }).join("") + "</tr>";
+                    tbody.innerHTML += fila;
                 });
+
+                setEstado('success', `Cargados ${registros.length} registros`);
+            } catch (error) {
+                setEstado('error', 'Error al cargar registros');
+                console.error('Error:', error);
             }
-
-            // filtro búsqueda en tiempo real
-            if (textoBusqueda) {
-                registros = registros.filter(r =>
-                    Object.values(r).some(v =>
-                        String(v).toLowerCase().includes(textoBusqueda)
-                    )
-                );
-            }
-
-            const thead = document.querySelector("#tabla-registros thead");
-            const tbody = document.querySelector("#tabla-registros tbody");
-            thead.innerHTML = "";
-            tbody.innerHTML = "";
-
-            if (!registros.length) return;
-
-            const headers = Object.keys(registros[0]);
-            thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
-
-            registros.forEach(r => {
-                const fila = "<tr>" + headers.map(h => {
-                    let v = r[h] ?? "";
-                    if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
-                        v = formatearFecha(v);
-                    }
-                    return `<td>${v}</td>`;
-                }).join("") + "</tr>";
-                tbody.innerHTML += fila;
-            });
         }
 
         function formatearFecha(v) {
@@ -347,57 +332,40 @@
             return `${String(f.getDate()).padStart(2, "0")}/${String(f.getMonth() + 1).padStart(2, "0")}/${f.getFullYear()}`;
         }
 
-        // Cargar registros cuando el DOM esté listo
-        document.addEventListener("DOMContentLoaded", () => {
-            console.log("DOM cargado, iniciando carga de registros...");
-            cargarRegistros();
+        // Cargar header y footer
+        Promise.all([
+            fetch('/estadisticas/comun/header.html').then(r => r.text()),
+            fetch('/estadisticas/comun/footer.html').then(r => r.text())
+        ]).then(([headerHtml, footerHtml]) => {
+            document.getElementById('header').innerHTML = headerHtml;
+            document.getElementById('footer').innerHTML = footerHtml;
+
+            // Actualizar año en footer
+            const footerText = document.getElementById('footerText');
+            if (footerText) {
+                footerText.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+            }
+
+            // Ahora cargar sesión
+            const script = document.createElement('script');
+            script.src = '/estadisticas/comun/sesion_bk.js';
+            script.onload = () => {
+                console.log("🔥 sesion_bk.js cargado");
+                // Si verificarAutenticacion existe, ejecutarla
+                if (typeof verificarAutenticacion === 'function') {
+                    verificarAutenticacion();
+                }
+            };
+            document.body.appendChild(script);
+        }).catch(error => {
+            console.error('Error cargando header/footer:', error);
+            setEstado('error', 'Error cargando componentes');
+        });
+
+        // Cargar registros cuando todo esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(cargarRegistros, 500); // Pequeño delay para que cargue el estado del sistema
         });
     </script>
-
-    <script>
-        // Cargar header y footer
-        fetch('/estadisticas/comun/header.html')
-            .then(r => r.text())
-            .then(html => {
-                document.getElementById('header').innerHTML = html;
-
-                // Verificar sesión después de cargar el header
-                const s = document.createElement('script');
-                s.src = '/estadisticas/comun/sesion_bk.js';
-                document.body.appendChild(s);
-
-                // Después de cargar sesión_bk.js, ejecutar verificarAutenticacion si existe
-                s.onload = () => {
-                    console.log("sesion_bk.js cargado");
-                    if (typeof verificarAutenticacion === 'function') {
-                        verificarAutenticacion();
-                    }
-                };
-            })
-            .catch(error => {
-                console.error("Error al cargar header:", error);
-                // Continuar sin header si hay error
-            });
-
-        fetch('/estadisticas/comun/footer.html')
-            .then(r => r.text())
-            .then(html => {
-                document.getElementById('footer').innerHTML = html;
-                const footer = document.getElementById('footerText');
-                if (footer) {
-                    footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-                }
-            })
-            .catch(error => {
-                console.error("Error al cargar footer:", error);
-                // Continuar sin footer si hay error
-            });
-    </script>
-
-    <!-- Scripts adicionales -->
-    <script src="/estadisticas/comun/estadoSistema.js"></script>
-    <!-- sesion_bk.js ya se carga dinámicamente arriba -->
-
 </body>
-
 </html>

@@ -16,7 +16,7 @@
     /* === NUEVO: Layout premium formulario + tabla === */
     .layout-egresos {
         display: grid;
-        grid-template-columns: 30% 1fr;
+        grid-template-columns: 100% 1fr;
         gap: 1rem;
         height: calc(100vh - 160px);
         min-height: 0;
@@ -81,7 +81,7 @@
         top: 0;
         /* background-color: #1a1a1a; */
         z-index: 10;
-        border-bottom: 1px solid #0f0;
+        border-bottom: 2px solid #0f0;
     }
 
     /* CONTENEDOR PARA SCROLL HORIZONTAL */
@@ -231,10 +231,6 @@
         .buscador-tabla input[type="text"] {
             min-width: unset;
         }
-
-        .filtro-atendidos {
-            justify-content: space-between;
-        }
     }
 </style>
 
@@ -242,29 +238,21 @@
     <div class="glass" id="dashboard">
         <h5>Hojas Incompletas de Hospitalización</h5>
         <div id="header"></div>
+
         <div class="layout-egresos">
-
-            <form id="form-egresos" class="form-panel">
-                <input type="text" name="paciente" placeholder="Paciente" required>
-                <input type="date" name="fecha_egreso">
-                <input type="text" name="servicio" placeholder="Servicio">
-                <input type="text" name="personal_archivo" placeholder="Personal de archivo">
-                <input type="text" name="no_expediente" placeholder="No. expediente">
-                <textarea name="observaciones" placeholder="Observaciones"></textarea>
-                <button class="button" type="submit">Guardar</button>
-            </form>
-
             <div class="tabla-zona">
                 <div class="buscador-tabla">
                     <div class="filtro-atendidos">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="buscadorTabla" placeholder="Buscar en la tabla…">
                     </div>
-                    <span>Mostrar atendidos</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="toggleAtendidos">
-                        <span class="toggle-slider"></span>
-                    </label>
+                    <div class="filtro-atendidos">
+                        <span>Mostrar atendidos</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleAtendidos">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- CONTENEDOR PRINCIPAL CON SCROLL VERTICAL -->
@@ -285,7 +273,7 @@
 
     <script>
         /* ================== CONFIG ================== */
-        const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec";
+        const URL = "https://script.google.com/macros/s/AKfycbyAvx8VqdO8HymSdFGJFgXUm_cTs0QzMmd_M__P-STBYizfBRaxxLS1CWP3AEfLSfVw/exec";
 
         let mostrarAtendidos = false;
         let textoBusqueda = "";
@@ -302,23 +290,6 @@
             cargarRegistros();
         });
 
-        /* ================== GUARDAR ================== */
-        document.getElementById("form-egresos").addEventListener("submit", async e => {
-            e.preventDefault();
-            const data = Object.fromEntries(new FormData(e.target).entries());
-
-            const res = await fetch(URL, {
-                method: "POST",
-                body: JSON.stringify(data)
-            });
-
-            const json = await res.json();
-            if (json.ok) {
-                cargarRegistros();
-                e.target.reset();
-            }
-        });
-
         /* ================== TABLA ================== */
         async function cargarRegistros() {
             const res = await fetch(URL);
@@ -327,20 +298,16 @@
 
             let registros = json.registros;
 
-            // filtro checklist (columna G)
+            // filtro checklist (columna H)
             if (!mostrarAtendidos) {
                 registros = registros.filter(r => {
-                    // Columna H (checklist): true / false / vacío
                     const checklist = String(
-                        Object.values(r)[7] ?? ""
+                        Object.values(r)[8] ?? ""
                     ).toLowerCase();
 
-                    // Mostrar SOLO los que NO tienen checklist activo
                     return !["true", "sí", "si", "1", "checked"].includes(checklist);
                 });
-                console.log("Registros sin checklist activo:", registros.length);
             }
-
 
             // filtro búsqueda en tiempo real
             if (textoBusqueda) {
@@ -374,62 +341,62 @@
         }
 
         function formatearFecha(v) {
+            if (!v) return "";
             const f = new Date(v);
-            if (isNaN(f)) return v;
+            if (isNaN(f.getTime())) return v;
             return `${String(f.getDate()).padStart(2, "0")}/${String(f.getMonth() + 1).padStart(2, "0")}/${f.getFullYear()}`;
         }
 
-        document.addEventListener("DOMContentLoaded", cargarRegistros);
-    </script>
-    <script>
-        // 🔍 Búsqueda en tiempo real con debounce
+        // Cargar registros cuando el DOM esté listo
         document.addEventListener("DOMContentLoaded", () => {
-            const input = document.getElementById("buscador");
+            console.log("DOM cargado, iniciando carga de registros...");
+            cargarRegistros();
+        });
+    </script>
 
-            input.addEventListener("input", e => {
-                clearTimeout(timer);
-                timer = setTimeout(() => {
-                    query = e.target.value.trim();
-                    page = 1;
-                    cargar();
-                }, 300); // ← dulce spot
+    <script>
+        // Cargar header y footer
+        fetch('/estadisticas/comun/header.html')
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById('header').innerHTML = html;
+
+                // Verificar sesión después de cargar el header
+                const s = document.createElement('script');
+                s.src = '/estadisticas/comun/sesion_bk.js';
+                document.body.appendChild(s);
+
+                // Después de cargar sesión_bk.js, ejecutar verificarAutenticacion si existe
+                s.onload = () => {
+                    console.log("sesion_bk.js cargado");
+                    if (typeof verificarAutenticacion === 'function') {
+                        verificarAutenticacion();
+                    }
+                };
+            })
+            .catch(error => {
+                console.error("Error al cargar header:", error);
+                // Continuar sin header si hay error
             });
 
-            cargar();
+        fetch('/estadisticas/comun/footer.html')
+            .then(r => r.text())
+            .then(html => {
+                document.getElementById('footer').innerHTML = html;
+                const footer = document.getElementById('footerText');
+                if (footer) {
+                    footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+                }
+            })
+            .catch(error => {
+                console.error("Error al cargar footer:", error);
+                // Continuar sin footer si hay error
+            });
     </script>
-    <script>
-            fetch('/estadisticas/comun/header-archivo.html')
-                .then(r => r.text())
-                .then(html => {
-                    document.getElementById('header').innerHTML = html;
 
-                    // Cargar sesión.js después de insertar el HTML
-                    const s = document.createElement('script');
-                    s.src = '/estadisticas/comun/sesion_bk.js';
-
-                    s.onload = () => {
-                        console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
-                        verificarAutenticacion();
-                    };
-
-                    document.body.appendChild(s);
-                });
-
-            fetch('/estadisticas/comun/footer.html')
-                .then(r => r.text())
-                .then(html => {
-                    document.getElementById('footer').innerHTML = html;
-
-                    // Ya existe footerText
-                    const footer = document.getElementById('footerText');
-                    if (footer) {
-                        footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-                    }
-                });
-    </script>
-    <!-- HEADER / FOOTER / SESIÓN: SIN TOCAR -->
+    <!-- Scripts adicionales -->
     <script src="/estadisticas/comun/estadoSistema.js"></script>
-    <script src="/estadisticas/comun/sesion_bk.js"></script>
+    <!-- sesion_bk.js ya se carga dinámicamente arriba -->
 
 </body>
 
