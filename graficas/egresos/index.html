@@ -760,37 +760,160 @@
         function createMonthlyChart() {
             const ctx = document.getElementById('monthlyChart').getContext('2d');
 
-            // Mismo código para agrupar datos...
-            // (usa el código de arriba hasta la preparación de datos)
+            // Agrupar por mes y sexo
+            const monthlyData = {
+                'MUJER': {},
+                'HOMBRE': {}
+            };
+
+            // Inicializar todos los meses para ambos sexos
+            filteredData.forEach(item => {
+                if (item.fecha_egreso && item.fecha_egreso instanceof Date) {
+                    try {
+                        const monthKey = `${item.fecha_egreso.getFullYear()}-${(item.fecha_egreso.getMonth() + 1).toString().padStart(2, '0')}`;
+                        const sexo = item.sexo_des || 'DESCONOCIDO';
+
+                        if (monthlyData[sexo]) {
+                            monthlyData[sexo][monthKey] = (monthlyData[sexo][monthKey] || 0) + 1;
+                        } else {
+                            // Si el sexo no es MUJER ni HOMBRE, contarlo como "OTRO"
+                            if (!monthlyData['OTRO']) {
+                                monthlyData['OTRO'] = {};
+                            }
+                            monthlyData['OTRO'][monthKey] = (monthlyData['OTRO'][monthKey] || 0) + 1;
+                        }
+                    } catch (error) {
+                        console.warn('Error procesando fecha:', item.fecha_egreso);
+                    }
+                }
+            });
+
+            // Obtener todos los meses únicos
+            const allMonths = new Set();
+            Object.values(monthlyData).forEach(sexData => {
+                Object.keys(sexData).forEach(month => allMonths.add(month));
+            });
+
+            // Verificar si hay datos
+            if (allMonths.size === 0) {
+                showNoDataMessage('monthlyChart', 'loading1', 'No hay datos de fechas para mostrar');
+                return;
+            }
+
+            // Ordenar meses
+            const sortedMonths = Array.from(allMonths).sort();
+
+            // Crear etiquetas legibles - ESTA LÍNEA DEBE ESTAR ANTES DE USAR labels
+            const labels = sortedMonths.map(m => {
+                const [year, month] = m.split('-');
+                return `${month}/${year}`;
+            });
+
+            // Preparar datos para cada sexo
+            const mujeresData = sortedMonths.map(month => monthlyData['MUJER'][month] || 0);
+            const hombresData = sortedMonths.map(month => monthlyData['HOMBRE'][month] || 0);
 
             charts.monthly = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: labels, // Ahora labels está definida
                     datasets: [
                         {
                             label: 'Mujeres',
                             data: mujeresData,
                             borderColor: 'rgba(255, 99, 132, 1)',
-                            backgroundColor: 'rgba(255, 99, 132, 0.3)',
-                            borderWidth: 2,
-                            fill: 'origin', // Área desde el eje Y
-                            tension: 0.4
+                            backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
                         },
                         {
                             label: 'Hombres',
                             data: hombresData,
                             borderColor: 'rgba(54, 162, 235, 1)',
-                            backgroundColor: 'rgba(54, 162, 235, 0.3)',
-                            borderWidth: 2,
-                            fill: '+1', // Área apilada sobre el dataset anterior
-                            tension: 0.4
+                            backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4,
+                            pointHoverRadius: 6
                         }
                     ]
                 },
-                // Resto de opciones similar...
+                options: {
+                    responsive: true,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    return `${context.dataset.label}: ${context.raw} egresos`;
+                                },
+                                footer: function (tooltipItems) {
+                                    if (tooltipItems.length > 1) {
+                                        const mujeres = tooltipItems.find(item => item.dataset.label === 'Mujeres')?.raw || 0;
+                                        const hombres = tooltipItems.find(item => item.dataset.label === 'Hombres')?.raw || 0;
+                                        const total = mujeres + hombres;
+                                        return `Total: ${total} egresos`;
+                                    }
+                                    return '';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad de Egresos'
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    }
+                }
             });
+
+            showChart('monthlyChart', 'loading1');
         }
+
+        // Agrega esta función auxiliar para manejar casos sin datos
+        function showNoDataMessage(chartId, loadingId, message) {
+            document.getElementById(loadingId).style.display = 'none';
+            const canvas = document.getElementById(chartId);
+            const container = canvas.parentElement;
+
+            const noDataDiv = document.createElement('div');
+            noDataDiv.className = 'no-data-message';
+            noDataDiv.innerHTML = `
+        <div class="text-center text-muted py-5">
+            <i class="fas fa-chart-line fa-3x mb-3"></i>
+            <p class="mb-0">${message}</p>
+        </div>
+    `;
+
+            container.appendChild(noDataDiv);
+        }
+
         // Gráfico de distribución por sexo
         function createGenderChart() {
             const ctx = document.getElementById('genderChart').getContext('2d');
