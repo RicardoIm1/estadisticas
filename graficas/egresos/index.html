@@ -152,10 +152,14 @@
                             <label class="form-label">Rango de Edad</label>
                             <select id="filterAge" class="form-select">
                                 <option value="">Todas las edades</option>
-                                <option value="0-20">0-20 años</option>
-                                <option value="21-40">21-40 años</option>
-                                <option value="41-60">41-60 años</option>
-                                <option value="61-100">61-100 años</option>
+                                <option value="0-1">Lactantes (0-1 año)</option>
+                                <option value="1-5">Infantil temprano (1-5 años)</option>
+                                <option value="6-12">Infantil tardío (6-12 años)</option>
+                                <option value="13-18">Adolescentes (13-18 años)</option>
+                                <option value="0-18">Todos menores (0-18 años)</option>
+                                <option value="19-40">Adultos jóvenes (19-40 años)</option>
+                                <option value="41-60">Adultos (41-60 años)</option>
+                                <option value="61-100">Adultos mayores (61+ años)</option>
                             </select>
                         </div>
                         <div class="col-md-3">
@@ -351,19 +355,54 @@
             const sexFilter = document.getElementById('filterSex').value;
             const ageFilter = document.getElementById('filterAge').value;
             const yearFilter = document.getElementById('filterYear').value;
-            const reasonFilter = document.getElementById('filterReason').value; // NUEVO
+            const reasonFilter = document.getElementById('filterReason').value;
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
 
             filteredData = allData.filter(item => {
                 // Filtro por sexo
                 if (sexFilter && item.sexo_des !== sexFilter) return false;
 
-                // Filtro por edad
-                if (ageFilter && item.edad) {
-                    const [min, max] = ageFilter.split('-').map(Number);
-                    if (item.edad < min || item.edad > max) return false;
+                // FILTRO POR EDAD - VERSIÓN MEJORADA
+                if (ageFilter && item.edad !== undefined && item.edad !== null) {
+                    const age = parseInt(item.edad);
+                    if (isNaN(age)) return false;
+
+                    // Definir rangos según la selección
+                    let pasaFiltro = false;
+
+                    switch (ageFilter) {
+                        case '0-1': // Lactantes
+                            pasaFiltro = age <= 1;
+                            break;
+                        case '1-5': // Infantil temprano
+                            pasaFiltro = age >= 1 && age <= 5;
+                            break;
+                        case '6-12': // Infantil tardío
+                            pasaFiltro = age >= 6 && age <= 12;
+                            break;
+                        case '13-18': // Adolescentes
+                            pasaFiltro = age >= 13 && age <= 18;
+                            break;
+                        case '0-18': // Todos menores
+                            pasaFiltro = age <= 18;
+                            break;
+                        case '19-40': // Adultos jóvenes
+                            pasaFiltro = age >= 19 && age <= 40;
+                            break;
+                        case '41-60': // Adultos
+                            pasaFiltro = age >= 41 && age <= 60;
+                            break;
+                        case '61-100': // Adultos mayores
+                            pasaFiltro = age >= 61;
+                            break;
+                        default:
+                            pasaFiltro = true;
+                    }
+
+                    if (!pasaFiltro) return false;
                 }
 
+                // Resto de filtros (sin cambios)...
                 // Filtro por año
                 if (yearFilter && item.fecha_egreso) {
                     try {
@@ -375,7 +414,7 @@
                     }
                 }
 
-                // NUEVO: Filtro por motivo de egreso
+                // Filtro por motivo de egreso
                 if (reasonFilter && item.motivo_egreso_desp !== reasonFilter) return false;
 
                 // Filtro por búsqueda
@@ -397,6 +436,57 @@
             updateStats();
             renderCharts();
             renderTable();
+        }
+
+        const sexFilter = document.getElementById('filterSex').value;
+        const ageFilter = document.getElementById('filterAge').value;
+        const yearFilter = document.getElementById('filterYear').value;
+        const reasonFilter = document.getElementById('filterReason').value; // NUEVO
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+
+        filteredData = allData.filter(item => {
+            // Filtro por sexo
+            if (sexFilter && item.sexo_des !== sexFilter) return false;
+
+            // Filtro por edad
+            if (ageFilter && item.edad) {
+                const [min, max] = ageFilter.split('-').map(Number);
+                if (item.edad < min || item.edad > max) return false;
+            }
+
+            // Filtro por año
+            if (yearFilter && item.fecha_egreso) {
+                try {
+                    const itemYear = item.fecha_egreso.getFullYear().toString();
+                    if (itemYear !== yearFilter) return false;
+                } catch (error) {
+                    console.warn('Fecha inválida:', item.fecha_egreso);
+                    return false;
+                }
+            }
+
+            // NUEVO: Filtro por motivo de egreso
+            if (reasonFilter && item.motivo_egreso_desp !== reasonFilter) return false;
+
+            // Filtro por búsqueda
+            if (searchTerm) {
+                const searchable = [
+                    item.descripcion,
+                    item.motivo_egreso_desp,
+                    item.sexo_des,
+                    item.edad?.toString()
+                ].join(' ').toLowerCase();
+
+                if (!searchable.includes(searchTerm)) return false;
+            }
+
+            return true;
+        });
+
+        currentPage = 1;
+        updateStats();
+        renderCharts();
+        renderTable();
         }
         // Actualiza la función updateFilterOptions para manejar fechas nulas
         function updateFilterOptions() {
@@ -536,85 +626,93 @@
             const statsContainer = document.getElementById('statsContainer');
             const total = filteredData.length;
 
-            // Calcular estadísticas
+            // Calcular estadísticas generales
             const mujeres = filteredData.filter(d => d.sexo_des === 'MUJER').length;
             const hombres = filteredData.filter(d => d.sexo_des === 'HOMBRE').length;
             const avgAge = filteredData.reduce((sum, d) => sum + (d.edad || 0), 0) / filteredData.length || 0;
+
+            // NUEVO: Estadísticas infantiles
+            const menores18 = filteredData.filter(d => d.edad && d.edad <= 18).length;
+            const lactantes = filteredData.filter(d => d.edad && d.edad <= 1).length;
+            const niños5a12 = filteredData.filter(d => d.edad && d.edad >= 5 && d.edad <= 12).length;
 
             // Obtener año más reciente
             const years = filteredData.map(d => d.fecha_egreso?.getFullYear()).filter(Boolean);
             const latestYear = years.length > 0 ? Math.max(...years) : 'N/A';
 
             const statsHTML = `
-                <div class="col-md-3">
-                    <div class="stat-card card shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                        Total Egresos
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${total}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-hospital fa-2x text-gray-300"></i>
-                                </div>
+        <div class="col-md-3">
+            <div class="stat-card card shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Egresos
                             </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${total}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-hospital fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card card shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                        Mujeres
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${mujeres}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-venus fa-2x text-gray-300"></i>
-                                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Menores de 18 años
                             </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${menores18}</div>
+                            <div class="mt-1 mb-0 text-xs">
+                                ${total > 0 ? `(${((menores18 / total) * 100).toFixed(1)}%)` : ''}
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-child fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card card shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                        Edad Promedio
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${avgAge.toFixed(1)}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-user fa-2x text-gray-300"></i>
-                                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Lactantes (0-1 año)
                             </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${lactantes}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-baby fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stat-card card shadow h-100 py-2">
-                        <div class="card-body">
-                            <div class="row no-gutters align-items-center">
-                                <div class="col mr-2">
-                                    <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                        Año más Reciente
-                                    </div>
-                                    <div class="h5 mb-0 font-weight-bold text-gray-800">${latestYear}</div>
-                                </div>
-                                <div class="col-auto">
-                                    <i class="fas fa-calendar fa-2x text-gray-300"></i>
-                                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card card shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Edad Promedio
                             </div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${avgAge.toFixed(1)}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user fa-2x text-gray-300"></i>
                         </div>
                     </div>
                 </div>
-            `;
+            </div>
+        </div>
+    `;
 
             statsContainer.innerHTML = statsHTML;
         }
@@ -831,24 +929,40 @@
         function createAgeChart() {
             const ctx = document.getElementById('ageChart').getContext('2d');
 
-            // Crear grupos de edad
+            // Crear grupos de edad con categorías infantiles detalladas
             const ageGroups = {
-                '0-20': 0,
-                '21-40': 0,
-                '41-60': 0,
-                '61-80': 0,
-                '81+': 0
+                '0-1 año': 0,
+                '2-5 años': 0,
+                '6-12 años': 0,
+                '13-18 años': 0,
+                '19-40 años': 0,
+                '41-60 años': 0,
+                '61+ años': 0
             };
 
             filteredData.forEach(item => {
                 if (item.edad) {
-                    if (item.edad <= 20) ageGroups['0-20']++;
-                    else if (item.edad <= 40) ageGroups['21-40']++;
-                    else if (item.edad <= 60) ageGroups['41-60']++;
-                    else if (item.edad <= 80) ageGroups['61-80']++;
-                    else ageGroups['81+']++;
+                    const age = parseInt(item.edad);
+                    if (age <= 1) ageGroups['0-1 año']++;
+                    else if (age <= 5) ageGroups['2-5 años']++;
+                    else if (age <= 12) ageGroups['6-12 años']++;
+                    else if (age <= 18) ageGroups['13-18 años']++;
+                    else if (age <= 40) ageGroups['19-40 años']++;
+                    else if (age <= 60) ageGroups['41-60 años']++;
+                    else ageGroups['61+ años']++;
                 }
             });
+
+            // Colores especiales para grupos infantiles
+            const ageColors = {
+                '0-1 año': 'rgba(255, 99, 132, 0.7)',     // Rojo
+                '2-5 años': 'rgba(255, 159, 64, 0.7)',    // Naranja
+                '6-12 años': 'rgba(255, 205, 86, 0.7)',   // Amarillo
+                '13-18 años': 'rgba(75, 192, 192, 0.7)',  // Turquesa
+                '19-40 años': 'rgba(54, 162, 235, 0.7)',  // Azul
+                '41-60 años': 'rgba(153, 102, 255, 0.7)', // Morado
+                '61+ años': 'rgba(201, 203, 207, 0.7)'    // Gris
+            };
 
             charts.age = new Chart(ctx, {
                 type: 'bar',
@@ -857,8 +971,10 @@
                     datasets: [{
                         label: 'Cantidad',
                         data: Object.values(ageGroups),
-                        backgroundColor: 'rgba(246, 194, 62, 0.7)',
-                        borderColor: 'rgba(246, 194, 62, 1)',
+                        backgroundColor: Object.keys(ageGroups).map(label => ageColors[label]),
+                        borderColor: Object.keys(ageGroups).map(label =>
+                            ageColors[label].replace('0.7', '1')
+                        ),
                         borderWidth: 1
                     }]
                 },
@@ -867,6 +983,16 @@
                     plugins: {
                         legend: {
                             display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const total = filteredData.length;
+                                    const value = context.raw;
+                                    const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                    return `${context.label}: ${value} (${percentage}%)`;
+                                }
+                            }
                         }
                     },
                     scales: {
