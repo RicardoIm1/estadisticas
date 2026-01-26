@@ -197,6 +197,19 @@
                 width: 100%;
             }
         }
+        
+        /* Estilos para columna ATENDIDO */
+        .col-atendido {
+            font-weight: bold;
+        }
+        
+        .atendido-verdadero {
+            color: #2ecc71 !important;
+        }
+        
+        .atendido-falso {
+            color: #e74c3c !important;
+        }
     </style>
 </head>
 <body>
@@ -246,20 +259,21 @@
 
         let mostrarAtendidos = false;
         let textoBusqueda = "";
+        let todosRegistros = []; // Guardamos todos los registros para filtrar sin volver a cargar
 
         /* ================== TOGGLE ================== */
         document.getElementById("toggleAtendidos").addEventListener("change", e => {
             mostrarAtendidos = e.target.checked;
-            cargarRegistros();
+            aplicarFiltros();
         });
 
         /* ================== BUSCADOR ================== */
         document.getElementById("buscadorTabla").addEventListener("input", e => {
             textoBusqueda = e.target.value.toLowerCase().trim();
-            cargarRegistros();
+            aplicarFiltros();
         });
 
-        /* ================== TABLA ================== */
+        /* ================== CARGAR DATOS INICIALES ================== */
         async function cargarRegistros() {
             setEstado('loading', 'Cargando registros...');
             
@@ -271,57 +285,145 @@
                     return;
                 }
 
-                let registros = json.registros;
-
-                // filtro checklist (columna H)
-                if (!mostrarAtendidos) {
-                    registros = registros.filter(r => {
-                        const checklist = String(
-                            Object.values(r)[8] ?? ""
-                        ).toLowerCase();
-
-                        return !["true", "sí", "si", "1", "checked"].includes(checklist);
-                    });
-                }
-
-                // filtro búsqueda en tiempo real
-                if (textoBusqueda) {
-                    registros = registros.filter(r =>
-                        Object.values(r).some(v =>
-                            String(v).toLowerCase().includes(textoBusqueda)
-                        )
-                    );
-                }
-
-                const thead = document.querySelector("#tabla-registros thead");
-                const tbody = document.querySelector("#tabla-registros tbody");
-                thead.innerHTML = "";
-                tbody.innerHTML = "";
-
-                if (!registros.length) {
-                    setEstado('success', 'No hay registros para mostrar');
-                    return;
-                }
-
-                const headers = Object.keys(registros[0]);
-                thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
-
-                registros.forEach(r => {
-                    const fila = "<tr>" + headers.map(h => {
-                        let v = r[h] ?? "";
-                        if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
-                            v = formatearFecha(v);
+                todosRegistros = json.registros;
+                console.log("Registros cargados:", todosRegistros.length);
+                
+                // Mostrar información de depuración
+                if (todosRegistros.length > 0) {
+                    console.log("Primer registro:", todosRegistros[0]);
+                    console.log("Columnas disponibles:", Object.keys(todosRegistros[0]));
+                    
+                    // Buscar la columna ATENDIDO específicamente
+                    const primerRegistro = todosRegistros[0];
+                    for (const key in primerRegistro) {
+                        if (key.toUpperCase().includes('ATENDIDO') || key.toUpperCase().includes('CHECK')) {
+                            console.log(`Columna encontrada: "${key}" = "${primerRegistro[key]}"`);
                         }
-                        return `<td>${v}</td>`;
-                    }).join("") + "</tr>";
-                    tbody.innerHTML += fila;
-                });
+                    }
+                }
 
-                setEstado('success', `Cargados ${registros.length} registros`);
+                aplicarFiltros();
+
             } catch (error) {
                 setEstado('error', 'Error al cargar registros');
                 console.error('Error:', error);
             }
+        }
+
+        /* ================== APLICAR FILTROS ================== */
+        function aplicarFiltros() {
+            if (todosRegistros.length === 0) return;
+
+            let registros = [...todosRegistros];
+
+            // 1. Filtro por columna ATENDIDO
+            if (!mostrarAtendidos) {
+                // Por defecto: mostrar solo los que tienen "FALSO" en ATENDIDO
+                registros = registros.filter(r => {
+                    const valorAtendido = obtenerValorAtendido(r);
+                    const valorNormalizado = String(valorAtendido).toUpperCase().trim();
+                    
+                    // Mostrar solo si es FALSO, FALSE, vacío o null
+                    return valorNormalizado === "FALSO" || 
+                           valorNormalizado === "FALSE" || 
+                           valorNormalizado === "" || 
+                           valorAtendido === null || 
+                           valorAtendido === undefined;
+                });
+                console.log(`Filtro "No atendidos": ${todosRegistros.length} → ${registros.length} registros`);
+            }
+            // Si mostrarAtendidos es true, mostrar todos (incluyendo VERDADERO y FALSO)
+
+            // 2. Filtro de búsqueda
+            if (textoBusqueda) {
+                registros = registros.filter(r =>
+                    Object.values(r).some(v =>
+                        String(v).toLowerCase().includes(textoBusqueda)
+                    )
+                );
+                console.log(`Filtro búsqueda "${textoBusqueda}": ${registros.length} registros`);
+            }
+
+            // 3. Renderizar la tabla
+            renderizarTabla(registros);
+        }
+
+        /* ================== OBTENER VALOR DE ATENDIDO ================== */
+        function obtenerValorAtendido(registro) {
+            // Buscar la columna que se llame ATENDIDO (ignorando mayúsculas/minúsculas)
+            for (const key in registro) {
+                if (key.toUpperCase() === 'ATENDIDO') {
+                    return registro[key];
+                }
+            }
+            
+            // Si no encuentra exactamente "ATENDIDO", buscar variaciones
+            for (const key in registro) {
+                const keyUpper = key.toUpperCase();
+                if (keyUpper.includes('ATEND') || keyUpper.includes('CHECK')) {
+                    console.log(`Columna encontrada por similitud: "${key}" = "${registro[key]}"`);
+                    return registro[key];
+                }
+            }
+            
+            // Si no encuentra ninguna, devolver null
+            return null;
+        }
+
+        /* ================== RENDERIZAR TABLA ================== */
+        function renderizarTabla(registros) {
+            const thead = document.querySelector("#tabla-registros thead");
+            const tbody = document.querySelector("#tabla-registros tbody");
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            if (!registros.length) {
+                setEstado('success', 'No hay registros para mostrar con los filtros actuales');
+                return;
+            }
+
+            const headers = Object.keys(registros[0]);
+            
+            // Crear encabezados
+            thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+            // Crear filas
+            registros.forEach(r => {
+                const tr = document.createElement('tr');
+                
+                headers.forEach(h => {
+                    const td = document.createElement('td');
+                    let valor = r[h] ?? "";
+                    
+                    // Formatear fechas
+                    if (h.includes('FECHA') || h.includes('FECHA') || h.includes('CUANDO') || h.includes('REGISTRADO')) {
+                        valor = formatearFecha(valor);
+                    }
+                    
+                    // Aplicar estilos a la columna ATENDIDO
+                    if (h.toUpperCase().includes('ATENDIDO') || h.toUpperCase().includes('CHECK')) {
+                        td.classList.add('col-atendido');
+                        const valorNormalizado = String(valor).toUpperCase().trim();
+                        if (valorNormalizado === "VERDADERO" || valorNormalizado === "TRUE") {
+                            td.classList.add('atendido-verdadero');
+                            td.innerHTML = '<i class="fas fa-check-circle"></i> Atendido';
+                        } else if (valorNormalizado === "FALSO" || valorNormalizado === "FALSE") {
+                            td.classList.add('atendido-falso');
+                            td.innerHTML = '<i class="fas fa-times-circle"></i> Pendiente';
+                        } else {
+                            td.textContent = valor;
+                        }
+                    } else {
+                        td.textContent = valor;
+                    }
+                    
+                    tr.appendChild(td);
+                });
+                
+                tbody.appendChild(tr);
+            });
+
+            setEstado('success', `Mostrando ${registros.length} registros`);
         }
 
         function formatearFecha(v) {
@@ -363,7 +465,7 @@
 
         // Cargar registros cuando todo esté listo
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(cargarRegistros, 500); // Pequeño delay para que cargue el estado del sistema
+            setTimeout(cargarRegistros, 500);
         });
     </script>
 </body>
