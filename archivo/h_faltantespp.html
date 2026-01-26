@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -148,11 +149,11 @@
             box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
         }
 
-        .toggle-switch input:checked + .toggle-slider {
+        .toggle-switch input:checked+.toggle-slider {
             background: rgba(0, 255, 120, 0.25);
         }
 
-        .toggle-switch input:checked + .toggle-slider::before {
+        .toggle-switch input:checked+.toggle-slider::before {
             transform: translateX(22px);
         }
 
@@ -192,14 +193,48 @@
             .buscador-tabla input[type="text"] {
                 min-width: unset;
             }
-            
+
             .filtro-atendidos {
                 justify-content: space-between;
                 width: 100%;
             }
         }
+
+        /* Estilos para el botón de marcar */
+        .btn-marcar {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-left: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-marcar:hover {
+            background: linear-gradient(135deg, #27ae60, #219653);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(39, 174, 96, 0.3);
+        }
+
+        .btn-marcar i {
+            margin-right: 4px;
+        }
+
+        /* Estilo para filas ya atendidas */
+        .fila-atendida {
+            opacity: 0.7;
+            background-color: rgba(46, 204, 113, 0.05) !important;
+        }
+
+        .fila-atendida td {
+            color: #7f8c8d;
+        }
     </style>
 </head>
+
 <body>
     <div class="glass" id="dashboard">
         <h5>Hojas Incompletas de Hospitalización</h5>
@@ -240,7 +275,7 @@
     <!-- Scripts en orden CORRECTO -->
     <!-- Primero estadoSistema.js -->
     <script src="/estadisticas/comun/estadoSistema.js"></script>
-    
+
     <script>
         /* ================== CONFIG ================== */
         const URL = "https://script.google.com/macros/s/AKfycbyAvx8VqdO8HymSdFGJFgXUm_cTs0QzMmd_M__P-STBYizfBRaxxLS1CWP3AEfLSfVw/exec";
@@ -264,7 +299,7 @@
         /* ================== CARGAR DATOS ORIGINALES ================== */
         async function cargarRegistros() {
             setEstado('loading', 'Cargando registros...');
-            
+
             try {
                 const res = await fetch(URL);
                 const json = await res.json();
@@ -275,15 +310,15 @@
 
                 todosRegistros = json.registros;
                 console.log("Total de registros cargados:", todosRegistros.length);
-                
+
                 // Mostrar los primeros 5 registros para debug
                 if (todosRegistros.length > 0) {
                     console.log("Primer registro:", todosRegistros[0]);
                     console.log("Cabeceras:", Object.keys(todosRegistros[0]));
                 }
-                
+
                 aplicarFiltros();
-                
+
             } catch (error) {
                 setEstado('error', 'Error al cargar registros');
                 console.error('Error:', error);
@@ -302,9 +337,14 @@
                     // Buscar la columna de checklist por diferentes nombres posibles
                     const checklistValue = buscarValorChecklist(r);
                     const valorChecklist = String(checklistValue ?? "").toLowerCase().trim();
-                    
+
                     // Mostrar SOLO los que NO tienen checklist activo
-                    const esAtendido = ["true", "sí", "si", "1", "checked", "x", "✓", "✔"].includes(valorChecklist);
+                    const esAtendido = [
+                        "true", "verdadero", "sí", "si", "1",
+                        "checked", "x", "✓", "✔", "check",
+                        "s", "v", "t", "yes", "y"
+                    ].includes(valorChecklist);
+
                     return !esAtendido;
                 });
                 console.log(`Filtro "No atendidos": ${todosRegistros.length} → ${registros.length} registros`);
@@ -326,37 +366,127 @@
 
         /* ================== BUSCAR VALOR DE CHECKLIST ================== */
         function buscarValorChecklist(registro) {
-            // Buscar por diferentes nombres de columna posibles
+            // Buscar por diferentes nombres de columna posibles, incluyendo en español
             const nombresChecklist = [
-                "CHECKLIST", "Checklist", "checklist",
                 "ATENDIDO", "Atendido", "atendido",
+                "CHECKLIST", "Checklist", "checklist",
                 "REVISADO", "Revisado", "revisado",
                 "COMPLETADO", "Completado", "completado",
-                "ESTADO", "Estado", "estado"
+                "ESTADO", "Estado", "estado",
+                "VERDADERO", "Verdadero", "verdadero",
+                "FALSO", "Falso", "falso"
             ];
-            
+
+            console.log("Buscando columna ATENDIDO en:", Object.keys(registro));
+
             // Buscar en las claves del registro
             for (const key of Object.keys(registro)) {
                 if (nombresChecklist.includes(key)) {
+                    console.log(`Encontrado por nombre exacto: "${key}" = "${registro[key]}"`);
                     return registro[key];
                 }
             }
-            
+
             // Si no encuentra por nombre exacto, buscar por coincidencia parcial
             for (const key of Object.keys(registro)) {
                 const keyLower = key.toLowerCase();
-                if (keyLower.includes('check') || 
-                    keyLower.includes('atend') || 
-                    keyLower.includes('revis') || 
+                if (keyLower.includes('atend') ||
+                    keyLower.includes('check') ||
+                    keyLower.includes('revis') ||
                     keyLower.includes('complet') ||
-                    keyLower.includes('estado')) {
-                    console.log(`Encontrado checklist en columna: "${key}" = "${registro[key]}"`);
+                    keyLower.includes('estado') ||
+                    keyLower.includes('verdadero') ||
+                    keyLower.includes('falso')) {
+                    console.log(`Encontrado por coincidencia: "${key}" = "${registro[key]}"`);
                     return registro[key];
                 }
             }
-            
+
+            // Si no se encuentra, mostrar en consola para debugging
+            console.log("No se encontró columna de checklist en:", registro);
             return "";
         }
+
+        /* ================== FUNCIÓN PARA MARCAR COMO ATENDIDO ================== */
+        function marcarComoAtendido(id) {
+            if (!confirm("¿Marcar este registro como atendido?")) return;
+
+            // Buscar el registro por ID
+            const registro = todosRegistros.find(r => r.id === id);
+            if (!registro) {
+                alert("Registro no encontrado");
+                return;
+            }
+
+            // Marcar como atendido (VERDADERO)
+            registro.ATENDIDO = "VERDADERO";
+
+            console.log(`Marcando registro ${id} como ATENDIDO: VERDADERO`);
+
+            // Aquí deberías agregar la lógica para actualizar en Google Sheets
+            // Ejemplo con fetch:
+            /*
+            fetch('TU_URL_DE_GOOGLE_SCRIPT', {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'updateData',
+                    id: id,
+                    ATENDIDO: 'VERDADERO'
+                }),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    aplicarFiltros(); // Reaplicar filtros para ocultar el registro
+                }
+            });
+            */
+
+            // Por ahora, solo reaplicar filtros para ocultar el registro
+            aplicarFiltros();
+        }
+
+        /* ================== FUNCIÓN PARA AGREGAR BOTÓN DE MARCAR ================== */
+        function agregarBotonMarcar(filaHTML, registro) {
+            const valorChecklist = buscarValorChecklist(registro);
+            const valorChecklistStr = String(valorChecklist ?? "").toLowerCase().trim();
+            const esAtendido = [
+                "true", "verdadero", "sí", "si", "1",
+                "checked", "x", "✓", "✔", "check",
+                "s", "v", "t", "yes", "y"
+            ].includes(valorChecklistStr);
+
+            if (!esAtendido) {
+                // Agregar botón para marcar como atendido
+                const celdaAcciones = filaHTML.querySelector('td:last-child');
+                if (celdaAcciones) {
+                    const btnMarcar = document.createElement('button');
+                    btnMarcar.className = 'btn-marcar';
+                    btnMarcar.innerHTML = '<i class="fas fa-check"></i> Marcar';
+                    btnMarcar.title = 'Marcar como atendido';
+                    btnMarcar.onclick = (e) => {
+                        e.stopPropagation();
+                        marcarComoAtendido(registro.id);
+                    };
+
+                    // Agregar al contenedor de acciones
+                    const contenedorAcciones = celdaAcciones.querySelector('.acciones-tabla') || celdaAcciones;
+                    if (contenedorAcciones.querySelector('.acciones-tabla')) {
+                        contenedorAcciones.querySelector('.acciones-tabla').appendChild(btnMarcar);
+                    } else {
+                        const divAcciones = document.createElement('div');
+                        divAcciones.className = 'acciones-tabla';
+                        divAcciones.appendChild(btnMarcar);
+                        celdaAcciones.appendChild(divAcciones);
+                    }
+                }
+            }
+        }
+
+        // En la función renderizarTabla, llama a agregarBotonMarcar después de crear cada fila
 
         /* ================== RENDERIZAR TABLA ================== */
         function renderizarTabla(registros) {
@@ -431,4 +561,5 @@
         });
     </script>
 </body>
+
 </html>
