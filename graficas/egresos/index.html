@@ -283,55 +283,51 @@
         // Reemplaza la función cleanData completa con esta versión corregida
         function cleanData(rows) {
             return rows.map(row => {
-                // Convertir fecha - manejar diferentes formatos
-                let fecha = row.fecha_egreso;
+                // Convertir fecha ISO string a Date
                 let fechaObj = null;
+                if (row.fecha_egreso) {
+                    // Si ya es un objeto Date válido
+                    if (row.fecha_egreso instanceof Date && !isNaN(row.fecha_egreso)) {
+                        fechaObj = row.fecha_egreso;
+                    }
+                    // Si es string ISO (como "2024-05-28T06:00:00.000Z")
+                    else if (typeof row.fecha_egreso === 'string') {
+                        fechaObj = new Date(row.fecha_egreso);
 
-                if (fecha) {
-                    // Intentar diferentes formatos de fecha
-                    if (fecha instanceof Date && !isNaN(fecha)) {
-                        fechaObj = fecha;
-                    } else if (typeof fecha === 'string') {
-                        // Formato YYYY-MM-DD
-                        if (fecha.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                            fechaObj = new Date(fecha);
+                        // Si falla, intentar otros formatos
+                        if (isNaN(fechaObj.getTime())) {
+                            // Formato YYYY-MM-DD
+                            if (row.fecha_egreso.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                                fechaObj = new Date(row.fecha_egreso);
+                            }
                         }
-                        // Formato DD/MM/YYYY
-                        else if (fecha.match(/^\d{2}\/\d{2}\/\d{4}$/)) {
-                            const parts = fecha.split('/');
-                            fechaObj = new Date(parts[2], parts[1] - 1, parts[0]);
-                        }
-                        // Formato timestamp
-                        else if (fecha.match(/^\d+$/)) {
-                            fechaObj = new Date(parseInt(fecha));
-                        }
+                    }
 
-                        // Verificar si la fecha es válida
-                        if (fechaObj && isNaN(fechaObj.getTime())) {
-                            fechaObj = null;
-                        }
+                    // Verificar si es válida
+                    if (fechaObj && isNaN(fechaObj.getTime())) {
+                        fechaObj = null;
                     }
                 }
 
-                // Convertir edad a número
-                let edad = row.edad;
-                if (edad && typeof edad === 'string') {
-                    const ageMatch = edad.match(/(\d+)/);
-                    if (ageMatch) {
-                        edad = parseInt(ageMatch[1]);
+                // Convertir edad
+                let edadNum = 0;
+                if (row.edad !== undefined && row.edad !== null) {
+                    if (typeof row.edad === 'number') {
+                        edadNum = Math.floor(row.edad);
+                    } else if (typeof row.edad === 'string') {
+                        const match = row.edad.toString().match(/(\d+)/);
+                        edadNum = match ? parseInt(match[1]) : 0;
                     }
-                } else if (edad && typeof edad === 'number') {
-                    edad = Math.floor(edad);
                 }
 
                 return {
                     fecha_egreso: fechaObj,
-                    edad: edad || 0,
-                    descripcion: row.descripcion || '',
-                    sexo_des: (row.sexo_des || 'DESCONOCIDO').toUpperCase(),
-                    motivo_egreso_desp: row.motivo_egreso_desp || ''
+                    edad: edadNum,
+                    descripcion: row.descripcion || row.DESCRIPCION || '',
+                    sexo_des: (row.sexo_des || row.SEXO_DES || 'DESCONOCIDO').toString().toUpperCase().trim(),
+                    motivo_egreso_desp: row.motivo_egreso_desp || row.MOTIVO_EGRESO_DESP || ''
                 };
-            }).filter(item => item.edad > 0); // Filtrar items sin edad válida
+            }).filter(item => item !== null);
         }
 
         // También actualiza la función applyFilters para manejar fechas nulas
@@ -850,19 +846,25 @@
             // Renderizar datos de la página
             let tableHTML = '';
             pageData.forEach(item => {
-                const fecha = item.fecha_egreso ?
-                    item.fecha_egreso.toLocaleDateString('es-ES') :
-                    'N/A';
+                // Formatear fecha correctamente
+                let fechaFormateada = 'N/A';
+                if (item.fecha_egreso && item.fecha_egreso instanceof Date && !isNaN(item.fecha_egreso.getTime())) {
+                    fechaFormateada = item.fecha_egreso.toLocaleDateString('es-ES', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    });
+                }
 
                 tableHTML += `
-                    <tr>
-                        <td>${fecha}</td>
-                        <td>${item.edad || 'N/A'}</td>
-                        <td>${item.descripcion || ''}</td>
-                        <td>${item.sexo_des || ''}</td>
-                        <td>${item.motivo_egreso_desp || ''}</td>
-                    </tr>
-                `;
+            <tr>
+                <td>${fechaFormateada}</td>
+                <td>${item.edad || 'N/A'}</td>
+                <td>${item.descripcion || ''}</td>
+                <td>${item.sexo_des || ''}</td>
+                <td>${item.motivo_egreso_desp || ''}</td>
+            </tr>
+        `;
             });
 
             tableBody.innerHTML = tableHTML || '<tr><td colspan="5" class="text-center">No hay datos</td></tr>';
