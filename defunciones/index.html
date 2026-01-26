@@ -18,7 +18,36 @@
         white-space: normal;
         word-break: break-word;
     }
-  
+    
+    /* Estado del sistema visual en el contenedor principal */
+    .glass.loading {
+      background: linear-gradient(135deg, rgba(41, 128, 185, 0.25), rgba(52, 152, 219, 0.15));
+      box-shadow: 0 8px 32px rgba(41, 128, 185, 0.3),
+                  0 0 0 2px rgba(52, 152, 219, 0.4);
+      border: 1px solid rgba(52, 152, 219, 0.6);
+    }
+    
+    .glass.success {
+      background: linear-gradient(135deg, rgba(46, 204, 113, 0.25), rgba(39, 174, 96, 0.15));
+      box-shadow: 0 8px 32px rgba(46, 204, 113, 0.3),
+                  0 0 0 2px rgba(39, 174, 96, 0.4);
+      border: 1px solid rgba(39, 174, 96, 0.6);
+    }
+    
+    .glass.error {
+      background: linear-gradient(135deg, rgba(231, 76, 60, 0.25), rgba(192, 57, 43, 0.15));
+      box-shadow: 0 8px 32px rgba(231, 76, 60, 0.3),
+                  0 0 0 2px rgba(192, 57, 43, 0.4);
+      border: 1px solid rgba(192, 57, 43, 0.6);
+    }
+    
+    /* Iframe oculto para enviar formularios */
+    #form-iframe {
+      display: none;
+      width: 0;
+      height: 0;
+      border: none;
+    }
 </style>
 <body>
   <div class="glass" id="dashboard">
@@ -148,6 +177,9 @@
     </div>
   </div> <!-- end .glass -->
 
+  <!-- Iframe oculto para enviar formularios -->
+  <iframe id="form-iframe" name="form-iframe"></iframe>
+
     <script>
       // Footer dinámico
       document.getElementById('footerText').innerHTML =
@@ -189,34 +221,13 @@
       }
 
       // ========== estadoSistema.js ==========
-      let intensidadUso = 0;
-      let respiracionInterval;
-
-      function iniciarRespiracion() {
-        const dashboard = document.querySelector('.glass');
-        if (!dashboard) return;
-
-        clearInterval(respiracionInterval);
-        let fase = 0;
-        respiracionInterval = setInterval(() => {
-          fase += 0.04 + Math.random() * 0.02;
-          const intensidad = Math.min(0.2 + intensidadUso / 50, 0.7);
-          const escala = 1 + Math.sin(fase) * intensidad * 0.05;
-          dashboard.style.transform = `scale(${escala})`;
-        }, 100);
-      }
-
-      function setEstado(estado, mensaje = null) {
+      function setEstado(estado) {
         const dashboard = document.querySelector('.glass');
 
         if (!dashboard) {
           console.warn('⚠️ No se encontró el contenedor .glass');
           return;
         }
-
-        intensidadUso = Math.min(intensidadUso + 1, 20);
-
-        setTimeout(() => (intensidadUso = Math.max(intensidadUso - 1, 0)), 10000);
 
         dashboard.style.transition = 'background 0.5s ease, box-shadow 0.8s ease, border 0.5s ease';
         dashboard.classList.remove('loading', 'success', 'error');
@@ -269,7 +280,7 @@
         }
       }
 
-      // Guardar registro - VERSIÓN SIMPLIFICADA SIN NUEVA PESTAÑA
+      // Guardar registro - USANDO FORMULARIO EN IFRAME
       async function guardar(e) {
         e.preventDefault();
 
@@ -296,44 +307,86 @@
         console.log('💾 Enviando datos:', datos);
         setEstado('loading');
 
+        // Crear formulario dinámico
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = GAS_URL;
+        form.target = 'form-iframe';  // Enviar al iframe oculto
+        form.style.display = 'none';
+
+        // Agregar campos
+        const campos = {
+          action: id ? 'updateData' : 'createData',
+          ...datos
+        };
+
+        if (id) campos.id = id;
+
+        Object.keys(campos).forEach(key => {
+          const input = document.createElement('input');
+          input.name = key;
+          input.value = campos[key] || '';
+          form.appendChild(input);
+        });
+
+        // Agregar formulario al body y enviar
+        document.body.appendChild(form);
+        form.submit();
+        
+        // Esperar un momento para que se procese
+        setTimeout(() => {
+          document.body.removeChild(form);
+          setEstado('success');
+          limpiarForm();
+          cargarRegistros();
+        }, 1500);
+      }
+
+      // Eliminar registro - USANDO FORMULARIO EN IFRAME
+      async function eliminarConfirmado() {
+        if (!idParaEliminar) return;
+
         try {
-          // Enviar datos directamente con fetch
-          const formData = new FormData();
-          formData.append('action', id ? 'updateData' : 'createData');
+          setEstado('loading');
+
+          // Crear formulario dinámico
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = GAS_URL;
+          form.target = 'form-iframe';  // Enviar al iframe oculto
+          form.style.display = 'none';
+
+          const inputAction = document.createElement('input');
+          inputAction.name = 'action';
+          inputAction.value = 'deleteData';
+          form.appendChild(inputAction);
+
+          const inputId = document.createElement('input');
+          inputId.name = 'id';
+          inputId.value = idParaEliminar;
+          form.appendChild(inputId);
+
+          // Agregar formulario al body y enviar
+          document.body.appendChild(form);
+          form.submit();
           
-          if (id) {
-            formData.append('id', id);
-          }
-          
-          // Agregar todos los campos
-          Object.keys(datos).forEach(key => {
-            formData.append(key, datos[key] || '');
-          });
-
-          const response = await fetch(GAS_URL, {
-            method: 'POST',
-            body: formData
-          });
-
-          const text = await response.text();
-          const result = JSON.parse(text);
-
-          if (result.success) {
+          // Esperar un momento para que se procese
+          setTimeout(() => {
+            document.body.removeChild(form);
             setEstado('success');
-            limpiarForm();
+            cerrarModal();
             cargarRegistros();
-          } else {
-            throw new Error(result.error || 'Error al guardar');
-          }
+          }, 1500);
 
         } catch (error) {
-          console.error('❌ Error:', error);
+          console.error('❌ Error eliminando:', error);
           setEstado('error');
-          alert('❌ Error: ' + error.message);
+          alert('❌ Error eliminando: ' + error.message);
+          cerrarModal();
         }
       }
 
-      // Eliminar registro - CON MODAL ELEGANTE
+      // Función para solicitar eliminación
       function solicitarEliminar(id) {
         idParaEliminar = id;
         const modal = document.getElementById('modalEliminar');
@@ -343,40 +396,6 @@
         setTimeout(() => {
           modalContent.classList.add('show');
         }, 10);
-      }
-
-      async function eliminarConfirmado() {
-        if (!idParaEliminar) return;
-
-        try {
-          setEstado('loading');
-
-          const formData = new FormData();
-          formData.append('action', 'deleteData');
-          formData.append('id', idParaEliminar);
-
-          const response = await fetch(GAS_URL, {
-            method: 'POST',
-            body: formData
-          });
-
-          const text = await response.text();
-          const result = JSON.parse(text);
-
-          if (result.success) {
-            setEstado('success');
-            cerrarModal();
-            cargarRegistros();
-          } else {
-            throw new Error(result.error || 'Error al eliminar');
-          }
-
-        } catch (error) {
-          console.error('❌ Error eliminando:', error);
-          setEstado('error');
-          alert('❌ Error eliminando: ' + error.message);
-          cerrarModal();
-        }
       }
 
       function cerrarModal() {
