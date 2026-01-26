@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,233 +10,231 @@
         crossorigin="anonymous" referrerpolicy="no-referrer" />
     <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
     <link href="/estadisticas/main_css/tabla-wrapper.css" rel="stylesheet">
-</head>
-<style>
-    /* === NUEVO: Layout premium formulario + tabla === */
-    .layout-egresos {
-        display: grid;
-        grid-template-columns: 30% 1fr;
-        gap: 1rem;
-        height: calc(100vh - 160px);
-        min-height: 0;
-    }
-
-    /* Formulario premium */
-    .form-panel {
-        background: rgba(255, 255, 255, 0.09);
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        border-radius: 14px;
-        padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.7rem;
-        min-width: 200px;
-        overflow-y: auto;
-        color: #0f0;
-    }
-
-    /* Inputs minimalistas */
-    .form-panel input,
-    .form-panel textarea {
-        width: 100%;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        background: rgba(255, 255, 255, 0.08);
-        color: #0f0;
-        font-size: 0.9rem;
-    }
-
-    .form-panel textarea {
-        height: 80px;
-        resize: vertical;
-    }
-
-    /* Wrapper para la tabla */
-    .tabla-zona {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        padding: 0.3rem;
-        min-height: 0;
-    }
-
-    /* CONTENEDOR PRINCIPAL - Scroll vertical aquí */
-    .tabla-wrapper {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        /* Scroll vertical */
-        position: relative;
-    }
-
-    /* Para encabezados fijos - IMPORTANTE */
-    .tabla-wrapper table thead th {
-        position: sticky;
-        top: 0;
-        /* background-color: #1a1a1a; */
-        z-index: 10;
-        border-bottom: 1px solid #0f0;
-    }
-
-    /* CONTENEDOR PARA SCROLL HORIZONTAL */
-    .tabla-scroll-x {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;
-        max-width: 100%;
-    }
-
-    .tabla-scroll-x::-webkit-scrollbar {
-        height: 6px;
-    }
-
-    .tabla-scroll-x::-webkit-scrollbar-thumb {
-        background: rgba(0, 255, 0, 0.3);
-        border-radius: 3px;
-    }
-
-    /* Tabla con ancho mínimo */
-    .tabla-scroll-x table {
-        width: max-content;
-        min-width: 100%;
-        border-collapse: collapse;
-    }
-
-    /* Primera columna más ancha */
-    .tabla-scroll-x table th:first-child,
-    .tabla-scroll-x table td:first-child {
-        width: 260px !important;
-        min-width: 260px !important;
-        max-width: 360px;
-        white-space: normal !important;
-        overflow: visible !important;
-    }
-
-    /* Estilo para las celdas */
-    .tabla-scroll-x table td {
-        padding: 8px 12px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        color: rgba(255, 255, 255, 0.9);
-        background: rgba(255, 255, 255, 0.03);
-    }
-
-    /* Buscador y filtros */
-    .buscador-tabla {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.4rem 0.6rem;
-        background: rgba(255, 255, 255, 0.06);
-        border-radius: 10px;
-        margin-bottom: 0.4rem;
-        justify-content: space-between;
-    }
-
-    .filtro-atendidos {
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        font-size: 0.85rem;
-        color: #c9f9c9;
-    }
-
-    .toggle-switch {
-        position: relative;
-        width: 46px;
-        height: 24px;
-        margin-left: 0.6rem;
-    }
-
-    .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        inset: 0;
-        background: rgba(255, 255, 255, 0.15);
-        border-radius: 999px;
-        transition: all 0.25s ease;
-        border: 1px solid rgba(255, 255, 255, 0.25);
-    }
-
-    .toggle-slider::before {
-        content: "";
-        position: absolute;
-        height: 18px;
-        width: 18px;
-        left: 3px;
-        top: 2px;
-        background: #caffca;
-        border-radius: 50%;
-        transition: transform 0.25s ease;
-        box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
-    }
-
-    .toggle-switch input:checked+.toggle-slider {
-        background: rgba(0, 255, 120, 0.25);
-    }
-
-    .toggle-switch input:checked+.toggle-slider::before {
-        transform: translateX(22px);
-    }
-
-    .buscador-tabla input[type="text"] {
-        flex: 1;
-        padding: 8px 12px;
-        border-radius: 8px;
-        border: none;
-        background: rgba(255, 255, 255, 0.1);
-        color: white;
-        font-size: 0.85rem;
-        outline: none;
-        min-width: 200px;
-    }
-
-    .buscador-tabla input::placeholder {
-        color: rgba(255, 255, 255, 0.5);
-    }
-
-    .buscador-tabla i {
-        font-size: 0.85rem;
-        color: #9fffa0;
-    }
-
-    /* Responsivo para móviles */
-    @media (max-width: 768px) {
+    <style>
+        /* === NUEVO: Layout premium formulario + tabla === */
         .layout-egresos {
-            grid-template-columns: 1fr;
-            gap: 0.8rem;
+            display: grid;
+            grid-template-columns: 30% 1fr;
+            gap: 1rem;
+            height: calc(100vh - 160px);
+            min-height: 0;
         }
 
+        /* Formulario premium */
         .form-panel {
-            max-height: none;
-        }
-
-        .buscador-tabla {
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            padding: 1rem;
+            display: flex;
             flex-direction: column;
-            align-items: stretch;
-            gap: 0.8rem;
+            gap: 0.7rem;
+            min-width: 200px;
+            overflow-y: auto;
+            color: #0f0;
         }
 
-        .buscador-tabla input[type="text"] {
-            min-width: unset;
+        /* Inputs minimalistas */
+        .form-panel input,
+        .form-panel textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.08);
+            color: #0f0;
+            font-size: 0.9rem;
+        }
+
+        .form-panel textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        /* Wrapper para la tabla */
+        .tabla-zona {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.3rem;
+            min-height: 0;
+        }
+
+        /* CONTENEDOR PRINCIPAL - Scroll vertical aquí */
+        .tabla-wrapper {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            /* Scroll vertical */
+            position: relative;
+        }
+
+        /* Para encabezados fijos - IMPORTANTE */
+        .tabla-wrapper table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid #0f0;
+        }
+
+        /* CONTENEDOR PARA SCROLL HORIZONTAL */
+        .tabla-scroll-x {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            max-width: 100%;
+        }
+
+        .tabla-scroll-x::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .tabla-scroll-x::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 0, 0.3);
+            border-radius: 3px;
+        }
+
+        /* Tabla con ancho mínimo */
+        .tabla-scroll-x table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Primera columna más ancha */
+        .tabla-scroll-x table th:first-child,
+        .tabla-scroll-x table td:first-child {
+            width: 260px !important;
+            min-width: 260px !important;
+            max-width: 360px;
+            white-space: normal !important;
+            overflow: visible !important;
+        }
+
+        /* Estilo para las celdas */
+        .tabla-scroll-x table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Buscador y filtros */
+        .buscador-tabla {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            margin-bottom: 0.4rem;
+            justify-content: space-between;
         }
 
         .filtro-atendidos {
-            justify-content: space-between;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            font-size: 0.85rem;
+            color: #c9f9c9;
         }
-    }
-</style>
 
+        .toggle-switch {
+            position: relative;
+            width: 46px;
+            height: 24px;
+            margin-left: 0.6rem;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .toggle-slider::before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            top: 2px;
+            background: #caffca;
+            border-radius: 50%;
+            transition: transform 0.25s ease;
+            box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: rgba(0, 255, 120, 0.25);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(22px);
+        }
+
+        .buscador-tabla input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.85rem;
+            outline: none;
+            min-width: 200px;
+        }
+
+        .buscador-tabla input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .buscador-tabla i {
+            font-size: 0.85rem;
+            color: #9fffa0;
+        }
+
+        /* Responsivo para móviles */
+        @media (max-width: 768px) {
+            .layout-egresos {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .form-panel {
+                max-height: none;
+            }
+
+            .buscador-tabla {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.8rem;
+            }
+
+            .buscador-tabla input[type="text"] {
+                min-width: unset;
+            }
+
+            .filtro-atendidos {
+                justify-content: space-between;
+            }
+        }
+    </style>
+</head>
 <body>
     <div class="glass" id="dashboard">
         <h5>Hojas Incompletas de Hospitalización</h5>
@@ -283,6 +280,10 @@
         <div id="footer"></div>
     </div>
 
+    <!-- Scripts en orden CORRECTO -->
+    <!-- Primero estadoSistema.js -->
+    <script src="/estadisticas/comun/estadoSistema.js"></script>
+    
     <script>
         /* ================== CONFIG ================== */
         const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec";
@@ -305,72 +306,92 @@
         /* ================== GUARDAR ================== */
         document.getElementById("form-egresos").addEventListener("submit", async e => {
             e.preventDefault();
-            const data = Object.fromEntries(new FormData(e.target).entries());
+            setEstado('loading', 'Guardando registro...');
+            
+            try {
+                const data = Object.fromEntries(new FormData(e.target).entries());
 
-            const res = await fetch(URL, {
-                method: "POST",
-                body: JSON.stringify(data)
-            });
+                const res = await fetch(URL, {
+                    method: "POST",
+                    body: JSON.stringify(data)
+                });
 
-            const json = await res.json();
-            if (json.ok) {
-                cargarRegistros();
-                e.target.reset();
+                const json = await res.json();
+                if (json.ok) {
+                    setEstado('success', 'Registro guardado correctamente');
+                    cargarRegistros();
+                    e.target.reset();
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                setEstado('error', 'Error al guardar el registro');
+                console.error('Error:', error);
             }
         });
 
         /* ================== TABLA ================== */
         async function cargarRegistros() {
-            const res = await fetch(URL);
-            const json = await res.json();
-            if (!json.ok) return;
+            setEstado('loading', 'Cargando registros...');
+            
+            try {
+                const res = await fetch(URL);
+                const json = await res.json();
+                if (!json.ok) return;
 
-            let registros = json.registros;
+                let registros = json.registros;
 
-            // filtro checklist (columna G)
-            if (!mostrarAtendidos) {
-                registros = registros.filter(r => {
-                    // Columna H (checklist): true / false / vacío
-                    const checklist = String(
-                        Object.values(r)[7] ?? ""
-                    ).toLowerCase();
+                // filtro checklist (columna G)
+                if (!mostrarAtendidos) {
+                    registros = registros.filter(r => {
+                        // Columna H (checklist): true / false / vacío
+                        const checklist = String(
+                            Object.values(r)[7] ?? ""
+                        ).toLowerCase();
 
-                    // Mostrar SOLO los que NO tienen checklist activo
-                    return !["true", "sí", "si", "1", "checked"].includes(checklist);
+                        // Mostrar SOLO los que NO tienen checklist activo
+                        return !["true", "sí", "si", "1", "checked"].includes(checklist);
+                    });
+                }
+
+                // filtro búsqueda en tiempo real
+                if (textoBusqueda) {
+                    registros = registros.filter(r =>
+                        Object.values(r).some(v =>
+                            String(v).toLowerCase().includes(textoBusqueda)
+                        )
+                    );
+                }
+
+                const thead = document.querySelector("#tabla-registros thead");
+                const tbody = document.querySelector("#tabla-registros tbody");
+                thead.innerHTML = "";
+                tbody.innerHTML = "";
+
+                if (!registros.length) {
+                    setEstado('success', 'No hay registros para mostrar');
+                    return;
+                }
+
+                const headers = Object.keys(registros[0]);
+                thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+                registros.forEach(r => {
+                    const fila = "<tr>" + headers.map(h => {
+                        let v = r[h] ?? "";
+                        if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
+                            v = formatearFecha(v);
+                        }
+                        return `<td>${v}</td>`;
+                    }).join("") + "</tr>";
+                    tbody.innerHTML += fila;
                 });
-                console.log("Registros sin checklist activo:", registros.length);
+
+                setEstado('success', `Cargados ${registros.length} registros`);
+            } catch (error) {
+                setEstado('error', 'Error al cargar registros');
+                console.error('Error:', error);
             }
-
-
-            // filtro búsqueda en tiempo real
-            if (textoBusqueda) {
-                registros = registros.filter(r =>
-                    Object.values(r).some(v =>
-                        String(v).toLowerCase().includes(textoBusqueda)
-                    )
-                );
-            }
-
-            const thead = document.querySelector("#tabla-registros thead");
-            const tbody = document.querySelector("#tabla-registros tbody");
-            thead.innerHTML = "";
-            tbody.innerHTML = "";
-
-            if (!registros.length) return;
-
-            const headers = Object.keys(registros[0]);
-            thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
-
-            registros.forEach(r => {
-                const fila = "<tr>" + headers.map(h => {
-                    let v = r[h] ?? "";
-                    if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
-                        v = formatearFecha(v);
-                    }
-                    return `<td>${v}</td>`;
-                }).join("") + "</tr>";
-                tbody.innerHTML += fila;
-            });
         }
 
         function formatearFecha(v) {
@@ -379,58 +400,40 @@
             return `${String(f.getDate()).padStart(2, "0")}/${String(f.getMonth() + 1).padStart(2, "0")}/${f.getFullYear()}`;
         }
 
-        document.addEventListener("DOMContentLoaded", cargarRegistros);
+        // Cargar header y footer
+        Promise.all([
+            fetch('/estadisticas/comun/header-archivo.html').then(r => r.text()),
+            fetch('/estadisticas/comun/footer.html').then(r => r.text())
+        ]).then(([headerHtml, footerHtml]) => {
+            document.getElementById('header').innerHTML = headerHtml;
+            document.getElementById('footer').innerHTML = footerHtml;
+
+            // Actualizar año en footer
+            const footerText = document.getElementById('footerText');
+            if (footerText) {
+                footerText.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+            }
+
+            // Ahora cargar sesión
+            const script = document.createElement('script');
+            script.src = '/estadisticas/comun/sesion_bk.js';
+            script.onload = () => {
+                console.log("🔥 sesion_bk.js cargado");
+                // Si verificarAutenticacion existe, ejecutarla
+                if (typeof verificarAutenticacion === 'function') {
+                    verificarAutenticacion();
+                }
+            };
+            document.body.appendChild(script);
+        }).catch(error => {
+            console.error('Error cargando header/footer:', error);
+            setEstado('error', 'Error cargando componentes');
+        });
+
+        // Cargar registros cuando todo esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(cargarRegistros, 500); // Pequeño delay para que cargue el estado del sistema
+        });
     </script>
-    <script>
-        // 🔍 Búsqueda en tiempo real con debounce
-        document.addEventListener("DOMContentLoaded", () => {
-            const input = document.getElementById("buscador");
-
-            input.addEventListener("input", e => {
-                clearTimeout(timer);
-                timer = setTimeout(() => {
-                    query = e.target.value.trim();
-                    page = 1;
-                    cargar();
-                }, 300); // ← dulce spot
-            });
-
-            cargar();
-    </script>
-    <script>
-            fetch('/estadisticas/comun/header-archivo.html')
-                .then(r => r.text())
-                .then(html => {
-                    document.getElementById('header').innerHTML = html;
-
-                    // Cargar sesión.js después de insertar el HTML
-                    const s = document.createElement('script');
-                    s.src = '/estadisticas/comun/sesion_bk.js';
-
-                    s.onload = () => {
-                        console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
-                        verificarAutenticacion();
-                    };
-
-                    document.body.appendChild(s);
-                });
-
-            fetch('/estadisticas/comun/footer.html')
-                .then(r => r.text())
-                .then(html => {
-                    document.getElementById('footer').innerHTML = html;
-
-                    // Ya existe footerText
-                    const footer = document.getElementById('footerText');
-                    if (footer) {
-                        footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-                    }
-                });
-    </script>
-    <!-- HEADER / FOOTER / SESIÓN: SIN TOCAR -->
-    <script src="/estadisticas/comun/estadoSistema.js"></script>
-    <script src="/estadisticas/comun/sesion_bk.js"></script>
-
 </body>
-
 </html>
