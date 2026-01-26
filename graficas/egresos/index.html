@@ -100,6 +100,29 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
+
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            height: 100%;
+            border: 1px solid #eaeaea;
+        }
+
+        .chart-container h4 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .chart-container h4 i {
+            margin-right: 10px;
+            color: #4e73df;
+        }
     </style>
 </head>
 
@@ -737,63 +760,37 @@
         function createMonthlyChart() {
             const ctx = document.getElementById('monthlyChart').getContext('2d');
 
-            // Agrupar por mes
-            const monthlyData = {};
-            filteredData.forEach(item => {
-                if (item.fecha_egreso) {
-                    const monthKey = `${item.fecha_egreso.getFullYear()}-${(item.fecha_egreso.getMonth() + 1).toString().padStart(2, '0')}`;
-                    monthlyData[monthKey] = (monthlyData[monthKey] || 0) + 1;
-                }
-            });
-
-            // Ordenar por fecha
-            const sortedMonths = Object.keys(monthlyData).sort();
-            const labels = sortedMonths.map(m => {
-                const [year, month] = m.split('-');
-                return `${month}/${year}`;
-            });
-            const data = sortedMonths.map(m => monthlyData[m]);
+            // Mismo código para agrupar datos...
+            // (usa el código de arriba hasta la preparación de datos)
 
             charts.monthly = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        label: 'Egresos',
-                        data: data,
-                        borderColor: 'rgba(78, 115, 223, 1)',
-                        backgroundColor: 'rgba(78, 115, 223, 0.1)',
-                        borderWidth: 2,
-                        fill: true,
-                        tension: 0.4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'top',
+                    datasets: [
+                        {
+                            label: 'Mujeres',
+                            data: mujeresData,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.3)',
+                            borderWidth: 2,
+                            fill: 'origin', // Área desde el eje Y
+                            tension: 0.4
                         },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false
+                        {
+                            label: 'Hombres',
+                            data: hombresData,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.3)',
+                            borderWidth: 2,
+                            fill: '+1', // Área apilada sobre el dataset anterior
+                            tension: 0.4
                         }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Cantidad de Egresos'
-                            }
-                        }
-                    }
-                }
+                    ]
+                },
+                // Resto de opciones similar...
             });
-
-            showChart('monthlyChart', 'loading1');
         }
-
         // Gráfico de distribución por sexo
         function createGenderChart() {
             const ctx = document.getElementById('genderChart').getContext('2d');
