@@ -123,6 +123,56 @@
             margin-right: 10px;
             color: #4e73df;
         }
+
+        /* Agrega al final de tu sección <style> */
+        .hallazgos-container {
+            background: linear-gradient(135deg, #f8f9ff 0%, #f0f2ff 100%);
+            border-radius: 10px;
+            padding: 25px;
+            border-left: 5px solid #4e73df;
+        }
+
+        .hallazgo-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            height: 100%;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            border-top: 4px solid #4e73df;
+            transition: transform 0.3s;
+        }
+
+        .hallazgo-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .hallazgo-card h6 {
+            color: #2c3e50;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .hallazgo-valor {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4e73df;
+            line-height: 1;
+        }
+
+        .hallazgo-desc {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-top: 8px;
+        }
+
+        .table-sm th {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .table-sm td {
+            vertical-align: middle;
+        }
     </style>
 </head>
 
@@ -262,36 +312,44 @@
         </div>
 
         <!-- Tabla de Datos -->
+        <!-- Tabla Resumen por Mes y Hallazgos -->
         <div class="row">
             <div class="col-12">
                 <div class="chart-container">
-                    <h4><i class="fas fa-table me-2"></i>Datos Detallados</h4>
-                    <div class="mb-3">
-                        <input type="text" id="searchInput" class="form-control" placeholder="Buscar en los datos...">
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover data-table">
-                            <thead>
+                    <h4><i class="fas fa-chart-bar me-2"></i>Resumen Mensual de Egresos</h4>
+
+                    <!-- Tabla Resumen por Mes -->
+                    <div class="table-responsive mb-5">
+                        <table class="table table-hover table-sm">
+                            <thead class="table-light">
                                 <tr>
-                                    <th>Fecha Egreso</th>
-                                    <th>Edad</th>
-                                    <th>Descripción</th>
-                                    <th>Sexo</th>
-                                    <th>Motivo Egreso</th>
+                                    <th>Año</th>
+                                    <th>Mes</th>
+                                    <th>Total Egresos</th>
+                                    <th>Mujeres</th>
+                                    <th>Hombres</th>
+                                    <th>% Mujeres</th>
+                                    <th>Edad Promedio</th>
+                                    <th>Motivo Principal</th>
                                 </tr>
                             </thead>
-                            <tbody id="dataTableBody">
-                                <!-- Los datos se cargarán aquí -->
+                            <tbody id="monthlySummaryTable">
+                                <!-- Se llenará dinámicamente -->
                             </tbody>
+                            <tfoot class="table-secondary">
+                                <tr id="totalSummaryRow">
+                                    <!-- Se llenará dinámicamente -->
+                                </tr>
+                            </tfoot>
                         </table>
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mt-3">
-                        <div id="paginationInfo"></div>
-                        <nav>
-                            <ul class="pagination mb-0" id="pagination">
-                                <!-- La paginación se generará aquí -->
-                            </ul>
-                        </nav>
+
+                    <!-- Principales Hallazgos -->
+                    <div class="hallazgos-container">
+                        <h5 class="mb-4"><i class="fas fa-search me-2"></i>Principales Hallazgos</h5>
+                        <div class="row" id="hallazgosCards">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1139,126 +1197,349 @@
         }
 
         // Mostrar gráfico y ocultar loading
-            function showChart(chartId, loadingId) {
-                // Limpiar mensajes de "no data" previos
-                const container = document.getElementById(chartId).parentElement;
-                const noDataMessages = container.querySelectorAll('.no-data-message');
-                noDataMessages.forEach(msg => msg.remove());
+        function showChart(chartId, loadingId) {
+            // Limpiar mensajes de "no data" previos
+            const container = document.getElementById(chartId).parentElement;
+            const noDataMessages = container.querySelectorAll('.no-data-message');
+            noDataMessages.forEach(msg => msg.remove());
 
-                // Mostrar gráfico
-                document.getElementById(loadingId).style.display = 'none';
-                document.getElementById(chartId).style.display = 'block';
-            }
+            // Mostrar gráfico
+            document.getElementById(loadingId).style.display = 'none';
+            document.getElementById(chartId).style.display = 'block';
+        }
 
-            // Renderizar tabla
-            function renderTable() {
-                const tableBody = document.getElementById('dataTableBody');
-                const paginationInfo = document.getElementById('paginationInfo');
-                const pagination = document.getElementById('pagination');
+        // Renderizar tabla
+        function renderTable() {
+            // 1. Calcular resumen mensual
+            const monthlySummary = calculateMonthlySummary();
 
-                const startIndex = (currentPage - 1) * itemsPerPage;
-                const endIndex = startIndex + itemsPerPage;
-                const pageData = filteredData.slice(startIndex, endIndex);
-                const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            // 2. Mostrar tabla resumen
+            renderMonthlySummaryTable(monthlySummary);
 
-                // Renderizar datos de la página
-                let tableHTML = '';
-                pageData.forEach(item => {
-                    // Formatear fecha correctamente
-                    let fechaFormateada = 'N/A';
-                    if (item.fecha_egreso && item.fecha_egreso instanceof Date && !isNaN(item.fecha_egreso.getTime())) {
-                        fechaFormateada = item.fecha_egreso.toLocaleDateString('es-ES', {
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
-                        });
+            // 3. Mostrar hallazgos principales
+            renderHallazgosPrincipales(monthlySummary);
+        }
+
+        function calculateMonthlySummary() {
+            const summary = {};
+
+            filteredData.forEach(item => {
+                if (item.fecha_egreso && item.fecha_egreso instanceof Date) {
+                    const year = item.fecha_egreso.getFullYear();
+                    const month = item.fecha_egreso.getMonth() + 1; // 1-12
+                    const key = `${year}-${month.toString().padStart(2, '0')}`;
+
+                    if (!summary[key]) {
+                        summary[key] = {
+                            year: year,
+                            month: month,
+                            total: 0,
+                            mujeres: 0,
+                            hombres: 0,
+                            otros: 0,
+                            edades: [],
+                            motivos: {}
+                        };
                     }
 
-                    tableHTML += `
+                    // Contar por sexo
+                    summary[key].total++;
+                    if (item.sexo_des === 'MUJER') summary[key].mujeres++;
+                    else if (item.sexo_des === 'HOMBRE') summary[key].hombres++;
+                    else summary[key].otros++;
+
+                    // Acumular edad
+                    if (item.edad && item.edad > 0) {
+                        summary[key].edades.push(item.edad);
+                    }
+
+                    // Contar motivos
+                    const motivo = item.motivo_egreso_desp || 'No especificado';
+                    summary[key].motivos[motivo] = (summary[key].motivos[motivo] || 0) + 1;
+                }
+            });
+
+            return summary;
+        }
+
+        function renderMonthlySummaryTable(summary) {
+            const tableBody = document.getElementById('monthlySummaryTable');
+            const totalRow = document.getElementById('totalSummaryRow');
+
+            if (Object.keys(summary).length === 0) {
+                tableBody.innerHTML = `
             <tr>
-                <td>${fechaFormateada}</td>
-                <td>${item.edad || 'N/A'}</td>
-                <td>${item.descripcion || ''}</td>
-                <td>${item.sexo_des || ''}</td>
-                <td>${item.motivo_egreso_desp || ''}</td>
+                <td colspan="8" class="text-center py-4 text-muted">
+                    <i class="fas fa-calendar-times fa-2x mb-3"></i><br>
+                    No hay datos para mostrar
+                </td>
             </tr>
         `;
-                });
+                totalRow.innerHTML = '';
+                return;
+            }
 
-                tableBody.innerHTML = tableHTML || '<tr><td colspan="5" class="text-center">No hay datos</td></tr>';
+            // Ordenar por año y mes (más reciente primero)
+            const sortedKeys = Object.keys(summary).sort((a, b) => b.localeCompare(a));
 
-                // Actualizar info de paginación
-                paginationInfo.textContent = `Mostrando ${startIndex + 1}-${Math.min(endIndex, filteredData.length)} de ${filteredData.length} registros`;
+            let tableHTML = '';
+            let totalGeneral = {
+                total: 0,
+                mujeres: 0,
+                hombres: 0,
+                edades: []
+            };
 
-                // Renderizar paginación
-                let paginationHTML = '';
+            sortedKeys.forEach(key => {
+                const data = summary[key];
+                const mesNombre = getMonthName(data.month);
+                const edadPromedio = data.edades.length > 0
+                    ? (data.edades.reduce((a, b) => a + b, 0) / data.edades.length).toFixed(1)
+                    : 'N/A';
 
-                // Botón anterior
-                paginationHTML += `
-                <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
-                    <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Anterior</a>
-                </li>
-            `;
-
-                // Números de página
-                for (let i = 1; i <= totalPages; i++) {
-                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                        paginationHTML += `
-                        <li class="page-item ${i === currentPage ? 'active' : ''}">
-                            <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
-                        </li>
-                    `;
-                    } else if (i === currentPage - 3 || i === currentPage + 3) {
-                        paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
-                    }
+                // Encontrar motivo principal
+                let motivoPrincipal = 'N/A';
+                if (Object.keys(data.motivos).length > 0) {
+                    const topMotivo = Object.entries(data.motivos)
+                        .sort((a, b) => b[1] - a[1])[0];
+                    motivoPrincipal = `${topMotivo[0]} (${topMotivo[1]})`;
                 }
 
-                // Botón siguiente
-                paginationHTML += `
-                <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
-                    <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Siguiente</a>
-                </li>
-            `;
+                tableHTML += `
+            <tr>
+                <td><strong>${data.year}</strong></td>
+                <td>${mesNombre}</td>
+                <td><span class="badge bg-primary rounded-pill">${data.total}</span></td>
+                <td>${data.mujeres}</td>
+                <td>${data.hombres}</td>
+                <td>${data.total > 0 ? ((data.mujeres / data.total) * 100).toFixed(1) + '%' : '0%'}</td>
+                <td>${edadPromedio}</td>
+                <td><small>${motivoPrincipal}</small></td>
+            </tr>
+        `;
 
-                pagination.innerHTML = paginationHTML;
+                // Acumular para totales
+                totalGeneral.total += data.total;
+                totalGeneral.mujeres += data.mujeres;
+                totalGeneral.hombres += data.hombres;
+                totalGeneral.edades = totalGeneral.edades.concat(data.edades);
+            });
+
+            tableBody.innerHTML = tableHTML;
+
+            // Calcular totales
+            const edadPromedioTotal = totalGeneral.edades.length > 0
+                ? (totalGeneral.edades.reduce((a, b) => a + b, 0) / totalGeneral.edades.length).toFixed(1)
+                : 'N/A';
+
+            totalRow.innerHTML = `
+        <td colspan="2"><strong>TOTAL GENERAL</strong></td>
+        <td><strong class="text-primary">${totalGeneral.total}</strong></td>
+        <td><strong>${totalGeneral.mujeres}</strong></td>
+        <td><strong>${totalGeneral.hombres}</strong></td>
+        <td><strong>${totalGeneral.total > 0 ? ((totalGeneral.mujeres / totalGeneral.total) * 100).toFixed(1) + '%' : '0%'}</strong></td>
+        <td><strong>${edadPromedioTotal}</strong></td>
+        <td></td>
+    `;
+        }
+
+        function renderHallazgosPrincipales(summary) {
+            const hallazgosContainer = document.getElementById('hallazgosCards');
+
+            if (Object.keys(summary).length === 0) {
+                hallazgosContainer.innerHTML = `
+            <div class="col-12 text-center text-muted py-4">
+                No hay hallazgos para mostrar
+            </div>
+        `;
+                return;
             }
 
-            // Cambiar página
-            function changePage(page) {
-                currentPage = page;
-                renderTable();
-            }
+            // Calcular estadísticas generales
+            const stats = calculateHallazgosStats();
 
-            // Actualizar última actualización
-            function updateLastUpdate() {
-                const now = new Date();
-                const formattedDate = now.toLocaleDateString('es-ES', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                document.getElementById('lastUpdate').textContent = `Última actualización: ${formattedDate}`;
-            }
+            // Crear tarjetas de hallazgos
+            const hallazgosHTML = `
+        <div class="col-md-3 mb-4">
+            <div class="hallazgo-card">
+                <h6><i class="fas fa-calendar-alt me-2"></i>Mes con Más Egresos</h6>
+                <div class="hallazgo-valor">${stats.mesMasEgresos.total}</div>
+                <div class="hallazgo-desc">
+                    ${stats.mesMasEgresos.mes} ${stats.mesMasEgresos.year}<br>
+                    ${stats.mesMasEgresos.mujeres} mujeres · ${stats.mesMasEgresos.hombres} hombres
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="hallazgo-card" style="border-top-color: #1cc88a;">
+                <h6><i class="fas fa-venus me-2"></i>Distribución por Sexo</h6>
+                <div class="hallazgo-valor">${stats.porcentajeMujeres}%</div>
+                <div class="hallazgo-desc">
+                    ${stats.totalMujeres} mujeres / ${stats.totalHombres} hombres<br>
+                    Total: ${stats.totalEgresos} egresos
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="hallazgo-card" style="border-top-color: #f6c23e;">
+                <h6><i class="fas fa-user-friends me-2"></i>Edad Promedio</h6>
+                <div class="hallazgo-valor">${stats.edadPromedio}</div>
+                <div class="hallazgo-desc">
+                    Rango: ${stats.edadMin}-${stats.edadMax} años<br>
+                    Moda: ${stats.edadModa} años
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
+            <div class="hallazgo-card" style="border-top-color: #e74a3b;">
+                <h6><i class="fas fa-clipboard-check me-2"></i>Motivo Principal</h6>
+                <div class="hallazgo-valor">${stats.motivoPrincipal.count}</div>
+                <div class="hallazgo-desc">
+                    ${stats.motivoPrincipal.nombre}<br>
+                    ${((stats.motivoPrincipal.count / stats.totalEgresos) * 100).toFixed(1)}% del total
+                </div>
+            </div>
+        </div>
+    `;
 
-            // Mostrar/ocultar loading
-            function showLoading(show) {
-                const loaders = document.querySelectorAll('.loading');
-                const canvases = document.querySelectorAll('canvas');
+            hallazgosContainer.innerHTML = hallazgosHTML;
+        }
 
-                if (show) {
-                    loaders.forEach(loader => loader.style.display = 'flex');
-                    canvases.forEach(canvas => canvas.style.display = 'none');
-                } else {
-                    loaders.forEach(loader => loader.style.display = 'none');
+        function calculateHallazgosStats() {
+            // Encontrar mes con más egresos
+            const monthlyData = {};
+            filteredData.forEach(item => {
+                if (item.fecha_egreso) {
+                    const key = `${item.fecha_egreso.getFullYear()}-${item.fecha_egreso.getMonth() + 1}`;
+                    monthlyData[key] = (monthlyData[key] || 0) + 1;
                 }
-            }
+            });
 
-            // Mostrar error
-            function showError(message) {
-                const statsContainer = document.getElementById('statsContainer');
-                statsContainer.innerHTML = `
+            let mesMasEgresos = { total: 0 };
+            Object.entries(monthlyData).forEach(([key, total]) => {
+                if (total > mesMasEgresos.total) {
+                    const [year, month] = key.split('-');
+                    mesMasEgresos = {
+                        year: year,
+                        mes: getMonthName(parseInt(month)),
+                        total: total,
+                        mujeres: filteredData.filter(d =>
+                            d.fecha_egreso &&
+                            d.fecha_egreso.getFullYear() == year &&
+                            d.fecha_egreso.getMonth() + 1 == month &&
+                            d.sexo_des === 'MUJER'
+                        ).length,
+                        hombres: filteredData.filter(d =>
+                            d.fecha_egreso &&
+                            d.fecha_egreso.getFullYear() == year &&
+                            d.fecha_egreso.getMonth() + 1 == month &&
+                            d.sexo_des === 'HOMBRE'
+                        ).length
+                    };
+                }
+            });
+
+            // Estadísticas generales
+            const totalEgresos = filteredData.length;
+            const totalMujeres = filteredData.filter(d => d.sexo_des === 'MUJER').length;
+            const totalHombres = filteredData.filter(d => d.sexo_des === 'HOMBRE').length;
+            const porcentajeMujeres = totalEgresos > 0 ? ((totalMujeres / totalEgresos) * 100).toFixed(1) : 0;
+
+            // Estadísticas de edad
+            const edades = filteredData.map(d => d.edad).filter(edad => edad && edad > 0);
+            const edadPromedio = edades.length > 0 ? (edades.reduce((a, b) => a + b, 0) / edades.length).toFixed(1) : 'N/A';
+            const edadMin = edades.length > 0 ? Math.min(...edades) : 'N/A';
+            const edadMax = edades.length > 0 ? Math.max(...edades) : 'N/A';
+
+            // Calcular moda de edades
+            const edadCounts = {};
+            edades.forEach(edad => {
+                edadCounts[edad] = (edadCounts[edad] || 0) + 1;
+            });
+            let edadModa = 'N/A';
+            let maxCount = 0;
+            Object.entries(edadCounts).forEach(([edad, count]) => {
+                if (count > maxCount) {
+                    maxCount = count;
+                    edadModa = edad;
+                }
+            });
+
+            // Motivo principal
+            const motivoCounts = {};
+            filteredData.forEach(item => {
+                const motivo = item.motivo_egreso_desp || 'No especificado';
+                motivoCounts[motivo] = (motivoCounts[motivo] || 0) + 1;
+            });
+
+            let motivoPrincipal = { nombre: 'N/A', count: 0 };
+            Object.entries(motivoCounts).forEach(([motivo, count]) => {
+                if (count > motivoPrincipal.count) {
+                    motivoPrincipal = { nombre: motivo, count: count };
+                }
+            });
+
+            return {
+                mesMasEgresos: mesMasEgresos,
+                totalEgresos: totalEgresos,
+                totalMujeres: totalMujeres,
+                totalHombres: totalHombres,
+                porcentajeMujeres: porcentajeMujeres,
+                edadPromedio: edadPromedio,
+                edadMin: edadMin,
+                edadMax: edadMax,
+                edadModa: edadModa,
+                motivoPrincipal: motivoPrincipal
+            };
+        }
+
+        function getMonthName(monthNumber) {
+            const meses = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            return meses[monthNumber - 1] || 'Desconocido';
+        }
+
+        // Cambiar página
+        function changePage(page) {
+            currentPage = page;
+            renderTable();
+        }
+
+        // Actualizar última actualización
+        function updateLastUpdate() {
+            const now = new Date();
+            const formattedDate = now.toLocaleDateString('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            document.getElementById('lastUpdate').textContent = `Última actualización: ${formattedDate}`;
+        }
+
+        // Mostrar/ocultar loading
+        function showLoading(show) {
+            const loaders = document.querySelectorAll('.loading');
+            const canvases = document.querySelectorAll('canvas');
+
+            if (show) {
+                loaders.forEach(loader => loader.style.display = 'flex');
+                canvases.forEach(canvas => canvas.style.display = 'none');
+            } else {
+                loaders.forEach(loader => loader.style.display = 'none');
+            }
+        }
+
+        // Mostrar error
+        function showError(message) {
+            const statsContainer = document.getElementById('statsContainer');
+            statsContainer.innerHTML = `
                 <div class="col-12">
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -1266,10 +1547,10 @@
                     </div>
                 </div>
             `;
-            }
+        }
 
-            // Exponer función changePage globalmente
-            window.changePage = changePage;
+        // Exponer función changePage globalmente
+        window.changePage = changePage;
     </script>
 </body>
 
