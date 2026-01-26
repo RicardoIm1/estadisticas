@@ -1139,36 +1139,42 @@
         }
 
         // Mostrar gráfico y ocultar loading
-        function showChart(chartId, loadingId) {
-            document.getElementById(loadingId).style.display = 'none';
-            document.getElementById(chartId).style.display = 'block';
-        }
+            function showChart(chartId, loadingId) {
+                // Limpiar mensajes de "no data" previos
+                const container = document.getElementById(chartId).parentElement;
+                const noDataMessages = container.querySelectorAll('.no-data-message');
+                noDataMessages.forEach(msg => msg.remove());
 
-        // Renderizar tabla
-        function renderTable() {
-            const tableBody = document.getElementById('dataTableBody');
-            const paginationInfo = document.getElementById('paginationInfo');
-            const pagination = document.getElementById('pagination');
+                // Mostrar gráfico
+                document.getElementById(loadingId).style.display = 'none';
+                document.getElementById(chartId).style.display = 'block';
+            }
 
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const pageData = filteredData.slice(startIndex, endIndex);
-            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            // Renderizar tabla
+            function renderTable() {
+                const tableBody = document.getElementById('dataTableBody');
+                const paginationInfo = document.getElementById('paginationInfo');
+                const pagination = document.getElementById('pagination');
 
-            // Renderizar datos de la página
-            let tableHTML = '';
-            pageData.forEach(item => {
-                // Formatear fecha correctamente
-                let fechaFormateada = 'N/A';
-                if (item.fecha_egreso && item.fecha_egreso instanceof Date && !isNaN(item.fecha_egreso.getTime())) {
-                    fechaFormateada = item.fecha_egreso.toLocaleDateString('es-ES', {
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                    });
-                }
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const endIndex = startIndex + itemsPerPage;
+                const pageData = filteredData.slice(startIndex, endIndex);
+                const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-                tableHTML += `
+                // Renderizar datos de la página
+                let tableHTML = '';
+                pageData.forEach(item => {
+                    // Formatear fecha correctamente
+                    let fechaFormateada = 'N/A';
+                    if (item.fecha_egreso && item.fecha_egreso instanceof Date && !isNaN(item.fecha_egreso.getTime())) {
+                        fechaFormateada = item.fecha_egreso.toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        });
+                    }
+
+                    tableHTML += `
             <tr>
                 <td>${fechaFormateada}</td>
                 <td>${item.edad || 'N/A'}</td>
@@ -1177,82 +1183,82 @@
                 <td>${item.motivo_egreso_desp || ''}</td>
             </tr>
         `;
-            });
+                });
 
-            tableBody.innerHTML = tableHTML || '<tr><td colspan="5" class="text-center">No hay datos</td></tr>';
+                tableBody.innerHTML = tableHTML || '<tr><td colspan="5" class="text-center">No hay datos</td></tr>';
 
-            // Actualizar info de paginación
-            paginationInfo.textContent = `Mostrando ${startIndex + 1}-${Math.min(endIndex, filteredData.length)} de ${filteredData.length} registros`;
+                // Actualizar info de paginación
+                paginationInfo.textContent = `Mostrando ${startIndex + 1}-${Math.min(endIndex, filteredData.length)} de ${filteredData.length} registros`;
 
-            // Renderizar paginación
-            let paginationHTML = '';
+                // Renderizar paginación
+                let paginationHTML = '';
 
-            // Botón anterior
-            paginationHTML += `
+                // Botón anterior
+                paginationHTML += `
                 <li class="page-item ${currentPage === 1 ? 'disabled' : ''}">
                     <a class="page-link" href="#" onclick="changePage(${currentPage - 1})">Anterior</a>
                 </li>
             `;
 
-            // Números de página
-            for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                    paginationHTML += `
+                // Números de página
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+                        paginationHTML += `
                         <li class="page-item ${i === currentPage ? 'active' : ''}">
                             <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
                         </li>
                     `;
-                } else if (i === currentPage - 3 || i === currentPage + 3) {
-                    paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    } else if (i === currentPage - 3 || i === currentPage + 3) {
+                        paginationHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                    }
                 }
-            }
 
-            // Botón siguiente
-            paginationHTML += `
+                // Botón siguiente
+                paginationHTML += `
                 <li class="page-item ${currentPage === totalPages ? 'disabled' : ''}">
                     <a class="page-link" href="#" onclick="changePage(${currentPage + 1})">Siguiente</a>
                 </li>
             `;
 
-            pagination.innerHTML = paginationHTML;
-        }
-
-        // Cambiar página
-        function changePage(page) {
-            currentPage = page;
-            renderTable();
-        }
-
-        // Actualizar última actualización
-        function updateLastUpdate() {
-            const now = new Date();
-            const formattedDate = now.toLocaleDateString('es-ES', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('lastUpdate').textContent = `Última actualización: ${formattedDate}`;
-        }
-
-        // Mostrar/ocultar loading
-        function showLoading(show) {
-            const loaders = document.querySelectorAll('.loading');
-            const canvases = document.querySelectorAll('canvas');
-
-            if (show) {
-                loaders.forEach(loader => loader.style.display = 'flex');
-                canvases.forEach(canvas => canvas.style.display = 'none');
-            } else {
-                loaders.forEach(loader => loader.style.display = 'none');
+                pagination.innerHTML = paginationHTML;
             }
-        }
 
-        // Mostrar error
-        function showError(message) {
-            const statsContainer = document.getElementById('statsContainer');
-            statsContainer.innerHTML = `
+            // Cambiar página
+            function changePage(page) {
+                currentPage = page;
+                renderTable();
+            }
+
+            // Actualizar última actualización
+            function updateLastUpdate() {
+                const now = new Date();
+                const formattedDate = now.toLocaleDateString('es-ES', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                document.getElementById('lastUpdate').textContent = `Última actualización: ${formattedDate}`;
+            }
+
+            // Mostrar/ocultar loading
+            function showLoading(show) {
+                const loaders = document.querySelectorAll('.loading');
+                const canvases = document.querySelectorAll('canvas');
+
+                if (show) {
+                    loaders.forEach(loader => loader.style.display = 'flex');
+                    canvases.forEach(canvas => canvas.style.display = 'none');
+                } else {
+                    loaders.forEach(loader => loader.style.display = 'none');
+                }
+            }
+
+            // Mostrar error
+            function showError(message) {
+                const statsContainer = document.getElementById('statsContainer');
+                statsContainer.innerHTML = `
                 <div class="col-12">
                     <div class="alert alert-danger">
                         <i class="fas fa-exclamation-triangle me-2"></i>
@@ -1260,10 +1266,10 @@
                     </div>
                 </div>
             `;
-        }
+            }
 
-        // Exponer función changePage globalmente
-        window.changePage = changePage;
+            // Exponer función changePage globalmente
+            window.changePage = changePage;
     </script>
 </body>
 
