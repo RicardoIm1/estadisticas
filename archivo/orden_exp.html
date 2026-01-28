@@ -636,6 +636,7 @@
       const loadingSpinner = document.getElementById('loadingSpinner');
 
       // Función para abrir el modal
+      // Función para abrir el modal
       function openModal(celda) {
         const docId = celda.getAttribute('data-document-id');
         const docTitle = celda.getAttribute('data-title');
@@ -647,30 +648,97 @@
 
         if (docUrl) {
           currentDocumentUrl = docUrl;
+
           // Mostrar loading
           loadingSpinner.style.display = 'flex';
           documentFrame.style.display = 'none';
 
-          // Cargar el documento
-          documentFrame.src = docUrl;
-
-          // Cuando el iframe cargue
+          // Manejar errores de carga
           documentFrame.onload = function () {
             loadingSpinner.style.display = 'none';
             documentFrame.style.display = 'block';
           };
 
+          documentFrame.onerror = function () {
+            loadingSpinner.style.display = 'none';
+
+            // Mostrar mensaje de error en el iframe
+            const errorHTML = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { 
+              font-family: Arial, sans-serif; 
+              display: flex; 
+              flex-direction: column; 
+              align-items: center; 
+              justify-content: center; 
+              height: 100vh; 
+              margin: 0; 
+              background: #f5f5f5; 
+              color: #333;
+            }
+            .error-container { 
+              text-align: center; 
+              padding: 30px; 
+              background: white; 
+              border-radius: 10px; 
+              box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+              max-width: 500px;
+            }
+            .error-icon { 
+              font-size: 48px; 
+              color: #ff4444; 
+              margin-bottom: 20px;
+            }
+            .btn { 
+              display: inline-block; 
+              margin-top: 20px; 
+              padding: 10px 20px; 
+              background: #4a9eff; 
+              color: white; 
+              text-decoration: none; 
+              border-radius: 5px;
+              border: none;
+              cursor: pointer;
+            }
+            .btn:hover { 
+              background: #2d7dd2;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="error-container">
+            <div class="error-icon">🔒</div>
+            <h2>Acceso restringido</h2>
+            <p>Este documento no está disponible para visualización directa.</p>
+            <p>Por favor, haz clic en el botón para abrirlo en Google Drive.</p>
+            <button class="btn" onclick="window.open('${currentDocumentUrl.replace('/preview', '/view')}', '_blank')">
+              Abrir en Google Drive
+            </button>
+          </div>
+        </body>
+        </html>
+      `;
+
+            documentFrame.srcdoc = errorHTML;
+            documentFrame.style.display = 'block';
+          };
+
+          // Cargar el documento
+          documentFrame.src = docUrl;
+
           // Mostrar el modal
           setTimeout(() => {
             modal.classList.add('active');
-            document.body.style.overflow = 'hidden'; // Evitar scroll en el fondo
+            document.body.style.overflow = 'hidden';
           }, 10);
         } else {
           // Si no hay URL, mostrar alerta
           alert(`📋 Documento #${docId}: ${docTitle}\n\nEstoy trabajando para mostrarte el PDF de este documento.`);
         }
       }
-
       // Función para cerrar el modal
       function closeModal() {
         modal.classList.remove('active');
@@ -685,12 +753,22 @@
       // Función para imprimir
       function printDocument() {
         if (currentDocumentUrl) {
-          // Abrir el documento en una nueva pestaña para imprimir
-          const printWindow = window.open(currentDocumentUrl.replace('/preview', '/view'), '_blank');
-          if (printWindow) {
-            printWindow.onload = function () {
-              printWindow.print();
-            };
+          // Intentar abrir en nueva pestaña
+          const viewUrl = currentDocumentUrl.replace('/preview', '/view');
+          const printWindow = window.open(viewUrl, '_blank');
+
+          if (!printWindow) {
+            // Si falla (por bloqueador de popups), mostrar mensaje
+            alert('Por favor, permite ventanas emergentes para imprimir. O haz clic derecho en el enlace y selecciona "Abrir en nueva pestaña".');
+
+            // Alternativa: crear un enlace temporal
+            const tempLink = document.createElement('a');
+            tempLink.href = viewUrl;
+            tempLink.target = '_blank';
+            tempLink.style.display = 'none';
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
           }
         }
       }
