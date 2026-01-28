@@ -417,26 +417,139 @@
     <div id="footer"></div>
   </div>
 
-  <script>
-    // Añadir funcionalidad de click a las celdas
-    document.addEventListener('DOMContentLoaded', function () {
-      const celdas = document.querySelectorAll('.celda');
+ <!-- Modal para mostrar documentos -->
+  <div class="modal-overlay" id="documentModal">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <span class="document-number" id="modalDocNumber">1</span>
+          <span id="modalDocTitle">HOJA FRONTAL</span>
+        </h2>
+        <div class="modal-actions">
+          <button class="modal-btn print" id="printBtn">
+            <i class="fas fa-print"></i> Imprimir
+          </button>
+          <button class="modal-btn close" id="closeModalBtn">
+            <i class="fas fa-times"></i> Cerrar
+          </button>
+        </div>
+      </div>
+      <div class="modal-content">
+        <div class="loading-spinner" id="loadingSpinner">
+          <div class="spinner"></div>
+          <span>Cargando documento...</span>
+        </div>
+        <iframe class="document-frame" id="documentFrame" allow="autoplay"></iframe>
+      </div>
+    </div>
+  </div>
 
+  <script>
+    // Variables globales
+    let currentDocumentUrl = '';
+
+    // Añadir funcionalidad de click a las celdas
+    document.addEventListener('DOMContentLoaded', function() {
+      const celdas = document.querySelectorAll('.celda');
+      const modal = document.getElementById('documentModal');
+      const closeBtn = document.getElementById('closeModalBtn');
+      const printBtn = document.getElementById('printBtn');
+      const documentFrame = document.getElementById('documentFrame');
+      const modalDocNumber = document.getElementById('modalDocNumber');
+      const modalDocTitle = document.getElementById('modalDocTitle');
+      const loadingSpinner = document.getElementById('loadingSpinner');
+
+      // Función para abrir el modal
+      function openModal(celda) {
+        const docId = celda.getAttribute('data-document-id');
+        const docTitle = celda.getAttribute('data-title');
+        const docUrl = celda.getAttribute('data-url');
+
+        // Actualizar información del modal
+        modalDocNumber.textContent = docId;
+        modalDocTitle.textContent = docTitle;
+
+        if (docUrl) {
+          currentDocumentUrl = docUrl;
+          // Mostrar loading
+          loadingSpinner.style.display = 'flex';
+          documentFrame.style.display = 'none';
+
+          // Cargar el documento
+          documentFrame.src = docUrl;
+
+          // Cuando el iframe cargue
+          documentFrame.onload = function() {
+            loadingSpinner.style.display = 'none';
+            documentFrame.style.display = 'block';
+          };
+
+          // Mostrar el modal
+          setTimeout(() => {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Evitar scroll en el fondo
+          }, 10);
+        } else {
+          // Si no hay URL, mostrar alerta
+          alert(`📋 Documento #${docId}: ${docTitle}\n\nEstoy trabajando para mostrarte el PDF de este documento.`);
+        }
+      }
+
+      // Función para cerrar el modal
+      function closeModal() {
+        modal.classList.remove('active');
+        document.body.style.overflow = ''; // Restaurar scroll
+        setTimeout(() => {
+          documentFrame.src = ''; // Limpiar iframe
+          documentFrame.style.display = 'none';
+          loadingSpinner.style.display = 'flex';
+        }, 300);
+      }
+
+      // Función para imprimir
+      function printDocument() {
+        if (currentDocumentUrl) {
+          // Abrir el documento en una nueva pestaña para imprimir
+          const printWindow = window.open(currentDocumentUrl.replace('/preview', '/view'), '_blank');
+          if (printWindow) {
+            printWindow.onload = function() {
+              printWindow.print();
+            };
+          }
+        }
+      }
+
+      // Event listeners para celdas
       celdas.forEach(celda => {
-        celda.addEventListener('click', function (e) {
-          // Si el clic fue en el enlace, no mostrar alerta
+        celda.addEventListener('click', function(e) {
+          // Evitar doble acción si hay enlaces dentro
           if (e.target.tagName === 'A' || e.target.closest('a')) {
-            // Permitir que el enlace funcione normalmente
             return;
           }
-
-          const title = this.querySelector('.celda-title').textContent;
-          const icon = this.querySelector('.celda-icon').textContent;
-          alert(`Has seleccionado: ${title}\n\nEstoy trabajando para mostrarte el PDF de este documento.`);
+          openModal(this);
         });
+      });
+
+      // Event listeners para botones del modal
+      closeBtn.addEventListener('click', closeModal);
+      printBtn.addEventListener('click', printDocument);
+
+      // Cerrar modal al hacer clic fuera
+      modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+          closeModal();
+        }
+      });
+
+      // Cerrar modal con ESC
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && modal.classList.contains('active')) {
+          closeModal();
+        }
       });
     });
 
+    // Cargar header y footer
     fetch('/estadisticas/comun/header.html')
       .then(r => r.text())
       .then(html => {
@@ -459,7 +572,6 @@
       .then(html => {
         document.getElementById('footer').innerHTML = html;
 
-        // Ya existe footerText
         const footer = document.getElementById('footerText');
         if (footer) {
           footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
