@@ -9,698 +9,501 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
-  <style>
-    /* === 📊 GRID PRINCIPAL === */
+<style>
+  /* === 📊 GRID PRINCIPAL === */
+  .grid-lumia-glass {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+    padding: 1rem;
+    grid-auto-flow: dense;
+  }
+
+  /* === 💠 TILE BASE === */
+  .tile {
+    position: relative;
+    /* importante para enlaces absolutos */
+    overflow: hidden;
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 160px;
+    transition: all 0.25s ease-in-out;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 🔗 Hace que el enlace cubra todo el tile */
+  .tile a {
+    position: absolute;
+    inset: 0;
+    /* top:0; right:0; bottom:0; left:0 */
+    z-index: 1;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* 🧱 El contenido visual va encima del enlace invisible */
+  .tile-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ✨ Suaviza hover visual */
+  .tile:hover .tile-content {
+    opacity: 0.95;
+  }
+
+
+  /* === 📏 TAMAÑOS === */
+  .tile-wide {
+    grid-column: span 2;
+  }
+
+  .tile-short {
+    min-height: 100px;
+  }
+
+  /* === 🎨 PALETA GLASS === */
+  .azul {
+    background: rgba(70, 130, 180, 0.25);
+  }
+
+  .verde {
+    background: rgba(34, 139, 34, 0.25);
+  }
+
+  .naranja {
+    background: rgba(218, 112, 48, 0.25);
+  }
+
+  .morado {
+    background: rgba(123, 104, 238, 0.25);
+  }
+
+  .gris {
+    background: rgba(100, 100, 100, 0.25);
+  }
+
+  .amarillo {
+    background: rgba(228, 214, 18, 0.25);
+  }
+
+  /* === 🔠 TIPOGRAFÍA Y DETALLES === */
+  .tile h3 {
+    font-size: 1.8rem;
+    margin: 0;
+    opacity: 0.9;
+  }
+
+  .tile h4 {
+    margin: 0.3rem 0 0.5rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+  }
+
+  .tile p,
+  .tile ul,
+  .tile blockquote {
+    font-size: 0.95rem;
+    margin: 0.3rem 0;
+    line-height: 1.4;
+  }
+
+  .tile ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .tile ul li {
+    margin-bottom: 0.2rem;
+  }
+
+  .tile a {
+    color: #fff;
+    text-decoration: underline;
+    opacity: 0.85;
+  }
+
+  .tile a:hover {
+    opacity: 1;
+  }
+
+  blockquote {
+    font-style: italic;
+    color: #e0e0e0;
+    margin: 0;
+  }
+
+  /* === 📱 RESPONSIVE ADAPTATION === */
+  @media (max-width: 1024px) {
     .grid-lumia-glass {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-      gap: 14px;
-      padding: 1rem;
-      grid-auto-flow: dense;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .grid-lumia-glass {
+      grid-template-columns: 1fr;
     }
 
-    /* === 💠 TILE BASE === */
-    .tile {
-      position: relative;
-      overflow: hidden;
-      backdrop-filter: blur(10px) saturate(140%);
-      -webkit-backdrop-filter: blur(10px) saturate(140%);
-      background-color: rgba(255, 255, 255, 0.08);
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #fff;
-      padding: 1.2rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      min-height: 160px;
-      transition: all 0.25s ease-in-out;
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-    .tile:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
-    }
-
-    /* 🔗 Hace que el enlace cubra todo el tile */
-    .tile a {
-      position: absolute;
-      inset: 0;
-      z-index: 1;
-      text-decoration: none;
-      color: inherit;
-    }
-
-    /* 🧱 El contenido visual va encima del enlace invisible */
-    .tile-content {
-      position: relative;
-      z-index: 2;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* ✨ Suaviza hover visual */
-    .tile:hover .tile-content {
-      opacity: 0.95;
-    }
-
-    /* === 📏 TAMAÑOS === */
+    /* Los tiles “anchos” vuelven a tamaño normal */
     .tile-wide {
-      grid-column: span 2;
+      grid-column: span 1;
     }
 
-    .tile-short {
-      min-height: 100px;
+    /* Pequeño ajuste de padding y tipografía en móvil */
+    .tile {
+      padding: 1rem;
     }
 
-    /* === 🎨 PALETA GLASS === */
-    .azul {
-      background: rgba(70, 130, 180, 0.25);
-    }
-
-    .verde {
-      background: rgba(34, 139, 34, 0.25);
-    }
-
-    .naranja {
-      background: rgba(218, 112, 48, 0.25);
-    }
-
-    .morado {
-      background: rgba(123, 104, 238, 0.25);
-    }
-
-    .gris {
-      background: rgba(100, 100, 100, 0.25);
-    }
-
-    .amarillo {
-      background: rgba(228, 214, 18, 0.25);
-    }
-
-    /* === 🔠 TIPOGRAFÍA Y DETALLES === */
     .tile h3 {
-      font-size: 1.8rem;
-      margin: 0;
-      opacity: 0.9;
+      font-size: 1.5rem;
     }
 
     .tile h4 {
-      margin: 0.3rem 0 0.5rem;
-      font-weight: 600;
-      letter-spacing: 0.4px;
-    }
-
-    .tile p,
-    .tile ul,
-    .tile blockquote {
-      font-size: 0.95rem;
-      margin: 0.3rem 0;
-      line-height: 1.4;
-    }
-
-    .tile ul {
-      list-style: none;
-      padding-left: 0;
-    }
-
-    .tile ul li {
-      margin-bottom: 0.2rem;
-    }
-
-    .tile a {
-      color: #fff;
-      text-decoration: underline;
-      opacity: 0.85;
-    }
-
-    .tile a:hover {
-      opacity: 1;
-    }
-
-    blockquote {
-      font-style: italic;
-      color: #e0e0e0;
-      margin: 0;
-    }
-
-    /* === ESTILOS ESPECÍFICOS PARA LA ESTRUCTURA DEL EXPEDIENTE === */
-    .tile-header {
-      display: flex;
-      align-items: flex-start;
-      margin-bottom: 0.8rem;
-    }
-
-    .tile-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-right: 12px;
-      color: #ffdd00;
-      font-size: 16px;
-      font-weight: 600;
-      flex-shrink: 0;
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    .tile-title {
       font-size: 1rem;
-      font-weight: 600;
-      color: white;
-      margin: 0;
-      line-height: 1.3;
-      flex: 1;
     }
+  }
 
-    .tile-status {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 0.75rem;
-      font-weight: 500;
-      margin-top: 0.5rem;
-      align-self: flex-start;
-    }
-
-    .status-required {
-      background: rgba(255, 50, 50, 0.25);
-      color: #ff6666;
-      border: 1px solid rgba(255, 50, 50, 0.4);
-    }
-
-    .status-pending {
-      background: rgba(255, 153, 0, 0.25);
-      color: #ffaa33;
-      border: 1px solid rgba(255, 153, 0, 0.4);
-    }
-
-    .status-complete {
-      background: rgba(0, 255, 89, 0.25);
-      color: #33ff99;
-      border: 1px solid rgba(0, 255, 89, 0.4);
-    }
-
-    .category-section {
-      grid-column: 1 / -1;
-      margin: 2rem 0 1rem 0;
-    }
-
-    .category-title {
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: #ffdd00;
-      margin: 0;
-      padding-bottom: 0.5rem;
-      border-bottom: 2px solid rgba(255, 255, 255, 0.2);
-    }
-
-    .tile-content p {
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.8);
-      line-height: 1.4;
-      margin-top: auto;
-      padding-top: 0.5rem;
-    }
-
-    /* === 📱 RESPONSIVE ADAPTATION === */
-    @media (max-width: 1024px) {
-      .grid-lumia-glass {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      }
-    }
-
-    @media (max-width: 768px) {
-      .grid-lumia-glass {
-        grid-template-columns: 1fr;
-      }
-
-      .tile-wide {
-        grid-column: span 1;
-      }
-
-      .tile {
-        padding: 1rem;
-        min-height: 140px;
-      }
-
-      .tile-icon {
-        width: 32px;
-        height: 32px;
-        font-size: 14px;
-      }
-
-      .tile-title {
-        font-size: 0.95rem;
-      }
-
-      .category-title {
-        font-size: 1.1rem;
-      }
-    }
-
-    /* === ✨ ANIMACIÓN DE ENTRADA SUAVE === */
-    @keyframes tileFadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(20px) scale(0.98);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-      }
-    }
-
-    .tile {
+  /* === ✨ ANIMACIÓN DE ENTRADA SUAVE === */
+  @keyframes tileFadeIn {
+    from {
       opacity: 0;
-      animation: tileFadeIn 0.6s ease-out forwards;
+      transform: translateY(20px) scale(0.98);
     }
 
-    /* Efecto escalonado */
-    .tile:nth-child(1) { animation-delay: 0.1s; }
-    .tile:nth-child(2) { animation-delay: 0.2s; }
-    .tile:nth-child(3) { animation-delay: 0.3s; }
-    .tile:nth-child(4) { animation-delay: 0.4s; }
-    .tile:nth-child(5) { animation-delay: 0.5s; }
-    .tile:nth-child(6) { animation-delay: 0.6s; }
-    .tile:nth-child(7) { animation-delay: 0.7s; }
-    .tile:nth-child(8) { animation-delay: 0.8s; }
-    .tile:nth-child(9) { animation-delay: 0.9s; }
-    .tile:nth-child(10) { animation-delay: 1.0s; }
-    .tile:nth-child(11) { animation-delay: 1.1s; }
-    .tile:nth-child(12) { animation-delay: 1.2s; }
-    .tile:nth-child(13) { animation-delay: 1.3s; }
-    .tile:nth-child(14) { animation-delay: 1.4s; }
-    .tile:nth-child(15) { animation-delay: 1.5s; }
-  </style>
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .tile {
+    opacity: 0;
+    animation: tileFadeIn 0.6s ease-out forwards;
+  }
+
+  /* Efecto escalonado */
+  .tile:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .tile:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .tile:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .tile:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+
+  .tile:nth-child(5) {
+    animation-delay: 0.5s;
+  }
+
+  .tile:nth-child(6) {
+    animation-delay: 0.6s;
+  }
+
+  .tile:nth-child(7) {
+    animation-delay: 0.7s;
+  }
+
+  .tile:nth-child(8) {
+    animation-delay: 0.8s;
+  }
+
+  .tile:nth-child(9) {
+    animation-delay: 0.9s;
+  }
+</style>
 </head>
 <body>
   <div class="glass" id="dashboard">
     <h5>Orden del Expediente Clínico</h5>
     <div id="header"></div>
-    
-    <div class="grid-lumia-glass">
-      <!-- SECCIÓN 1: DOCUMENTACIÓN PRINCIPAL -->
-      <div class="category-section">
-        <h3 class="category-title">📋 Documentación Clínica Principal</h3>
-      </div>
-      
-      <!-- Tile 1 -->
-      <div class="tile azul">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">1</div>
-            <h3 class="tile-title">HOJA FRONTAL</h3>
-          </div>
-          <span class="tile-status status-required">Requerido</span>
-          <p>Documento inicial con datos generales del paciente</p>
+    <div class="grid">
+      <!-- Celda 1 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">1</div>
+          <h3 class="celda-title">HOJA FRONTAL</h3>
+          <span class="celda-status status-required">Requerido</span>
         </div>
       </div>
       
-      <!-- Tile 2 -->
-      <div class="tile azul">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">2</div>
-            <h3 class="tile-title">HISTORIA CLÍNICA</h3>
-          </div>
-          <span class="tile-status status-required">Requerido</span>
-          <p>Registro completo del proceso clínico del paciente</p>
+      <!-- Celda 2 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">2</div>
+          <h3 class="celda-title">HISTORIA CLÍNICA</h3>
+          <span class="celda-status status-required">Requerido</span>
         </div>
       </div>
       
-      <!-- Tile 3 -->
-      <div class="tile azul">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">3</div>
-            <h3 class="tile-title">PARTOGRAMA</h3>
-          </div>
-          <span class="tile-status status-pending">Condicional</span>
-          <p>Solo en casos de atención obstétrica</p>
+      <!-- Celda 3 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">3</div>
+          <h3 class="celda-title">PARTOGRAMA</h3>
+          <span class="celda-status status-pending">Condicional</span>
         </div>
       </div>
       
-      <!-- SECCIÓN 2: NOTAS MÉDICAS -->
-      <div class="category-section">
-        <h3 class="category-title">📝 Notas Médicas</h3>
-      </div>
-      
-      <!-- Tile 4 -->
-      <div class="tile verde">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">4</div>
-            <h3 class="tile-title">NOTA DE URGENCIAS</h3>
-          </div>
-          <p>Registro de atención en servicio de urgencias</p>
+      <!-- Celda 4 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">4</div>
+          <h3 class="celda-title">NOTA DE URGENCIAS</h3>
         </div>
       </div>
       
-      <!-- Tile 5 -->
-      <div class="tile verde">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">5</div>
-            <h3 class="tile-title">NOTA DE INGRESO AL HOSPITAL</h3>
-          </div>
-          <p>Documentación del ingreso hospitalario</p>
+      <!-- Celda 5 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">5</div>
+          <h3 class="celda-title">NOTA DE INGRESO AL HOSPITAL</h3>
         </div>
       </div>
       
-      <!-- Tile 6 -->
-      <div class="tile verde">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">6</div>
-            <h3 class="tile-title">NOTA DE EVOLUCIÓN</h3>
-          </div>
-          <span class="tile-status status-complete">Diario</span>
-          <p>Registro diario del estado del paciente</p>
+      <!-- Celda 6 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">6</div>
+          <h3 class="celda-title">NOTA DE EVOLUCIÓN</h3>
+          <span class="celda-status status-complete">Diario</span>
         </div>
       </div>
       
-      <!-- Tile 7 -->
-      <div class="tile verde">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">7</div>
-            <h3 class="tile-title">NOTA DE REFERENCIA/TRASLADO</h3>
-          </div>
-          <p>Documentación para traslado entre unidades</p>
+      <!-- Celda 7 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">7</div>
+          <h3 class="celda-title">NOTA DE REFERENCIA/TRASLADO</h3>
         </div>
       </div>
       
-      <!-- Tile 8 -->
-      <div class="tile verde">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">8</div>
-            <h3 class="tile-title">NOTA INTERCONSULTA</h3>
-          </div>
-          <p>Solicitud de opinión a otro especialista</p>
+      <!-- Celda 8 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">8</div>
+          <h3 class="celda-title">NOTA INTERCONSULTA</h3>
         </div>
       </div>
       
-      <!-- Tile 9 -->
-      <div class="tile verde">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">9</div>
-            <h3 class="tile-title">NOTA DE VALORACION NUTRICIONAL Y OTRAS</h3>
-          </div>
-          <p>Evaluaciones especializadas complementarias</p>
+      <!-- Celda 9 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">9</div>
+          <h3 class="celda-title">NOTA DE VALORACION NUTRICIONAL Y OTRAS</h3>
         </div>
       </div>
       
-      <!-- SECCIÓN 3: DOCUMENTACIÓN QUIRÚRGICA -->
-      <div class="category-section">
-        <h3 class="category-title">🔪 Documentación Quirúrgica y Anestésica</h3>
-      </div>
-      
-      <!-- Tile 10 -->
-      <div class="tile naranja">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">10</div>
-            <h3 class="tile-title">NOTA PRE OPERATORIA</h3>
-          </div>
-          <p>Evaluación previa a procedimiento quirúrgico</p>
+      <!-- Celda 10 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">10</div>
+          <h3 class="celda-title">NOTA PRE OPERATORIA</h3>
         </div>
       </div>
       
-      <!-- Tile 11 -->
-      <div class="tile naranja">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">11</div>
-            <h3 class="tile-title">VALORACIÓN PREOPERATORIA / CONSENTIMIENTO INFORMADO</h3>
-          </div>
-          <p>Autorización para procedimiento anestésico</p>
+      <!-- Celda 11 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">11</div>
+          <h3 class="celda-title">VALORACION PREOPERATORIA/ CARTA DE CONSENTIMIENTO INFORMADO APLICACIÓN ANESTÉSICA</h3>
         </div>
       </div>
       
-      <!-- Tile 12 -->
-      <div class="tile naranja">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">12</div>
-            <h3 class="tile-title">NOTA PRE/POST ANESTÉSICA - REGISTRO DE ANESTESIA</h3>
-          </div>
-          <p>Documentación completa del proceso anestésico</p>
+      <!-- Celda 12 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">12</div>
+          <h3 class="celda-title">NOTA PRE ANESTÉSICA/ REGISTRO DE ANESTESIA- NOTA POST ANESTÉSICA</h3>
         </div>
       </div>
          
-      <!-- Tile 13 -->
-      <div class="tile naranja">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">13</div>
-            <h3 class="tile-title">LISTA DE VERIFICACIÓN DE SEGURIDAD QUIRÚRGICA</h3>
-          </div>
-          <p>Checklist para seguridad del paciente en cirugía</p>
+      <!-- Celda 13 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">13</div>
+          <h3 class="celda-title">LISTA DE VERIFICACIÓN DE LA SEGURIDAD DE LA CIRUGIA</h3>
         </div>
       </div>
       
-      <!-- Tile 14 -->
-      <div class="tile naranja">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">14</div>
-            <h3 class="tile-title">NOTA DE EGRESO / RESUMEN CLÍNICO</h3>
-          </div>
-          <p>Síntesis del proceso al finalizar la hospitalización</p>
+      <!-- Celda 14 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">14</div>
+          <h3 class="celda-title">NOTA DE EGRESO/ RESUMEN CLÍNICO</h3>
         </div>
       </div>
       
-      <!-- SECCIÓN 4: RESULTADOS Y ESTUDIOS -->
-      <div class="category-section">
-        <h3 class="category-title">🔬 Resultados y Estudios</h3>
-      </div>
-      
-      <!-- Tile 15 -->
-      <div class="tile morado">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">15</div>
-            <h3 class="tile-title">LABORATORIALES</h3>
-          </div>
-          <p>Resultados de análisis clínicos de laboratorio</p>
+      <!-- Celda 15 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">15</div>
+          <h3 class="celda-title">LABORATORIALES</h3>
         </div>
       </div>
       
-      <!-- Tile 16 -->
-      <div class="tile morado">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">16</div>
-            <h3 class="tile-title">EXÁMENES DE GABINETE</h3>
-          </div>
-          <p>Resultados de estudios de imagen y otros</p>
+      <!-- Celda 16 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">16</div>
+          <h3 class="celda-title">RESULTADOS DE EXÁMENES DE GABINETE</h3>
         </div>
       </div>
       
-      <!-- SECCIÓN 5: ENFERMERÍA Y REGISTROS -->
-      <div class="category-section">
-        <h3 class="category-title">💉 Registros de Enfermería</h3>
-      </div>
-      
-      <!-- Tile 17 -->
-      <div class="tile gris">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">17</div>
-            <h3 class="tile-title">HOJA DE HOSPITALIZACIÓN / URGENCIAS</h3>
-          </div>
-          <p>Registro administrativo-clínico de estadía</p>
+      <!-- Celda 17 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">17</div>
+          <h3 class="celda-title">HOJA DE HOSPITALIZACIÓN / DIARIA DE URGENCIAS</h3>
         </div>
       </div>
       
-      <!-- Tile 18 -->
-      <div class="tile gris">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">18</div>
-            <h3 class="tile-title">NOTA Y REGISTRO DE ENFERMERÍA</h3>
-          </div>
-          <span class="tile-status status-complete">Diario</span>
-          <p>Documentación diaria de cuidados de enfermería</p>
+      <!-- Celda 18 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">18</div>
+          <h3 class="celda-title">NOTA Y REGISTRO DE ENFERMERIA</h3>
+          <span class="celda-status status-complete">Diario</span>
         </div>
       </div>
       
-      <!-- Tile 19 -->
-      <div class="tile gris">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">19</div>
-            <h3 class="tile-title">VIGILANCIA DIARIA PREVENCIÓN IAAS</h3>
-          </div>
-          <p>Control de infecciones asociadas a la atención</p>
+      <!-- Celda 19 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">19</div>
+          <h3 class="celda-title">VIGILANCIA DIARIA PREVENCIÓN IAAS</h3>
         </div>
       </div>
       
-      <!-- Tile 20 -->
-      <div class="tile gris">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">20</div>
-            <h3 class="tile-title">REGISTRO QUIRÓFANOS Y RECUPERACIÓN</h3>
-          </div>
-          <p>Documentación de enfermería en área quirúrgica</p>
+      <!-- Celda 20 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">20</div>
+          <h3 class="celda-title">REGISTRO DE ENFERMERÍA QUIRÓFANOS Y RECUPERACIÓN</h3>
         </div>
       </div>
       
-      <!-- SECCIÓN 6: REGISTROS VARIOS -->
-      <div class="category-section">
-        <h3 class="category-title">📄 Registros Varios</h3>
-      </div>
-      
-      <!-- Tile 21 -->
-      <div class="tile amarillo">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">21</div>
-            <h3 class="tile-title">INDICACIONES MÉDICAS CRONOLÓGICAS</h3>
-          </div>
-          <p>Órdenes médicas en orden cronológico ascendente</p>
+      <!-- Celda 21 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">21</div>
+          <h3 class="celda-title">INDICACIONES MÉDICAS EN ORDEN CRONOLÓGICO ASCENDENTE</h3>
         </div>
       </div>
       
-      <!-- Tile 22 -->
-      <div class="tile amarillo">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">22</div>
-            <h3 class="tile-title">REGISTRO DE TRANSFUSIONES</h3>
-          </div>
-          <p>Control de administración de hemoderivados</p>
+      <!-- Celda 22 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">22</div>
+          <h3 class="celda-title">REGISTRO DE TRANSFUSIONES DE HEMODERIVADOS</h3>
         </div>
       </div>
       
-      <!-- Tile 23 -->
-      <div class="tile amarillo">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">23</div>
-            <h3 class="tile-title">NOTA DE TRABAJO SOCIAL</h3>
-          </div>
-          <p>Evaluación y seguimiento psicosocial</p>
+      <!-- Celda 23 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">23</div>
+          <h3 class="celda-title">NOTA DE TRABAJO SOCIAL</h3>
         </div>
       </div>
       
-      <!-- Tile 24 -->
-      <div class="tile amarillo">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">24</div>
-            <h3 class="tile-title">CARTAS DE CONSENTIMIENTO INFORMADO</h3>
-          </div>
-          <p>Autorizaciones para procedimientos diversos</p>
+      <!-- Celda 24 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">24</div>
+          <h3 class="celda-title">CARTA(S) DE CONSENTIMIENTO INFORMADO</h3>
         </div>
       </div>
       
-      <!-- Tile 25 -->
-      <div class="tile amarillo">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">25</div>
-            <h3 class="tile-title">EGRESO VOLUNTARIO</h3>
-          </div>
-          <p>Documentación de alta voluntaria contra indicación</p>
+      <!-- Celda 25 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">25</div>
+          <h3 class="celda-title">EGRESO VOLUNTARIO</h3>
         </div>
       </div>
       
-      <!-- Tile 26 -->
-      <div class="tile amarillo">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">26</div>
-            <h3 class="tile-title">NOTIFICACIÓN AL MINISTERIO PÚBLICO</h3>
-          </div>
-          <p>Comunicación de casos de notificación obligatoria</p>
+      <!-- Celda 26 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">26</div>
+          <h3 class="celda-title">NOTIFICACIÓN AL MINISTERIO PÚBLICO</h3>
         </div>
       </div>
       
-      <!-- Tile 27 -->
-      <div class="tile amarillo">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">27</div>
-            <h3 class="tile-title">NOTA DE DEFUNCIÓN Y MUERTE FETAL</h3>
-          </div>
-          <p>Documentación de fallecimiento</p>
+      <!-- Celda 27 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">27</div>
+          <h3 class="celda-title">NOTA DE DEFUNCIÓN Y MUERTE FETAL</h3>
         </div>
       </div>
       
-      <!-- SECCIÓN 7: DOCUMENTOS ADMINISTRATIVOS -->
-      <div class="category-section">
-        <h3 class="category-title">📋 Documentos Administrativos</h3>
-      </div>
-      
-      <!-- Tile 28 -->
-      <div class="tile">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">28</div>
-            <h3 class="tile-title">RECTIFICACIÓN DE NOMBRE</h3>
-          </div>
-          <p>Corrección de datos de identificación</p>
+      <!-- Celda 28 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">28</div>
+          <h3 class="celda-title">FORMATO DE RECTIFICACIÓN DE NOMBRE DEL PACIENTE</h3>
         </div>
       </div>
       
-      <!-- Tile 29 -->
-      <div class="tile">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">29</div>
-            <h3 class="tile-title">ACTIVACIÓN DE CÓDIGO MATER</h3>
-          </div>
-          <p>Procedimiento para atención obstétrica de riesgo</p>
+      <!-- Celda 29 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">29</div>
+          <h3 class="celda-title">ACIVACIÓN DE CÓDIGO MATER</h3>
         </div>
       </div>
       
-      <!-- Tile 30 -->
-      <div class="tile">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">30</div>
-            <h3 class="tile-title">DOCUMENTOS DE IDENTIFICACIÓN</h3>
-          </div>
-          <p>CURP, INE, comprobante de domicilio, etc.</p>
+      <!-- Celda 30 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">30</div>
+          <h3 class="celda-title">CURP, INE COMPROBANTE DE DOMICILIO, CARTA DE RESIDENTE</h3>
         </div>
       </div>
       
-      <!-- Tile 31 -->
-      <div class="tile">
-        <div class="tile-content">
-          <div class="tile-header">
-            <div class="tile-icon">31</div>
-            <h3 class="tile-title">HOJA DE CONSUMO HOSPITAL</h3>
-          </div>
-          <p>Registro de insumos utilizados durante la atención</p>
+      <!-- Celda 31 -->
+      <div class="celda">
+        <div class="celda-header">
+          <div class="celda-icon">31</div>
+          <h3 class="celda-title">HOJA DE CONSUMO HOSPITAL Y URGENCIAS</h3>
         </div>
       </div>
     </div>
-    
     <div id="footer"></div>
   </div>
   
   <script>
-    // Actualizar funcionalidad de click para los tiles
+    // Añadir funcionalidad de click a las celdas
     document.addEventListener('DOMContentLoaded', function() {
-      const tiles = document.querySelectorAll('.tile');
+      const celdas = document.querySelectorAll('.celda');
       
-      tiles.forEach(tile => {
-        tile.addEventListener('click', function() {
-          const title = this.querySelector('.tile-title').textContent;
-          const icon = this.querySelector('.tile-icon').textContent;
-          alert(`📋 Documento #${icon}: ${title}\n\nEstoy trabajando para mostrarte el PDF de este documento.`);
+      celdas.forEach(celda => {
+        celda.addEventListener('click', function() {
+          const title = this.querySelector('.celda-title').textContent;
+          alert(`Has seleccionado: ${title}\n\nEstoy trabajando para mostrarte el pdf de este documento.`);
         });
       });
     });
