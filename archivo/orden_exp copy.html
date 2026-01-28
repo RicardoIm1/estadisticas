@@ -1,490 +1,470 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Orden del Expediente Clínico - Hospital Regional de Puerto Vallarta</title>
-    <link rel="stylesheet" href="estilos.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Estilos adicionales para las cards de documentos */
-        .documentos-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 0.8rem;
-            margin-bottom: 1.5rem;
-            grid-auto-rows: minmax(120px, auto);
-        }
-        
-        .documento-card {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            padding: 0.8rem;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-            will-change: transform, box-shadow;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            height: 100%;
-            min-height: 120px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .documento-card:hover {
-            transform: translateY(-3px) scale(1.03);
-            background: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .documento-numero {
-            font-size: 2.5rem;
-            font-weight: 800;
-            color: #ffdd00;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-            line-height: 1;
-            margin-bottom: 0.3rem;
-        }
-        
-        .documento-titulo {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: white;
-            margin-bottom: 0.2rem;
-            line-height: 1.1;
-        }
-        
-        .documento-descripcion {
-            font-size: 0.65rem;
-            opacity: 0.85;
-            color: rgba(255, 255, 255, 0.8);
-            line-height: 1.1;
-        }
-        
-        .documento-icono {
-            position: absolute;
-            bottom: 5px;
-            right: 5px;
-            font-size: 0.8rem;
-            opacity: 0.3;
-            color: #ffdd00;
-        }
-        
-        .documento-card.active {
-            background: rgba(0, 123, 255, 0.25);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-        
-        /* Estilos para el modal de detalles */
-        .modal-detalles {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        .modal-contenido {
-            background: rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(12px);
-            border-radius: 16px;
-            padding: 1.5rem;
-            width: min(90%, 500px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: white;
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-            padding-bottom: 0.5rem;
-        }
-        
-        .modal-numero {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #ffdd00;
-        }
-        
-        .modal-titulo {
-            font-size: 1.2rem;
-            font-weight: 600;
-        }
-        
-        .modal-descripcion {
-            font-size: 0.9rem;
-            line-height: 1.4;
-            margin-bottom: 1rem;
-            opacity: 0.9;
-        }
-        
-        .modal-footer {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.5rem;
-            margin-top: 1rem;
-        }
-        
-        .btn-cerrar {
-            background: rgba(240, 50, 60, 0.2);
-            border: 1px solid rgba(240, 50, 60, 0.3);
-        }
-        
-        /* Ajustes para responsividad */
-        @media (max-width: 768px) {
-            .documentos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-                gap: 0.6rem;
-            }
-            
-            .documento-numero {
-                font-size: 2rem;
-            }
-            
-            .documento-titulo {
-                font-size: 0.7rem;
-            }
-            
-            .documento-descripcion {
-                font-size: 0.6rem;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .documentos-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-                gap: 0.5rem;
-            }
-            
-            .documento-card {
-                padding: 0.6rem;
-                min-height: 110px;
-            }
-            
-            .documento-numero {
-                font-size: 1.8rem;
-            }
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadísticas y Archivo Clínico</title>
+  <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
+  <style>
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      padding: 20px;
+    }
+    
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-left: 5px solid #4a90e2;
+      cursor: pointer;
+    }
+    
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+    
+    .card-icon {
+      width: 40px;
+      height: 40px;
+      background: #4a90e2;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      color: white;
+      font-size: 18px;
+    }
+    
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+    }
+    
+    .card-content {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.5;
+    }
+    
+    .card-status {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 10px;
+    }
+    
+    .status-complete {
+      background: #e6f7ee;
+      color: #00a65a;
+    }
+    
+    .status-pending {
+      background: #fff8e6;
+      color: #ff9900;
+    }
+    
+    .status-required {
+      background: #ffe6e6;
+      color: #ff3333;
+    }
+    
+    .category-section {
+      margin-bottom: 30px;
+    }
+    
+    .category-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #eee;
+    }
+    
+    @media (max-width: 768px) {
+      .grid {
+        grid-template-columns: 1fr;
+        padding: 15px;
+      }
+      
+      .card {
+        padding: 15px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="glass glass-inner">
-        <!-- Encabezado -->
-        <header class="header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-hospital-alt"></i>
-                </div>
-                <div>
-                    <h1>Hospital Regional de Puerto Vallarta</h1>
-                    <h5>Orden del Expediente Clínico</h5>
-                </div>
-            </div>
-            
-            <div class="usuario">
-                <div>
-                    <p><span>Documentos:</span> 29 elementos</p>
-                    <p><span>Normativa:</span> NOM-004-SSA3-2012</p>
-                </div>
-                <button class="btn-salir-ultra" id="btnInfo">
-                    <i class="fas fa-info-circle"></i> Info
-                </button>
-            </div>
-        </header>
-        
-        <!-- Título principal -->
-        <div class="buscador-wrapper">
-            <h2 class="title">ORDEN DEL EXPEDIENTE CLÍNICO</h2>
-            <h4>Protocolo de organización documental - Haga clic en cualquier card para ver detalles</h4>
+  <div class="glass" id="dashboard">
+    <h5>Base</h5>
+    <div id="header"></div>
+    <div class="grid">
+      <!-- SECCIÓN 1: DOCUMENTACIÓN PRINCIPAL -->
+      <div class="category-section" style="grid-column: 1 / -1;">
+        <h3 class="category-title">📋 Documentación Clínica Principal</h3>
+      </div>
+      
+      <!-- Card 1 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📄</div>
+          <h3 class="card-title">HOJA FRONTAL</h3>
         </div>
-        
-        <!-- Contenido principal con grid de cards -->
-        <div class="contenido">
-            <div class="documentos-grid" id="documentosGrid">
-                <!-- Las cards se generarán dinámicamente con JavaScript -->
-            </div>
+        <p class="card-content">Identificación del paciente y datos generales</p>
+        <span class="card-status status-required">Requerido</span>
+      </div>
+      
+      <!-- Card 2 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🏥</div>
+          <h3 class="card-title">HISTORIA CLÍNICA</h3>
         </div>
-        
-        <!-- Panel de estadísticas -->
-        <div class="grid">
-            <div class="celda">
-                <div class="icon">
-                    <i class="fas fa-file-medical"></i>
-                </div>
-                <h3>Documentos Totales</h3>
-                <p class="frecuencia">29</p>
-                <p>Elementos en el expediente</p>
-            </div>
-            
-            <div class="celda">
-                <div class="icon">
-                    <i class="fas fa-clipboard-check"></i>
-                </div>
-                <h3>Completitud</h3>
-                <p class="frecuencia">100%</p>
-                <p>Expediente completo</p>
-            </div>
-            
-            <div class="celda">
-                <div class="icon">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-                <h3>Actualización</h3>
-                <p class="frecuencia">2024</p>
-                <p>Protocolo vigente</p>
-            </div>
-            
-            <div class="celda">
-                <div class="icon">
-                    <i class="fas fa-shield-alt"></i>
-                </div>
-                <h3>Cumplimiento</h3>
-                <p class="frecuencia">NOM-004</p>
-                <p>Normativa oficial</p>
-            </div>
+        <p class="card-content">Registro completo de antecedentes y motivo de consulta</p>
+        <span class="card-status status-required">Requerido</span>
+      </div>
+      
+      <!-- Card 3 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">👶</div>
+          <h3 class="card-title">PARTOGRAMA</h3>
         </div>
-        
-        <!-- Pie de página -->
-        <footer>
-            <p>Hospital Regional de Puerto Vallarta • Departamento de Archivo Clínico • Sistema de Expediente Electrónico v3.1</p>
-            <p>© 2024 - Documentación clínica estandarizada según normativa vigente</p>
-        </footer>
+        <p class="card-content">Seguimiento del trabajo de parto (cuando aplica)</p>
+        <span class="card-status status-pending">Condicional</span>
+      </div>
+      
+      <!-- SECCIÓN 2: NOTAS MÉDICAS -->
+      <div class="category-section" style="grid-column: 1 / -1; margin-top: 20px;">
+        <h3 class="category-title">📝 Notas Médicas</h3>
+      </div>
+      
+      <!-- Card 4 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🚨</div>
+          <h3 class="card-title">NOTA DE URGENCIAS</h3>
+        </div>
+        <p class="card-content">Atención inicial en servicio de urgencias</p>
+      </div>
+      
+      <!-- Card 5 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🏨</div>
+          <h3 class="card-title">NOTA DE INGRESO AL HOSPITAL</h3>
+        </div>
+        <p class="card-content">Documentación de admisión hospitalaria</p>
+      </div>
+      
+      <!-- Card 6 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📊</div>
+          <h3 class="card-title">NOTA DE EVOLUCIÓN</h3>
+        </div>
+        <p class="card-content">Seguimiento diario del estado del paciente</p>
+        <span class="card-status status-complete">Diario</span>
+      </div>
+      
+      <!-- Card 7 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🔄</div>
+          <h3 class="card-title">NOTA DE REFERENCIA/TRASLADO</h3>
+        </div>
+        <p class="card-content">Documentación para transferencia entre unidades</p>
+      </div>
+      
+      <!-- Card 8 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">👨‍⚕️</div>
+          <h3 class="card-title">NOTA INTERCONSULTA</h3>
+        </div>
+        <p class="card-content">Solicitud de opinión a otros especialistas</p>
+      </div>
+      
+      <!-- SECCIÓN 3: DOCUMENTACIÓN QUIRÚRGICA -->
+      <div class="category-section" style="grid-column: 1 / -1; margin-top: 20px;">
+        <h3 class="category-title">🔪 Documentación Quirúrgica y Anestésica</h3>
+      </div>
+      
+      <!-- Card 9 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📋</div>
+          <h3 class="card-title">NOTA PRE OPERATORIA</h3>
+        </div>
+        <p class="card-content">Evaluación previa a procedimiento quirúrgico</p>
+      </div>
+      
+      <!-- Card 10 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">💉</div>
+          <h3 class="card-title">CONSENTIMIENTO INFORMADO APLICACIÓN ANESTÉSICA</h3>
+        </div>
+        <p class="card-content">Autorización y evaluación anestésica / NOTA PRE ANESTÉSICA</p>
+      </div>
+      
+      <!-- Card 11 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">✍️</div>
+          <h3 class="card-title">AUTORIZACIÓN, SOLICITUD Y REGISTRO DE INTERVENCIÓN QUIRÚRGICA</h3>
+        </div>
+        <p class="card-content">Documentación completa del procedimiento / NOTA POST OPERATORIA</p>
+      </div>
+      
+      <!-- Card 12 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📈</div>
+          <h3 class="card-title">REGISTRO DE LA ANESTESIA</h3>
+        </div>
+        <p class="card-content">Seguimiento anestésico intra y postoperatorio / NOTA POST ANESTÉSICA</p>
+      </div>
+      
+      <!-- Card 13 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">✅</div>
+          <h3 class="card-title">LISTA DE VERIFICACIÓN DE LA SEGURIDAD DE LA CIRUGIA</h3>
+        </div>
+        <p class="card-content">Checklist de seguridad quirúrgica</p>
+      </div>
+      
+      <!-- Card 14 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🚪</div>
+          <h3 class="card-title">NOTA DE EGRESO</h3>
+        </div>
+        <p class="card-content">Resumen y plan al finalizar la hospitalización</p>
+      </div>
+      
+      <!-- SECCIÓN 4: RESULTADOS Y ESTUDIOS -->
+      <div class="category-section" style="grid-column: 1 / -1; margin-top: 20px;">
+        <h3 class="category-title">🔬 Resultados y Estudios</h3>
+      </div>
+      
+      <!-- Card 15 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🧪</div>
+          <h3 class="card-title">LABORATORIALES</h3>
+        </div>
+        <p class="card-content">Resultados de estudios (pegados en la hoja correspondiente, ordenados de fecha más antigua a más reciente)</p>
+      </div>
+      
+      <!-- Card 16 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🩻</div>
+          <h3 class="card-title">RESULTADOS DE EXÁMENES DE GABINETE</h3>
+        </div>
+        <p class="card-content">Imágenes y estudios especiales</p>
+      </div>
+      
+      <!-- SECCIÓN 5: ENFERMERÍA Y REGISTROS -->
+      <div class="category-section" style="grid-column: 1 / -1; margin-top: 20px;">
+        <h3 class="category-title">👩‍⚕️ Registros de Enfermería</h3>
+      </div>
+      
+      <!-- Card 17 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📋</div>
+          <h3 class="card-title">HOJA DE HOSPITALIZACIÓN / DIARIA DE URGENCIAS</h3>
+        </div>
+        <p class="card-content">Registro administrativo-clínico</p>
+      </div>
+      
+      <!-- Card 18 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">❤️</div>
+          <h3 class="card-title">NOTA Y REGISTRO DE ENFERMERIA</h3>
+        </div>
+        <p class="card-content">Valoración y cuidados de enfermería</p>
+        <span class="card-status status-complete">Diario</span>
+      </div>
+      
+      <!-- Card 19 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🦠</div>
+          <h3 class="card-title">VIGILANCIA DIARIA PREVENCIÓN IAAS</h3>
+        </div>
+        <p class="card-content">Control de infecciones asociadas a la atención</p>
+      </div>
+      
+      <!-- Card 20 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🔪</div>
+          <h3 class="card-title">REGISTRO DE ENFERMERÍA QUIRÓFANOS Y RECUPERACIÓN</h3>
+        </div>
+        <p class="card-content">Documentación intraquirúrgica</p>
+      </div>
+      
+      <!-- SECCIÓN 6: REGISTROS VARIOS -->
+      <div class="category-section" style="grid-column: 1 / -1; margin-top: 20px;">
+        <h3 class="category-title">📑 Registros Varios</h3>
+      </div>
+      
+      <!-- Card 21 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📋</div>
+          <h3 class="card-title">INDICACIONES MÉDICAS EN ORDEN CRONOLÓGICO ASCENDENTE</h3>
+        </div>
+        <p class="card-content">Órdenes médicas por fecha</p>
+      </div>
+      
+      <!-- Card 22 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🩸</div>
+          <h3 class="card-title">REGISTRO DE TRANSFUSIONES DE HEMODERIVADOS</h3>
+        </div>
+        <p class="card-content">Control de administración de sangre y derivados</p>
+      </div>
+      
+      <!-- Card 23 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">👥</div>
+          <h3 class="card-title">NOTA DE TRABAJO SOCIAL</h3>
+        </div>
+        <p class="card-content">Valoración psicosocial y apoyo</p>
+      </div>
+      
+      <!-- Card 24 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">📝</div>
+          <h3 class="card-title">CARTA(S) DE CONSENTIMIENTO INFORMADO</h3>
+        </div>
+        <p class="card-content">Autorizaciones para procedimientos</p>
+      </div>
+      
+      <!-- Card 25 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🚶</div>
+          <h3 class="card-title">EGRESO VOLUNTARIO</h3>
+        </div>
+        <p class="card-content">Documentación de alta voluntaria</p>
+      </div>
+      
+      <!-- Card 26 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">⚖️</div>
+          <h3 class="card-title">NOTIFICACIÓN AL MINISTERIO PÚBLICO</h3>
+        </div>
+        <p class="card-content">Casos de notificación obligatoria</p>
+      </div>
+      
+      <!-- Card 27 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">⚰️</div>
+          <h3 class="card-title">NOTA DE DEFUNCIÓN Y MUERTE FETAL</h3>
+        </div>
+        <p class="card-content">Certificación y registro de deceso</p>
+      </div>
+      
+      <!-- SECCIÓN 7: DOCUMENTOS DE IDENTIFICACIÓN Y ADMINISTRATIVOS -->
+      <div class="category-section" style="grid-column: 1 / -1; margin-top: 20px;">
+        <h3 class="category-title">📄 Documentos Administrativos</h3>
+      </div>
+      
+      <!-- Card 28 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">🆔</div>
+          <h3 class="card-title">DOCUMENTOS DE IDENTIFICACIÓN</h3>
+        </div>
+        <p class="card-content">CURP, INE, Comprobante de domicilio, Carta de residente</p>
+      </div>
+      
+      <!-- Card 29 -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon">💰</div>
+          <h3 class="card-title">HOJA DE CONSUMO HOSPITAL Y URGENCIAS</h3>
+        </div>
+        <p class="card-content">Registro de insumos y medicamentos utilizados</p>
+      </div>
     </div>
-    
-    <!-- Modal para detalles del documento -->
-    <div class="modal-detalles" id="modalDetalles">
-        <div class="modal-contenido">
-            <div class="modal-header">
-                <div>
-                    <span class="modal-numero" id="modalNumero">1</span>
-                    <h3 class="modal-titulo" id="modalTitulo">HOJA FRONTAL</h3>
-                </div>
-                <button class="btn-cerrar" id="btnCerrarModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="modal-descripcion" id="modalDescripcion">
-                Identificación del paciente y datos generales del expediente clínico.
-            </div>
-            
-            <div class="modal-footer">
-                <button id="btnAnterior">
-                    <i class="fas fa-chevron-left"></i> Anterior
-                </button>
-                <button id="btnSiguiente">
-                    Siguiente <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-        // Datos de los documentos del expediente clínico
-        const documentos = [
-            { numero: 1, titulo: "HOJA FRONTAL", descripcion: "Identificación del paciente y datos generales" },
-            { numero: 2, titulo: "HISTORIA CLÍNICA", descripcion: "Registro completo de antecedentes y motivo de consulta" },
-            { numero: 3, titulo: "PARTOGRAMA", descripcion: "Seguimiento del trabajo de parto (cuando aplica)" },
-            { numero: 4, titulo: "NOTA DE URGENCIAS", descripcion: "Atención inicial en servicio de urgencias" },
-            { numero: 5, titulo: "NOTA DE INGRESO", descripcion: "Documentación de admisión hospitalaria" },
-            { numero: 6, titulo: "NOTA DE EVOLUCIÓN", descripcion: "Seguimiento diario del estado del paciente" },
-            { numero: 7, titulo: "REFERENCIA/TRASLADO", descripcion: "Documentación para transferencia entre unidades" },
-            { numero: 8, titulo: "NOTA INTERCONSULTA", descripcion: "Solicitud de opinión a otros especialistas" },
-            { numero: 9, titulo: "NOTA PRE OPERATORIA", descripcion: "Evaluación previa a procedimiento quirúrgico" },
-            { numero: 10, titulo: "CONSENTIMIENTO ANESTÉSICO", descripcion: "Autorización y evaluación anestésica" },
-            { numero: 11, titulo: "REGISTRO QUIRÚRGICO", descripcion: "Autorización y registro de intervención quirúrgica" },
-            { numero: 12, titulo: "REGISTRO DE ANESTESIA", descripcion: "Seguimiento anestésico intra y postoperatorio" },
-            { numero: 13, titulo: "VERIFICACIÓN QUIRÚRGICA", descripcion: "Lista de verificación de seguridad de la cirugía" },
-            { numero: 14, titulo: "NOTA DE EGRESO", descripcion: "Resumen y plan al finalizar la hospitalización" },
-            { numero: 15, titulo: "LABORATORIALES", descripcion: "Resultados de estudios ordenados por fecha" },
-            { numero: 16, titulo: "EXÁMENES DE GABINETE", descripcion: "Resultados de imágenes y estudios especiales" },
-            { numero: 17, titulo: "HOJA DE HOSPITALIZACIÓN", descripcion: "Registro administrativo-clínico diario" },
-            { numero: 18, titulo: "REGISTRO DE ENFERMERIA", descripcion: "Valoración y cuidados de enfermería" },
-            { numero: 19, titulo: "VIGILANCIA IAAS", descripcion: "Control de infecciones asociadas a la atención" },
-            { numero: 20, titulo: "ENFERMERÍA QUIRÓFANOS", descripcion: "Documentación intraquirúrgica de enfermería" },
-            { numero: 21, titulo: "INDICACIONES MÉDICAS", descripcion: "Órdenes médicas en orden cronológico ascendente" },
-            { numero: 22, titulo: "REGISTRO DE TRANSFUSIONES", descripcion: "Control de administración de hemoderivados" },
-            { numero: 23, titulo: "NOTA DE TRABAJO SOCIAL", descripcion: "Valoración psicosocial y apoyo" },
-            { numero: 24, titulo: "CONSENTIMIENTO INFORMADO", descripcion: "Autorizaciones para procedimientos" },
-            { numero: 25, titulo: "EGRESO VOLUNTARIO", descripcion: "Documentación de alta voluntaria" },
-            { numero: 26, titulo: "NOTIFICACIÓN MP", descripcion: "Casos de notificación obligatoria al Ministerio Público" },
-            { numero: 27, titulo: "NOTA DE DEFUNCIÓN", descripcion: "Certificación y registro de deceso o muerte fetal" },
-            { numero: 28, titulo: "DOCUMENTOS IDENTIFICACIÓN", descripcion: "CURP, INE, comprobante de domicilio, carta de residente" },
-            { numero: 29, titulo: "HOJA DE CONSUMO", descripcion: "Registro de insumos y medicamentos utilizados" }
-        ];
-
-        // Íconos para los documentos
-        const iconos = [
-            "fa-file-alt", "fa-history", "fa-baby", "fa-ambulance", 
-            "fa-sign-in-alt", "fa-stethoscope", "fa-exchange-alt", "fa-comments",
-            "fa-user-md", "fa-syringe", "fa-cut", "fa-cloud-moon",
-            "fa-check-double", "fa-sign-out-alt", "fa-flask", "fa-x-ray",
-            "fa-clipboard-list", "fa-user-nurse", "fa-shield-virus", "fa-procedures",
-            "fa-prescription-bottle", "fa-tint", "fa-hands-helping", "fa-file-signature",
-            "fa-walking", "fa-gavel", "fa-cross", "fa-id-card", "fa-pills"
-        ];
-
-        // Variables globales
-        let documentoActual = 0;
-        const modal = document.getElementById('modalDetalles');
-        const modalNumero = document.getElementById('modalNumero');
-        const modalTitulo = document.getElementById('modalTitulo');
-        const modalDescripcion = document.getElementById('modalDescripcion');
-        const btnCerrarModal = document.getElementById('btnCerrarModal');
-        const btnAnterior = document.getElementById('btnAnterior');
-        const btnSiguiente = document.getElementById('btnSiguiente');
-        const btnInfo = document.getElementById('btnInfo');
-
-        // Función para generar las cards de documentos
-        function generarCardsDocumentos() {
-            const grid = document.getElementById('documentosGrid');
-            grid.innerHTML = '';
-            
-            documentos.forEach((doc, index) => {
-                const card = document.createElement('div');
-                card.className = 'documento-card';
-                card.dataset.indice = index;
-                
-                card.innerHTML = `
-                    <div>
-                        <div class="documento-numero">${doc.numero}</div>
-                        <div class="documento-titulo">${doc.titulo}</div>
-                    </div>
-                    <div class="documento-descripcion">${doc.descripcion}</div>
-                    <div class="documento-icono">
-                        <i class="fas ${iconos[index]}"></i>
-                    </div>
-                `;
-                
-                card.addEventListener('click', () => {
-                    abrirModal(index);
-                });
-                
-                grid.appendChild(card);
-            });
-        }
-        
-        // Función para abrir el modal con detalles
-        function abrirModal(indice) {
-            documentoActual = indice;
-            const doc = documentos[indice];
-            
-            // Actualizar contenido del modal
-            modalNumero.textContent = doc.numero;
-            modalTitulo.textContent = doc.titulo;
-            modalDescripcion.textContent = doc.descripcion;
-            
-            // Mostrar modal
-            modal.style.display = 'flex';
-            
-            // Actualizar estado de las cards
-            document.querySelectorAll('.documento-card').forEach((card, i) => {
-                if (i === indice) {
-                    card.classList.add('active');
-                } else {
-                    card.classList.remove('active');
-                }
-            });
-            
-            // Cambiar estado del panel principal
-            const glass = document.querySelector('.glass');
-            glass.classList.remove('loading', 'success', 'error');
-            glass.classList.add('success');
-            
-            setTimeout(() => {
-                glass.classList.remove('success');
-            }, 1500);
-        }
-        
-        // Función para cerrar el modal
-        function cerrarModal() {
-            modal.style.display = 'none';
-            document.querySelectorAll('.documento-card').forEach(card => {
-                card.classList.remove('active');
-            });
-        }
-        
-        // Función para navegar al documento anterior
-        function documentoAnterior() {
-            if (documentoActual > 0) {
-                abrirModal(documentoActual - 1);
-            } else {
-                abrirModal(documentos.length - 1);
-            }
-        }
-        
-        // Función para navegar al siguiente documento
-        function documentoSiguiente() {
-            if (documentoActual < documentos.length - 1) {
-                abrirModal(documentoActual + 1);
-            } else {
-                abrirModal(0);
-            }
-        }
-        
-        // Función para mostrar información del sistema
-        function mostrarInfo() {
-            const glass = document.querySelector('.glass');
-            glass.classList.remove('loading', 'success', 'error');
-            glass.classList.add('loading');
-            
-            setTimeout(() => {
-                alert("Sistema de Orden del Expediente Clínico\n\nHospital Regional de Puerto Vallarta\n\nEste sistema muestra los 29 documentos que componen el expediente clínico estandarizado según la normativa NOM-004-SSA3-2012.\n\nHaga clic en cualquier card para ver detalles del documento.");
-                glass.classList.remove('loading');
-            }, 300);
-        }
-        
-        // Inicializar la página
-        document.addEventListener('DOMContentLoaded', function() {
-            // Generar las cards de documentos
-            generarCardsDocumentos();
-            
-            // Simular carga inicial
-            const glass = document.querySelector('.glass');
-            glass.classList.add('loading');
-            
-            setTimeout(() => {
-                glass.classList.remove('loading');
-            }, 800);
-            
-            // Asignar eventos
-            btnCerrarModal.addEventListener('click', cerrarModal);
-            btnAnterior.addEventListener('click', documentoAnterior);
-            btnSiguiente.addEventListener('click', documentoSiguiente);
-            btnInfo.addEventListener('click', mostrarInfo);
-            
-            // Cerrar modal al hacer clic fuera del contenido
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) {
-                    cerrarModal();
-                }
-            });
-            
-            // Navegación con teclado
-            document.addEventListener('keydown', (e) => {
-                if (modal.style.display === 'flex') {
-                    if (e.key === 'Escape') {
-                        cerrarModal();
-                    } else if (e.key === 'ArrowLeft') {
-                        documentoAnterior();
-                    } else if (e.key === 'ArrowRight') {
-                        documentoSiguiente();
-                    }
-                }
-            });
+    <div id="footer"></div>
+  </div>
+  
+  <script>
+    // Añadir funcionalidad de click a las cards
+    document.addEventListener('DOMContentLoaded', function() {
+      const cards = document.querySelectorAll('.card');
+      
+      cards.forEach(card => {
+        card.addEventListener('click', function() {
+          const title = this.querySelector('.card-title').textContent;
+          alert(`Has seleccionado: ${title}\n\nEsta funcionalidad puede ser implementada según tus necesidades específicas.`);
         });
-    </script>
+      });
+    });
+    
+    fetch('/estadisticas/comun/header.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('header').innerHTML = html;
+
+        // Cargar sesión.js después de insertar el HTML
+        const s = document.createElement('script');
+        s.src = '/estadisticas/comun/sesion_bk.js';
+
+        s.onload = () => {
+          console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
+          verificarAutenticacion();
+        };
+
+        document.body.appendChild(s);
+      });
+
+    fetch('/estadisticas/comun/footer.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('footer').innerHTML = html;
+
+        // Ya existe footerText
+        const footer = document.getElementById('footerText');
+        if (footer) {
+          footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+        }
+      });
+  </script>
+  <script src="/estadisticas/comun/estadoSistema.js"></script>
+  <script src="/estadisticas/comun/sesion_bk.js"></script>
 </body>
 </html>
