@@ -69,35 +69,6 @@
       color: white;
     }
 
-    /* CARD INDIVIDUAL */
-    .card {
-      background: rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(10px);
-      border-radius: 14px;
-      padding: 14px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, .15);
-      transition: transform .2s ease;
-      min-height: 100px;
-    }
-
-    .card:hover {
-      transform: translateY(-4px);
-    }
-
-    .card span {
-      font-weight: 600;
-      font-size: 14px;
-      display: block;
-      margin-bottom: 5px;
-    }
-
-    .card small {
-      opacity: .8;
-      font-size: 12px;
-      display: block;
-      margin-bottom: 3px;
-    }
-
     /* 🔍 BUSCADOR */
     .buscador {
       margin: 12px 0 20px;
@@ -150,6 +121,113 @@
       }
     }
   </style>
+  /* Estilos para la Opción 2 */
+.patient-card {
+  background: linear-gradient(145deg, #ffffff, #f8f9fa);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  transition: all 0.3s ease;
+}
+
+.patient-card:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+  transform: translateY(-3px);
+}
+
+.card-main {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.patient-avatar {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #4a9eff, #2d7dd2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.patient-primary {
+  flex: 1;
+}
+
+.patient-name {
+  margin: 0 0 5px 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1a202c;
+}
+
+.patient-record {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #718096;
+}
+
+.card-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+  margin: 20px 0;
+}
+
+.patient-details {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+}
+
+.detail-label {
+  font-size: 0.85rem;
+  color: #718096;
+  font-weight: 500;
+  min-width: 100px;
+}
+
+.detail-value {
+  font-size: 0.95rem;
+  color: #2d3748;
+  font-weight: 500;
+  text-align: right;
+}
+
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-badge.activo { background: #c6f6d5; color: #22543d; }
+.status-badge.inactivo { background: #fed7d7; color: #742a2a; }
+.status-badge.pendiente { background: #feebc8; color: #744210; }
+
+.phone-link {
+  color: #4a9eff;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.phone-link:hover {
+  text-decoration: underline;
+}
 </head>
 
 <body>
@@ -204,102 +282,131 @@
       });
   </script>
 
-<script>
-  const ITEMS_PER_PAGE = 20;
+  <script>
+    const ITEMS_PER_PAGE = 20;
 
-  let page = 1;
-  let totalPages = 1;
-  let datosOriginales = [];
+    let page = 1;
+    let totalPages = 1;
+    let datosOriginales = [];
 
-  // 🔄 CAMBIAR DE PÁGINA
-  async function cambiarPagina(delta) {
-    const newPage = page + delta;
-    if (newPage >= 1 && newPage <= totalPages) {
-      page = newPage;
+    // 🔄 CAMBIAR DE PÁGINA
+    async function cambiarPagina(delta) {
+      const newPage = page + delta;
+      if (newPage >= 1 && newPage <= totalPages) {
+        page = newPage;
+        mostrarPagina();
+      }
+    }
+
+    // 📥 CARGAR JSON LOCAL
+    async function cargar() {
+      const res = await fetch("https://script.google.com/macros/s/AKfycbzstm9udTBTXXtj7oOAhmwqYWBvWo36biqta06ioDBDGmsnSTADgEuSkPAIiROxuojI/exec?all=true");
+      const data = await res.json();
+
+      datosOriginales = (data.rows || []).sort((a, b) =>
+        (a["NOMBRE DEL PACIENTE"] || "").localeCompare(b["NOMBRE DEL PACIENTE"] || "", "es", { sensitivity: "base" })
+      );
+
+      totalPages = Math.ceil(datosOriginales.length / ITEMS_PER_PAGE);
       mostrarPagina();
     }
-  }
 
-  // 📥 CARGAR JSON LOCAL
-  async function cargar() {
-    const res = await fetch("https://script.google.com/macros/s/AKfycbzstm9udTBTXXtj7oOAhmwqYWBvWo36biqta06ioDBDGmsnSTADgEuSkPAIiROxuojI/exec?all=true");
-    const data = await res.json();
+    // 📄 MOSTRAR PÁGINA
+    let datosFiltrados = [];
 
-    datosOriginales = (data.rows || []).sort((a, b) =>
-      (a["NOMBRE DEL PACIENTE"] || "").localeCompare(b["NOMBRE DEL PACIENTE"] || "", "es", { sensitivity: "base" })
-    );
-
-    totalPages = Math.ceil(datosOriginales.length / ITEMS_PER_PAGE);
-    mostrarPagina();
-  }
-
-  // 📄 MOSTRAR PÁGINA
-  let datosFiltrados = [];
-
-  function mostrarPagina() {
-    const base = (datosFiltrados.length ? datosFiltrados : datosOriginales).sort((a, b) =>
-      (a["NOMBRE DEL PACIENTE"] || "").localeCompare(b["NOMBRE DEL PACIENTE"] || "", "es", { sensitivity: "base" })
-    );
-
-    const inicio = (page - 1) * ITEMS_PER_PAGE;
-    const fin = inicio + ITEMS_PER_PAGE;
-    const paginaDatos = base.slice(inicio, fin);
-
-    totalPages = Math.ceil(base.length / ITEMS_PER_PAGE);
-    document.getElementById("paginaActual").textContent = `Página ${page} de ${totalPages}`;
-    render(paginaDatos);
-  }
-
-  // 🔍 BÚSQUEDA EN TIEMPO REAL
-  document.getElementById("busqueda").addEventListener("input", e => {
-    const q = e.target.value.toLowerCase().trim();
-
-    if (q === "") {
-      datosFiltrados = [];
-    } else {
-      datosFiltrados = datosOriginales.filter(r =>
-        (r["NOMBRE DEL PACIENTE"] || "").toString().toLowerCase().includes(q) ||
-        (r["EXPEDIENTE"] || "").toString().toLowerCase().includes(q) ||
-        (r["SERVICIO"] || "").toString().toLowerCase().includes(q) ||
-        (r["FECHA DE REGISTRO"] || "").toString().toLowerCase().includes(q) ||
-        (r["estado"] || "").toString().toLowerCase().includes(q) ||
-        (r["sexo"] || "").toString().toLowerCase().includes(q) ||
-        (r["fecha_nac"] || "").toString().toLowerCase().includes(q) ||
-        (r["tel_part"] || "").toString().toLowerCase().includes(q)
+    function mostrarPagina() {
+      const base = (datosFiltrados.length ? datosFiltrados : datosOriginales).sort((a, b) =>
+        (a["NOMBRE DEL PACIENTE"] || "").localeCompare(b["NOMBRE DEL PACIENTE"] || "", "es", { sensitivity: "base" })
       );
+
+      const inicio = (page - 1) * ITEMS_PER_PAGE;
+      const fin = inicio + ITEMS_PER_PAGE;
+      const paginaDatos = base.slice(inicio, fin);
+
+      totalPages = Math.ceil(base.length / ITEMS_PER_PAGE);
+      document.getElementById("paginaActual").textContent = `Página ${page} de ${totalPages}`;
+      render(paginaDatos);
     }
 
-    page = 1;
-    mostrarPagina();
-  });
+    // 🔍 BÚSQUEDA EN TIEMPO REAL
+    document.getElementById("busqueda").addEventListener("input", e => {
+      const q = e.target.value.toLowerCase().trim();
 
-  // 🎨 RENDER DE CARDS
-  function render(rows) {
-    const cont = document.getElementById("cards");
-    cont.innerHTML = "";
+      if (q === "") {
+        datosFiltrados = [];
+      } else {
+        datosFiltrados = datosOriginales.filter(r =>
+          (r["NOMBRE DEL PACIENTE"] || "").toString().toLowerCase().includes(q) ||
+          (r["EXPEDIENTE"] || "").toString().toLowerCase().includes(q) ||
+          (r["SERVICIO"] || "").toString().toLowerCase().includes(q) ||
+          (r["FECHA DE REGISTRO"] || "").toString().toLowerCase().includes(q) ||
+          (r["estado"] || "").toString().toLowerCase().includes(q) ||
+          (r["sexo"] || "").toString().toLowerCase().includes(q) ||
+          (r["fecha_nac"] || "").toString().toLowerCase().includes(q) ||
+          (r["tel_part"] || "").toString().toLowerCase().includes(q)
+        );
+      }
 
-    if (!rows.length) {
-      cont.innerHTML = "<small>No hay resultados</small>";
-      return;
-    }
-
-    rows.forEach(r => {
-      cont.innerHTML += `
-        <div class="card">
-          <span><b>${r["NOMBRE DEL PACIENTE"] || ""}</b></span>
-          <small>Expediente: ${r["EXPEDIENTE"] || ""}</small>
-          <small>Fecha de registro: ${r["FECHA DE REGISTRO"] || ""}</small>
-          <small>Estado: ${r["estado"] || ""}</small>
-          <small>Sexo: ${r["sexo"] || ""}</small>
-          <small>Fecha de nacimiento: ${r["fecha_nac"] || ""}</small>
-          <small>Teléfono: ${r["tel_part"] || ""}</small>
-        </div>
-      `;
+      page = 1;
+      mostrarPagina();
     });
-  }
 
-  window.onload = cargar;
-</script>
+    // 🎨 RENDER DE CARDS
+    function render(rows) {
+      const cont = document.getElementById("cards");
+      cont.innerHTML = "";
+
+      if (!rows.length) {
+        cont.innerHTML = "<small>No hay resultados</small>";
+        return;
+      }
+
+      rows.forEach(r => {
+        cont.innerHTML += `
+<div class="card patient-card">
+  <div class="card-main">
+    <div class="patient-avatar">
+      <span>${(r["NOMBRE DEL PACIENTE"]?.charAt(0) || "P")}</span>
+    </div>
+    <div class="patient-primary">
+      <h4 class="patient-name">${r["NOMBRE DEL PACIENTE"] || ""}</h4>
+      <p class="patient-record">Expediente: <strong>${r["EXPEDIENTE"] || ""}</strong></p>
+    </div>
+  </div>
+  
+  <div class="card-divider"></div>
+  
+  <div class="patient-details">
+    <div class="detail-row">
+      <span class="detail-label">Registro:</span>
+      <span class="detail-value">${r["FECHA DE REGISTRO"] || ""}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Estado:</span>
+      <span class="detail-value status-badge ${r["estado"]?.toLowerCase() || ''}">
+        ${r["estado"] || ""}
+      </span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Sexo:</span>
+      <span class="detail-value">${r["sexo"] || ""}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Nacimiento:</span>
+      <span class="detail-value">${r["fecha_nac"] || ""}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Teléfono:</span>
+      <span class="detail-value phone-link">${r["tel_part"] || "N/A"}</span>
+    </div>
+  </div>
+</div>
+      `;
+      });
+    }
+
+    window.onload = cargar;
+  </script>
 
 
   <script src="/estadisticas/comun/estadoSistema.js"></script>
