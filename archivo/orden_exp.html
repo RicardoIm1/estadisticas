@@ -323,9 +323,9 @@
     <div class="grid">
       <!-- Celda 1 modificada -->
       <div class="celda" data-document-id="1" data-title="HOJA FRONTAL"
-        data-url="https://drive.google.com/file/d/1MheW50uCAqh4V1aoVpj8FMdIRo89H3T6/preview?usp=sharing">
-        <a href="https://drive.google.com/file/d/1MheW50uCAqh4V1aoVpj8FMdIRo89H3T6/view?usp=sharing" target="_blank"
-          rel="noopener noreferrer"></a>
+        data-url="https://drive.google.com/file/d/1MheW50uCAqh4V1aoVpj8FMdIRo89H3T6/preview?usp=sharing/preview">
+        <a href="https://drive.google.com/file/d/1MheW50uCAqh4V1aoVpj8FMdIRo89H3T6/view?usp=sharing/preview"
+          target="_blank" rel="noopener noreferrer"></a>
         <div class="celda-header">
           <div class="celda-icon">1</div>
           <h3 class="celda-title">HOJA FRONTAL</h3>
@@ -335,9 +335,9 @@
 
       <!-- Celda 2 modificada -->
       <div class="celda" data-document-id="2" data-title="HISTORIA CLÍNICA"
-        data-url="https://drive.google.com/file/d/16o2PZXWOi7eVpsaKFw7gzpLGWQemZUsE/preview?usp=sharing">
-        <a href="https://drive.google.com/file/d/16o2PZXWOi7eVpsaKFw7gzpLGWQemZUsE/view?usp=sharing" target="_blank"
-          rel="noopener noreferrer"></a>
+        data-url="https://drive.google.com/file/d/16o2PZXWOi7eVpsaKFw7gzpLGWQemZUsE/preview?usp=sharing/preview">
+        <a href="https://drive.google.com/file/d/16o2PZXWOi7eVpsaKFw7gzpLGWQemZUsE/view?usp=sharing/preview"
+          target="_blank" rel="noopener noreferrer"></a>
         <div class="celda-header">
           <div class="celda-icon">2</div>
           <h3 class="celda-title">HISTORIA CLÍNICA</h3>
@@ -727,7 +727,7 @@
           };
 
           // Cargar el documento
-          documentFrame.src = docUrl;
+          documentFrame.src = getAlternativeViewerUrl(docUrl);
 
           // Mostrar el modal
           setTimeout(() => {
@@ -805,6 +805,21 @@
         }
       });
     });
+
+    // Opción alternativa para visualizar PDFs
+    function getAlternativeViewerUrl(driveUrl) {
+      // Extraer el ID del archivo de Google Drive
+      const match = driveUrl.match(/\/d\/([^\/]+)/);
+      if (match && match[1]) {
+        const fileId = match[1];
+        // Opción 1: Usar Google Drive viewer público
+        return `https://drive.google.com/file/d/${fileId}/preview`;
+
+        // Opción 2: Usar un servicio de terceros (ejemplo)
+        // return `https://docs.google.com/viewer?url=https://drive.google.com/uc?id=${fileId}&embedded=true`;
+      }
+      return driveUrl;
+    }
 
     // Cargar header y footer
     fetch('/estadisticas/comun/header-archivo.html')
