@@ -311,6 +311,16 @@
             color: rgba(0, 255, 0, 0.4) !important;
         }
 
+        /* Año anterior - estilo diferente */
+        .año-anterior {
+            background: rgba(50, 50, 0, 0.3) !important;
+            border-color: rgba(255, 255, 0, 0.2) !important;
+        }
+
+        .año-anterior .label {
+            color: #ffffa0 !important;
+        }
+
         /* Responsivo para móviles */
         @media (max-width: 768px) {
             .layout-egresos {
@@ -479,10 +489,20 @@
             // Si no encuentra en campos específicos, buscar en cualquier valor que parezca fecha
             for (const valor of Object.values(registro)) {
                 if (typeof valor === 'string') {
-                    // Intentar parsear como fecha
-                    const fecha = new Date(valor);
-                    if (!isNaN(fecha) && fecha.getFullYear() > 2000) {
+                    // Intentar parsear como fecha (formatos comunes)
+                    const fechaStr = valor.trim();
+                    // Probamos diferentes formatos de fecha
+                    const fecha = new Date(fechaStr);
+                    if (!isNaN(fecha) && fecha.getFullYear() > 2000 && fecha.getFullYear() < 2100) {
                         return fecha;
+                    }
+                    
+                    // También probar formato DD/MM/YYYY
+                    const match = fechaStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                    if (match) {
+                        const [_, dia, mes, año] = match;
+                        const fechaFormateada = new Date(año, mes-1, dia);
+                        if (!isNaN(fechaFormateada)) return fechaFormateada;
                     }
                 }
             }
@@ -500,34 +520,31 @@
             
             const ahora = new Date();
             const añoActual = ahora.getFullYear();
+            const mesActual = ahora.getMonth();
             
-            // Inicializar con todos los meses vacíos
-            for (let i = 0; i < 12; i++) {
-                const clave = `${añoActual}-${String(i+1).padStart(2, '0')}`;
-                estadisticas[clave] = {
-                    mes: i,
-                    nombre: nombresMeses[i],
-                    año: añoActual,
-                    cantidad: 0,
-                    esMesActual: i === ahora.getMonth()
-                };
-            }
-            
-            // Contar registros por mes
+            // Procesar cada registro
             registros.forEach(registro => {
                 const fecha = extraerFecha(registro);
                 if (!fecha) return;
                 
                 const mes = fecha.getMonth();
                 const año = fecha.getFullYear();
+                const clave = `${año}-${String(mes+1).padStart(2, '0')}`;
                 
-                // Solo contar del año actual
-                if (año === añoActual) {
-                    const clave = `${año}-${String(mes+1).padStart(2, '0')}`;
-                    if (estadisticas[clave]) {
-                        estadisticas[clave].cantidad++;
-                    }
+                // Inicializar si no existe
+                if (!estadisticas[clave]) {
+                    estadisticas[clave] = {
+                        mes: mes,
+                        nombre: nombresMeses[mes],
+                        año: año,
+                        cantidad: 0,
+                        esMesActual: (año === añoActual && mes === mesActual),
+                        esAñoActual: (año === añoActual)
+                    };
                 }
+                
+                // Incrementar contador
+                estadisticas[clave].cantidad++;
             });
             
             return estadisticas;
@@ -539,14 +556,15 @@
             container.innerHTML = '';
             
             const ahora = new Date();
-            const mesActual = ahora.getMonth();
+            const añoActual = ahora.getFullYear();
             let totalVisibles = 0;
             
             // Convertir objeto a array y filtrar meses con registros
             const mesesConRegistros = Object.values(estadisticas)
                 .filter(mes => mes.cantidad > 0)
                 .sort((a, b) => {
-                    // Ordenar por mes descendente (más reciente primero)
+                    // Ordenar por fecha descendente (más reciente primero)
+                    // Primero por año, luego por mes
                     if (a.año !== b.año) return b.año - a.año;
                     return b.mes - a.mes;
                 });
@@ -569,8 +587,12 @@
                 
                 const div = document.createElement('div');
                 div.className = 'estadistica-item';
+                
+                // Aplicar clases según el año
                 if (mes.esMesActual) {
                     div.classList.add('mes-actual');
+                } else if (!mes.esAñoActual) {
+                    div.classList.add('año-anterior');
                 }
                 
                 div.innerHTML = `
@@ -587,6 +609,10 @@
             // Ajustar grid según cantidad de items
             if (mesesConRegistros.length === 1) {
                 container.style.gridTemplateColumns = '1fr';
+            } else if (mesesConRegistros.length === 2) {
+                container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+            } else if (mesesConRegistros.length === 3) {
+                container.style.gridTemplateColumns = 'repeat(3, 1fr)';
             } else {
                 container.style.gridTemplateColumns = 'repeat(2, 1fr)';
             }
@@ -635,8 +661,12 @@
             registros.forEach(r => {
                 const fila = "<tr>" + headers.map(h => {
                     let v = r[h] ?? "";
+                    // Formatear fechas
                     if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO", "Fecha", "fecha"].includes(h)) {
-                        v = formatearFecha(v);
+                        const fecha = extraerFecha({[h]: v});
+                        if (fecha) {
+                            v = `${String(fecha.getDate()).padStart(2, "0")}/${String(fecha.getMonth() + 1).padStart(2, "0")}/${fecha.getFullYear()}`;
+                        }
                     }
                     return `<td>${v}</td>`;
                 }).join("") + "</tr>";
@@ -666,18 +696,22 @@
                 if (!json.ok) return;
                 
                 todosRegistros = json.registros;
+                console.log(`Cargados ${todosRegistros.length} registros totales`);
+                
+                // Mostrar información de depuración
+                todosRegistros.slice(0, 3).forEach((r, i) => {
+                    const fecha = extraerFecha(r);
+                    console.log(`Registro ${i}:`, fecha ? 
+                        `Fecha: ${fecha.getDate()}/${fecha.getMonth()+1}/${fecha.getFullYear()}` : 
+                        'Sin fecha válida');
+                });
+                
                 filtrarYMostrarRegistros();
                 
             } catch (error) {
                 setEstado('error', 'Error al cargar registros');
                 console.error('Error:', error);
             }
-        }
-
-        function formatearFecha(v) {
-            const f = new Date(v);
-            if (isNaN(f)) return v;
-            return `${String(f.getDate()).padStart(2, "0")}/${String(f.getMonth() + 1).padStart(2, "0")}/${f.getFullYear()}`;
         }
 
         // Cargar header y footer
