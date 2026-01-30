@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Estadísticas y Archivo Clínico</title>
+    <title>Hojas Incompletas de Hospitalización</title>
     <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -11,44 +11,13 @@
     <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
     <link href="/estadisticas/main_css/tabla-wrapper.css" rel="stylesheet">
     <style>
-        /* === NUEVO: Layout premium formulario + tabla === */
+        /* === Layout solo para tabla === */
         .layout-egresos {
             display: grid;
-            grid-template-columns: 30% 1fr;
+            grid-template-columns: 100%;
             gap: 1rem;
             height: calc(100vh - 160px);
             min-height: 0;
-        }
-
-        /* Formulario premium */
-        .form-panel {
-            background: rgba(255, 255, 255, 0.09);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 14px;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 0.7rem;
-            min-width: 200px;
-            overflow-y: auto;
-            color: #0f0;
-        }
-
-        /* Inputs minimalistas */
-        .form-panel input,
-        .form-panel textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            background: rgba(255, 255, 255, 0.08);
-            color: #0f0;
-            font-size: 0.9rem;
-        }
-
-        .form-panel textarea {
-            height: 80px;
-            resize: vertical;
         }
 
         /* Wrapper para la tabla */
@@ -69,7 +38,6 @@
             flex: 1;
             min-height: 0;
             overflow-y: auto;
-            /* Scroll vertical */
             position: relative;
         }
 
@@ -211,12 +179,7 @@
         /* Responsivo para móviles */
         @media (max-width: 768px) {
             .layout-egresos {
-                grid-template-columns: 1fr;
                 gap: 0.8rem;
-            }
-
-            .form-panel {
-                max-height: none;
             }
 
             .buscador-tabla {
@@ -228,10 +191,24 @@
             .buscador-tabla input[type="text"] {
                 min-width: unset;
             }
-
+            
             .filtro-atendidos {
                 justify-content: space-between;
+                width: 100%;
             }
+        }
+        
+        /* Estilos para columna ATENDIDO */
+        .col-atendido {
+            font-weight: bold;
+        }
+        
+        .atendido-verdadero {
+            color: #2ecc71 !important;
+        }
+        
+        .atendido-falso {
+            color: #e74c3c !important;
         }
     </style>
 </head>
@@ -239,32 +216,22 @@
     <div class="glass" id="dashboard">
         <h5>Hojas Incompletas de Hospitalización</h5>
         <div id="header"></div>
+
         <div class="layout-egresos">
-
-            <form id="form-egresos" class="form-panel">
-                <input type="text" name="paciente" placeholder="Paciente" required>
-                <input type="date" name="fecha_egreso">
-                <input type="text" name="servicio" placeholder="Servicio">
-                <input type="text" name="personal_archivo" placeholder="Personal de archivo">
-                <input type="text" name="no_expediente" placeholder="No. expediente">
-                <textarea name="observaciones" placeholder="Observaciones"></textarea>
-                <button class="button" type="submit">Guardar</button>
-                <div class="totales">
-                    <!-- aqui quiero mostrar acumulados por mes -->
-                </div>
-            </form>
-
             <div class="tabla-zona">
                 <div class="buscador-tabla">
                     <div class="filtro-atendidos">
                         <i class="fa-solid fa-magnifying-glass"></i>
                         <input type="text" id="buscadorTabla" placeholder="Buscar en la tabla…">
                     </div>
-                    <span>Mostrar atendidos</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="toggleAtendidos">
-                        <span class="toggle-slider"></span>
-                    </label>
+                    <!-- aqui quiero mostrar los totales por mes -->
+                    <div class="filtro-atendidos">
+                        <span>Mostrar atendidos</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="toggleAtendidos">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- CONTENEDOR PRINCIPAL CON SCROLL VERTICAL -->
@@ -289,123 +256,188 @@
     
     <script>
         /* ================== CONFIG ================== */
+        /*const URL = "https://script.google.com/macros/s/AKfycbyAvx8VqdO8HymSdFGJFgXUm_cTs0QzMmd_M__P-STBYizfBRaxxLS1CWP3AEfLSfVw/exec";*/
         const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec";
 
         let mostrarAtendidos = false;
         let textoBusqueda = "";
+        let todosRegistros = []; // Guardamos todos los registros para filtrar sin volver a cargar
 
         /* ================== TOGGLE ================== */
         document.getElementById("toggleAtendidos").addEventListener("change", e => {
             mostrarAtendidos = e.target.checked;
-            cargarRegistros();
+            aplicarFiltros();
         });
 
         /* ================== BUSCADOR ================== */
         document.getElementById("buscadorTabla").addEventListener("input", e => {
             textoBusqueda = e.target.value.toLowerCase().trim();
-            cargarRegistros();
+            aplicarFiltros();
         });
 
-        /* ================== GUARDAR ================== */
-        document.getElementById("form-egresos").addEventListener("submit", async e => {
-            e.preventDefault();
-            setEstado('loading', 'Guardando registro...');
-            
-            try {
-                const data = Object.fromEntries(new FormData(e.target).entries());
-
-                const res = await fetch(URL, {
-                    method: "POST",
-                    body: JSON.stringify(data)
-                });
-
-                const json = await res.json();
-                if (json.ok) {
-                    setEstado('success', 'Registro guardado correctamente');
-                    cargarRegistros();
-                    e.target.reset();
-                } else {
-                    throw new Error('Error en la respuesta del servidor');
-                }
-            } catch (error) {
-                setEstado('error', 'Error al guardar el registro');
-                console.error('Error:', error);
-            }
-        });
-
-        /* ================== TABLA ================== */
+        /* ================== CARGAR DATOS INICIALES ================== */
         async function cargarRegistros() {
             setEstado('loading', 'Cargando registros...');
             
             try {
                 const res = await fetch(URL);
                 const json = await res.json();
-                if (!json.ok) return;
-
-                let registros = json.registros;
-
-                // filtro checklist (columna G)
-                if (!mostrarAtendidos) {
-                    registros = registros.filter(r => {
-                        // Columna H (checklist): true / false / vacío
-                        const checklist = String(
-                            Object.values(r)[7] ?? ""
-                        ).toLowerCase();
-
-                        // Mostrar SOLO los que NO tienen checklist activo
-                        return !["true", "sí", "si", "1", "checked"].includes(checklist);
-                    });
-                }
-
-                // filtro búsqueda en tiempo real
-                if (textoBusqueda) {
-                    registros = registros.filter(r =>
-                        Object.values(r).some(v =>
-                            String(v).toLowerCase().includes(textoBusqueda)
-                        )
-                    );
-                }
-
-                const thead = document.querySelector("#tabla-registros thead");
-                const tbody = document.querySelector("#tabla-registros tbody");
-                thead.innerHTML = "";
-                tbody.innerHTML = "";
-
-                if (!registros.length) {
-                    setEstado('success', 'No hay registros para mostrar');
+                if (!json.ok) {
+                    setEstado('error', 'Error en la respuesta del servidor');
                     return;
                 }
 
-                const headers = Object.keys(registros[0]);
-                thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
-
-                registros.forEach(r => {
-                    const fila = "<tr>" + headers.map(h => {
-                        let v = r[h] ?? "";
-                        if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
-                            v = formatearFecha(v);
+                todosRegistros = json.registros;
+                console.log("Registros cargados:", todosRegistros.length);
+                
+                // Mostrar información de depuración
+                if (todosRegistros.length > 0) {
+                    console.log("Primer registro:", todosRegistros[0]);
+                    console.log("Columnas disponibles:", Object.keys(todosRegistros[0]));
+                    
+                    // Buscar la columna ATENDIDO específicamente
+                    const primerRegistro = todosRegistros[0];
+                    for (const key in primerRegistro) {
+                        if (key.toUpperCase().includes('ATENDIDO') || key.toUpperCase().includes('CHECK')) {
+                            console.log(`Columna encontrada: "${key}" = "${primerRegistro[key]}"`);
                         }
-                        return `<td>${v}</td>`;
-                    }).join("") + "</tr>";
-                    tbody.innerHTML += fila;
-                });
+                    }
+                }
 
-                setEstado('success', `Cargados ${registros.length} registros`);
+                aplicarFiltros();
+
             } catch (error) {
                 setEstado('error', 'Error al cargar registros');
                 console.error('Error:', error);
             }
         }
 
+        /* ================== APLICAR FILTROS ================== */
+        function aplicarFiltros() {
+            if (todosRegistros.length === 0) return;
+
+            let registros = [...todosRegistros];
+
+            // 1. Filtro por columna ATENDIDO
+            if (!mostrarAtendidos) {
+                // Por defecto: mostrar solo los que tienen "FALSO" en ATENDIDO
+                registros = registros.filter(r => {
+                    const valorAtendido = obtenerValorAtendido(r);
+                    const valorNormalizado = String(valorAtendido).toUpperCase().trim();
+                    
+                    // Mostrar solo si es FALSO, FALSE, vacío o null
+                    return valorNormalizado === "FALSO" || 
+                           valorNormalizado === "FALSE" || 
+                           valorNormalizado === "" || 
+                           valorAtendido === null || 
+                           valorAtendido === undefined;
+                });
+                console.log(`Filtro "No atendidos": ${todosRegistros.length} → ${registros.length} registros`);
+            }
+            // Si mostrarAtendidos es true, mostrar todos (incluyendo VERDADERO y FALSO)
+
+            // 2. Filtro de búsqueda
+            if (textoBusqueda) {
+                registros = registros.filter(r =>
+                    Object.values(r).some(v =>
+                        String(v).toLowerCase().includes(textoBusqueda)
+                    )
+                );
+                console.log(`Filtro búsqueda "${textoBusqueda}": ${registros.length} registros`);
+            }
+
+            // 3. Renderizar la tabla
+            renderizarTabla(registros);
+        }
+
+        /* ================== OBTENER VALOR DE ATENDIDO ================== */
+        function obtenerValorAtendido(registro) {
+            // Buscar la columna que se llame ATENDIDO (ignorando mayúsculas/minúsculas)
+            for (const key in registro) {
+                if (key.toUpperCase() === 'ATENDIDO') {
+                    return registro[key];
+                }
+            }
+            
+            // Si no encuentra exactamente "ATENDIDO", buscar variaciones
+            for (const key in registro) {
+                const keyUpper = key.toUpperCase();
+                if (keyUpper.includes('ATEND') || keyUpper.includes('CHECK')) {
+                    console.log(`Columna encontrada por similitud: "${key}" = "${registro[key]}"`);
+                    return registro[key];
+                }
+            }
+            
+            // Si no encuentra ninguna, devolver null
+            return null;
+        }
+
+        /* ================== RENDERIZAR TABLA ================== */
+        function renderizarTabla(registros) {
+            const thead = document.querySelector("#tabla-registros thead");
+            const tbody = document.querySelector("#tabla-registros tbody");
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            if (!registros.length) {
+                setEstado('success', 'No hay registros para mostrar con los filtros actuales');
+                return;
+            }
+
+            const headers = Object.keys(registros[0]);
+            
+            // Crear encabezados
+            thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+            // Crear filas
+            registros.forEach(r => {
+                const tr = document.createElement('tr');
+                
+                headers.forEach(h => {
+                    const td = document.createElement('td');
+                    let valor = r[h] ?? "";
+                    
+                    // Formatear fechas
+                    if (h.includes('FECHA') || h.includes('FECHA') || h.includes('CUANDO') || h.includes('REGISTRADO')) {
+                        valor = formatearFecha(valor);
+                    }
+                    
+                    // Aplicar estilos a la columna ATENDIDO
+                    if (h.toUpperCase().includes('ATENDIDO') || h.toUpperCase().includes('CHECK')) {
+                        td.classList.add('col-atendido');
+                        const valorNormalizado = String(valor).toUpperCase().trim();
+                        if (valorNormalizado === "VERDADERO" || valorNormalizado === "TRUE") {
+                            td.classList.add('atendido-verdadero');
+                            td.innerHTML = '<i class="fas fa-check-circle"></i> Atendido';
+                        } else if (valorNormalizado === "FALSO" || valorNormalizado === "FALSE") {
+                            td.classList.add('atendido-falso');
+                            td.innerHTML = '<i class="fas fa-times-circle"></i> Pendiente';
+                        } else {
+                            td.textContent = valor;
+                        }
+                    } else {
+                        td.textContent = valor;
+                    }
+                    
+                    tr.appendChild(td);
+                });
+                
+                tbody.appendChild(tr);
+            });
+
+            setEstado('success', `Mostrando ${registros.length} registros`);
+        }
+
         function formatearFecha(v) {
+            if (!v) return "";
             const f = new Date(v);
-            if (isNaN(f)) return v;
+            if (isNaN(f.getTime())) return v;
             return `${String(f.getDate()).padStart(2, "0")}/${String(f.getMonth() + 1).padStart(2, "0")}/${f.getFullYear()}`;
         }
 
         // Cargar header y footer
         Promise.all([
-            fetch('/estadisticas/comun/header-archivo.html').then(r => r.text()),
+            fetch('/estadisticas/comun/header.html').then(r => r.text()),
             fetch('/estadisticas/comun/footer.html').then(r => r.text())
         ]).then(([headerHtml, footerHtml]) => {
             document.getElementById('header').innerHTML = headerHtml;
@@ -435,7 +467,7 @@
 
         // Cargar registros cuando todo esté listo
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(cargarRegistros, 500); // Pequeño delay para que cargue el estado del sistema
+            setTimeout(cargarRegistros, 500);
         });
     </script>
 </body>
