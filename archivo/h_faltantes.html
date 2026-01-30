@@ -51,6 +51,58 @@
             resize: vertical;
         }
 
+        /* Sección de estadísticas mensuales */
+        .estadisticas-mensuales {
+            background: rgba(0, 40, 0, 0.3);
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .estadisticas-mensuales h4 {
+            color: #0f0;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+            padding-bottom: 0.5rem;
+        }
+
+        .estadisticas-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+        }
+
+        .estadistica-item {
+            background: rgba(0, 30, 0, 0.4);
+            border-radius: 8px;
+            padding: 0.8rem;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 0, 0.1);
+        }
+
+        .estadistica-item .numero {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0f0;
+            display: block;
+        }
+
+        .estadistica-item .label {
+            font-size: 0.8rem;
+            color: #9fffa0;
+            margin-top: 0.3rem;
+        }
+
+        .estadistica-item .mes-actual {
+            background: rgba(0, 255, 0, 0.15);
+            border-color: rgba(0, 255, 0, 0.4);
+        }
+
         /* Wrapper para la tabla */
         .tabla-zona {
             flex: 1;
@@ -69,7 +121,6 @@
             flex: 1;
             min-height: 0;
             overflow-y: auto;
-            /* Scroll vertical */
             position: relative;
         }
 
@@ -208,6 +259,34 @@
             color: #9fffa0;
         }
 
+        /* Resumen anual */
+        .resumen-anual {
+            background: rgba(0, 50, 0, 0.25);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(0, 255, 0, 0.15);
+        }
+
+        .resumen-anual h5 {
+            color: #0f0;
+            margin-top: 0;
+            margin-bottom: 0.8rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .total-anual {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #0f0;
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(0, 255, 0, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(0, 255, 0, 0.2);
+        }
+
         /* Responsivo para móviles */
         @media (max-width: 768px) {
             .layout-egresos {
@@ -217,6 +296,10 @@
 
             .form-panel {
                 max-height: none;
+            }
+
+            .estadisticas-grid {
+                grid-template-columns: 1fr;
             }
 
             .buscador-tabla {
@@ -249,6 +332,28 @@
                 <input type="text" name="no_expediente" placeholder="No. expediente">
                 <textarea name="observaciones" placeholder="Observaciones"></textarea>
                 <button class="button" type="submit">Guardar</button>
+                
+                <!-- SECCIÓN DE ACUMULADOS POR MES -->
+                <div class="estadisticas-mensuales">
+                    <h4><i class="fas fa-chart-bar"></i> Estadísticas Mensuales</h4>
+                    <div class="estadisticas-grid" id="estadisticasMensuales">
+                        <!-- Se llenará dinámicamente con JavaScript -->
+                        <div class="estadistica-item mes-actual">
+                            <span class="numero">0</span>
+                            <span class="label">Este Mes</span>
+                        </div>
+                        <div class="estadistica-item">
+                            <span class="numero">0</span>
+                            <span class="label">Mes Pasado</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESUMEN ANUAL -->
+                <div class="resumen-anual">
+                    <h5><i class="fas fa-calendar-alt"></i> Total Anual</h5>
+                    <div class="total-anual" id="totalAnual">0</div>
+                </div>
             </form>
 
             <div class="tabla-zona">
@@ -290,6 +395,7 @@
 
         let mostrarAtendidos = false;
         let textoBusqueda = "";
+        let todosRegistros = []; // Para almacenar todos los registros originales
 
         /* ================== TOGGLE ================== */
         document.getElementById("toggleAtendidos").addEventListener("change", e => {
@@ -319,7 +425,7 @@
                 const json = await res.json();
                 if (json.ok) {
                     setEstado('success', 'Registro guardado correctamente');
-                    cargarRegistros();
+                    cargarRegistros(); // Esto actualizará las estadísticas también
                     e.target.reset();
                 } else {
                     throw new Error('Error en la respuesta del servidor');
@@ -330,7 +436,100 @@
             }
         });
 
-        /* ================== TABLA ================== */
+        /* ================== FUNCIÓN PARA CALCULAR ESTADÍSTICAS ================== */
+        function calcularEstadisticas(registros) {
+            const ahora = new Date();
+            const mesActual = ahora.getMonth(); // 0-11
+            const añoActual = ahora.getFullYear();
+            
+            // Inicializar acumuladores
+            let contadoresMeses = Array(12).fill(0);
+            let totalAnual = 0;
+            let esteMes = 0;
+            let mesPasado = 0;
+
+            // Procesar cada registro
+            registros.forEach(r => {
+                const fechaStr = r["FECHA DE EGRESO"] || r["REGISTRADO"] || r["CUANDO"];
+                if (!fechaStr) return;
+                
+                const fecha = new Date(fechaStr);
+                if (isNaN(fecha)) return;
+                
+                const mesRegistro = fecha.getMonth(); // 0-11
+                const añoRegistro = fecha.getFullYear();
+                
+                // Solo contar registros del año actual
+                if (añoRegistro === añoActual) {
+                    contadoresMeses[mesRegistro]++;
+                    totalAnual++;
+                    
+                    if (mesRegistro === mesActual) {
+                        esteMes++;
+                    } else if (mesRegistro === (mesActual - 1 + 12) % 12) {
+                        mesPasado++;
+                    }
+                }
+            });
+
+            return {
+                contadoresMeses,
+                totalAnual,
+                esteMes,
+                mesPasado
+            };
+        }
+
+        /* ================== MOSTRAR ESTADÍSTICAS ================== */
+        function mostrarEstadisticas(estadisticas) {
+            // Actualizar los números principales
+            document.querySelector('.estadistica-item.mes-actual .numero').textContent = estadisticas.esteMes;
+            document.querySelectorAll('.estadistica-item')[1].querySelector('.numero').textContent = estadisticas.mesPasado;
+            document.getElementById('totalAnual').textContent = estadisticas.totalAnual;
+
+            // Obtener contenedor de estadísticas
+            const container = document.getElementById('estadisticasMensuales');
+            
+            // Crear array de nombres de meses
+            const nombresMeses = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            
+            const ahora = new Date();
+            const mesActual = ahora.getMonth();
+            
+            // Limpiar contenedor (manteniendo los primeros 2 items)
+            const itemsExistentes = container.querySelectorAll('.estadistica-item');
+            for (let i = 2; i < itemsExistentes.length; i++) {
+                itemsExistentes[i].remove();
+            }
+            
+            // Agregar estadísticas de los últimos 6 meses (incluyendo el actual)
+            for (let i = 0; i < 6; i++) {
+                let mesIndex = (mesActual - i + 12) % 12;
+                let nombreMes = nombresMeses[mesIndex];
+                let cantidad = estadisticas.contadoresMeses[mesIndex] || 0;
+                
+                // Solo mostrar si hay registros o es el mes actual
+                if (cantidad > 0 || i === 0) {
+                    const div = document.createElement('div');
+                    div.className = 'estadistica-item';
+                    if (i === 0) {
+                        div.classList.add('mes-actual');
+                    }
+                    
+                    div.innerHTML = `
+                        <span class="numero">${cantidad}</span>
+                        <span class="label">${nombreMes}</span>
+                    `;
+                    
+                    container.appendChild(div);
+                }
+            }
+        }
+
+        /* ================== CARGAR REGISTROS Y ESTADÍSTICAS ================== */
         async function cargarRegistros() {
             setEstado('loading', 'Cargando registros...');
             
@@ -339,24 +538,26 @@
                 const json = await res.json();
                 if (!json.ok) return;
 
-                let registros = json.registros;
+                todosRegistros = json.registros;
+                
+                // CALCULAR ESTADÍSTICAS CON TODOS LOS REGISTROS
+                const estadisticas = calcularEstadisticas(todosRegistros);
+                mostrarEstadisticas(estadisticas);
+                
+                // FILTRAR PARA LA TABLA
+                let registrosFiltrados = [...todosRegistros];
 
                 // filtro checklist (columna G)
                 if (!mostrarAtendidos) {
-                    registros = registros.filter(r => {
-                        // Columna H (checklist): true / false / vacío
-                        const checklist = String(
-                            Object.values(r)[7] ?? ""
-                        ).toLowerCase();
-
-                        // Mostrar SOLO los que NO tienen checklist activo
+                    registrosFiltrados = registrosFiltrados.filter(r => {
+                        const checklist = String(Object.values(r)[7] ?? "").toLowerCase();
                         return !["true", "sí", "si", "1", "checked"].includes(checklist);
                     });
                 }
 
                 // filtro búsqueda en tiempo real
                 if (textoBusqueda) {
-                    registros = registros.filter(r =>
+                    registrosFiltrados = registrosFiltrados.filter(r =>
                         Object.values(r).some(v =>
                             String(v).toLowerCase().includes(textoBusqueda)
                         )
@@ -368,15 +569,15 @@
                 thead.innerHTML = "";
                 tbody.innerHTML = "";
 
-                if (!registros.length) {
+                if (!registrosFiltrados.length) {
                     setEstado('success', 'No hay registros para mostrar');
                     return;
                 }
 
-                const headers = Object.keys(registros[0]);
+                const headers = Object.keys(registrosFiltrados[0]);
                 thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
 
-                registros.forEach(r => {
+                registrosFiltrados.forEach(r => {
                     const fila = "<tr>" + headers.map(h => {
                         let v = r[h] ?? "";
                         if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO"].includes(h)) {
@@ -387,7 +588,7 @@
                     tbody.innerHTML += fila;
                 });
 
-                setEstado('success', `Cargados ${registros.length} registros`);
+                setEstado('success', `Cargados ${registrosFiltrados.length} registros`);
             } catch (error) {
                 setEstado('error', 'Error al cargar registros');
                 console.error('Error:', error);
@@ -419,7 +620,6 @@
             script.src = '/estadisticas/comun/sesion_bk.js';
             script.onload = () => {
                 console.log("🔥 sesion_bk.js cargado");
-                // Si verificarAutenticacion existe, ejecutarla
                 if (typeof verificarAutenticacion === 'function') {
                     verificarAutenticacion();
                 }
@@ -432,7 +632,7 @@
 
         // Cargar registros cuando todo esté listo
         document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(cargarRegistros, 500); // Pequeño delay para que cargue el estado del sistema
+            setTimeout(cargarRegistros, 500);
         });
     </script>
 </body>
