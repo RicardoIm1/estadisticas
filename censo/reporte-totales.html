@@ -13,7 +13,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
@@ -22,14 +22,14 @@
             padding: 20px;
         }
 
-        /* .glass {
+        .glass {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.18);
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -53,7 +53,7 @@
             font-weight: 500;
             color: #333;
         }
- */
+
         h1 {
             color: #2d3748;
             text-align: center;
@@ -147,17 +147,22 @@
             overflow-x: auto;
             border-radius: 10px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-top: 20px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             background: white;
+            min-width: 1200px;
         }
 
         thead {
             background: linear-gradient(135deg, #2d3748, #4a5568);
             color: white;
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
         th {
@@ -165,6 +170,7 @@
             text-align: center;
             font-weight: 600;
             border-right: 1px solid rgba(255, 255, 255, 0.1);
+            white-space: nowrap;
         }
 
         th:last-child {
@@ -192,6 +198,13 @@
             padding: 12px 15px;
             text-align: center;
             border-right: 1px solid #e2e8f0;
+            white-space: nowrap;
+        }
+
+        td:first-child {
+            text-align: left;
+            font-weight: 600;
+            background: #f8fafc;
         }
 
         td:last-child {
@@ -199,13 +212,15 @@
         }
 
         .servicio-header {
-            background: #4299e1;
+            background: #4299e1 !important;
             color: white;
             font-weight: bold;
+            font-size: 1.1em;
         }
 
         .servicio-header td {
             border-right: 1px solid rgba(255, 255, 255, 0.2);
+            text-align: center !important;
         }
 
         .total-row {
@@ -275,6 +290,26 @@
             color: #2d3748;
         }
 
+        .info-message {
+            background: #e6fffa;
+            color: #234e52;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #38b2ac;
+        }
+
+        .debug-info {
+            background: #f7fafc;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            color: #4a5568;
+            display: none; /* Ocultar en producción */
+        }
+
         .footer {
             margin-top: 40px;
             text-align: center;
@@ -282,6 +317,31 @@
             font-size: 14px;
             padding-top: 20px;
             border-top: 1px solid #e2e8f0;
+        }
+
+        .metric-label {
+            padding-left: 30px !important;
+            text-align: left !important;
+            background: #f8fafc;
+        }
+
+        /* Estilos para scroll horizontal */
+        .tabla-wrapper::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .tabla-wrapper::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .tabla-wrapper::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .tabla-wrapper::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
     </style>
 </head>
@@ -304,19 +364,19 @@
             </div>
         </div>
 
-        <h1>Reporte de Totales Diarios por Servicio</h1>
+        <h1><i class="fa-solid fa-chart-line"></i> Reporte de Totales Diarios por Servicio</h1>
 
         <div class="filtros">
             <div class="bloque">
-                <label for="fecha-inicio">Fecha Inicio</label>
+                <label for="fecha-inicio"><i class="fa-solid fa-calendar-day"></i> Fecha Inicio</label>
                 <input type="date" id="fecha-inicio" required>
             </div>
             <div class="bloque">
-                <label for="fecha-fin">Fecha Fin</label>
+                <label for="fecha-fin"><i class="fa-solid fa-calendar-day"></i> Fecha Fin</label>
                 <input type="date" id="fecha-fin" required>
             </div>
             <div class="bloque">
-                <label for="servicio-filtro">Servicio (opcional)</label>
+                <label for="servicio-filtro"><i class="fa-solid fa-hospital"></i> Servicio (opcional)</label>
                 <select id="servicio-filtro">
                     <option value="">Todos los servicios</option>
                     <option>CIRUGIA GENERAL</option>
@@ -352,17 +412,19 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
     <script>
+        // Mismo URL que usas en el censo
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyhMRSZlKTZeveL0wHukElK92ntfc7yTfFCCyEeFnLsQCvIra2Tzn5_cN3MZdqZbgGH/exec";
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Configurar fechas por defecto
-            const hoy = new Date().toISOString().split('T')[0];
-            const ayer = new Date();
-            ayer.setDate(ayer.getDate() - 1);
-            const ayerFormatted = ayer.toISOString().split('T')[0];
+            console.log('📊 Inicializando reporte de totales...');
             
-            document.getElementById('fecha-inicio').value = ayerFormatted;
-            document.getElementById('fecha-fin').value = hoy;
+            // Configurar fechas por defecto (últimos 7 días)
+            const hoy = new Date();
+            const hace7Dias = new Date();
+            hace7Dias.setDate(hoy.getDate() - 7);
+            
+            document.getElementById('fecha-inicio').value = hace7Dias.toISOString().split('T')[0];
+            document.getElementById('fecha-fin').value = hoy.toISOString().split('T')[0];
 
             // Configurar footer
             document.getElementById('anio-actual').textContent = new Date().getFullYear();
@@ -372,6 +434,10 @@
             const rol = localStorage.getItem('rol');
             if (usuario && rol) {
                 document.getElementById('user-info').textContent = `${usuario} (${rol})`;
+            } else {
+                // Si no hay sesión, redirigir
+                window.location.href = '/estadisticas/login.html';
+                return;
             }
 
             // Evento para generar reporte
@@ -379,6 +445,8 @@
             
             // Evento para descargar PDF
             document.getElementById('btnPDF').addEventListener('click', descargarPDF);
+
+            console.log('✅ Reporte inicializado correctamente');
         });
 
         async function generarReporte() {
@@ -400,38 +468,80 @@
             resultadosDiv.innerHTML = `
                 <div class="loading">
                     <i class="fa-solid fa-spinner fa-spin"></i>
-                    <p>Generando reporte...</p>
+                    <p>Obteniendo datos del servidor...</p>
+                    <p class="debug-info" id="debug-info"></p>
                 </div>
             `;
 
             try {
+                console.log('📥 Obteniendo datos...');
+                console.log('📅 Rango:', fechaInicio, 'a', fechaFin);
+                console.log('🏥 Servicio:', servicioFiltro || 'Todos');
+                
                 // Obtener todos los datos
                 const datos = await obtenerDatos();
+                console.log('✅ Datos recibidos:', datos.length, 'registros');
                 
-                // Filtrar datos por fecha y servicio
-                const datosFiltrados = datos.filter(registro => {
-                    const fechaRegistro = registro[0]; // Asumiendo que la fecha está en la primera columna
-                    const servicio = registro[2]; // Asumiendo que el servicio está en la tercera columna
-                    
-                    const fechaOK = fechaRegistro >= fechaInicio && fechaRegistro <= fechaFin;
-                    const servicioOK = !servicioFiltro || servicio === servicioFiltro;
-                    
-                    return fechaOK && servicioOK;
-                });
-
-                if (datosFiltrados.length === 0) {
+                if (datos.length === 0) {
                     resultadosDiv.innerHTML = `
                         <div class="sin-datos">
-                            <i class="fa-solid fa-inbox" style="font-size: 48px; margin-bottom: 15px; color: #a0aec0;"></i>
-                            <p>No se encontraron registros para el período seleccionado</p>
+                            <i class="fa-solid fa-database" style="font-size: 48px; margin-bottom: 15px; color: #a0aec0;"></i>
+                            <h3>No hay registros en el sistema</h3>
+                            <p>Regresa a la página de censo para agregar pacientes.</p>
                         </div>
                     `;
                     document.getElementById('btnPDF').style.display = 'none';
                     return;
                 }
 
-                // Procesar datos
-                const reporte = procesarDatos(datosFiltrados, fechaInicio, fechaFin, servicioFiltro);
+                // Filtrar datos por fecha
+                const datosFiltrados = datos.filter(registro => {
+                    try {
+                        const fechaRegistro = registro[0]; // Primera columna: fecha
+                        if (!fechaRegistro) return false;
+                        
+                        // Convertir fecha a formato comparable
+                        const fechaReg = new Date(fechaRegistro);
+                        const fechaInicioObj = new Date(fechaInicio);
+                        const fechaFinObj = new Date(fechaFin);
+                        
+                        // Ajustar horas para comparación solo por fecha
+                        fechaInicioObj.setHours(0, 0, 0, 0);
+                        fechaFinObj.setHours(23, 59, 59, 999);
+                        fechaReg.setHours(12, 0, 0, 0); // Medio día para evitar problemas de zona horaria
+                        
+                        const fechaOK = fechaReg >= fechaInicioObj && fechaReg <= fechaFinObj;
+                        
+                        // Filtrar por servicio si está especificado
+                        if (servicioFiltro) {
+                            const servicio = registro[2]; // Tercera columna: servicio
+                            return fechaOK && servicio === servicioFiltro;
+                        }
+                        
+                        return fechaOK;
+                    } catch (error) {
+                        console.error('Error procesando registro:', registro, error);
+                        return false;
+                    }
+                });
+
+                console.log('📊 Datos filtrados:', datosFiltrados.length, 'registros');
+
+                if (datosFiltrados.length === 0) {
+                    resultadosDiv.innerHTML = `
+                        <div class="info-message">
+                            <i class="fa-solid fa-info-circle"></i>
+                            <h3>No hay registros para el período seleccionado</h3>
+                            <p>Se encontraron ${datos.length} registros en total, pero ninguno coincide con los filtros.</p>
+                            <p><small>Intenta con un rango de fechas más amplio o selecciona otro servicio.</small></p>
+                        </div>
+                    `;
+                    document.getElementById('btnPDF').style.display = 'none';
+                    return;
+                }
+
+                // Procesar datos para el reporte
+                const reporte = procesarDatosParaReporte(datosFiltrados, fechaInicio, fechaFin, servicioFiltro);
                 
                 // Mostrar resultados
                 mostrarResultados(reporte);
@@ -443,11 +553,16 @@
                 window.reporteActual = reporte;
                 window.fechasReporte = { inicio: fechaInicio, fin: fechaFin, servicio: servicioFiltro };
 
+                console.log('✅ Reporte generado exitosamente');
+
             } catch (error) {
+                console.error('❌ Error al generar reporte:', error);
                 resultadosDiv.innerHTML = `
                     <div class="mensaje-error">
                         <i class="fa-solid fa-exclamation-triangle"></i>
-                        <p>Error al generar el reporte: ${error.message}</p>
+                        <h3>Error al generar el reporte</h3>
+                        <p>${error.message}</p>
+                        <p><small>Verifica tu conexión a internet e intenta nuevamente.</small></p>
                     </div>
                 `;
                 document.getElementById('btnPDF').style.display = 'none';
@@ -456,38 +571,82 @@
 
         function obtenerDatos() {
             return new Promise((resolve, reject) => {
-                const cb = "cb_get_" + Date.now();
-                window[cb] = function(data) {
-                    if (data && Array.isArray(data)) {
-                        resolve(data);
-                    } else {
-                        reject(new Error('Formato de datos incorrecto'));
+                console.log('🔗 Conectando a Google Apps Script...');
+                const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2);
+                
+                window[callbackName] = function(response) {
+                    console.log('📨 Respuesta recibida:', response);
+                    
+                    try {
+                        // Verificar si la respuesta es válida
+                        if (!response) {
+                            reject(new Error('No se recibieron datos del servidor'));
+                            return;
+                        }
+                        
+                        // Si es un objeto con propiedad data
+                        if (response.data && Array.isArray(response.data)) {
+                            resolve(response.data);
+                        } 
+                        // Si es directamente un array
+                        else if (Array.isArray(response)) {
+                            resolve(response);
+                        }
+                        // Si es un objeto con otra estructura
+                        else if (response.records && Array.isArray(response.records)) {
+                            resolve(response.records);
+                        }
+                        // Si es un objeto con un array en la primera propiedad
+                        else if (typeof response === 'object') {
+                            const firstKey = Object.keys(response)[0];
+                            if (Array.isArray(response[firstKey])) {
+                                resolve(response[firstKey]);
+                            } else {
+                                reject(new Error('Formato de datos no reconocido'));
+                            }
+                        }
+                        else {
+                            reject(new Error('Formato de respuesta inesperado'));
+                        }
+                    } catch (error) {
+                        reject(new Error('Error procesando respuesta: ' + error.message));
+                    } finally {
+                        // Limpiar callback
+                        delete window[callbackName];
                     }
-                    delete window[cb];
                 };
 
-                const s = document.createElement("script");
-                s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
-                s.onerror = () => reject(new Error('Error de conexión'));
-                document.body.appendChild(s);
+                // Manejar timeout
+                const timeout = setTimeout(() => {
+                    reject(new Error('Timeout: No se pudo conectar con el servidor'));
+                    delete window[callbackName];
+                }, 30000);
+
+                // Crear script para llamada JSONP
+                const script = document.createElement('script');
+                const url = `${URL_SCRIPT}?action=get&callback=${callbackName}&t=${Date.now()}`;
+                console.log('🌐 URL de solicitud:', url);
+                
+                script.src = url;
+                script.onerror = (error) => {
+                    clearTimeout(timeout);
+                    reject(new Error('Error de conexión: ' + (error.message || 'No se pudo cargar los datos')));
+                    delete window[callbackName];
+                };
+                
+                script.onload = () => {
+                    clearTimeout(timeout);
+                    console.log('✅ Script cargado exitosamente');
+                };
+                
+                document.body.appendChild(script);
             });
         }
 
-        function procesarDatos(datos, fechaInicio, fechaFin, servicioFiltro) {
-            // Crear estructura para almacenar datos por servicio y fecha
-            const servicios = {};
-            const fechas = [];
+        function procesarDatosParaReporte(datos, fechaInicio, fechaFin, servicioFiltro) {
+            console.log('🔢 Procesando datos para reporte...');
             
-            // Obtener todas las fechas en el rango
-            const fechaActual = new Date(fechaInicio);
-            const fechaFinObj = new Date(fechaFin);
-            
-            while (fechaActual <= fechaFinObj) {
-                fechas.push(fechaActual.toISOString().split('T')[0]);
-                fechaActual.setDate(fechaActual.getDate() + 1);
-            }
-
-            // Inicializar estructura para cada servicio
+            // Obtener lista de servicios
             const todosServicios = [
                 'CIRUGIA GENERAL',
                 'GINECOLOGIA',
@@ -496,11 +655,39 @@
                 'TRAUMATOLOGIA Y ORTOPEDIA',
                 'UCIN'
             ];
-
+            
             const serviciosFiltrados = servicioFiltro ? [servicioFiltro] : todosServicios;
+            
+            // Crear array de fechas en el rango
+            const fechas = [];
+            const fechaActual = new Date(fechaInicio);
+            const fechaFinObj = new Date(fechaFin);
+            
+            while (fechaActual <= fechaFinObj) {
+                fechas.push(fechaActual.toISOString().split('T')[0]);
+                fechaActual.setDate(fechaActual.getDate() + 1);
+            }
+            
+            console.log('📅 Fechas a procesar:', fechas.length);
+            console.log('🏥 Servicios a procesar:', serviciosFiltrados.length);
 
+            // Estructura para almacenar datos
+            const reporte = {
+                fechas: fechas,
+                servicios: {},
+                totalesGenerales: {
+                    existenciaInicial: 0,
+                    pasesDe: 0,
+                    ingresos: 0,
+                    egresosVivos: 0,
+                    egresosMuertos: 0,
+                    existenciaFinal: 0
+                }
+            };
+
+            // Inicializar estructura para cada servicio
             serviciosFiltrados.forEach(servicio => {
-                servicios[servicio] = {
+                reporte.servicios[servicio] = {
                     nombre: servicio,
                     porFecha: {},
                     totales: {
@@ -513,89 +700,110 @@
                     }
                 };
 
+                // Inicializar datos por fecha
                 fechas.forEach(fecha => {
-                    servicios[servicio].porFecha[fecha] = {
-                        fecha: fecha,
+                    reporte.servicios[servicio].porFecha[fecha] = {
                         existenciaInicial: 0,
                         pasesDe: 0,
                         ingresos: 0,
                         egresosVivos: 0,
                         egresosMuertos: 0,
-                        existenciaFinal: 0
+                        existenciaFinal: 0,
+                        pacientes: [] // Para tracking de pacientes
                     };
                 });
             });
 
             // Procesar cada registro
-            datos.forEach(registro => {
-                const fecha = registro[0]; // Fecha
-                const servicio = registro[2]; // Servicio
-                const paseDe = registro[3]; // Pase de
-                const ingresoConsulta = registro[8]; // Ingreso consulta
-                const ingresoUrgencias = registro[9]; // Ingreso urgencias
-                const ingresoOtraUnidad = registro[10]; // Ingreso otra unidad
-                const egresoVivo = registro[11]; // Egreso vivo
-                const egresoMuerto = registro[12]; // Egreso muerto
-                const servicioDestino = registro[13]; // Servicio destino
+            datos.forEach((registro, index) => {
+                try {
+                    // Asumir estructura basada en tu código original del censo:
+                    // [0] = fecha, [2] = servicio, [3] = pase_de, [8] = ingreso_consulta,
+                    // [9] = ingreso_urgencias, [10] = ingreso_otra_unidad,
+                    // [11] = egreso_vivo, [12] = egreso_muerto
+                    
+                    const fecha = registro[0];
+                    const servicio = registro[2];
+                    const paseDe = registro[3];
+                    const ingresoConsulta = registro[8];
+                    const ingresoUrgencias = registro[9];
+                    const ingresoOtraUnidad = registro[10];
+                    const egresoVivo = registro[11];
+                    const egresoMuerto = registro[12];
+                    
+                    // Verificar que el servicio existe en nuestro reporte
+                    if (!reporte.servicios[servicio]) {
+                        console.warn(`Servicio no encontrado en reporte: ${servicio}`);
+                        return;
+                    }
+                    
+                    const datosFecha = reporte.servicios[servicio].porFecha[fecha];
+                    if (!datosFecha) {
+                        console.warn(`Fecha no encontrada en reporte: ${fecha}`);
+                        return;
+                    }
 
-                if (!servicios[servicio] || !servicios[servicio].porFecha[fecha]) {
-                    return;
-                }
+                    // Contar ingresos
+                    if (ingresoConsulta || ingresoUrgencias || ingresoOtraUnidad) {
+                        datosFecha.ingresos++;
+                    }
 
-                const datosFecha = servicios[servicio].porFecha[fecha];
+                    // Contar pases de otros servicios
+                    if (paseDe && paseDe.trim() !== '' && paseDe !== '— Selecciona —') {
+                        datosFecha.pasesDe++;
+                    }
 
-                // Contar ingresos (si hay alguna hora de ingreso)
-                if (ingresoConsulta || ingresoUrgencias || ingresoOtraUnidad) {
-                    datosFecha.ingresos++;
-                }
-
-                // Contar pases de otros servicios
-                if (paseDe && paseDe !== '— Selecciona —' && paseDe !== '') {
-                    datosFecha.pasesDe++;
-                }
-
-                // Contar egresos
-                if (egresoVivo) {
-                    datosFecha.egresosVivos++;
-                }
-                if (egresoMuerto) {
-                    datosFecha.egresosMuertos++;
+                    // Contar egresos
+                    if (egresoVivo) {
+                        datosFecha.egresosVivos++;
+                    }
+                    if (egresoMuerto) {
+                        datosFecha.egresosMuertos++;
+                    }
+                    
+                } catch (error) {
+                    console.error(`Error procesando registro ${index}:`, error, registro);
                 }
             });
 
-            // Calcular existencias y totales
-            fechas.forEach((fecha, index) => {
+            // Calcular existencias
+            fechas.forEach((fecha, fechaIndex) => {
                 serviciosFiltrados.forEach(servicio => {
-                    const datosFecha = servicios[servicio].porFecha[fecha];
-                    const datosFechaAnterior = index > 0 ? 
-                        servicios[servicio].porFecha[fechas[index-1]] : null;
+                    const datosFecha = reporte.servicios[servicio].porFecha[fecha];
+                    const datosFechaAnterior = fechaIndex > 0 ? 
+                        reporte.servicios[servicio].porFecha[fechas[fechaIndex-1]] : null;
 
                     // Existencia inicial = Existencia final del día anterior
-                    datosFecha.existenciaInicial = datosFechaAnterior ? 
-                        datosFechaAnterior.existenciaFinal : 0;
+                    if (datosFechaAnterior) {
+                        datosFecha.existenciaInicial = datosFechaAnterior.existenciaFinal;
+                    }
 
                     // Existencia final = Existencia inicial + Ingresos - Egresos totales
                     const egresosTotales = datosFecha.egresosVivos + datosFecha.egresosMuertos;
                     datosFecha.existenciaFinal = datosFecha.existenciaInicial + 
                                                datosFecha.ingresos - egresosTotales;
 
-                    // Acumular totales
-                    servicios[servicio].totales.existenciaInicial += datosFecha.existenciaInicial;
-                    servicios[servicio].totales.pasesDe += datosFecha.pasesDe;
-                    servicios[servicio].totales.ingresos += datosFecha.ingresos;
-                    servicios[servicio].totales.egresosVivos += datosFecha.egresosVivos;
-                    servicios[servicio].totales.egresosMuertos += datosFecha.egresosMuertos;
-                    servicios[servicio].totales.existenciaFinal += datosFecha.existenciaFinal;
+                    // Acumular totales del servicio
+                    const totales = reporte.servicios[servicio].totales;
+                    totales.existenciaInicial += datosFecha.existenciaInicial;
+                    totales.pasesDe += datosFecha.pasesDe;
+                    totales.ingresos += datosFecha.ingresos;
+                    totales.egresosVivos += datosFecha.egresosVivos;
+                    totales.egresosMuertos += datosFecha.egresosMuertos;
+                    totales.existenciaFinal += datosFecha.existenciaFinal;
+
+                    // Acumular totales generales
+                    reporte.totalesGenerales.existenciaInicial += datosFecha.existenciaInicial;
+                    reporte.totalesGenerales.pasesDe += datosFecha.pasesDe;
+                    reporte.totalesGenerales.ingresos += datosFecha.ingresos;
+                    reporte.totalesGenerales.egresosVivos += datosFecha.egresosVivos;
+                    reporte.totalesGenerales.egresosMuertos += datosFecha.egresosMuertos;
+                    reporte.totalesGenerales.existenciaFinal += datosFecha.existenciaFinal;
                 });
             });
 
-            return {
-                servicios: servicios,
-                fechas: fechas,
-                serviciosFiltrados: serviciosFiltrados,
-                fechaInicio: fechaInicio,
-                fechaFin: fechaFin
-            };
+            console.log('✅ Datos procesados exitosamente');
+            return reporte;
         }
 
         function mostrarResultados(reporte) {
@@ -604,72 +812,97 @@
             let html = `
                 <div class="resumen-totales">
                     <div class="total-card">
-                        <h4>Período</h4>
+                        <h4><i class="fa-solid fa-calendar-alt"></i> Período</h4>
                         <div class="numero">${reporte.fechas.length} días</div>
-                        <small>${formatearFecha(reporte.fechaInicio)} - ${formatearFecha(reporte.fechaFin)}</small>
+                        <small>${formatearFecha(reporte.fechas[0])} - ${formatearFecha(reporte.fechas[reporte.fechas.length-1])}</small>
                     </div>
                     <div class="total-card">
-                        <h4>Servicios</h4>
-                        <div class="numero">${reporte.serviciosFiltrados.length}</div>
+                        <h4><i class="fa-solid fa-hospital"></i> Servicios</h4>
+                        <div class="numero">${Object.keys(reporte.servicios).length}</div>
                     </div>
                     <div class="total-card">
-                        <h4>Total Registros</h4>
-                        <div class="numero">${Object.values(reporte.servicios).reduce((total, servicio) => 
-                            total + servicio.totales.ingresos, 0)}</div>
+                        <h4><i class="fa-solid fa-user-plus"></i> Total Ingresos</h4>
+                        <div class="numero">${reporte.totalesGenerales.ingresos}</div>
+                    </div>
+                    <div class="total-card">
+                        <h4><i class="fa-solid fa-bed"></i> Existencia Final</h4>
+                        <div class="numero">${reporte.totalesGenerales.existenciaFinal}</div>
                     </div>
                 </div>
             `;
 
             html += '<div class="tabla-wrapper">';
             html += '<table>';
-
-            // Encabezados
+            
+            // Encabezados de fechas
             html += '<thead><tr>';
-            html += '<th>Servicio / Fecha</th>';
+            html += '<th style="width: 200px;">Servicio / Métrica</th>';
             reporte.fechas.forEach(fecha => {
-                html += `<th>${formatearFecha(fecha)}</th>`;
+                html += `<th style="min-width: 80px;">${formatearFecha(fecha)}</th>`;
             });
-            html += '<th>TOTAL</th>';
+            html += '<th style="width: 100px; background: #2d3748;">TOTAL</th>';
             html += '</tr></thead>';
 
             html += '<tbody>';
 
             // Por cada servicio
-            reporte.serviciosFiltrados.forEach(servicioNombre => {
-                const servicio = reporte.servicios[servicioNombre];
-                
+            Object.values(reporte.servicios).forEach(servicio => {
                 // Encabezado del servicio
                 html += `<tr class="servicio-header">`;
-                html += `<td colspan="${reporte.fechas.length + 2}">${servicio.nombre}</td>`;
+                html += `<td colspan="${reporte.fechas.length + 2}">`;
+                html += `<i class="fa-solid fa-hospital"></i> ${servicio.nombre}`;
+                html += '</td>';
                 html += '</tr>';
 
                 // Filas para cada métrica
                 const metricas = [
-                    { nombre: 'Existencia Inicial', clave: 'existenciaInicial' },
-                    { nombre: 'Pases De', clave: 'pasesDe' },
-                    { nombre: 'Ingresos', clave: 'ingresos' },
-                    { nombre: 'Egresos Vivos', clave: 'egresosVivos' },
-                    { nombre: 'Egresos Muertos', clave: 'egresosMuertos' },
-                    { nombre: 'Existencia Final', clave: 'existenciaFinal' }
+                    { nombre: 'Existencia Inicial', icono: 'fa-bed', clave: 'existenciaInicial' },
+                    { nombre: 'Pases De', icono: 'fa-exchange-alt', clave: 'pasesDe' },
+                    { nombre: 'Ingresos', icono: 'fa-sign-in-alt', clave: 'ingresos' },
+                    { nombre: 'Egresos Vivos', icono: 'fa-sign-out-alt', clave: 'egresosVivos' },
+                    { nombre: 'Egresos Muertos', icono: 'fa-cross', clave: 'egresosMuertos' },
+                    { nombre: 'Existencia Final', icono: 'fa-bed', clave: 'existenciaFinal' }
                 ];
 
                 metricas.forEach(metrica => {
                     html += '<tr>';
-                    html += `<td style="text-align: left; padding-left: 20px;">${metrica.nombre}</td>`;
+                    html += `<td class="metric-label">`;
+                    html += `<i class="fa-solid ${metrica.icono}"></i> ${metrica.nombre}`;
+                    html += '</td>';
                     
                     // Datos por fecha
                     reporte.fechas.forEach(fecha => {
-                        html += `<td>${servicio.porFecha[fecha][metrica.clave]}</td>`;
+                        const valor = servicio.porFecha[fecha][metrica.clave];
+                        // Resaltar valores altos
+                        const claseValor = valor > 0 ? 'style="font-weight: bold; color: #2d3748;"' : '';
+                        html += `<td ${claseValor}>${valor}</td>`;
                     });
                     
-                    // Total
-                    html += `<td><strong>${servicio.totales[metrica.clave]}</strong></td>`;
+                    // Total del servicio para esta métrica
+                    const total = servicio.totales[metrica.clave];
+                    const claseTotal = total > 0 ? 'style="background: #ebf8ff; font-weight: bold;"' : '';
+                    html += `<td ${claseTotal}>${total}</td>`;
                     html += '</tr>';
                 });
 
-                // Separador entre servicios
-                html += '<tr style="height: 20px;"><td colspan="' + (reporte.fechas.length + 2) + '"></td></tr>';
+                // Línea separadora
+                html += '<tr style="height: 5px;"><td colspan="' + (reporte.fechas.length + 2) + '"></td></tr>';
             });
+
+            // Fila de totales generales
+            html += '<tr class="total-row">';
+            html += '<td><i class="fa-solid fa-calculator"></i> <strong>TOTALES GENERALES</strong></td>';
+            
+            reporte.fechas.forEach(fecha => {
+                let totalDia = 0;
+                Object.values(reporte.servicios).forEach(servicio => {
+                    totalDia += servicio.porFecha[fecha].existenciaFinal;
+                });
+                html += `<td><strong>${totalDia}</strong></td>`;
+            });
+            
+            html += `<td><strong>${reporte.totalesGenerales.existenciaFinal}</strong></td>`;
+            html += '</tr>';
 
             html += '</tbody>';
             html += '</table>';
@@ -679,14 +912,23 @@
         }
 
         function formatearFecha(fechaISO) {
-            const fecha = new Date(fechaISO);
-            return fecha.toLocaleDateString('es-MX', {
-                day: '2-digit',
-                month: '2-digit'
-            });
+            try {
+                const fecha = new Date(fechaISO);
+                return fecha.toLocaleDateString('es-MX', {
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+            } catch (error) {
+                return fechaISO;
+            }
         }
 
         function descargarPDF() {
+            if (!window.reporteActual) {
+                alert('Primero genere un reporte');
+                return;
+            }
+
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({
                 orientation: 'landscape',
@@ -699,40 +941,47 @@
 
             // Título
             doc.setFontSize(16);
+            doc.setTextColor(45, 55, 72);
             doc.text('Reporte de Totales Diarios por Servicio', 14, 20);
             
             // Subtítulo
             doc.setFontSize(12);
+            doc.setTextColor(74, 85, 104);
             let subtitulo = `Período: ${formatearFechaPDF(fechas.inicio)} - ${formatearFechaPDF(fechas.fin)}`;
             if (fechas.servicio) {
                 subtitulo += ` | Servicio: ${fechas.servicio}`;
             }
             doc.text(subtitulo, 14, 30);
             
-            // Fecha de generación
+            // Información de generación
             doc.setFontSize(10);
-            doc.text(`Generado: ${new Date().toLocaleDateString('es-MX')}`, 14, 37);
+            doc.text(`Generado: ${new Date().toLocaleDateString('es-MX', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            })}`, 14, 37);
             doc.text(`Hospital Regional Puerto Vallarta`, 14, 44);
 
-            // Datos para la tabla
-            const headers = ['Servicio / Fecha', ...reporte.fechas.map(f => formatearFechaPDF(f)), 'TOTAL'];
+            // Preparar datos para la tabla
+            const headers = ['Servicio / Métrica', ...reporte.fechas.map(f => formatearFechaPDF(f)), 'TOTAL'];
             const data = [];
 
-            reporte.serviciosFiltrados.forEach(servicioNombre => {
-                const servicio = reporte.servicios[servicioNombre];
-                
-                // Agregar fila de encabezado del servicio
+            Object.values(reporte.servicios).forEach(servicio => {
+                // Encabezado del servicio
                 data.push([{ 
                     content: servicio.nombre, 
+                    colSpan: headers.length,
                     styles: { 
                         fillColor: [66, 153, 225],
                         textColor: [255, 255, 255],
-                        fontStyle: 'bold'
-                    },
-                    colSpan: headers.length
+                        fontStyle: 'bold',
+                        halign: 'center'
+                    }
                 }]);
 
-                // Agregar métricas
+                // Métricas
                 const metricas = [
                     { nombre: 'Existencia Inicial', clave: 'existenciaInicial' },
                     { nombre: 'Pases De', clave: 'pasesDe' },
@@ -753,7 +1002,7 @@
                     data.push(fila);
                 });
 
-                // Separador
+                // Espacio entre servicios
                 data.push(['']);
             });
 
@@ -766,37 +1015,52 @@
                 headStyles: {
                     fillColor: [45, 55, 72],
                     textColor: [255, 255, 255],
-                    fontStyle: 'bold'
+                    fontStyle: 'bold',
+                    halign: 'center'
                 },
                 alternateRowStyles: {
                     fillColor: [248, 250, 252]
                 },
                 margin: { top: 50 },
                 pageBreak: 'auto',
-                rowPageBreak: 'avoid',
                 styles: {
                     fontSize: 8,
-                    cellPadding: 3
+                    cellPadding: 3,
+                    overflow: 'linebreak',
+                    cellWidth: 'wrap'
                 },
                 columnStyles: {
-                    0: { cellWidth: 30 },
-                    ...Object.fromEntries(
-                        Array.from({length: reporte.fechas.length + 2}, (_, i) => [i, {cellWidth: 15}])
-                    )
+                    0: { cellWidth: 40, fontStyle: 'bold' }
+                },
+                didDrawPage: function(data) {
+                    // Número de página
+                    const pageCount = doc.internal.getNumberOfPages();
+                    doc.setFontSize(10);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(
+                        `Página ${data.pageNumber} de ${pageCount}`,
+                        doc.internal.pageSize.width / 2,
+                        doc.internal.pageSize.height - 10,
+                        { align: 'center' }
+                    );
                 }
             });
 
             // Guardar PDF
-            const nombreArchivo = `Reporte_Totales_${fechas.inicio}_a_${fechas.fin}.pdf`;
+            const nombreArchivo = `Reporte_Totales_${fechas.inicio}_a_${fechas.fin}_${new Date().getTime()}.pdf`;
             doc.save(nombreArchivo);
         }
 
         function formatearFechaPDF(fechaISO) {
-            const fecha = new Date(fechaISO);
-            return fecha.toLocaleDateString('es-MX', {
-                day: '2-digit',
-                month: '2-digit'
-            });
+            try {
+                const fecha = new Date(fechaISO);
+                return fecha.toLocaleDateString('es-MX', {
+                    day: '2-digit',
+                    month: '2-digit'
+                });
+            } catch (error) {
+                return fechaISO;
+            }
         }
 
         // Verificar sesión
@@ -806,26 +1070,22 @@
             const loginTime = localStorage.getItem('loginTime');
 
             if (!usuario || !rol || !loginTime) {
-                window.location.href = '/estadisticas/login.html';
                 return false;
             }
 
             const ahora = Date.now();
             const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
 
-            if (horasTranscurridas > 24) {
-                localStorage.clear();
-                window.location.href = '/estadisticas/login.html';
-                return false;
-            }
-
-            return true;
+            return horasTranscurridas <= 24;
         }
 
         // Verificar al cargar
-        if (!verificarAutenticacion()) {
-            window.location.href = '/estadisticas/login.html';
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!verificarAutenticacion()) {
+                alert('Sesión expirada. Por favor, inicie sesión nuevamente.');
+                window.location.href = '/estadisticas/login.html';
+            }
+        });
     </script>
 </body>
 </html>
