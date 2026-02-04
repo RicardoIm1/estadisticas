@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Reporte de Totales por Día y Servicio</title>
+    <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="/estadisticas/censo/censo.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .logo img {
+            height: 60px;
+        }
+
+        .usuario {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        h1 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .filtros {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(248, 250, 252, 0.8);
+            border-radius: 15px;
+        }
+
+        .bloque {
+            margin-bottom: 15px;
+        }
+
+        .bloque label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #4a5568;
+        }
+
+        .bloque input,
+        .bloque select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .bloque input:focus,
+        .bloque select:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .botones {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-generar {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+        }
+
+        .btn-pdf {
+            background: linear-gradient(135deg, #e53e3e, #c53030);
+            color: white;
+        }
+
+        .btn-generar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.3);
+        }
+
+        .btn-pdf:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(229, 62, 62, 0.3);
+        }
+
+        .resultados {
+            margin-top: 30px;
+        }
+
+        .tabla-wrapper {
+            overflow-x: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #2d3748, #4a5568);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        th:last-child {
+            border-right: none;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #e2e8f0;
+            transition: background 0.3s;
+        }
+
+        tbody tr:hover {
+            background: #f7fafc;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #f8fafc;
+        }
+
+        tbody tr:nth-child(even):hover {
+            background: #edf2f7;
+        }
+
+        td {
+            padding: 12px 15px;
+            text-align: center;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        td:last-child {
+            border-right: none;
+        }
+
+        .servicio-header {
+            background: #4299e1;
+            color: white;
+            font-weight: bold;
+        }
+
+        .servicio-header td {
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .total-row {
+            background: #e2e8f0 !important;
+            font-weight: bold;
+        }
+
+        .total-row td {
+            border-top: 2px solid #cbd5e0;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #4a5568;
+        }
+
+        .loading i {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #4299e1;
+        }
+
+        .mensaje-error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .sin-datos {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-style: italic;
+        }
+
+        .resumen-totales {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #edf2f7, #e2e8f0);
+            border-radius: 10px;
+        }
+
+        .total-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .total-card h4 {
+            color: #4a5568;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .total-card .numero {
+            font-size: 24px;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #718096;
+            font-size: 14px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <div class="glass" id="dashboard">
+        <div class="header">
+            <div class="logo">
+                <a href="/estadisticas">
+                    <img src="../img/logo-hrpv.png" alt="Logo Hospital Regional Puerto Vallarta">
+                </a>
+            </div>
+            <div>
+                <div class="usuario">
+                    <i class="fa-solid fa-user-circle"></i>
+                    <span id="user-info"></span>
+                    <button onclick="window.location.href = '/estadisticas/censo/';" class="btn" style="background: #48bb78; color: white;">
+                        <i class="fa-solid fa-arrow-left"></i> Volver
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <h1>Reporte de Totales Diarios por Servicio</h1>
+
+        <div class="filtros">
+            <div class="bloque">
+                <label for="fecha-inicio">Fecha Inicio</label>
+                <input type="date" id="fecha-inicio" required>
+            </div>
+            <div class="bloque">
+                <label for="fecha-fin">Fecha Fin</label>
+                <input type="date" id="fecha-fin" required>
+            </div>
+            <div class="bloque">
+                <label for="servicio-filtro">Servicio (opcional)</label>
+                <select id="servicio-filtro">
+                    <option value="">Todos los servicios</option>
+                    <option>CIRUGIA GENERAL</option>
+                    <option>GINECOLOGIA</option>
+                    <option>MEDICINA INTERNA</option>
+                    <option>PEDIATRIA</option>
+                    <option>TRAUMATOLOGIA Y ORTOPEDIA</option>
+                    <option>UCIN</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="botones">
+            <button id="btnGenerar" class="btn btn-generar">
+                <i class="fa-solid fa-chart-bar"></i> Generar Reporte
+            </button>
+            <button id="btnPDF" class="btn btn-pdf" style="display: none;">
+                <i class="fa-solid fa-file-pdf"></i> Descargar PDF
+            </button>
+        </div>
+
+        <div id="resultados" class="resultados">
+            <!-- Aquí se mostrarán los resultados -->
+        </div>
+
+        <div class="footer">
+            <p>Hecho con ❤️ por Ricardo · <span id="anio-actual"></span></p>
+        </div>
+    </div>
+
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyhMRSZlKTZeveL0wHukElK92ntfc7yTfFCCyEeFnLsQCvIra2Tzn5_cN3MZdqZbgGH/exec";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar fechas por defecto
+            const hoy = new Date().toISOString().split('T')[0];
+            const ayer = new Date();
+            ayer.setDate(ayer.getDate() - 1);
+            const ayerFormatted = ayer.toISOString().split('T')[0];
+            
+            document.getElementById('fecha-inicio').value = ayerFormatted;
+            document.getElementById('fecha-fin').value = hoy;
+
+            // Configurar footer
+            document.getElementById('anio-actual').textContent = new Date().getFullYear();
+
+            // Cargar datos del usuario
+            const usuario = localStorage.getItem('usuario');
+            const rol = localStorage.getItem('rol');
+            if (usuario && rol) {
+                document.getElementById('user-info').textContent = `${usuario} (${rol})`;
+            }
+
+            // Evento para generar reporte
+            document.getElementById('btnGenerar').addEventListener('click', generarReporte);
+            
+            // Evento para descargar PDF
+            document.getElementById('btnPDF').addEventListener('click', descargarPDF);
+        });
+
+        async function generarReporte() {
+            const fechaInicio = document.getElementById('fecha-inicio').value;
+            const fechaFin = document.getElementById('fecha-fin').value;
+            const servicioFiltro = document.getElementById('servicio-filtro').value;
+
+            if (!fechaInicio || !fechaFin) {
+                alert('Por favor, seleccione ambas fechas');
+                return;
+            }
+
+            if (new Date(fechaInicio) > new Date(fechaFin)) {
+                alert('La fecha de inicio debe ser anterior o igual a la fecha fin');
+                return;
+            }
+
+            const resultadosDiv = document.getElementById('resultados');
+            resultadosDiv.innerHTML = `
+                <div class="loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <p>Generando reporte...</p>
+                </div>
+            `;
+
+            try {
+                // Obtener todos los datos
+                const datos = await obtenerDatos();
+                
+                // Filtrar datos por fecha y servicio
+                const datosFiltrados = datos.filter(registro => {
+                    const fechaRegistro = registro[0]; // Asumiendo que la fecha está en la primera columna
+                    const servicio = registro[2]; // Asumiendo que el servicio está en la tercera columna
+                    
+                    const fechaOK = fechaRegistro >= fechaInicio && fechaRegistro <= fechaFin;
+                    const servicioOK = !servicioFiltro || servicio === servicioFiltro;
+                    
+                    return fechaOK && servicioOK;
+                });
+
+                if (datosFiltrados.length === 0) {
+                    resultadosDiv.innerHTML = `
+                        <div class="sin-datos">
+                            <i class="fa-solid fa-inbox" style="font-size: 48px; margin-bottom: 15px; color: #a0aec0;"></i>
+                            <p>No se encontraron registros para el período seleccionado</p>
+                        </div>
+                    `;
+                    document.getElementById('btnPDF').style.display = 'none';
+                    return;
+                }
+
+                // Procesar datos
+                const reporte = procesarDatos(datosFiltrados, fechaInicio, fechaFin, servicioFiltro);
+                
+                // Mostrar resultados
+                mostrarResultados(reporte);
+                
+                // Mostrar botón de PDF
+                document.getElementById('btnPDF').style.display = 'flex';
+                
+                // Guardar datos para PDF
+                window.reporteActual = reporte;
+                window.fechasReporte = { inicio: fechaInicio, fin: fechaFin, servicio: servicioFiltro };
+
+            } catch (error) {
+                resultadosDiv.innerHTML = `
+                    <div class="mensaje-error">
+                        <i class="fa-solid fa-exclamation-triangle"></i>
+                        <p>Error al generar el reporte: ${error.message}</p>
+                    </div>
+                `;
+                document.getElementById('btnPDF').style.display = 'none';
+            }
+        }
+
+        function obtenerDatos() {
+            return new Promise((resolve, reject) => {
+                const cb = "cb_get_" + Date.now();
+                window[cb] = function(data) {
+                    if (data && Array.isArray(data)) {
+                        resolve(data);
+                    } else {
+                        reject(new Error('Formato de datos incorrecto'));
+                    }
+                    delete window[cb];
+                };
+
+                const s = document.createElement("script");
+                s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
+                s.onerror = () => reject(new Error('Error de conexión'));
+                document.body.appendChild(s);
+            });
+        }
+
+        function procesarDatos(datos, fechaInicio, fechaFin, servicioFiltro) {
+            // Crear estructura para almacenar datos por servicio y fecha
+            const servicios = {};
+            const fechas = [];
+            
+            // Obtener todas las fechas en el rango
+            const fechaActual = new Date(fechaInicio);
+            const fechaFinObj = new Date(fechaFin);
+            
+            while (fechaActual <= fechaFinObj) {
+                fechas.push(fechaActual.toISOString().split('T')[0]);
+                fechaActual.setDate(fechaActual.getDate() + 1);
+            }
+
+            // Inicializar estructura para cada servicio
+            const todosServicios = [
+                'CIRUGIA GENERAL',
+                'GINECOLOGIA',
+                'MEDICINA INTERNA',
+                'PEDIATRIA',
+                'TRAUMATOLOGIA Y ORTOPEDIA',
+                'UCIN'
+            ];
+
+            const serviciosFiltrados = servicioFiltro ? [servicioFiltro] : todosServicios;
+
+            serviciosFiltrados.forEach(servicio => {
+                servicios[servicio] = {
+                    nombre: servicio,
+                    porFecha: {},
+                    totales: {
+                        existenciaInicial: 0,
+                        pasesDe: 0,
+                        ingresos: 0,
+                        egresosVivos: 0,
+                        egresosMuertos: 0,
+                        existenciaFinal: 0
+                    }
+                };
+
+                fechas.forEach(fecha => {
+                    servicios[servicio].porFecha[fecha] = {
+                        fecha: fecha,
+                        existenciaInicial: 0,
+                        pasesDe: 0,
+                        ingresos: 0,
+                        egresosVivos: 0,
+                        egresosMuertos: 0,
+                        existenciaFinal: 0
+                    };
+                });
+            });
+
+            // Procesar cada registro
+            datos.forEach(registro => {
+                const fecha = registro[0]; // Fecha
+                const servicio = registro[2]; // Servicio
+                const paseDe = registro[3]; // Pase de
+                const ingresoConsulta = registro[8]; // Ingreso consulta
+                const ingresoUrgencias = registro[9]; // Ingreso urgencias
+                const ingresoOtraUnidad = registro[10]; // Ingreso otra unidad
+                const egresoVivo = registro[11]; // Egreso vivo
+                const egresoMuerto = registro[12]; // Egreso muerto
+                const servicioDestino = registro[13]; // Servicio destino
+
+                if (!servicios[servicio] || !servicios[servicio].porFecha[fecha]) {
+                    return;
+                }
+
+                const datosFecha = servicios[servicio].porFecha[fecha];
+
+                // Contar ingresos (si hay alguna hora de ingreso)
+                if (ingresoConsulta || ingresoUrgencias || ingresoOtraUnidad) {
+                    datosFecha.ingresos++;
+                }
+
+                // Contar pases de otros servicios
+                if (paseDe && paseDe !== '— Selecciona —' && paseDe !== '') {
+                    datosFecha.pasesDe++;
+                }
+
+                // Contar egresos
+                if (egresoVivo) {
+                    datosFecha.egresosVivos++;
+                }
+                if (egresoMuerto) {
+                    datosFecha.egresosMuertos++;
+                }
+            });
+
+            // Calcular existencias y totales
+            fechas.forEach((fecha, index) => {
+                serviciosFiltrados.forEach(servicio => {
+                    const datosFecha = servicios[servicio].porFecha[fecha];
+                    const datosFechaAnterior = index > 0 ? 
+                        servicios[servicio].porFecha[fechas[index-1]] : null;
+
+                    // Existencia inicial = Existencia final del día anterior
+                    datosFecha.existenciaInicial = datosFechaAnterior ? 
+                        datosFechaAnterior.existenciaFinal : 0;
+
+                    // Existencia final = Existencia inicial + Ingresos - Egresos totales
+                    const egresosTotales = datosFecha.egresosVivos + datosFecha.egresosMuertos;
+                    datosFecha.existenciaFinal = datosFecha.existenciaInicial + 
+                                               datosFecha.ingresos - egresosTotales;
+
+                    // Acumular totales
+                    servicios[servicio].totales.existenciaInicial += datosFecha.existenciaInicial;
+                    servicios[servicio].totales.pasesDe += datosFecha.pasesDe;
+                    servicios[servicio].totales.ingresos += datosFecha.ingresos;
+                    servicios[servicio].totales.egresosVivos += datosFecha.egresosVivos;
+                    servicios[servicio].totales.egresosMuertos += datosFecha.egresosMuertos;
+                    servicios[servicio].totales.existenciaFinal += datosFecha.existenciaFinal;
+                });
+            });
+
+            return {
+                servicios: servicios,
+                fechas: fechas,
+                serviciosFiltrados: serviciosFiltrados,
+                fechaInicio: fechaInicio,
+                fechaFin: fechaFin
+            };
+        }
+
+        function mostrarResultados(reporte) {
+            const resultadosDiv = document.getElementById('resultados');
+            
+            let html = `
+                <div class="resumen-totales">
+                    <div class="total-card">
+                        <h4>Período</h4>
+                        <div class="numero">${reporte.fechas.length} días</div>
+                        <small>${formatearFecha(reporte.fechaInicio)} - ${formatearFecha(reporte.fechaFin)}</small>
+                    </div>
+                    <div class="total-card">
+                        <h4>Servicios</h4>
+                        <div class="numero">${reporte.serviciosFiltrados.length}</div>
+                    </div>
+                    <div class="total-card">
+                        <h4>Total Registros</h4>
+                        <div class="numero">${Object.values(reporte.servicios).reduce((total, servicio) => 
+                            total + servicio.totales.ingresos, 0)}</div>
+                    </div>
+                </div>
+            `;
+
+            html += '<div class="tabla-wrapper">';
+            html += '<table>';
+
+            // Encabezados
+            html += '<thead><tr>';
+            html += '<th>Servicio / Fecha</th>';
+            reporte.fechas.forEach(fecha => {
+                html += `<th>${formatearFecha(fecha)}</th>`;
+            });
+            html += '<th>TOTAL</th>';
+            html += '</tr></thead>';
+
+            html += '<tbody>';
+
+            // Por cada servicio
+            reporte.serviciosFiltrados.forEach(servicioNombre => {
+                const servicio = reporte.servicios[servicioNombre];
+                
+                // Encabezado del servicio
+                html += `<tr class="servicio-header">`;
+                html += `<td colspan="${reporte.fechas.length + 2}">${servicio.nombre}</td>`;
+                html += '</tr>';
+
+                // Filas para cada métrica
+                const metricas = [
+                    { nombre: 'Existencia Inicial', clave: 'existenciaInicial' },
+                    { nombre: 'Pases De', clave: 'pasesDe' },
+                    { nombre: 'Ingresos', clave: 'ingresos' },
+                    { nombre: 'Egresos Vivos', clave: 'egresosVivos' },
+                    { nombre: 'Egresos Muertos', clave: 'egresosMuertos' },
+                    { nombre: 'Existencia Final', clave: 'existenciaFinal' }
+                ];
+
+                metricas.forEach(metrica => {
+                    html += '<tr>';
+                    html += `<td style="text-align: left; padding-left: 20px;">${metrica.nombre}</td>`;
+                    
+                    // Datos por fecha
+                    reporte.fechas.forEach(fecha => {
+                        html += `<td>${servicio.porFecha[fecha][metrica.clave]}</td>`;
+                    });
+                    
+                    // Total
+                    html += `<td><strong>${servicio.totales[metrica.clave]}</strong></td>`;
+                    html += '</tr>';
+                });
+
+                // Separador entre servicios
+                html += '<tr style="height: 20px;"><td colspan="' + (reporte.fechas.length + 2) + '"></td></tr>';
+            });
+
+            html += '</tbody>';
+            html += '</table>';
+            html += '</div>';
+
+            resultadosDiv.innerHTML = html;
+        }
+
+        function formatearFecha(fechaISO) {
+            const fecha = new Date(fechaISO);
+            return fecha.toLocaleDateString('es-MX', {
+                day: '2-digit',
+                month: '2-digit'
+            });
+        }
+
+        function descargarPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const reporte = window.reporteActual;
+            const fechas = window.fechasReporte;
+
+            // Título
+            doc.setFontSize(16);
+            doc.text('Reporte de Totales Diarios por Servicio', 14, 20);
+            
+            // Subtítulo
+            doc.setFontSize(12);
+            let subtitulo = `Período: ${formatearFechaPDF(fechas.inicio)} - ${formatearFechaPDF(fechas.fin)}`;
+            if (fechas.servicio) {
+                subtitulo += ` | Servicio: ${fechas.servicio}`;
+            }
+            doc.text(subtitulo, 14, 30);
+            
+            // Fecha de generación
+            doc.setFontSize(10);
+            doc.text(`Generado: ${new Date().toLocaleDateString('es-MX')}`, 14, 37);
+            doc.text(`Hospital Regional Puerto Vallarta`, 14, 44);
+
+            // Datos para la tabla
+            const headers = ['Servicio / Fecha', ...reporte.fechas.map(f => formatearFechaPDF(f)), 'TOTAL'];
+            const data = [];
+
+            reporte.serviciosFiltrados.forEach(servicioNombre => {
+                const servicio = reporte.servicios[servicioNombre];
+                
+                // Agregar fila de encabezado del servicio
+                data.push([{ 
+                    content: servicio.nombre, 
+                    styles: { 
+                        fillColor: [66, 153, 225],
+                        textColor: [255, 255, 255],
+                        fontStyle: 'bold'
+                    },
+                    colSpan: headers.length
+                }]);
+
+                // Agregar métricas
+                const metricas = [
+                    { nombre: 'Existencia Inicial', clave: 'existenciaInicial' },
+                    { nombre: 'Pases De', clave: 'pasesDe' },
+                    { nombre: 'Ingresos', clave: 'ingresos' },
+                    { nombre: 'Egresos Vivos', clave: 'egresosVivos' },
+                    { nombre: 'Egresos Muertos', clave: 'egresosMuertos' },
+                    { nombre: 'Existencia Final', clave: 'existenciaFinal' }
+                ];
+
+                metricas.forEach(metrica => {
+                    const fila = [metrica.nombre];
+                    
+                    reporte.fechas.forEach(fecha => {
+                        fila.push(servicio.porFecha[fecha][metrica.clave].toString());
+                    });
+                    
+                    fila.push(servicio.totales[metrica.clave].toString());
+                    data.push(fila);
+                });
+
+                // Separador
+                data.push(['']);
+            });
+
+            // Generar tabla
+            doc.autoTable({
+                startY: 50,
+                head: [headers],
+                body: data,
+                theme: 'grid',
+                headStyles: {
+                    fillColor: [45, 55, 72],
+                    textColor: [255, 255, 255],
+                    fontStyle: 'bold'
+                },
+                alternateRowStyles: {
+                    fillColor: [248, 250, 252]
+                },
+                margin: { top: 50 },
+                pageBreak: 'auto',
+                rowPageBreak: 'avoid',
+                styles: {
+                    fontSize: 8,
+                    cellPadding: 3
+                },
+                columnStyles: {
+                    0: { cellWidth: 30 },
+                    ...Object.fromEntries(
+                        Array.from({length: reporte.fechas.length + 2}, (_, i) => [i, {cellWidth: 15}])
+                    )
+                }
+            });
+
+            // Guardar PDF
+            const nombreArchivo = `Reporte_Totales_${fechas.inicio}_a_${fechas.fin}.pdf`;
+            doc.save(nombreArchivo);
+        }
+
+        function formatearFechaPDF(fechaISO) {
+            const fecha = new Date(fechaISO);
+            return fecha.toLocaleDateString('es-MX', {
+                day: '2-digit',
+                month: '2-digit'
+            });
+        }
+
+        // Verificar sesión
+        function verificarAutenticacion() {
+            const usuario = localStorage.getItem('usuario');
+            const rol = localStorage.getItem('rol');
+            const loginTime = localStorage.getItem('loginTime');
+
+            if (!usuario || !rol || !loginTime) {
+                window.location.href = '/estadisticas/login.html';
+                return false;
+            }
+
+            const ahora = Date.now();
+            const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+
+            if (horasTranscurridas > 24) {
+                localStorage.clear();
+                window.location.href = '/estadisticas/login.html';
+                return false;
+            }
+
+            return true;
+        }
+
+        // Verificar al cargar
+        if (!verificarAutenticacion()) {
+            window.location.href = '/estadisticas/login.html';
+        }
+    </script>
+</body>
+</html>
