@@ -307,7 +307,6 @@
             font-family: monospace;
             font-size: 12px;
             color: #4a5568;
-            display: none; /* Ocultar en producción */
         }
 
         .footer {
@@ -469,7 +468,6 @@
                 <div class="loading">
                     <i class="fa-solid fa-spinner fa-spin"></i>
                     <p>Obteniendo datos del servidor...</p>
-                    <p class="debug-info" id="debug-info"></p>
                 </div>
             `;
 
@@ -480,7 +478,8 @@
                 
                 // Obtener todos los datos
                 const datos = await obtenerDatos();
-                console.log('✅ Datos recibidos:', datos.length, 'registros');
+                console.log('✅ Datos recibidos:', datos);
+                console.log('📊 Número de registros:', datos.length);
                 
                 if (datos.length === 0) {
                     resultadosDiv.innerHTML = `
@@ -494,33 +493,53 @@
                     return;
                 }
 
+                // Mostrar estructura de un registro de ejemplo
+                if (datos.length > 0) {
+                    console.log('📋 Ejemplo de registro:', datos[0]);
+                    console.log('🔢 Número de columnas:', datos[0].length);
+                }
+
                 // Filtrar datos por fecha
                 const datosFiltrados = datos.filter(registro => {
                     try {
-                        const fechaRegistro = registro[0]; // Primera columna: fecha
-                        if (!fechaRegistro) return false;
+                        const fechaRegistroISO = registro[0]; // Primera columna: fecha en formato ISO
+                        if (!fechaRegistroISO) {
+                            console.log('⚠️ Registro sin fecha:', registro);
+                            return false;
+                        }
                         
-                        // Convertir fecha a formato comparable
-                        const fechaReg = new Date(fechaRegistro);
-                        const fechaInicioObj = new Date(fechaInicio);
-                        const fechaFinObj = new Date(fechaFin);
+                        // Convertir fecha ISO a formato YYYY-MM-DD
+                        let fechaRegistroFormateada;
+                        try {
+                            // Intentar convertir la fecha ISO
+                            const fechaObj = new Date(fechaRegistroISO);
+                            if (isNaN(fechaObj.getTime())) {
+                                // Si no es una fecha válida, intentar otros formatos
+                                fechaRegistroFormateada = fechaRegistroISO.split('T')[0];
+                            } else {
+                                fechaRegistroFormateada = fechaObj.toISOString().split('T')[0];
+                            }
+                        } catch (error) {
+                            // Si hay error, usar el string directamente
+                            fechaRegistroFormateada = fechaRegistroISO.split('T')[0];
+                        }
                         
-                        // Ajustar horas para comparación solo por fecha
-                        fechaInicioObj.setHours(0, 0, 0, 0);
-                        fechaFinObj.setHours(23, 59, 59, 999);
-                        fechaReg.setHours(12, 0, 0, 0); // Medio día para evitar problemas de zona horaria
+                        // Verificar si la fecha está en el rango
+                        const fechaOK = fechaRegistroFormateada >= fechaInicio && fechaRegistroFormateada <= fechaFin;
                         
-                        const fechaOK = fechaReg >= fechaInicioObj && fechaReg <= fechaFinObj;
+                        if (!fechaOK) {
+                            return false;
+                        }
                         
                         // Filtrar por servicio si está especificado
                         if (servicioFiltro) {
                             const servicio = registro[2]; // Tercera columna: servicio
-                            return fechaOK && servicio === servicioFiltro;
+                            return servicio === servicioFiltro;
                         }
                         
-                        return fechaOK;
+                        return true;
                     } catch (error) {
-                        console.error('Error procesando registro:', registro, error);
+                        console.error('❌ Error procesando registro:', registro, error);
                         return false;
                     }
                 });
@@ -575,7 +594,7 @@
                 const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2);
                 
                 window[callbackName] = function(response) {
-                    console.log('📨 Respuesta recibida:', response);
+                    console.log('📨 Respuesta recibida del servidor:', response);
                     
                     try {
                         // Verificar si la respuesta es válida
@@ -584,41 +603,53 @@
                             return;
                         }
                         
+                        // Manejar diferentes formatos de respuesta
+                        let datos;
+                        
+                        // Si es un array directamente
+                        if (Array.isArray(response)) {
+                            datos = response;
+                        }
                         // Si es un objeto con propiedad data
-                        if (response.data && Array.isArray(response.data)) {
-                            resolve(response.data);
-                        } 
-                        // Si es directamente un array
-                        else if (Array.isArray(response)) {
-                            resolve(response);
+                        else if (response.data && Array.isArray(response.data)) {
+                            datos = response.data;
                         }
                         // Si es un objeto con otra estructura
                         else if (response.records && Array.isArray(response.records)) {
-                            resolve(response.records);
+                            datos = response.records;
                         }
-                        // Si es un objeto con un array en la primera propiedad
+                        // Si es un objeto pero no reconocemos la estructura
                         else if (typeof response === 'object') {
-                            const firstKey = Object.keys(response)[0];
-                            if (Array.isArray(response[firstKey])) {
-                                resolve(response[firstKey]);
+                            // Buscar cualquier propiedad que sea un array
+                            const arrayKeys = Object.keys(response).filter(key => Array.isArray(response[key]));
+                            if (arrayKeys.length > 0) {
+                                datos = response[arrayKeys[0]];
                             } else {
                                 reject(new Error('Formato de datos no reconocido'));
+                                return;
                             }
                         }
                         else {
                             reject(new Error('Formato de respuesta inesperado'));
+                            return;
                         }
+                        
+                        console.log('📊 Datos extraídos:', datos.length, 'registros');
+                        resolve(datos);
+                        
                     } catch (error) {
                         reject(new Error('Error procesando respuesta: ' + error.message));
                     } finally {
                         // Limpiar callback
-                        delete window[callbackName];
+                        setTimeout(() => {
+                            delete window[callbackName];
+                        }, 1000);
                     }
                 };
 
                 // Manejar timeout
                 const timeout = setTimeout(() => {
-                    reject(new Error('Timeout: No se pudo conectar con el servidor'));
+                    reject(new Error('Timeout: No se pudo conectar con el servidor (30 segundos)'));
                     delete window[callbackName];
                 }, 30000);
 
@@ -658,7 +689,7 @@
             
             const serviciosFiltrados = servicioFiltro ? [servicioFiltro] : todosServicios;
             
-            // Crear array de fechas en el rango
+            // Crear array de fechas en el rango (formato YYYY-MM-DD)
             const fechas = [];
             const fechaActual = new Date(fechaInicio);
             const fechaFinObj = new Date(fechaFin);
@@ -668,8 +699,8 @@
                 fechaActual.setDate(fechaActual.getDate() + 1);
             }
             
-            console.log('📅 Fechas a procesar:', fechas.length);
-            console.log('🏥 Servicios a procesar:', serviciosFiltrados.length);
+            console.log('📅 Fechas a procesar:', fechas);
+            console.log('🏥 Servicios a procesar:', serviciosFiltrados);
 
             // Estructura para almacenar datos
             const reporte = {
@@ -708,21 +739,62 @@
                         ingresos: 0,
                         egresosVivos: 0,
                         egresosMuertos: 0,
-                        existenciaFinal: 0,
-                        pacientes: [] // Para tracking de pacientes
+                        existenciaFinal: 0
                     };
                 });
             });
 
+            console.log('📋 Estructura de reporte inicializada');
+
+            // Función para normalizar fecha ISO a YYYY-MM-DD
+            function normalizarFecha(fechaISO) {
+                if (!fechaISO) return null;
+                
+                try {
+                    // Si ya está en formato YYYY-MM-DD
+                    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaISO)) {
+                        return fechaISO;
+                    }
+                    
+                    // Si tiene tiempo (ISO format)
+                    if (fechaISO.includes('T')) {
+                        const fechaObj = new Date(fechaISO);
+                        if (!isNaN(fechaObj.getTime())) {
+                            return fechaObj.toISOString().split('T')[0];
+                        }
+                    }
+                    
+                    // Intentar parsear como fecha
+                    const fechaObj = new Date(fechaISO);
+                    if (!isNaN(fechaObj.getTime())) {
+                        return fechaObj.toISOString().split('T')[0];
+                    }
+                    
+                    // Si no se puede parsear, devolver null
+                    return null;
+                } catch (error) {
+                    console.error('❌ Error normalizando fecha:', fechaISO, error);
+                    return null;
+                }
+            }
+
             // Procesar cada registro
+            let registrosProcesados = 0;
+            let registrosConError = 0;
+            
             datos.forEach((registro, index) => {
                 try {
+                    // Mostrar algunos registros para depuración
+                    if (index < 3) {
+                        console.log(`🔍 Registro ${index}:`, registro);
+                    }
+                    
                     // Asumir estructura basada en tu código original del censo:
                     // [0] = fecha, [2] = servicio, [3] = pase_de, [8] = ingreso_consulta,
                     // [9] = ingreso_urgencias, [10] = ingreso_otra_unidad,
                     // [11] = egreso_vivo, [12] = egreso_muerto
                     
-                    const fecha = registro[0];
+                    const fechaISO = registro[0];
                     const servicio = registro[2];
                     const paseDe = registro[3];
                     const ingresoConsulta = registro[8];
@@ -731,40 +803,70 @@
                     const egresoVivo = registro[11];
                     const egresoMuerto = registro[12];
                     
-                    // Verificar que el servicio existe en nuestro reporte
-                    if (!reporte.servicios[servicio]) {
-                        console.warn(`Servicio no encontrado en reporte: ${servicio}`);
+                    // Normalizar fecha
+                    const fechaNormalizada = normalizarFecha(fechaISO);
+                    if (!fechaNormalizada) {
+                        console.warn(`⚠️ Fecha inválida en registro ${index}:`, fechaISO);
+                        registrosConError++;
                         return;
                     }
                     
-                    const datosFecha = reporte.servicios[servicio].porFecha[fecha];
+                    // Verificar que el servicio existe en nuestro reporte
+                    if (!reporte.servicios[servicio]) {
+                        // Si es un servicio no listado y estamos filtrando por todos, ignorarlo
+                        if (!servicioFiltro) {
+                            console.warn(`⚠️ Servicio no reconocido: ${servicio} en registro ${index}`);
+                            registrosConError++;
+                            return;
+                        }
+                    }
+                    
+                    const datosFecha = reporte.servicios[servicio]?.porFecha[fechaNormalizada];
                     if (!datosFecha) {
-                        console.warn(`Fecha no encontrada en reporte: ${fecha}`);
+                        // Verificar si la fecha está fuera del rango (puede pasar por ajustes de zona horaria)
+                        const fechaObj = new Date(fechaNormalizada);
+                        const fechaInicioObj = new Date(fechaInicio);
+                        const fechaFinObj = new Date(fechaFin);
+                        
+                        if (fechaObj < fechaInicioObj || fechaObj > fechaFinObj) {
+                            // Fecha fuera del rango, ignorar
+                            return;
+                        }
+                        
+                        console.warn(`⚠️ Fecha no encontrada en reporte: ${fechaNormalizada} (ISO original: ${fechaISO})`);
+                        console.log('📅 Fechas disponibles:', fechas);
+                        registrosConError++;
                         return;
                     }
 
-                    // Contar ingresos
+                    // Contar ingresos (si hay alguna hora de ingreso)
                     if (ingresoConsulta || ingresoUrgencias || ingresoOtraUnidad) {
                         datosFecha.ingresos++;
                     }
 
                     // Contar pases de otros servicios
-                    if (paseDe && paseDe.trim() !== '' && paseDe !== '— Selecciona —') {
+                    if (paseDe && paseDe.trim() !== '' && paseDe !== '— Selecciona —' && paseDe !== 'N/A') {
                         datosFecha.pasesDe++;
                     }
 
                     // Contar egresos
-                    if (egresoVivo) {
+                    if (egresoVivo && egresoVivo.trim() !== '') {
                         datosFecha.egresosVivos++;
                     }
-                    if (egresoMuerto) {
+                    if (egresoMuerto && egresoMuerto.trim() !== '') {
                         datosFecha.egresosMuertos++;
                     }
                     
+                    registrosProcesados++;
+                    
                 } catch (error) {
-                    console.error(`Error procesando registro ${index}:`, error, registro);
+                    console.error(`❌ Error procesando registro ${index}:`, error);
+                    console.error('Registro problemático:', registro);
+                    registrosConError++;
                 }
             });
+
+            console.log(`✅ Registros procesados: ${registrosProcesados}, con errores: ${registrosConError}`);
 
             // Calcular existencias
             fechas.forEach((fecha, fechaIndex) => {
@@ -782,6 +884,12 @@
                     const egresosTotales = datosFecha.egresosVivos + datosFecha.egresosMuertos;
                     datosFecha.existenciaFinal = datosFecha.existenciaInicial + 
                                                datosFecha.ingresos - egresosTotales;
+
+                    // Asegurar que existencia final no sea negativa
+                    if (datosFecha.existenciaFinal < 0) {
+                        console.warn(`⚠️ Existencia final negativa para ${servicio} en ${fecha}: ${datosFecha.existenciaFinal}`);
+                        datosFecha.existenciaFinal = 0;
+                    }
 
                     // Acumular totales del servicio
                     const totales = reporte.servicios[servicio].totales;
