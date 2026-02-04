@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -325,12 +326,11 @@
             color: black;
         }
 
-        #resultados > div.tabla-wrapper > table > tbody > tr:nth-child() > td:nth-child(){
-            color:black;
-        }
-        
-        #resultados > div.tabla-wrapper > table > tbody > tr.total-row{
-            color:black;
+        /* Cambiar color de texto en la columna TOTAL */
+        table td:last-child {
+            color: #1a202c !important;
+            /* Color oscuro */
+            font-weight: bold !important;
         }
 
         /* Estilos para scroll horizontal */
@@ -353,6 +353,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="glass" id="dashboard">
         <div class="header">
@@ -365,7 +366,8 @@
                 <div class="usuario">
                     <i class="fa-solid fa-user-circle"></i>
                     <span id="user-info"></span>
-                    <button onclick="window.location.href = '/estadisticas/censo/';" class="btn" style="background: #48bb78; color: white;">
+                    <button onclick="window.location.href = '/estadisticas/censo/';" class="btn"
+                        style="background: #48bb78; color: white;">
                         <i class="fa-solid fa-arrow-left"></i> Volver
                     </button>
                 </div>
@@ -423,14 +425,14 @@
         // Mismo URL que usas en el censo
         const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyhMRSZlKTZeveL0wHukElK92ntfc7yTfFCCyEeFnLsQCvIra2Tzn5_cN3MZdqZbgGH/exec";
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('📊 Inicializando reporte de totales...');
-            
+
             // Configurar fechas por defecto (últimos 7 días)
             const hoy = new Date();
             const hace7Dias = new Date();
             hace7Dias.setDate(hoy.getDate() - 7);
-            
+
             document.getElementById('fecha-inicio').value = hace7Dias.toISOString().split('T')[0];
             document.getElementById('fecha-fin').value = hoy.toISOString().split('T')[0];
 
@@ -450,7 +452,7 @@
 
             // Evento para generar reporte
             document.getElementById('btnGenerar').addEventListener('click', generarReporte);
-            
+
             // Evento para descargar PDF
             document.getElementById('btnPDF').addEventListener('click', descargarPDF);
 
@@ -484,12 +486,12 @@
                 console.log('📥 Obteniendo datos...');
                 console.log('📅 Rango:', fechaInicio, 'a', fechaFin);
                 console.log('🏥 Servicio:', servicioFiltro || 'Todos');
-                
+
                 // Obtener todos los datos
                 const datos = await obtenerDatos();
                 console.log('✅ Datos recibidos:', datos);
                 console.log('📊 Número de registros:', datos.length);
-                
+
                 if (datos.length === 0) {
                     resultadosDiv.innerHTML = `
                         <div class="sin-datos">
@@ -516,7 +518,7 @@
                             console.log('⚠️ Registro sin fecha:', registro);
                             return false;
                         }
-                        
+
                         // Convertir fecha ISO a formato YYYY-MM-DD
                         let fechaRegistroFormateada;
                         try {
@@ -532,20 +534,20 @@
                             // Si hay error, usar el string directamente
                             fechaRegistroFormateada = fechaRegistroISO.split('T')[0];
                         }
-                        
+
                         // Verificar si la fecha está en el rango
                         const fechaOK = fechaRegistroFormateada >= fechaInicio && fechaRegistroFormateada <= fechaFin;
-                        
+
                         if (!fechaOK) {
                             return false;
                         }
-                        
+
                         // Filtrar por servicio si está especificado
                         if (servicioFiltro) {
                             const servicio = registro[2]; // Tercera columna: servicio
                             return servicio === servicioFiltro;
                         }
-                        
+
                         return true;
                     } catch (error) {
                         console.error('❌ Error procesando registro:', registro, error);
@@ -570,13 +572,13 @@
 
                 // Procesar datos para el reporte
                 const reporte = procesarDatosParaReporte(datosFiltrados, fechaInicio, fechaFin, servicioFiltro);
-                
+
                 // Mostrar resultados
                 mostrarResultados(reporte);
-                
+
                 // Mostrar botón de PDF
                 document.getElementById('btnPDF').style.display = 'flex';
-                
+
                 // Guardar datos para PDF
                 window.reporteActual = reporte;
                 window.fechasReporte = { inicio: fechaInicio, fin: fechaFin, servicio: servicioFiltro };
@@ -601,20 +603,20 @@
             return new Promise((resolve, reject) => {
                 console.log('🔗 Conectando a Google Apps Script...');
                 const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2);
-                
-                window[callbackName] = function(response) {
+
+                window[callbackName] = function (response) {
                     console.log('📨 Respuesta recibida del servidor:', response);
-                    
+
                     try {
                         // Verificar si la respuesta es válida
                         if (!response) {
                             reject(new Error('No se recibieron datos del servidor'));
                             return;
                         }
-                        
+
                         // Manejar diferentes formatos de respuesta
                         let datos;
-                        
+
                         // Si es un array directamente
                         if (Array.isArray(response)) {
                             datos = response;
@@ -642,10 +644,10 @@
                             reject(new Error('Formato de respuesta inesperado'));
                             return;
                         }
-                        
+
                         console.log('📊 Datos extraídos:', datos.length, 'registros');
                         resolve(datos);
-                        
+
                     } catch (error) {
                         reject(new Error('Error procesando respuesta: ' + error.message));
                     } finally {
@@ -666,26 +668,26 @@
                 const script = document.createElement('script');
                 const url = `${URL_SCRIPT}?action=get&callback=${callbackName}&t=${Date.now()}`;
                 console.log('🌐 URL de solicitud:', url);
-                
+
                 script.src = url;
                 script.onerror = (error) => {
                     clearTimeout(timeout);
                     reject(new Error('Error de conexión: ' + (error.message || 'No se pudo cargar los datos')));
                     delete window[callbackName];
                 };
-                
+
                 script.onload = () => {
                     clearTimeout(timeout);
                     console.log('✅ Script cargado exitosamente');
                 };
-                
+
                 document.body.appendChild(script);
             });
         }
 
         function procesarDatosParaReporte(datos, fechaInicio, fechaFin, servicioFiltro) {
             console.log('🔢 Procesando datos para reporte...');
-            
+
             // Obtener lista de servicios
             const todosServicios = [
                 'CIRUGIA GENERAL',
@@ -695,19 +697,19 @@
                 'TRAUMATOLOGIA Y ORTOPEDIA',
                 'UCIN'
             ];
-            
+
             const serviciosFiltrados = servicioFiltro ? [servicioFiltro] : todosServicios;
-            
+
             // Crear array de fechas en el rango (formato YYYY-MM-DD)
             const fechas = [];
             const fechaActual = new Date(fechaInicio);
             const fechaFinObj = new Date(fechaFin);
-            
+
             while (fechaActual <= fechaFinObj) {
                 fechas.push(fechaActual.toISOString().split('T')[0]);
                 fechaActual.setDate(fechaActual.getDate() + 1);
             }
-            
+
             console.log('📅 Fechas a procesar:', fechas);
             console.log('🏥 Servicios a procesar:', serviciosFiltrados);
 
@@ -758,13 +760,13 @@
             // Función para normalizar fecha ISO a YYYY-MM-DD
             function normalizarFecha(fechaISO) {
                 if (!fechaISO) return null;
-                
+
                 try {
                     // Si ya está en formato YYYY-MM-DD
                     if (/^\d{4}-\d{2}-\d{2}$/.test(fechaISO)) {
                         return fechaISO;
                     }
-                    
+
                     // Si tiene tiempo (ISO format)
                     if (fechaISO.includes('T')) {
                         const fechaObj = new Date(fechaISO);
@@ -772,13 +774,13 @@
                             return fechaObj.toISOString().split('T')[0];
                         }
                     }
-                    
+
                     // Intentar parsear como fecha
                     const fechaObj = new Date(fechaISO);
                     if (!isNaN(fechaObj.getTime())) {
                         return fechaObj.toISOString().split('T')[0];
                     }
-                    
+
                     // Si no se puede parsear, devolver null
                     return null;
                 } catch (error) {
@@ -790,19 +792,19 @@
             // Procesar cada registro
             let registrosProcesados = 0;
             let registrosConError = 0;
-            
+
             datos.forEach((registro, index) => {
                 try {
                     // Mostrar algunos registros para depuración
                     if (index < 3) {
                         console.log(`🔍 Registro ${index}:`, registro);
                     }
-                    
+
                     // Asumir estructura basada en tu código original del censo:
                     // [0] = fecha, [2] = servicio, [3] = pase_de, [8] = ingreso_consulta,
                     // [9] = ingreso_urgencias, [10] = ingreso_otra_unidad,
                     // [11] = egreso_vivo, [12] = egreso_muerto
-                    
+
                     const fechaISO = registro[0];
                     const servicio = registro[2];
                     const paseDe = registro[3];
@@ -811,7 +813,7 @@
                     const ingresoOtraUnidad = registro[10];
                     const egresoVivo = registro[11];
                     const egresoMuerto = registro[12];
-                    
+
                     // Normalizar fecha
                     const fechaNormalizada = normalizarFecha(fechaISO);
                     if (!fechaNormalizada) {
@@ -819,7 +821,7 @@
                         registrosConError++;
                         return;
                     }
-                    
+
                     // Verificar que el servicio existe en nuestro reporte
                     if (!reporte.servicios[servicio]) {
                         // Si es un servicio no listado y estamos filtrando por todos, ignorarlo
@@ -829,19 +831,19 @@
                             return;
                         }
                     }
-                    
+
                     const datosFecha = reporte.servicios[servicio]?.porFecha[fechaNormalizada];
                     if (!datosFecha) {
                         // Verificar si la fecha está fuera del rango (puede pasar por ajustes de zona horaria)
                         const fechaObj = new Date(fechaNormalizada);
                         const fechaInicioObj = new Date(fechaInicio);
                         const fechaFinObj = new Date(fechaFin);
-                        
+
                         if (fechaObj < fechaInicioObj || fechaObj > fechaFinObj) {
                             // Fecha fuera del rango, ignorar
                             return;
                         }
-                        
+
                         console.warn(`⚠️ Fecha no encontrada en reporte: ${fechaNormalizada} (ISO original: ${fechaISO})`);
                         console.log('📅 Fechas disponibles:', fechas);
                         registrosConError++;
@@ -865,9 +867,9 @@
                     if (egresoMuerto && egresoMuerto.trim() !== '') {
                         datosFecha.egresosMuertos++;
                     }
-                    
+
                     registrosProcesados++;
-                    
+
                 } catch (error) {
                     console.error(`❌ Error procesando registro ${index}:`, error);
                     console.error('Registro problemático:', registro);
@@ -881,8 +883,8 @@
             fechas.forEach((fecha, fechaIndex) => {
                 serviciosFiltrados.forEach(servicio => {
                     const datosFecha = reporte.servicios[servicio].porFecha[fecha];
-                    const datosFechaAnterior = fechaIndex > 0 ? 
-                        reporte.servicios[servicio].porFecha[fechas[fechaIndex-1]] : null;
+                    const datosFechaAnterior = fechaIndex > 0 ?
+                        reporte.servicios[servicio].porFecha[fechas[fechaIndex - 1]] : null;
 
                     // Existencia inicial = Existencia final del día anterior
                     if (datosFechaAnterior) {
@@ -891,8 +893,8 @@
 
                     // Existencia final = Existencia inicial + Ingresos - Egresos totales
                     const egresosTotales = datosFecha.egresosVivos + datosFecha.egresosMuertos;
-                    datosFecha.existenciaFinal = datosFecha.existenciaInicial + 
-                                               datosFecha.ingresos - egresosTotales;
+                    datosFecha.existenciaFinal = datosFecha.existenciaInicial +
+                        datosFecha.ingresos - egresosTotales;
 
                     // Asegurar que existencia final no sea negativa
                     if (datosFecha.existenciaFinal < 0) {
@@ -925,13 +927,13 @@
 
         function mostrarResultados(reporte) {
             const resultadosDiv = document.getElementById('resultados');
-            
+
             let html = `
                 <div class="resumen-totales">
                     <div class="total-card">
                         <h4><i class="fa-solid fa-calendar-alt"></i> Período</h4>
                         <div class="numero">${reporte.fechas.length} días</div>
-                        <small>${formatearFecha(reporte.fechas[0])} - ${formatearFecha(reporte.fechas[reporte.fechas.length-1])}</small>
+                        <small>${formatearFecha(reporte.fechas[0])} - ${formatearFecha(reporte.fechas[reporte.fechas.length - 1])}</small>
                     </div>
                     <div class="total-card">
                         <h4><i class="fa-solid fa-hospital"></i> Servicios</h4>
@@ -950,7 +952,7 @@
 
             html += '<div class="tabla-wrapper">';
             html += '<table>';
-            
+
             // Encabezados de fechas
             html += '<thead><tr>';
             html += '<th style="width: 200px;">Servicio / Métrica</th>';
@@ -986,7 +988,7 @@
                     html += `<td class="metric-label">`;
                     html += `<i class="fa-solid ${metrica.icono}"></i> ${metrica.nombre}`;
                     html += '</td>';
-                    
+
                     // Datos por fecha
                     reporte.fechas.forEach(fecha => {
                         const valor = servicio.porFecha[fecha][metrica.clave];
@@ -994,7 +996,7 @@
                         const claseValor = valor > 0 ? 'style="font-weight: bold; color: #2d3748;"' : '';
                         html += `<td ${claseValor}>${valor}</td>`;
                     });
-                    
+
                     // Total del servicio para esta métrica
                     const total = servicio.totales[metrica.clave];
                     const claseTotal = total > 0 ? 'style="background: #ebf8ff; font-weight: bold;"' : '';
@@ -1009,7 +1011,7 @@
             // Fila de totales generales
             html += '<tr class="total-row">';
             html += '<td><i class="fa-solid fa-calculator"></i> <strong>TOTALES GENERALES</strong></td>';
-            
+
             reporte.fechas.forEach(fecha => {
                 let totalDia = 0;
                 Object.values(reporte.servicios).forEach(servicio => {
@@ -1017,7 +1019,7 @@
                 });
                 html += `<td><strong>${totalDia}</strong></td>`;
             });
-            
+
             html += `<td><strong>${reporte.totalesGenerales.existenciaFinal}</strong></td>`;
             html += '</tr>';
 
@@ -1060,7 +1062,7 @@
             doc.setFontSize(16);
             doc.setTextColor(45, 55, 72);
             doc.text('Reporte de Totales Diarios por Servicio', 14, 20);
-            
+
             // Subtítulo
             doc.setFontSize(12);
             doc.setTextColor(74, 85, 104);
@@ -1069,12 +1071,12 @@
                 subtitulo += ` | Servicio: ${fechas.servicio}`;
             }
             doc.text(subtitulo, 14, 30);
-            
+
             // Información de generación
             doc.setFontSize(10);
-            doc.text(`Generado: ${new Date().toLocaleDateString('es-MX', { 
-                year: 'numeric', 
-                month: 'long', 
+            doc.text(`Generado: ${new Date().toLocaleDateString('es-MX', {
+                year: 'numeric',
+                month: 'long',
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit'
@@ -1087,10 +1089,10 @@
 
             Object.values(reporte.servicios).forEach(servicio => {
                 // Encabezado del servicio
-                data.push([{ 
-                    content: servicio.nombre, 
+                data.push([{
+                    content: servicio.nombre,
                     colSpan: headers.length,
-                    styles: { 
+                    styles: {
                         fillColor: [66, 153, 225],
                         textColor: [255, 255, 255],
                         fontStyle: 'bold',
@@ -1110,11 +1112,11 @@
 
                 metricas.forEach(metrica => {
                     const fila = [metrica.nombre];
-                    
+
                     reporte.fechas.forEach(fecha => {
                         fila.push(servicio.porFecha[fecha][metrica.clave].toString());
                     });
-                    
+
                     fila.push(servicio.totales[metrica.clave].toString());
                     data.push(fila);
                 });
@@ -1149,7 +1151,7 @@
                 columnStyles: {
                     0: { cellWidth: 40, fontStyle: 'bold' }
                 },
-                didDrawPage: function(data) {
+                didDrawPage: function (data) {
                     // Número de página
                     const pageCount = doc.internal.getNumberOfPages();
                     doc.setFontSize(10);
@@ -1197,7 +1199,7 @@
         }
 
         // Verificar al cargar
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             if (!verificarAutenticacion()) {
                 alert('Sesión expirada. Por favor, inicie sesión nuevamente.');
                 window.location.href = '/estadisticas/login.html';
@@ -1205,4 +1207,5 @@
         });
     </script>
 </body>
+
 </html>
