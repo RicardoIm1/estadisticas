@@ -814,6 +814,11 @@
             const fechaFormateada = formatearFechaTexto(fecha);
             const fechaSINBA = formatearFechaSINBA(fecha);
             
+            // Obtener información del usuario actual
+            const usuario = localStorage.getItem('usuario') || 'Usuario';
+            const rol = localStorage.getItem('rol') || 'Rol no definido';
+            const userInfo = `${usuario} (${rol})`;
+            
             let html = `
                 <div class="formato-sinba-preview">
                     <div class="sinba-form-code">SINBA-SIS-65-P</div>
@@ -922,7 +927,7 @@
                 const horaPaseAStr = horaPaseA ? horaPaseA.toString() : '';
                 const horaPaseAClean = horaPaseAStr.replace(/[^0-9:]/g, '');
                 
-                // Formatear pases - CORRECCIÓN DEL ERROR AQUÍ
+                // Formatear pases
                 const paseDeFormateado = paseDe ? 
                     `${horaPaseDeClean ? horaPaseDeClean.substring(0, 5) : ''} ${paseDe.substring(0, 3).toUpperCase()}`.trim() : '';
                 
@@ -1029,24 +1034,11 @@
                         <div style="margin-top: 20px; text-align: center; font-size: 10px; color: #1e3a8a; border-top: 1px solid #1e40af; padding-top: 10px;">
                             <div><strong>Fecha del reporte:</strong> ${fechaFormateada}</div>
                             <div><strong>Servicio:</strong> ${servicio} | <strong>Sala:</strong> ${sala || 'No especificada'} | <strong>Total pacientes:</strong> ${registros.length}</div>
-                            <div><strong>Generado por:</strong> <span id="user-info-footer">${document.getElementById('user-info').textContent}</span></div>
+                            <div><strong>Generado por:</strong> ${userInfo}</div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="debug-info" style="display: none;">
-                    <strong>DEBUG INFO:</strong><br>
-                    Total registros: ${registros.length}<br>
-                    Camas ocupadas: ${totales.camasOcupadas}<br>
-                    Camas desocupadas: ${totales.camasDesocupadas}<br>
-                    Ingresos: ${totales.ingresos}<br>
-                    Egresos: ${totales.egresosTotal}<br>
-                    Existencia final: ${totales.existenciaFinal}
-                </div>
             `;
-            
-            // Actualizar footer con usuario
-            document.getElementById('user-info-footer').textContent = document.getElementById('user-info').textContent;
             
             return html;
         }
