@@ -184,8 +184,6 @@
         }
 
         /* ===== ESTILOS ESPECÍFICOS PARA EL FORMATO SINBA ===== */
-        /* Color del texto: Azul oscuro institucional */
-        
         .formato-sinba-preview {
             background: white;
             border: 2px solid #1e3a8a;
@@ -196,7 +194,7 @@
             line-height: 1.2;
             position: relative;
             min-height: 800px;
-            color: #1e3a8a !important; /* Color principal */
+            color: #1e3a8a !important;
         }
 
         .sinba-header {
@@ -229,7 +227,7 @@
             right: 10px;
             font-weight: bold;
             font-size: 12px;
-            color: #dc2626 !important; /* Rojo para destacar código */
+            color: #dc2626 !important;
         }
 
         .sinba-grid {
@@ -261,34 +259,33 @@
             width: 40px;
         }
 
+        .column-expediente {
+            width: 80px;
+        }
+
         .column-nombre {
-            width: 150px;
+            width: 180px;
             text-align: left;
-            color: #1e3a8a !important;
         }
 
         .column-pases-de {
-            width: 80px;
+            width: 100px;
         }
 
         .column-ingresos {
-            width: 60px;
+            width: 50px;
         }
 
         .column-egresos {
-            width: 60px;
+            width: 50px;
         }
 
         .column-pases-a {
-            width: 80px;
+            width: 100px;
         }
 
         .column-total {
             width: 60px;
-        }
-
-        .column-existencia {
-            width: 70px;
         }
 
         .sinba-footer {
@@ -301,11 +298,10 @@
 
         .camas-section {
             display: grid;
-            grid-template-columns: 100px 50px 50px;
+            grid-template-columns: 120px 60px 60px;
             gap: 10px;
             margin-bottom: 10px;
             align-items: center;
-            color: #1e3a8a !important;
         }
 
         .camas-label {
@@ -318,12 +314,11 @@
             grid-template-columns: 200px 100px;
             gap: 10px;
             margin-bottom: 10px;
-            color: #1e3a8a !important;
         }
 
         /* Estilos para valores numéricos */
         .sinba-footer div div:last-child {
-            color: #dc2626 !important; /* Rojo para números importantes */
+            color: #dc2626 !important;
             font-weight: bold;
             font-size: 1.1em;
         }
@@ -336,24 +331,12 @@
         /* Efecto hover en celdas */
         .sinba-grid tbody tr:hover td {
             background-color: #eff6ff !important;
-            color: #1e3a8a !important;
         }
 
         /* Para los valores "X" en ingresos/egresos */
-        .sinba-grid td:contains("X") {
+        .sinba-grid td[style*="color: #dc2626"] {
             color: #dc2626 !important;
             font-weight: bold;
-        }
-
-        .debug-info {
-            background: #f8f9fa;
-            padding: 10px;
-            border-radius: 4px;
-            margin: 10px 0;
-            font-family: monospace;
-            font-size: 11px;
-            color: #495057;
-            display: none;
         }
 
         /* Estilo especial para números de cama */
@@ -366,6 +349,56 @@
         .column-nombre {
             font-weight: 500;
             color: #1e3a8a !important;
+        }
+
+        /* Grid para resumen */
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+            font-size: 11px;
+        }
+
+        .resumen-item {
+            text-align: center;
+            padding: 5px;
+            border: 1px solid #3b82f6;
+            border-radius: 4px;
+            background: #f8fafc;
+        }
+
+        .firmas-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #1e40af;
+        }
+
+        .firma-area {
+            text-align: center;
+            padding: 10px;
+            min-height: 80px;
+        }
+
+        .linea-firma {
+            width: 80%;
+            height: 1px;
+            background: #1e3a8a;
+            margin: 40px auto 5px;
+        }
+
+        .debug-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 11px;
+            color: #495057;
+            display: none;
         }
     </style>
 </head>
@@ -410,6 +443,10 @@
             <div class="bloque">
                 <label for="sala"><i class="fa-solid fa-door-closed" style="color: #1e40af;"></i> Sala (opcional)</label>
                 <input type="text" id="sala" placeholder="Ej: SALA 1">
+            </div>
+            <div class="bloque">
+                <label for="total-camas"><i class="fa-solid fa-bed" style="color: #1e40af;"></i> Total de Camas Disponibles</label>
+                <input type="number" id="total-camas" placeholder="Ej: 30" value="30" min="1" max="100">
             </div>
         </div>
 
@@ -472,6 +509,7 @@
             const fechaReporte = document.getElementById('fecha-reporte').value;
             const servicioReporte = document.getElementById('servicio-reporte').value;
             const sala = document.getElementById('sala').value;
+            const totalCamas = parseInt(document.getElementById('total-camas').value) || 30;
 
             if (!fechaReporte || !servicioReporte) {
                 alert('Por favor, seleccione fecha y servicio');
@@ -542,7 +580,7 @@
                 }
 
                 // Calcular totales para el formato SINBA
-                const totales = calcularTotalesSINBA(datosFiltrados);
+                const totales = calcularTotalesSINBA(datosFiltrados, totalCamas);
                 
                 // Generar vista previa del formato
                 const vistaPrevia = generarFormatoSINBA(
@@ -564,7 +602,8 @@
                     servicio: servicioReporte,
                     sala: sala,
                     registros: datosFiltrados,
-                    totales: totales
+                    totales: totales,
+                    totalCamas: totalCamas
                 };
 
                 console.log('✅ Vista previa generada exitosamente');
@@ -680,18 +719,19 @@
             }
         }
 
-        function calcularTotalesSINBA(datos) {
+        function calcularTotalesSINBA(datos, totalCamas) {
             console.log('🧮 Calculando totales SINBA...');
             
             let totalCamasOcupadas = 0;
-            let totalCamasDesocupadas = 0;
             let totalPasesDe = 0;
             let totalIngresos = 0;
             let totalEgresosVivos = 0;
             let totalEgresosMuertos = 0;
             let totalPasesA = 0;
+            let totalDiasPaciente = 0;
+            let ingresosEgresosMismoDia = 0;
             
-            // Contar camas ocupadas (asumiendo que cada registro es una cama ocupada)
+            // Contar camas ocupadas
             totalCamasOcupadas = datos.length;
             
             // Calcular otros totales
@@ -701,49 +741,78 @@
                     totalPasesDe++;
                 }
                 
-                // Ingresos (columnas 8, 9, 10 - alguna hora de ingreso)
-                if ((registro[8] && registro[8].trim() !== '') || 
-                    (registro[9] && registro[9].trim() !== '') || 
-                    (registro[10] && registro[10].trim() !== '')) {
+                // Ingresos (columnas 8, 9, 10)
+                let tieneIngreso = false;
+                if (registro[8] && registro[8].trim() !== '') {
                     totalIngresos++;
+                    tieneIngreso = true;
+                }
+                if (registro[9] && registro[9].trim() !== '') {
+                    totalIngresos++;
+                    tieneIngreso = true;
+                }
+                if (registro[10] && registro[10].trim() !== '') {
+                    totalIngresos++;
+                    tieneIngreso = true;
                 }
                 
                 // Egresos vivos (columna 11)
+                let tieneEgreso = false;
                 if (registro[11] && registro[11].trim() !== '') {
                     totalEgresosVivos++;
+                    tieneEgreso = true;
                 }
                 
                 // Egresos muertos (columna 12)
                 if (registro[12] && registro[12].trim() !== '') {
                     totalEgresosMuertos++;
+                    tieneEgreso = true;
                 }
                 
-                // Pases a (columna 13 - servicio_destino)
+                // Pases a (columna 13)
                 if (registro[13] && registro[13].trim() !== '' && registro[13] !== '— Selecciona —') {
                     totalPasesA++;
+                }
+                
+                // Cada paciente contribuye con 1 día-paciente
+                totalDiasPaciente++;
+                
+                // Ingresos y egresos del mismo día
+                if (tieneIngreso && tieneEgreso) {
+                    ingresosEgresosMismoDia++;
                 }
             });
             
             const totalEgresos = totalEgresosVivos + totalEgresosMuertos;
-            const totalCamas = totalCamasOcupadas + 20; // Asumiendo 20 camas desocupadas para el ejemplo
-            totalCamasDesocupadas = totalCamas - totalCamasOcupadas;
+            const totalCamasDesocupadas = Math.max(0, totalCamas - totalCamasOcupadas);
+            
+            // Existencia del día anterior (simulado - debería venir de sistema)
+            const existenciaInicial = Math.max(0, totalCamasOcupadas - totalIngresos - totalPasesDe + totalEgresos + totalPasesA);
+            
+            // Existencia final según fórmula del instructivo
+            // 13 + 14 + 15 - 16 - 17 = 18
+            const existenciaFinal = existenciaInicial + totalPasesDe + totalIngresos - totalEgresos - totalPasesA;
             
             return {
                 camasOcupadas: totalCamasOcupadas,
                 camasDesocupadas: totalCamasDesocupadas,
+                totalCamas: totalCamas,
                 pasesDe: totalPasesDe,
                 ingresos: totalIngresos,
                 egresosVivos: totalEgresosVivos,
                 egresosMuertos: totalEgresosMuertos,
                 egresosTotal: totalEgresos,
                 pasesA: totalPasesA,
-                existenciaInicial: 0, // Se calcularía del día anterior
-                existenciaFinal: totalCamasOcupadas
+                existenciaInicial: existenciaInicial,
+                existenciaFinal: Math.max(0, existenciaFinal),
+                totalDiasPaciente: totalDiasPaciente,
+                ingresosEgresosMismoDia: ingresosEgresosMismoDia
             };
         }
 
         function generarFormatoSINBA(fecha, servicio, sala, registros, totales) {
             const fechaFormateada = formatearFechaTexto(fecha);
+            const fechaSINBA = formatearFechaSINBA(fecha);
             
             let html = `
                 <div class="formato-sinba-preview">
@@ -756,14 +825,26 @@
                         </div>
                         <div>
                             <div class="sinba-title">REGISTRO DIARIO DEL MOVIMIENTO DE</div>
-                            <div class="sinba-title">PACIENTES EN HOSPITALIZACION</div>
+                            <div class="sinba-title">PACIENTES EN HOSPITALIZACIÓN</div>
+                            <div class="sinba-title">SIS-2021</div>
                         </div>
                     </div>
                     
-                    <div class="sinba-header">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 15px 0;">
                         <div>
-                            <div class="sinba-unidad">1 UNIDAD:</div>
-                            <div style="color: #1e3a8a;">HOSPITAL REGIONAL PUERTO VALLARTA</div>
+                            <div class="servicio-sala">
+                                <div>
+                                    <div><strong>2 SERVICIO</strong></div>
+                                    <div style="color: #1e3a8a; font-weight: 500;">${servicio}</div>
+                                </div>
+                                <div>
+                                    <div><strong>3 SALA</strong></div>
+                                    <div style="color: #1e3a8a;">${sala || 'N/A'}</div>
+                                </div>
+                            </div>
+                            <div style="margin-top: 10px; color: #1e3a8a;">
+                                <strong>5 FECHA:</strong> ${fechaSINBA}
+                            </div>
                         </div>
                         <div>
                             <div class="camas-section">
@@ -779,71 +860,93 @@
                         </div>
                     </div>
                     
-                    <div class="servicio-sala">
-                        <div>
-                            <div><strong>2 SERVICIO</strong></div>
-                            <div style="color: #1e3a8a; font-weight: 500;">${servicio}</div>
-                        </div>
-                        <div>
-                            <div><strong>3 SALA</strong></div>
-                            <div style="color: #1e3a8a;">${sala || 'N/A'}</div>
-                        </div>
-                    </div>
-                    
+                    <!-- CUERPO DE LA FORMA (según instructivo) -->
                     <table class="sinba-grid">
                         <thead>
                             <tr>
-                                <th class="column-numero">6<br>NUMERO</th>
-                                <th class="column-nombre">7<br>NOMBRE<br>(COMPLETO)</th>
-                                <th class="column-pases-de">8<br>PASES DE<br>(HORA E INICIALES<br>DEL SERVICIO)</th>
-                                <th class="column-ingresos">9<br>INGRESOS</th>
-                                <th class="column-egresos">10<br>EGRESOS</th>
-                                <th class="column-pases-a">11<br>PASES A</th>
-                                <th class="column-total">12<br>TOTAL</th>
-                                <th class="column-existencia">13<br>EXISTENCIA<br>DEL DIA</th>
-                                <th class="column-pases-de">14<br>PASES DE</th>
+                                <th class="column-numero">6<br>NÚMERO</th>
+                                <th class="column-numero">6 a<br>CAMA</th>
+                                <th class="column-expediente">6 b<br>EXPEDIENTE</th>
+                                <th class="column-nombre">7.<br>NOMBRE<br>(COMPLETO)</th>
+                                <th class="column-pases-de">8.<br>PASES DE<br>(hora e iniciales<br>del servicio)</th>
+                                <th colspan="3" style="background: #dbeafe;">9.<br>INGRESOS</th>
+                                <th colspan="2" style="background: #fee2e2;">10.<br>EGRESOS</th>
+                                <th class="column-pases-a">11.<br>PASES A<br>(hora e iniciales<br>del servicio)</th>
+                                <th class="column-total">12.<br>TOTAL</th>
+                            </tr>
+                            <tr>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th style="background: #dbeafe; font-size: 10px;">CONSULTA<br>EXTERNA</th>
+                                <th style="background: #dbeafe; font-size: 10px;">URGENCIAS</th>
+                                <th style="background: #dbeafe; font-size: 10px;">OTRA<br>UNIDAD</th>
+                                <th style="background: #fee2e2; font-size: 10px;">VIVO</th>
+                                <th style="background: #fee2e2; font-size: 10px;">MUERTO</th>
+                                <th></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
             `;
             
-            // Filas de datos de pacientes
-            registros.forEach((registro, index) => {
-                const numeroCama = registro[5] || (index + 1);
+            // Filas de datos de pacientes (máximo 20 por hoja según formato)
+            registros.slice(0, 20).forEach((registro, index) => {
+                const numero = index + 1;
+                const cama = registro[5] || '';
+                const expediente = registro[6] || '';
                 const nombre = registro[7] || '';
                 const paseDe = registro[3] || '';
-                const horaPaseDe = '';
-                const ingresos = (registro[8] || registro[9] || registro[10]) ? 'X' : '';
-                const egresosVivos = registro[11] ? 'X' : '';
-                const egresosMuertos = registro[12] ? '/M' : '';
+                const horaPaseDe = registro[4] || '';
+                
+                // Ingresos - verificar de dónde vino
+                const ingresoConsulta = registro[8] ? 'X' : '';
+                const ingresoUrgencias = registro[9] ? 'X' : '';
+                const ingresoOtraUnidad = registro[10] ? 'X' : '';
+                
+                // Egresos
+                const egresoVivo = registro[11] ? 'X' : '';
+                const egresoMuerto = registro[12] ? 'X' : '';
+                
+                // Pase a
                 const paseA = registro[13] || '';
+                const horaPaseA = registro[14] || '';
                 
-                const paseDeFormateado = paseDe ? `${horaPaseDe} ${paseDe.substring(0, 3).toUpperCase()}` : '';
+                // Formatear pases
+                const paseDeFormateado = paseDe ? 
+                    `${horaPaseDe ? horaPaseDe.substring(0, 5) : ''} ${paseDe.substring(0, 3).toUpperCase()}`.trim() : '';
                 
-                // Determinar color para las X
-                const colorIngreso = ingresos ? 'style="color: #dc2626; font-weight: bold;"' : '';
-                const colorEgreso = (egresosVivos || egresosMuertos) ? 'style="color: #dc2626; font-weight: bold;"' : '';
+                const paseAFormateado = paseA ? 
+                    `${horaPaseA ? horaPaseA.substring(0, 5) : ''} ${paseA.substring(0, 3).toUpperCase()}`.trim() : '';
                 
                 html += `
                     <tr>
-                        <td style="color: #1e40af; font-weight: bold;">${numeroCama}</td>
+                        <td style="color: #1e40af; font-weight: bold;">${numero}</td>
+                        <td style="color: #1e3a8a;">${cama}</td>
+                        <td style="color: #1e3a8a;">${expediente}</td>
                         <td class="column-nombre" style="color: #1e3a8a; font-weight: 500;">${nombre}</td>
-                        <td style="color: #1e3a8a;">${paseDeFormateado}</td>
-                        <td ${colorIngreso}>${ingresos}</td>
-                        <td ${colorEgreso}>${egresosVivos}${egresosMuertos ? '/M' : ''}</td>
-                        <td style="color: #1e3a8a;">${paseA.substring(0, 3).toUpperCase()}</td>
-                        <td></td>
-                        <td></td>
-                        <td></td>
+                        <td style="color: #1e3a8a; font-size: 10px;">${paseDeFormateado}</td>
+                        <td style="color: #dc2626; font-weight: bold;">${ingresoConsulta}</td>
+                        <td style="color: #dc2626; font-weight: bold;">${ingresoUrgencias}</td>
+                        <td style="color: #dc2626; font-weight: bold;">${ingresoOtraUnidad}</td>
+                        <td style="color: #dc2626; font-weight: bold;">${egresoVivo}</td>
+                        <td style="color: #dc2626; font-weight: bold;">${egresoMuerto}</td>
+                        <td style="color: #1e3a8a; font-size: 10px;">${paseAFormateado}</td>
+                        <td style="color: #1e3a8a;"></td>
                     </tr>
                 `;
             });
             
             // Agregar filas vacías si hay menos de 20 registros
-            const filasVacias = 20 - registros.length;
-            for (let i = 0; i < filasVacias && i < 10; i++) {
+            const filasVacias = 20 - Math.min(registros.length, 20);
+            for (let i = 0; i < filasVacias; i++) {
                 html += `
                     <tr>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
                         <td>&nbsp;</td>
@@ -857,61 +960,99 @@
                 `;
             }
             
-            // Totales al pie
+            // RESUMEN (según instructivo cuadros 13-20)
             html += `
                         </tbody>
                     </table>
                     
                     <div class="sinba-footer">
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px;">
-                            <div>
-                                <div><strong style="color: #1e40af;">EXISTENCIA DÍA ANTERIOR:</strong></div>
-                                <div style="text-align: center; font-size: 14px; font-weight: bold; color: #dc2626;">${totales.existenciaInicial}</div>
+                        <div class="resumen-grid">
+                            <div class="resumen-item">
+                                <div><strong style="color: #1e40af;">13. EXISTENCIA DEL DÍA ANTERIOR</strong></div>
+                                <div style="color: #dc2626; font-weight: bold; font-size: 14px;">${totales.existenciaInicial}</div>
                             </div>
-                            <div>
-                                <div><strong style="color: #1e40af;">PASES DE:</strong></div>
-                                <div style="text-align: center; font-size: 14px; font-weight: bold; color: #dc2626;">${totales.pasesDe}</div>
+                            <div class="resumen-item">
+                                <div><strong style="color: #1e40af;">14. PASES DE</strong></div>
+                                <div style="color: #dc2626; font-weight: bold; font-size: 14px;">${totales.pasesDe}</div>
                             </div>
-                            <div>
-                                <div><strong style="color: #1e40af;">INGRESOS:</strong></div>
-                                <div style="text-align: center; font-size: 14px; font-weight: bold; color: #dc2626;">${totales.ingresos}</div>
+                            <div class="resumen-item">
+                                <div><strong style="color: #1e40af;">15. INGRESOS</strong></div>
+                                <div style="color: #dc2626; font-weight: bold; font-size: 14px;">${totales.ingresos}</div>
                             </div>
-                            <div>
-                                <div><strong style="color: #1e40af;">EGRESOS:</strong></div>
-                                <div style="text-align: center; font-size: 14px; font-weight: bold; color: #dc2626;">${totales.egresosTotal}</div>
+                            <div class="resumen-item">
+                                <div><strong style="color: #1e40af;">16. EGRESOS</strong></div>
+                                <div style="color: #dc2626; font-weight: bold; font-size: 14px;">${totales.egresosTotal}</div>
                             </div>
-                        </div>
-                        
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px;">
-                            <div>
-                                <div><strong style="color: #1e40af;">PASES A:</strong></div>
-                                <div style="text-align: center; font-size: 14px; font-weight: bold; color: #dc2626;">${totales.pasesA}</div>
+                            <div class="resumen-item">
+                                <div><strong style="color: #1e40af;">17. PASES A</strong></div>
+                                <div style="color: #dc2626; font-weight: bold; font-size: 14px;">${totales.pasesA}</div>
                             </div>
-                            <div>
-                                <div><strong style="color: #1e40af;">TOTAL:</strong></div>
-                                <div style="text-align: center; font-size: 14px; font-weight: bold; color: #dc2626;">${totales.camasOcupadas}</div>
+                            <div class="resumen-item">
+                                <div><strong style="color: #1e40af;">18. EXISTENCIA DE PACIENTES A LAS 24 HORAS</strong></div>
+                                <div style="color: #dc2626; font-weight: bold; font-size: 14px;">${totales.existenciaFinal}</div>
                             </div>
-                            <div>
-                                <div><strong style="color: #1e40af;">EXISTENCIA DÍA:</strong></div>
-                                <div style="text-align: center; font-size: 14px; font-weight: bold; color: #dc2626;">${totales.existenciaFinal}</div>
+                            <div class="resumen-item">
+                                <div><strong style="color: #1e40af;">19. INGRESOS Y EGRESOS DEL MISMO DÍA</strong></div>
+                                <div style="color: #dc2626; font-weight: bold; font-size: 14px;">${totales.ingresosEgresosMismoDia > 0 ? totales.ingresosEgresosMismoDia : '-'}</div>
                             </div>
-                            <div>
-                                <div><strong style="color: #1e40af;">PASES DE:</strong></div>
-                                <div style="text-align: center; font-size: 14px; font-weight: bold; color: #dc2626;">${totales.pasesDe}</div>
+                            <div class="resumen-item">
+                                <div><strong style="color: #1e40af;">20. TOTAL DE DÍAS PACIENTE</strong></div>
+                                <div style="color: #dc2626; font-weight: bold; font-size: 14px;">${totales.totalDiasPaciente}</div>
                             </div>
                         </div>
                         
-                        <div style="margin-top: 20px; text-align: center; font-size: 10px; color: #1e3a8a;">
-                            <div><strong>Fecha:</strong> ${fechaFormateada}</div>
-                            <div><strong>Servicio:</strong> ${servicio}</div>
-                            <div><strong>Sala:</strong> ${sala || 'No especificada'}</div>
-                            <div><strong>Total de Pacientes:</strong> ${registros.length}</div>
+                        <div style="margin-top: 10px; text-align: center; color: #1e3a8a;">
+                            <strong>21. CAMAS DISPONIBLES:</strong> ${totales.totalCamas}
+                        </div>
+                        
+                        <div class="firmas-container">
+                            <div class="firma-area">
+                                <strong style="color: #1e40af; font-size: 12px;">ENFERMERA RESPONSABLE</strong>
+                                <div class="linea-firma"></div>
+                                <div style="color: #1e3a8a; font-size: 10px; margin-top: 5px;">Nombre y Firma</div>
+                            </div>
+                            <div class="firma-area">
+                                <strong style="color: #1e40af; font-size: 12px;">Vo. Bo. JEFE DE ENFERMERAS</strong>
+                                <div class="linea-firma"></div>
+                                <div style="color: #1e3a8a; font-size: 10px; margin-top: 5px;">Nombre y Firma</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px; text-align: center; font-size: 10px; color: #1e3a8a; border-top: 1px solid #1e40af; padding-top: 10px;">
+                            <div><strong>Fecha del reporte:</strong> ${fechaFormateada}</div>
+                            <div><strong>Servicio:</strong> ${servicio} | <strong>Sala:</strong> ${sala || 'No especificada'} | <strong>Total pacientes:</strong> ${registros.length}</div>
+                            <div><strong>Generado por:</strong> <span id="user-info-footer">${document.getElementById('user-info').textContent}</span></div>
                         </div>
                     </div>
                 </div>
+                
+                <div class="debug-info" style="display: none;">
+                    <strong>DEBUG INFO:</strong><br>
+                    Total registros: ${registros.length}<br>
+                    Camas ocupadas: ${totales.camasOcupadas}<br>
+                    Camas desocupadas: ${totales.camasDesocupadas}<br>
+                    Ingresos: ${totales.ingresos}<br>
+                    Egresos: ${totales.egresosTotal}<br>
+                    Existencia final: ${totales.existenciaFinal}
+                </div>
             `;
             
+            // Actualizar footer con usuario
+            document.getElementById('user-info-footer').textContent = document.getElementById('user-info').textContent;
+            
             return html;
+        }
+
+        function formatearFechaSINBA(fechaISO) {
+            try {
+                const fecha = new Date(fechaISO);
+                const dia = fecha.getDate().toString().padStart(2, '0');
+                const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+                const anio = fecha.getFullYear().toString().slice(-2);
+                return `${dia}-${mes}-${anio}`;
+            } catch (error) {
+                return fechaISO;
+            }
         }
 
         function formatearFechaTexto(fechaISO) {
@@ -941,53 +1082,37 @@
                 format: 'a4'
             });
 
-            const { fecha, servicio, sala, registros, totales } = window.datosReporte;
+            const { fecha, servicio, sala, registros, totales, totalCamas } = window.datosReporte;
             const fechaFormateada = formatearFechaTexto(fecha);
+            const fechaSINBA = formatearFechaSINBA(fecha);
             
             // Configurar color del texto en PDF
             doc.setTextColor(30, 58, 138); // Azul oscuro #1e3a8a
             
             let yPos = 15;
+            const pageWidth = doc.internal.pageSize.width;
             
             // Encabezado del formulario
             doc.setFontSize(12);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(220, 38, 38); // Rojo para el código
-            doc.text('SINBA-SIS-65-P', 180, 10, { align: 'right' });
+            doc.text('SINBA-SIS-65-P', pageWidth - 10, 10, { align: 'right' });
             doc.setTextColor(30, 58, 138); // Volver a azul
             
-            // Primera línea: UNIDAD
+            // Primera línea: UNIDAD y Título
             doc.text('1 UNIDAD:', 20, yPos);
             doc.setFont('helvetica', 'normal');
             doc.text('HOSPITAL REGIONAL PUERTO VALLARTA', 45, yPos);
             
-            // Título
+            // Título centrado
             doc.setFont('helvetica', 'bold');
-            doc.text('REGISTRO DIARIO DEL MOVIMIENTO DE', 100, yPos, { align: 'center' });
+            doc.text('REGISTRO DIARIO DEL MOVIMIENTO DE', pageWidth/2, yPos, { align: 'center' });
             yPos += 5;
-            doc.text('PACIENTES EN HOSPITALIZACION', 100, yPos, { align: 'center' });
-            yPos += 10;
+            doc.text('PACIENTES EN HOSPITALIZACIÓN', pageWidth/2, yPos, { align: 'center' });
+            doc.text('SIS-2021', pageWidth/2, yPos + 5, { align: 'center' });
+            yPos += 15;
             
-            // Segunda línea: UNIDAD repetida
-            doc.text('1 UNIDAD:', 20, yPos);
-            doc.setFont('helvetica', 'normal');
-            doc.text('HOSPITAL REGIONAL PUERTO VALLARTA', 45, yPos);
-            
-            // Camas
-            doc.setFont('helvetica', 'bold');
-            doc.text('4 C A M A S', 140, yPos);
-            doc.text('4a OCUPADAS', 160, yPos);
-            doc.text('4b DESOCUPADAS', 180, yPos);
-            yPos += 5;
-            
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(220, 38, 38); // Rojo para números
-            doc.text(totales.camasOcupadas.toString(), 165, yPos, { align: 'center' });
-            doc.text(totales.camasDesocupadas.toString(), 185, yPos, { align: 'center' });
-            doc.setTextColor(30, 58, 138); // Volver a azul
-            yPos += 10;
-            
-            // Servicio y Sala
+            // Información del servicio y sala
             doc.setFont('helvetica', 'bold');
             doc.text('2 SERVICIO', 20, yPos);
             doc.setFont('helvetica', 'normal');
@@ -997,51 +1122,116 @@
             doc.text('3 SALA', 120, yPos);
             doc.setFont('helvetica', 'normal');
             doc.text(sala || 'N/A', 135, yPos);
-            yPos += 10;
+            
+            // Fecha
+            doc.setFont('helvetica', 'bold');
+            doc.text('5 FECHA:', 20, yPos + 8);
+            doc.setFont('helvetica', 'normal');
+            doc.text(fechaSINBA, 45, yPos + 8);
+            
+            // Camas
+            doc.setFont('helvetica', 'bold');
+            doc.text('4 C A M A S', 140, yPos);
+            doc.text('4a OCUPADAS', 160, yPos);
+            doc.text('4b DESOCUPADAS', 180, yPos);
+            
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(220, 38, 38); // Rojo para números
+            doc.text(totales.camasOcupadas.toString(), 165, yPos + 8, { align: 'center' });
+            doc.text(totales.camasDesocupadas.toString(), 185, yPos + 8, { align: 'center' });
+            doc.setTextColor(30, 58, 138); // Volver a azul
+            
+            yPos += 20;
             
             // Encabezado de la tabla
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(8);
             
-            // Dibujar encabezado de tabla
-            const columnWidths = [10, 40, 25, 15, 15, 25, 15, 15, 25];
+            // Definir anchos de columnas
+            const columnWidths = [10, 10, 15, 40, 20, 12, 12, 12, 12, 12, 20, 15];
             const columnHeaders = [
-                '6\nNUMERO',
-                '7\nNOMBRE\n(COMPLETO)',
-                '8\nPASES DE\n(HORA E INICIALES\nDEL SERVICIO)',
-                '9\nINGRESOS',
-                '10\nEGRESOS',
-                '11\nPASES A',
-                '12\nTOTAL',
-                '13\nEXISTENCIA\nDEL DIA',
-                '14\nPASES DE'
+                '6\nNÚMERO',
+                '6 a\nCAMA',
+                '6 b\nEXPEDIENTE',
+                '7.\nNOMBRE\n(COMPLETO)',
+                '8.\nPASES DE\n(hora e iniciales\ndel servicio)',
+                '9.\nINGRESOS',
+                '',
+                '',
+                '10.\nEGRESOS',
+                '',
+                '11.\nPASES A\n(hora e iniciales\ndel servicio)',
+                '12.\nTOTAL'
+            ];
+            
+            const subHeaders = [
+                '', '', '', '', '',
+                'CONSULTA\nEXTERNA',
+                'URGENCIAS',
+                'OTRA\nUNIDAD',
+                'VIVO',
+                'MUERTO',
+                '', ''
             ];
             
             let xPos = 10;
             
-            // Dibujar encabezados
+            // Dibujar encabezados principales
             columnHeaders.forEach((header, index) => {
+                if (index === 5) { // Ingresos (ocupa 3 columnas)
+                    doc.text(header, xPos + (columnWidths[5] + columnWidths[6] + columnWidths[7])/2, yPos - 3, { 
+                        align: 'center',
+                        maxWidth: columnWidths[5] + columnWidths[6] + columnWidths[7] - 2
+                    });
+                } else if (index === 8) { // Egresos (ocupa 2 columnas)
+                    doc.text(header, xPos + (columnWidths[8] + columnWidths[9])/2, yPos - 3, { 
+                        align: 'center',
+                        maxWidth: columnWidths[8] + columnWidths[9] - 2
+                    });
+                } else if (index === 6 || index === 7 || index === 9) {
+                    // Saltar estas columnas (ya fueron cubiertas)
+                } else {
+                    doc.text(header, xPos + columnWidths[index]/2, yPos - 3, { 
+                        align: 'center',
+                        maxWidth: columnWidths[index] - 2
+                    });
+                }
+                
+                if (index < 11) xPos += columnWidths[index];
+            });
+            
+            // Dibujar subencabezados
+            yPos += 5;
+            xPos = 10;
+            
+            subHeaders.forEach((header, index) => {
                 doc.text(header, xPos + columnWidths[index]/2, yPos, { 
                     align: 'center',
-                    maxWidth: columnWidths[index] - 2
+                    maxWidth: columnWidths[index] - 2,
+                    fontSize: 7
                 });
                 xPos += columnWidths[index];
             });
             
-            yPos += 15;
+            yPos += 10;
             
-            // Dibujar líneas de la tabla (en azul)
+            // Dibujar líneas de la tabla
             doc.setDrawColor(59, 130, 246); // Azul #3b82f6
-            xPos = 10;
-            doc.line(10, yPos - 10, 200, yPos - 10);
-            doc.line(10, yPos - 10, 10, yPos + 150);
+            const tableHeight = 140;
             
-            columnWidths.forEach((width, index) => {
+            // Líneas horizontales
+            doc.line(10, yPos - 10, pageWidth - 10, yPos - 10); // Línea superior
+            doc.line(10, yPos + tableHeight, pageWidth - 10, yPos + tableHeight); // Línea inferior
+            
+            // Líneas verticales
+            xPos = 10;
+            doc.line(xPos, yPos - 10, xPos, yPos + tableHeight); // Línea izquierda
+            
+            columnWidths.forEach((width) => {
                 xPos += width;
-                doc.line(xPos, yPos - 10, xPos, yPos + 150);
+                doc.line(xPos, yPos - 10, xPos, yPos + tableHeight);
             });
             
-            doc.line(10, yPos + 150, 200, yPos + 150);
             doc.setDrawColor(0, 0, 0); // Volver a negro
             
             // Datos de pacientes
@@ -1050,116 +1240,174 @@
             doc.setTextColor(30, 58, 138); // Azul oscuro
             
             let startY = yPos;
-            registros.forEach((registro, index) => {
-                if (index < 20) {
-                    const rowY = startY + (index * 7);
-                    
-                    // Número (azul más oscuro y negrita)
-                    doc.setTextColor(30, 64, 175); // #1e40af
+            const maxRows = Math.min(registros.length, 20);
+            
+            for (let i = 0; i < maxRows; i++) {
+                const registro = registros[i];
+                const rowY = startY + (i * 7);
+                
+                // Número
+                doc.setTextColor(30, 64, 175); // #1e40af
+                doc.setFont('helvetica', 'bold');
+                doc.text((i + 1).toString(), 15, rowY);
+                
+                // Cama
+                doc.setTextColor(30, 58, 138); // #1e3a8a
+                doc.setFont('helvetica', 'normal');
+                const cama = registro[5] || '';
+                doc.text(cama, 25, rowY);
+                
+                // Expediente
+                const expediente = registro[6] || '';
+                doc.text(expediente, 35, rowY);
+                
+                // Nombre
+                const nombre = registro[7] || '';
+                doc.text(nombre, 50, rowY, { maxWidth: 35 });
+                
+                // Pase de
+                const paseDe = registro[3] || '';
+                const horaPaseDe = registro[4] || '';
+                const paseDeFormateado = paseDe ? 
+                    `${horaPaseDe ? horaPaseDe.substring(0, 5) : ''} ${paseDe.substring(0, 3).toUpperCase()}`.trim() : '';
+                doc.text(paseDeFormateado, 90, rowY, { maxWidth: 18 });
+                
+                // Ingresos
+                xPos = 108;
+                const ingresos = [
+                    registro[8] ? 'X' : '',
+                    registro[9] ? 'X' : '',
+                    registro[10] ? 'X' : ''
+                ];
+                
+                ingresos.forEach((ingreso, idx) => {
+                    if (ingreso) {
+                        doc.setTextColor(220, 38, 38); // Rojo
+                        doc.setFont('helvetica', 'bold');
+                        doc.text(ingreso, xPos + (idx * 12), rowY, { align: 'center' });
+                        doc.setTextColor(30, 58, 138); // Volver a azul
+                        doc.setFont('helvetica', 'normal');
+                    } else {
+                        doc.text('', xPos + (idx * 12), rowY, { align: 'center' });
+                    }
+                });
+                
+                // Egresos
+                xPos = 144;
+                const egresoVivo = registro[11] ? 'X' : '';
+                const egresoMuerto = registro[12] ? 'X' : '';
+                
+                if (egresoVivo) {
+                    doc.setTextColor(220, 38, 38); // Rojo
                     doc.setFont('helvetica', 'bold');
-                    const numeroCama = registro[5] || (index + 1);
-                    doc.text(numeroCama.toString(), 15, rowY);
-                    
-                    // Nombre (azul normal)
-                    doc.setTextColor(30, 58, 138); // #1e3a8a
+                    doc.text(egresoVivo, xPos, rowY, { align: 'center' });
+                    doc.setTextColor(30, 58, 138); // Volver a azul
                     doc.setFont('helvetica', 'normal');
-                    const nombre = registro[7] || '';
-                    doc.text(nombre, 25, rowY, { maxWidth: 35 });
-                    
-                    // Pase de
-                    const paseDe = registro[3] || '';
-                    const paseDeFormateado = paseDe ? paseDe.substring(0, 3).toUpperCase() : '';
-                    doc.text(paseDeFormateado, 70, rowY, { maxWidth: 20 });
-                    
-                    // Ingresos (rojo si hay X)
-                    if (registro[8] || registro[9] || registro[10]) {
-                        doc.setTextColor(220, 38, 38); // Rojo
-                        doc.setFont('helvetica', 'bold');
-                        doc.text('X', 95, rowY, { align: 'center' });
-                        doc.setTextColor(30, 58, 138); // Volver a azul
-                        doc.setFont('helvetica', 'normal');
-                    } else {
-                        doc.text('', 95, rowY, { align: 'center' });
-                    }
-                    
-                    // Egresos (rojo si hay)
-                    let egresoTexto = '';
-                    if (registro[11]) {
-                        egresoTexto += 'X';
-                    }
-                    if (registro[12]) {
-                        egresoTexto += '/M';
-                    }
-                    
-                    if (egresoTexto) {
-                        doc.setTextColor(220, 38, 38); // Rojo
-                        doc.setFont('helvetica', 'bold');
-                        doc.text(egresoTexto, 110, rowY, { align: 'center' });
-                        doc.setTextColor(30, 58, 138); // Volver a azul
-                        doc.setFont('helvetica', 'normal');
-                    } else {
-                        doc.text('', 110, rowY, { align: 'center' });
-                    }
-                    
-                    // Pases a
-                    const paseA = registro[13] || '';
-                    doc.text(paseA.substring(0, 3).toUpperCase(), 125, rowY, { maxWidth: 20 });
-                    
-                    // Total, Existencia, Pases de (dejar en blanco)
-                    doc.text('', 155, rowY);
-                    doc.text('', 170, rowY);
-                    doc.text('', 185, rowY);
                 }
-            });
+                
+                if (egresoMuerto) {
+                    doc.setTextColor(220, 38, 38); // Rojo
+                    doc.setFont('helvetica', 'bold');
+                    doc.text(egresoMuerto, xPos + 12, rowY, { align: 'center' });
+                    doc.setTextColor(30, 58, 138); // Volver a azul
+                    doc.setFont('helvetica', 'normal');
+                }
+                
+                // Pase a
+                const paseA = registro[13] || '';
+                const horaPaseA = registro[14] || '';
+                const paseAFormateado = paseA ? 
+                    `${horaPaseA ? horaPaseA.substring(0, 5) : ''} ${paseA.substring(0, 3).toUpperCase()}`.trim() : '';
+                doc.text(paseAFormateado, 168, rowY, { maxWidth: 18 });
+                
+                // Total (vacío)
+                doc.text('', 188, rowY);
+            }
             
-            yPos = 180;
+            yPos = startY + tableHeight + 15;
             
-            // Totales al pie
+            // RESUMEN (cuadros 13-20)
             doc.setFont('helvetica', 'bold');
             doc.setFontSize(9);
-            doc.setTextColor(30, 64, 175); // Azul #1e40af para etiquetas
             
-            doc.text('EXISTENCIA DÍA ANTERIOR:', 20, yPos);
-            doc.text('PASES DE:', 70, yPos);
-            doc.text('INGRESOS:', 100, yPos);
-            doc.text('EGRESOS:', 130, yPos);
+            // Primera fila del resumen
+            const resumenItems = [
+                { label: '13. EXISTENCIA DEL DÍA ANTERIOR', value: totales.existenciaInicial },
+                { label: '14. PASES DE', value: totales.pasesDe },
+                { label: '15. INGRESOS', value: totales.ingresos },
+                { label: '16. EGRESOS', value: totales.egresosTotal }
+            ];
             
-            // Números en rojo
-            doc.setTextColor(220, 38, 38); // Rojo para números
-            doc.text(totales.existenciaInicial.toString(), 55, yPos, { align: 'center' });
-            doc.text(totales.pasesDe.toString(), 85, yPos, { align: 'center' });
-            doc.text(totales.ingresos.toString(), 115, yPos, { align: 'center' });
-            doc.text(totales.egresosTotal.toString(), 145, yPos, { align: 'center' });
+            xPos = 15;
+            resumenItems.forEach((item, index) => {
+                doc.setTextColor(30, 64, 175); // Azul #1e40af para etiquetas
+                doc.text(item.label, xPos + (index * 45), yPos);
+                
+                doc.setTextColor(220, 38, 38); // Rojo para números
+                doc.text(item.value.toString(), xPos + (index * 45) + 35, yPos, { align: 'center' });
+            });
             
             yPos += 8;
             
-            // Segunda fila de totales
-            doc.setTextColor(30, 64, 175); // Azul para etiquetas
-            doc.text('PASES A:', 20, yPos);
-            doc.text('TOTAL:', 70, yPos);
-            doc.text('EXISTENCIA DÍA:', 100, yPos);
-            doc.text('PASES DE:', 140, yPos);
+            // Segunda fila del resumen
+            const resumenItems2 = [
+                { label: '17. PASES A', value: totales.pasesA },
+                { label: '18. EXISTENCIA DE PACIENTES A LAS 24 HORAS', value: totales.existenciaFinal },
+                { label: '19. INGRESOS Y EGRESOS DEL MISMO DÍA', value: totales.ingresosEgresosMismoDia > 0 ? totales.ingresosEgresosMismoDia.toString() : '-' },
+                { label: '20. TOTAL DE DÍAS PACIENTE', value: totales.totalDiasPaciente }
+            ];
             
-            // Números en rojo
-            doc.setTextColor(220, 38, 38); // Rojo para números
-            doc.text(totales.pasesA.toString(), 35, yPos, { align: 'center' });
-            doc.text(totales.camasOcupadas.toString(), 85, yPos, { align: 'center' });
-            doc.text(totales.existenciaFinal.toString(), 125, yPos, { align: 'center' });
-            doc.text(totales.pasesDe.toString(), 165, yPos, { align: 'center' });
+            resumenItems2.forEach((item, index) => {
+                doc.setTextColor(30, 64, 175); // Azul #1e40af para etiquetas
+                doc.text(item.label, xPos + (index * 45), yPos);
+                
+                doc.setTextColor(220, 38, 38); // Rojo para números
+                doc.text(item.value.toString(), xPos + (index * 45) + 35, yPos, { align: 'center' });
+            });
+            
+            yPos += 10;
+            
+            // Camas disponibles (21)
+            doc.setTextColor(30, 64, 175);
+            doc.text('21. CAMAS DISPONIBLES:', 15, yPos);
+            doc.setTextColor(220, 38, 38);
+            doc.text(totalCamas.toString(), 50, yPos, { align: 'center' });
             
             yPos += 15;
             
-            // Información adicional
+            // FIRMAS
+            doc.setTextColor(30, 58, 138);
+            doc.setFont('helvetica', 'bold');
+            doc.text('ENFERMERA RESPONSABLE', pageWidth/4, yPos, { align: 'center' });
+            doc.text('Vo. Bo. JEFE DE ENFERMERAS', 3*pageWidth/4, yPos, { align: 'center' });
+            
+            yPos += 20;
+            
+            // Líneas para firmas
+            doc.setDrawColor(30, 58, 138);
+            doc.line(pageWidth/4 - 40, yPos, pageWidth/4 + 40, yPos);
+            doc.line(3*pageWidth/4 - 40, yPos, 3*pageWidth/4 + 40, yPos);
+            
+            yPos += 5;
             doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
-            doc.setTextColor(30, 58, 138); // Azul oscuro
-            doc.text(`Fecha: ${fechaFormateada}`, 20, yPos);
-            doc.text(`Servicio: ${servicio}`, 80, yPos);
-            doc.text(`Sala: ${sala || 'No especificada'}`, 140, yPos);
-            doc.text(`Total Pacientes: ${registros.length}`, 180, yPos);
+            doc.text('Nombre y Firma', pageWidth/4, yPos, { align: 'center' });
+            doc.text('Nombre y Firma', 3*pageWidth/4, yPos, { align: 'center' });
+            
+            yPos += 15;
+            
+            // Información del reporte
+            doc.setFontSize(8);
+            doc.text(`Fecha del reporte: ${fechaFormateada}`, 15, yPos);
+            doc.text(`Servicio: ${servicio}`, 15, yPos + 5);
+            doc.text(`Sala: ${sala || 'No especificada'}`, 15, yPos + 10);
+            doc.text(`Total pacientes: ${registros.length}`, 15, yPos + 15);
+            
+            const usuario = localStorage.getItem('usuario') || 'Sistema';
+            doc.text(`Generado por: ${usuario}`, pageWidth - 15, yPos + 15, { align: 'right' });
             
             // Guardar PDF
-            const nombreArchivo = `SINBA-SIS-65-P_${servicio.replace(/\s+/g, '_')}_${fecha}.pdf`;
+            const nombreArchivo = `SINBA-SIS-65-P_${servicio.replace(/\s+/g, '_')}_${fecha.replace(/-/g, '')}.pdf`;
             doc.save(nombreArchivo);
         }
 
