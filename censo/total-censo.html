@@ -743,34 +743,34 @@
                 
                 // Ingresos (columnas 8, 9, 10)
                 let tieneIngreso = false;
-                if (registro[8] && registro[8].trim() !== '') {
+                if (registro[8] && registro[8].toString().trim() !== '') {
                     totalIngresos++;
                     tieneIngreso = true;
                 }
-                if (registro[9] && registro[9].trim() !== '') {
+                if (registro[9] && registro[9].toString().trim() !== '') {
                     totalIngresos++;
                     tieneIngreso = true;
                 }
-                if (registro[10] && registro[10].trim() !== '') {
+                if (registro[10] && registro[10].toString().trim() !== '') {
                     totalIngresos++;
                     tieneIngreso = true;
                 }
                 
                 // Egresos vivos (columna 11)
                 let tieneEgreso = false;
-                if (registro[11] && registro[11].trim() !== '') {
+                if (registro[11] && registro[11].toString().trim() !== '') {
                     totalEgresosVivos++;
                     tieneEgreso = true;
                 }
                 
                 // Egresos muertos (columna 12)
-                if (registro[12] && registro[12].trim() !== '') {
+                if (registro[12] && registro[12].toString().trim() !== '') {
                     totalEgresosMuertos++;
                     tieneEgreso = true;
                 }
                 
                 // Pases a (columna 13)
-                if (registro[13] && registro[13].trim() !== '' && registro[13] !== '— Selecciona —') {
+                if (registro[13] && registro[13].toString().trim() !== '' && registro[13] !== '— Selecciona —') {
                     totalPasesA++;
                 }
                 
@@ -901,6 +901,10 @@
                 const paseDe = registro[3] || '';
                 const horaPaseDe = registro[4] || '';
                 
+                // Convertir a string y limpiar
+                const horaPaseDeStr = horaPaseDe ? horaPaseDe.toString() : '';
+                const horaPaseDeClean = horaPaseDeStr.replace(/[^0-9:]/g, '');
+                
                 // Ingresos - verificar de dónde vino
                 const ingresoConsulta = registro[8] ? 'X' : '';
                 const ingresoUrgencias = registro[9] ? 'X' : '';
@@ -914,12 +918,16 @@
                 const paseA = registro[13] || '';
                 const horaPaseA = registro[14] || '';
                 
-                // Formatear pases
+                // Convertir a string y limpiar
+                const horaPaseAStr = horaPaseA ? horaPaseA.toString() : '';
+                const horaPaseAClean = horaPaseAStr.replace(/[^0-9:]/g, '');
+                
+                // Formatear pases - CORRECCIÓN DEL ERROR AQUÍ
                 const paseDeFormateado = paseDe ? 
-                    `${horaPaseDe ? horaPaseDe.substring(0, 5) : ''} ${paseDe.substring(0, 3).toUpperCase()}`.trim() : '';
+                    `${horaPaseDeClean ? horaPaseDeClean.substring(0, 5) : ''} ${paseDe.substring(0, 3).toUpperCase()}`.trim() : '';
                 
                 const paseAFormateado = paseA ? 
-                    `${horaPaseA ? horaPaseA.substring(0, 5) : ''} ${paseA.substring(0, 3).toUpperCase()}`.trim() : '';
+                    `${horaPaseAClean ? horaPaseAClean.substring(0, 5) : ''} ${paseA.substring(0, 3).toUpperCase()}`.trim() : '';
                 
                 html += `
                     <tr>
@@ -1268,8 +1276,10 @@
                 // Pase de
                 const paseDe = registro[3] || '';
                 const horaPaseDe = registro[4] || '';
+                const horaPaseDeStr = horaPaseDe ? horaPaseDe.toString() : '';
+                const horaPaseDeClean = horaPaseDeStr.replace(/[^0-9:]/g, '');
                 const paseDeFormateado = paseDe ? 
-                    `${horaPaseDe ? horaPaseDe.substring(0, 5) : ''} ${paseDe.substring(0, 3).toUpperCase()}`.trim() : '';
+                    `${horaPaseDeClean ? horaPaseDeClean.substring(0, 5) : ''} ${paseDe.substring(0, 3).toUpperCase()}`.trim() : '';
                 doc.text(paseDeFormateado, 90, rowY, { maxWidth: 18 });
                 
                 // Ingresos
@@ -1316,8 +1326,10 @@
                 // Pase a
                 const paseA = registro[13] || '';
                 const horaPaseA = registro[14] || '';
+                const horaPaseAStr = horaPaseA ? horaPaseA.toString() : '';
+                const horaPaseAClean = horaPaseAStr.replace(/[^0-9:]/g, '');
                 const paseAFormateado = paseA ? 
-                    `${horaPaseA ? horaPaseA.substring(0, 5) : ''} ${paseA.substring(0, 3).toUpperCase()}`.trim() : '';
+                    `${horaPaseAClean ? horaPaseAClean.substring(0, 5) : ''} ${paseA.substring(0, 3).toUpperCase()}`.trim() : '';
                 doc.text(paseAFormateado, 168, rowY, { maxWidth: 18 });
                 
                 // Total (vacío)
