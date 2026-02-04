@@ -1,0 +1,1100 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Reporte CENSO Diario - Formato SINBA-SIS-65-P</title>
+    <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="/estadisticas/censo/censo.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .glass {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ccc;
+        }
+
+        .logo img {
+            height: 50px;
+        }
+
+        .usuario {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        h1 {
+            color: #2d3748;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .filtros {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .bloque {
+            margin-bottom: 10px;
+        }
+
+        .bloque label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        .bloque input,
+        .bloque select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .bloque input:focus,
+        .bloque select:focus {
+            outline: none;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+
+        .botones {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-generar {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-pdf {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-generar:hover {
+            background: #0056b3;
+        }
+
+        .btn-pdf:hover {
+            background: #c82333;
+        }
+
+        .resultados {
+            margin-top: 20px;
+        }
+
+        .sin-datos {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .info-message {
+            background: #d1ecf1;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border: 1px solid #bee5eb;
+        }
+
+        .mensaje-error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            margin: 20px 0;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #495057;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 12px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        /* Estilos específicos para el formato SINBA */
+        .formato-sinba-preview {
+            background: white;
+            border: 2px solid #000;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.2;
+            position: relative;
+            min-height: 800px;
+        }
+
+        .sinba-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #000;
+        }
+
+        .sinba-unidad {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .sinba-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 10px 0;
+        }
+
+        .sinba-form-code {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .sinba-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        .sinba-grid th,
+        .sinba-grid td {
+            border: 1px solid #000;
+            padding: 2px 4px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .sinba-grid th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+
+        .column-numero {
+            width: 40px;
+        }
+
+        .column-nombre {
+            width: 150px;
+            text-align: left;
+        }
+
+        .column-pases-de {
+            width: 80px;
+        }
+
+        .column-ingresos {
+            width: 60px;
+        }
+
+        .column-egresos {
+            width: 60px;
+        }
+
+        .column-pases-a {
+            width: 80px;
+        }
+
+        .column-total {
+            width: 60px;
+        }
+
+        .column-existencia {
+            width: 70px;
+        }
+
+        .sinba-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #000;
+            font-size: 11px;
+        }
+
+        .camas-section {
+            display: grid;
+            grid-template-columns: 100px 50px 50px;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .camas-label {
+            font-weight: bold;
+        }
+
+        .servicio-sala {
+            display: grid;
+            grid-template-columns: 200px 100px;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .debug-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 11px;
+            color: #495057;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="glass" id="dashboard">
+        <div class="header">
+            <div class="logo">
+                <a href="/estadisticas">
+                    <img src="../img/logo-hrpv.png" alt="Logo Hospital Regional Puerto Vallarta">
+                </a>
+            </div>
+            <div>
+                <div class="usuario">
+                    <i class="fa-solid fa-user-circle"></i>
+                    <span id="user-info"></span>
+                    <button onclick="window.location.href = '/estadisticas/censo/';" class="btn" style="background: #28a745; color: white;">
+                        <i class="fa-solid fa-arrow-left"></i> Volver
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <h1><i class="fa-solid fa-file-contract"></i> Reporte CENSO Diario - Formato SINBA-SIS-65-P</h1>
+
+        <div class="filtros">
+            <div class="bloque">
+                <label for="fecha-reporte"><i class="fa-solid fa-calendar-day"></i> Fecha del Reporte</label>
+                <input type="date" id="fecha-reporte" required>
+            </div>
+            <div class="bloque">
+                <label for="servicio-reporte"><i class="fa-solid fa-hospital"></i> Servicio</label>
+                <select id="servicio-reporte" required>
+                    <option value="">— Selecciona —</option>
+                    <option>CIRUGIA GENERAL</option>
+                    <option>GINECOLOGIA</option>
+                    <option>MEDICINA INTERNA</option>
+                    <option>PEDIATRIA</option>
+                    <option>TRAUMATOLOGIA Y ORTOPEDIA</option>
+                    <option>UCIN</option>
+                </select>
+            </div>
+            <div class="bloque">
+                <label for="sala"><i class="fa-solid fa-door-closed"></i> Sala (opcional)</label>
+                <input type="text" id="sala" placeholder="Ej: SALA 1">
+            </div>
+        </div>
+
+        <div class="botones">
+            <button id="btnGenerar" class="btn btn-generar">
+                <i class="fa-solid fa-eye"></i> Vista Previa
+            </button>
+            <button id="btnPDF" class="btn btn-pdf" style="display: none;">
+                <i class="fa-solid fa-file-pdf"></i> Descargar PDF
+            </button>
+        </div>
+
+        <div id="resultados" class="resultados">
+            <!-- Aquí se mostrará la vista previa del formato SINBA -->
+        </div>
+
+        <div class="footer">
+            <p>Formato Oficial SINBA-SIS-65-P · Hospital Regional Puerto Vallarta · <span id="anio-actual"></span></p>
+        </div>
+    </div>
+
+    <!-- PDF.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        // Mismo URL que usas en el censo
+        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyhMRSZlKTZeveL0wHukElK92ntfc7yTfFCCyEeFnLsQCvIra2Tzn5_cN3MZdqZbgGH/exec";
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📊 Inicializando reporte formato SINBA...');
+            
+            // Configurar fecha por defecto (hoy)
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha-reporte').value = hoy;
+
+            // Configurar footer
+            document.getElementById('anio-actual').textContent = new Date().getFullYear();
+
+            // Cargar datos del usuario
+            const usuario = localStorage.getItem('usuario');
+            const rol = localStorage.getItem('rol');
+            if (usuario && rol) {
+                document.getElementById('user-info').textContent = `${usuario} (${rol})`;
+            } else {
+                // Si no hay sesión, redirigir
+                window.location.href = '/estadisticas/login.html';
+                return;
+            }
+
+            // Evento para generar vista previa
+            document.getElementById('btnGenerar').addEventListener('click', generarVistaPrevia);
+            
+            // Evento para descargar PDF
+            document.getElementById('btnPDF').addEventListener('click', generarPDF);
+
+            console.log('✅ Reporte SINBA inicializado correctamente');
+        });
+
+        async function generarVistaPrevia() {
+            const fechaReporte = document.getElementById('fecha-reporte').value;
+            const servicioReporte = document.getElementById('servicio-reporte').value;
+            const sala = document.getElementById('sala').value;
+
+            if (!fechaReporte || !servicioReporte) {
+                alert('Por favor, seleccione fecha y servicio');
+                return;
+            }
+
+            const resultadosDiv = document.getElementById('resultados');
+            resultadosDiv.innerHTML = `
+                <div class="loading">
+                    <i class="fa-solid fa-spinner fa-spin"></i>
+                    <p>Cargando datos para ${formatearFechaTexto(fechaReporte)}...</p>
+                </div>
+            `;
+
+            try {
+                console.log('📥 Obteniendo datos para:', fechaReporte, servicioReporte);
+                
+                // Obtener todos los datos
+                const datos = await obtenerDatos();
+                console.log('✅ Datos recibidos:', datos.length, 'registros');
+                
+                if (datos.length === 0) {
+                    resultadosDiv.innerHTML = `
+                        <div class="sin-datos">
+                            <i class="fa-solid fa-database" style="font-size: 48px; margin-bottom: 15px; color: #a0aec0;"></i>
+                            <h3>No hay registros en el sistema</h3>
+                            <p>Regresa a la página de censo para agregar pacientes.</p>
+                        </div>
+                    `;
+                    document.getElementById('btnPDF').style.display = 'none';
+                    return;
+                }
+
+                // Filtrar datos por fecha y servicio
+                const datosFiltrados = datos.filter(registro => {
+                    try {
+                        const fechaRegistroISO = registro[0];
+                        const servicio = registro[2];
+                        
+                        if (!fechaRegistroISO || !servicio) return false;
+                        
+                        // Normalizar fecha
+                        const fechaNormalizada = normalizarFecha(fechaRegistroISO);
+                        if (!fechaNormalizada) return false;
+                        
+                        // Comparar fechas (solo el día específico)
+                        return fechaNormalizada === fechaReporte && servicio === servicioReporte;
+                    } catch (error) {
+                        console.error('Error procesando registro:', error);
+                        return false;
+                    }
+                });
+
+                console.log('📊 Datos filtrados:', datosFiltrados.length, 'registros');
+
+                if (datosFiltrados.length === 0) {
+                    resultadosDiv.innerHTML = `
+                        <div class="info-message">
+                            <i class="fa-solid fa-info-circle"></i>
+                            <h3>No hay registros para la fecha y servicio seleccionados</h3>
+                            <p>Fecha: ${formatearFechaTexto(fechaReporte)}</p>
+                            <p>Servicio: ${servicioReporte}</p>
+                            <p><small>Se encontraron ${datos.length} registros en total, pero ninguno coincide con los filtros.</small></p>
+                        </div>
+                    `;
+                    document.getElementById('btnPDF').style.display = 'none';
+                    return;
+                }
+
+                // Calcular totales para el formato SINBA
+                const totales = calcularTotalesSINBA(datosFiltrados);
+                
+                // Generar vista previa del formato
+                const vistaPrevia = generarFormatoSINBA(
+                    fechaReporte, 
+                    servicioReporte, 
+                    sala, 
+                    datosFiltrados, 
+                    totales
+                );
+                
+                resultadosDiv.innerHTML = vistaPrevia;
+                
+                // Mostrar botón de PDF
+                document.getElementById('btnPDF').style.display = 'flex';
+                
+                // Guardar datos para PDF
+                window.datosReporte = {
+                    fecha: fechaReporte,
+                    servicio: servicioReporte,
+                    sala: sala,
+                    registros: datosFiltrados,
+                    totales: totales
+                };
+
+                console.log('✅ Vista previa generada exitosamente');
+
+            } catch (error) {
+                console.error('❌ Error al generar vista previa:', error);
+                resultadosDiv.innerHTML = `
+                    <div class="mensaje-error">
+                        <i class="fa-solid fa-exclamation-triangle"></i>
+                        <h3>Error al generar el reporte</h3>
+                        <p>${error.message}</p>
+                        <p><small>Verifica tu conexión a internet e intenta nuevamente.</small></p>
+                    </div>
+                `;
+                document.getElementById('btnPDF').style.display = 'none';
+            }
+        }
+
+        function obtenerDatos() {
+            return new Promise((resolve, reject) => {
+                console.log('🔗 Conectando a Google Apps Script...');
+                const callbackName = 'callback_' + Date.now() + '_' + Math.random().toString(36).substr(2);
+                
+                window[callbackName] = function(response) {
+                    console.log('📨 Respuesta recibida del servidor:', response);
+                    
+                    try {
+                        // Manejar diferentes formatos de respuesta
+                        let datos;
+                        
+                        if (Array.isArray(response)) {
+                            datos = response;
+                        } else if (response.data && Array.isArray(response.data)) {
+                            datos = response.data;
+                        } else if (response.records && Array.isArray(response.records)) {
+                            datos = response.records;
+                        } else if (typeof response === 'object') {
+                            const arrayKeys = Object.keys(response).filter(key => Array.isArray(response[key]));
+                            if (arrayKeys.length > 0) {
+                                datos = response[arrayKeys[0]];
+                            } else {
+                                reject(new Error('Formato de datos no reconocido'));
+                                return;
+                            }
+                        } else {
+                            reject(new Error('Formato de respuesta inesperado'));
+                            return;
+                        }
+                        
+                        console.log('📊 Datos extraídos:', datos.length, 'registros');
+                        resolve(datos);
+                        
+                    } catch (error) {
+                        reject(new Error('Error procesando respuesta: ' + error.message));
+                    } finally {
+                        // Limpiar callback
+                        setTimeout(() => {
+                            delete window[callbackName];
+                        }, 1000);
+                    }
+                };
+
+                // Timeout
+                const timeout = setTimeout(() => {
+                    reject(new Error('Timeout: No se pudo conectar con el servidor'));
+                    delete window[callbackName];
+                }, 30000);
+
+                // Crear script para llamada JSONP
+                const script = document.createElement('script');
+                const url = `${URL_SCRIPT}?action=get&callback=${callbackName}&t=${Date.now()}`;
+                
+                script.src = url;
+                script.onerror = (error) => {
+                    clearTimeout(timeout);
+                    reject(new Error('Error de conexión: ' + (error.message || 'No se pudo cargar los datos')));
+                    delete window[callbackName];
+                };
+                
+                script.onload = () => clearTimeout(timeout);
+                
+                document.body.appendChild(script);
+            });
+        }
+
+        function normalizarFecha(fechaISO) {
+            if (!fechaISO) return null;
+            
+            try {
+                // Si ya está en formato YYYY-MM-DD
+                if (/^\d{4}-\d{2}-\d{2}$/.test(fechaISO)) {
+                    return fechaISO;
+                }
+                
+                // Si tiene tiempo (ISO format)
+                if (fechaISO.includes('T')) {
+                    const fechaObj = new Date(fechaISO);
+                    if (!isNaN(fechaObj.getTime())) {
+                        return fechaObj.toISOString().split('T')[0];
+                    }
+                }
+                
+                // Intentar parsear como fecha
+                const fechaObj = new Date(fechaISO);
+                if (!isNaN(fechaObj.getTime())) {
+                    return fechaObj.toISOString().split('T')[0];
+                }
+                
+                return null;
+            } catch (error) {
+                console.error('❌ Error normalizando fecha:', fechaISO, error);
+                return null;
+            }
+        }
+
+        function calcularTotalesSINBA(datos) {
+            console.log('🧮 Calculando totales SINBA...');
+            
+            let totalCamasOcupadas = 0;
+            let totalCamasDesocupadas = 0;
+            let totalPasesDe = 0;
+            let totalIngresos = 0;
+            let totalEgresosVivos = 0;
+            let totalEgresosMuertos = 0;
+            let totalPasesA = 0;
+            
+            // Contar camas ocupadas (asumiendo que cada registro es una cama ocupada)
+            totalCamasOcupadas = datos.length;
+            
+            // Calcular otros totales
+            datos.forEach(registro => {
+                // Pases de (columna 3)
+                if (registro[3] && registro[3].trim() !== '' && registro[3] !== '— Selecciona —') {
+                    totalPasesDe++;
+                }
+                
+                // Ingresos (columnas 8, 9, 10 - alguna hora de ingreso)
+                if ((registro[8] && registro[8].trim() !== '') || 
+                    (registro[9] && registro[9].trim() !== '') || 
+                    (registro[10] && registro[10].trim() !== '')) {
+                    totalIngresos++;
+                }
+                
+                // Egresos vivos (columna 11)
+                if (registro[11] && registro[11].trim() !== '') {
+                    totalEgresosVivos++;
+                }
+                
+                // Egresos muertos (columna 12)
+                if (registro[12] && registro[12].trim() !== '') {
+                    totalEgresosMuertos++;
+                }
+                
+                // Pases a (columna 13 - servicio_destino)
+                if (registro[13] && registro[13].trim() !== '' && registro[13] !== '— Selecciona —') {
+                    totalPasesA++;
+                }
+            });
+            
+            const totalEgresos = totalEgresosVivos + totalEgresosMuertos;
+            const totalCamas = totalCamasOcupadas + 20; // Asumiendo 20 camas desocupadas para el ejemplo
+            totalCamasDesocupadas = totalCamas - totalCamasOcupadas;
+            
+            return {
+                camasOcupadas: totalCamasOcupadas,
+                camasDesocupadas: totalCamasDesocupadas,
+                pasesDe: totalPasesDe,
+                ingresos: totalIngresos,
+                egresosVivos: totalEgresosVivos,
+                egresosMuertos: totalEgresosMuertos,
+                egresosTotal: totalEgresos,
+                pasesA: totalPasesA,
+                existenciaInicial: 0, // Se calcularía del día anterior
+                existenciaFinal: totalCamasOcupadas
+            };
+        }
+
+        function generarFormatoSINBA(fecha, servicio, sala, registros, totales) {
+            const fechaFormateada = formatearFechaTexto(fecha);
+            
+            let html = `
+                <div class="formato-sinba-preview">
+                    <div class="sinba-form-code">SINBA-SIS-65-P</div>
+                    
+                    <div class="sinba-header">
+                        <div>
+                            <div class="sinba-unidad">1 UNIDAD:</div>
+                            <div>HOSPITAL REGIONAL PUERTO VALLARTA</div>
+                        </div>
+                        <div>
+                            <div class="sinba-title">REGISTRO DIARIO DEL MOVIMIENTO DE</div>
+                            <div class="sinba-title">PACIENTES EN HOSPITALIZACION</div>
+                        </div>
+                    </div>
+                    
+                    <div class="sinba-header">
+                        <div>
+                            <div class="sinba-unidad">1 UNIDAD:</div>
+                            <div>HOSPITAL REGIONAL PUERTO VALLARTA</div>
+                        </div>
+                        <div>
+                            <div class="camas-section">
+                                <div class="camas-label">4 C A M A S</div>
+                                <div>4a OCUPADAS</div>
+                                <div>4b DESOCUPADAS</div>
+                            </div>
+                            <div class="camas-section">
+                                <div></div>
+                                <div><strong>${totales.camasOcupadas}</strong></div>
+                                <div><strong>${totales.camasDesocupadas}</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="servicio-sala">
+                        <div>
+                            <div><strong>2 SERVICIO</strong></div>
+                            <div>${servicio}</div>
+                        </div>
+                        <div>
+                            <div><strong>3 SALA</strong></div>
+                            <div>${sala || 'N/A'}</div>
+                        </div>
+                    </div>
+                    
+                    <table class="sinba-grid">
+                        <thead>
+                            <tr>
+                                <th class="column-numero">6<br>NUMERO</th>
+                                <th class="column-nombre">7<br>NOMBRE<br>(COMPLETO)</th>
+                                <th class="column-pases-de">8<br>PASES DE<br>(HORA E INICIALES<br>DEL SERVICIO)</th>
+                                <th class="column-ingresos">9<br>INGRESOS</th>
+                                <th class="column-egresos">10<br>EGRESOS</th>
+                                <th class="column-pases-a">11<br>PASES A</th>
+                                <th class="column-total">12<br>TOTAL</th>
+                                <th class="column-existencia">13<br>EXISTENCIA<br>DEL DIA</th>
+                                <th class="column-pases-de">14<br>PASES DE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            // Filas de datos de pacientes
+            registros.forEach((registro, index) => {
+                const numeroCama = registro[5] || (index + 1); // Columna 5: numero_cama
+                const nombre = registro[7] || ''; // Columna 7: nombre
+                const paseDe = registro[3] || ''; // Columna 3: pase_de
+                const horaPaseDe = ''; // No hay hora en los datos, dejar vacío
+                const ingresos = (registro[8] || registro[9] || registro[10]) ? 'X' : '';
+                const egresosVivos = registro[11] ? 'X' : '';
+                const egresosMuertos = registro[12] ? 'X' : '';
+                const paseA = registro[13] || ''; // Columna 13: servicio_destino
+                
+                // Formatear pase de con hora si existe
+                const paseDeFormateado = paseDe ? `${horaPaseDe} ${paseDe.substring(0, 3).toUpperCase()}` : '';
+                
+                html += `
+                    <tr>
+                        <td>${numeroCama}</td>
+                        <td class="column-nombre">${nombre}</td>
+                        <td>${paseDeFormateado}</td>
+                        <td>${ingresos}</td>
+                        <td>${egresosVivos}${egresosMuertos ? '/M' : ''}</td>
+                        <td>${paseA.substring(0, 3).toUpperCase()}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                `;
+            });
+            
+            // Agregar filas vacías si hay menos de 20 registros (para llenar la página)
+            const filasVacias = 20 - registros.length;
+            for (let i = 0; i < filasVacias && i < 10; i++) {
+                html += `
+                    <tr>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                `;
+            }
+            
+            // Fila de totales
+            html += `
+                        </tbody>
+                    </table>
+                    
+                    <div class="sinba-footer">
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 20px;">
+                            <div>
+                                <div><strong>EXISTENCIA DÍA ANTERIOR:</strong></div>
+                                <div style="text-align: center; font-size: 14px; font-weight: bold;">${totales.existenciaInicial}</div>
+                            </div>
+                            <div>
+                                <div><strong>PASES DE:</strong></div>
+                                <div style="text-align: center; font-size: 14px; font-weight: bold;">${totales.pasesDe}</div>
+                            </div>
+                            <div>
+                                <div><strong>INGRESOS:</strong></div>
+                                <div style="text-align: center; font-size: 14px; font-weight: bold;">${totales.ingresos}</div>
+                            </div>
+                            <div>
+                                <div><strong>EGRESOS:</strong></div>
+                                <div style="text-align: center; font-size: 14px; font-weight: bold;">${totales.egresosTotal}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px;">
+                            <div>
+                                <div><strong>PASES A:</strong></div>
+                                <div style="text-align: center; font-size: 14px; font-weight: bold;">${totales.pasesA}</div>
+                            </div>
+                            <div>
+                                <div><strong>TOTAL:</strong></div>
+                                <div style="text-align: center; font-size: 14px; font-weight: bold;">${totales.camasOcupadas}</div>
+                            </div>
+                            <div>
+                                <div><strong>EXISTENCIA DÍA:</strong></div>
+                                <div style="text-align: center; font-size: 14px; font-weight: bold;">${totales.existenciaFinal}</div>
+                            </div>
+                            <div>
+                                <div><strong>PASES DE:</strong></div>
+                                <div style="text-align: center; font-size: 14px; font-weight: bold;">${totales.pasesDe}</div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-top: 20px; text-align: center; font-size: 10px;">
+                            <div>Fecha: ${fechaFormateada}</div>
+                            <div>Servicio: ${servicio}</div>
+                            <div>Sala: ${sala || 'No especificada'}</div>
+                            <div>Total de Pacientes: ${registros.length}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            return html;
+        }
+
+        function formatearFechaTexto(fechaISO) {
+            try {
+                const fecha = new Date(fechaISO);
+                return fecha.toLocaleDateString('es-MX', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+            } catch (error) {
+                return fechaISO;
+            }
+        }
+
+        function generarPDF() {
+            if (!window.datosReporte) {
+                alert('Primero genere una vista previa');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            const { fecha, servicio, sala, registros, totales } = window.datosReporte;
+            const fechaFormateada = formatearFechaTexto(fecha);
+            
+            // Configuración general
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            
+            let yPos = 15;
+            
+            // Encabezado del formulario
+            doc.setFontSize(12);
+            doc.setFont('helvetica', 'bold');
+            doc.text('SINBA-SIS-65-P', 180, 10, { align: 'right' });
+            
+            // Primera línea: UNIDAD
+            doc.text('1 UNIDAD:', 20, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text('HOSPITAL REGIONAL PUERTO VALLARTA', 45, yPos);
+            
+            // Título
+            doc.setFont('helvetica', 'bold');
+            doc.text('REGISTRO DIARIO DEL MOVIMIENTO DE', 100, yPos, { align: 'center' });
+            yPos += 5;
+            doc.text('PACIENTES EN HOSPITALIZACION', 100, yPos, { align: 'center' });
+            yPos += 10;
+            
+            // Segunda línea: UNIDAD repetida
+            doc.text('1 UNIDAD:', 20, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text('HOSPITAL REGIONAL PUERTO VALLARTA', 45, yPos);
+            
+            // Camas
+            doc.setFont('helvetica', 'bold');
+            doc.text('4 C A M A S', 140, yPos);
+            doc.text('4a OCUPADAS', 160, yPos);
+            doc.text('4b DESOCUPADAS', 180, yPos);
+            yPos += 5;
+            
+            doc.setFont('helvetica', 'normal');
+            doc.text(totales.camasOcupadas.toString(), 165, yPos, { align: 'center' });
+            doc.text(totales.camasDesocupadas.toString(), 185, yPos, { align: 'center' });
+            yPos += 10;
+            
+            // Servicio y Sala
+            doc.setFont('helvetica', 'bold');
+            doc.text('2 SERVICIO', 20, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(servicio, 45, yPos);
+            
+            doc.setFont('helvetica', 'bold');
+            doc.text('3 SALA', 120, yPos);
+            doc.setFont('helvetica', 'normal');
+            doc.text(sala || 'N/A', 135, yPos);
+            yPos += 10;
+            
+            // Encabezado de la tabla
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(8);
+            
+            // Dibujar encabezado de tabla
+            const columnWidths = [10, 40, 25, 15, 15, 25, 15, 15, 25];
+            const columnHeaders = [
+                '6\nNUMERO',
+                '7\nNOMBRE\n(COMPLETO)',
+                '8\nPASES DE\n(HORA E INICIALES\nDEL SERVICIO)',
+                '9\nINGRESOS',
+                '10\nEGRESOS',
+                '11\nPASES A',
+                '12\nTOTAL',
+                '13\nEXISTENCIA\nDEL DIA',
+                '14\nPASES DE'
+            ];
+            
+            let xPos = 10;
+            
+            // Dibujar encabezados
+            columnHeaders.forEach((header, index) => {
+                doc.text(header, xPos + columnWidths[index]/2, yPos, { 
+                    align: 'center',
+                    maxWidth: columnWidths[index] - 2
+                });
+                xPos += columnWidths[index];
+            });
+            
+            yPos += 15;
+            
+            // Dibujar líneas de la tabla
+            xPos = 10;
+            doc.line(10, yPos - 10, 200, yPos - 10); // Línea superior
+            doc.line(10, yPos - 10, 10, yPos + 150); // Línea izquierda
+            
+            columnWidths.forEach((width, index) => {
+                xPos += width;
+                doc.line(xPos, yPos - 10, xPos, yPos + 150); // Líneas verticales
+            });
+            
+            doc.line(10, yPos + 150, 200, yPos + 150); // Línea inferior
+            
+            // Datos de pacientes
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'normal');
+            
+            let startY = yPos;
+            registros.forEach((registro, index) => {
+                if (index < 20) { // Máximo 20 registros por página
+                    const rowY = startY + (index * 7);
+                    
+                    // Número
+                    const numeroCama = registro[5] || (index + 1);
+                    doc.text(numeroCama.toString(), 15, rowY);
+                    
+                    // Nombre
+                    const nombre = registro[7] || '';
+                    doc.text(nombre, 25, rowY, { maxWidth: 35 });
+                    
+                    // Pase de
+                    const paseDe = registro[3] || '';
+                    const paseDeFormateado = paseDe ? paseDe.substring(0, 3).toUpperCase() : '';
+                    doc.text(paseDeFormateado, 70, rowY, { maxWidth: 20 });
+                    
+                    // Ingresos
+                    const ingresos = (registro[8] || registro[9] || registro[10]) ? 'X' : '';
+                    doc.text(ingresos, 95, rowY, { align: 'center' });
+                    
+                    // Egresos
+                    const egresosVivos = registro[11] ? 'X' : '';
+                    const egresosMuertos = registro[12] ? '/M' : '';
+                    doc.text(egresosVivos + egresosMuertos, 110, rowY, { align: 'center' });
+                    
+                    // Pases a
+                    const paseA = registro[13] || '';
+                    doc.text(paseA.substring(0, 3).toUpperCase(), 125, rowY, { maxWidth: 20 });
+                    
+                    // Total, Existencia, Pases de (dejar en blanco)
+                    doc.text('', 155, rowY);
+                    doc.text('', 170, rowY);
+                    doc.text('', 185, rowY);
+                }
+            });
+            
+            yPos = 180;
+            
+            // Totales al pie
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            
+            doc.text('EXISTENCIA DÍA ANTERIOR:', 20, yPos);
+            doc.text(totales.existenciaInicial.toString(), 55, yPos, { align: 'center' });
+            
+            doc.text('PASES DE:', 70, yPos);
+            doc.text(totales.pasesDe.toString(), 85, yPos, { align: 'center' });
+            
+            doc.text('INGRESOS:', 100, yPos);
+            doc.text(totales.ingresos.toString(), 115, yPos, { align: 'center' });
+            
+            doc.text('EGRESOS:', 130, yPos);
+            doc.text(totales.egresosTotal.toString(), 145, yPos, { align: 'center' });
+            
+            yPos += 8;
+            
+            doc.text('PASES A:', 20, yPos);
+            doc.text(totales.pasesA.toString(), 35, yPos, { align: 'center' });
+            
+            doc.text('TOTAL:', 70, yPos);
+            doc.text(totales.camasOcupadas.toString(), 85, yPos, { align: 'center' });
+            
+            doc.text('EXISTENCIA DÍA:', 100, yPos);
+            doc.text(totales.existenciaFinal.toString(), 125, yPos, { align: 'center' });
+            
+            doc.text('PASES DE:', 140, yPos);
+            doc.text(totales.pasesDe.toString(), 165, yPos, { align: 'center' });
+            
+            yPos += 15;
+            
+            // Información adicional
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.text(`Fecha: ${fechaFormateada}`, 20, yPos);
+            doc.text(`Servicio: ${servicio}`, 80, yPos);
+            doc.text(`Sala: ${sala || 'No especificada'}`, 140, yPos);
+            doc.text(`Total Pacientes: ${registros.length}`, 180, yPos);
+            
+            // Guardar PDF
+            const nombreArchivo = `SINBA-SIS-65-P_${servicio.replace(/\s+/g, '_')}_${fecha}.pdf`;
+            doc.save(nombreArchivo);
+        }
+
+        // Verificar sesión
+        function verificarAutenticacion() {
+            const usuario = localStorage.getItem('usuario');
+            const rol = localStorage.getItem('rol');
+            const loginTime = localStorage.getItem('loginTime');
+
+            if (!usuario || !rol || !loginTime) {
+                return false;
+            }
+
+            const ahora = Date.now();
+            const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+
+            return horasTranscurridas <= 24;
+        }
+
+        // Verificar al cargar
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!verificarAutenticacion()) {
+                alert('Sesión expirada. Por favor, inicie sesión nuevamente.');
+                window.location.href = '/estadisticas/login.html';
+            }
+        });
+    </script>
+</body>
+</html>
