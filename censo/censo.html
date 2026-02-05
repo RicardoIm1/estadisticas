@@ -145,11 +145,11 @@
 
       const resultadosDiv = document.getElementById('resultados');
       resultadosDiv.innerHTML = `
-                <div class="loading">
-                    <i class="fa-solid fa-spinner fa-spin" style="color: #1e40af;"></i>
-                    <p style="color: #1e40af;">Cargando datos para ${formatearFechaTexto(fechaReporte)}...</p>
-                </div>
-            `;
+        <div class="loading">
+            <i class="fa-solid fa-spinner fa-spin" style="color: #1e40af;"></i>
+            <p style="color: #1e40af;">Cargando datos para ${formatearFechaTexto(fechaReporte)}...</p>
+        </div>
+    `;
 
       try {
         console.log('📥 Obteniendo datos para:', fechaReporte, servicioReporte);
@@ -158,14 +158,17 @@
         const datos = await obtenerDatos();
         console.log('✅ Datos recibidos:', datos.length, 'registros');
 
+        // DEBUG: Mostrar estructura de los datos
+        debugRegistros(datos);
+
         if (datos.length === 0) {
           resultadosDiv.innerHTML = `
-                        <div class="sin-datos">
-                            <i class="fa-solid fa-database" style="font-size: 48px; margin-bottom: 15px; color: #1e40af;"></i>
-                            <h3 style="color: #1e40af;">No hay registros en el sistema</h3>
-                            <p style="color: #1e40af;">Regresa a la página de censo para agregar pacientes.</p>
-                        </div>
-                    `;
+                <div class="sin-datos">
+                    <i class="fa-solid fa-database" style="font-size: 48px; margin-bottom: 15px; color: #1e40af;"></i>
+                    <h3 style="color: #1e40af;">No hay registros en el sistema</h3>
+                    <p style="color: #1e40af;">Regresa a la página de censo para agregar pacientes.</p>
+                </div>
+            `;
           document.getElementById('btnPDF').style.display = 'none';
           return;
         }
@@ -175,8 +178,6 @@
           try {
             const fechaRegistro = registro[0]; // Columna 1 - Fecha
             const servicio = registro[2]; // Columna 3 - Servicio
-            const datos = await obtenerDatos();
-            debugRegistros(datos); // Añade esta línea
 
             if (!fechaRegistro || !servicio) {
               console.log('Registro sin fecha o servicio:', registro);
@@ -200,20 +201,18 @@
           }
         });
 
-            // Luego en generarVistaPrevia, después de obtener los datos:
-
         console.log('📊 Datos filtrados:', datosFiltrados.length, 'registros');
 
         if (datosFiltrados.length === 0) {
           resultadosDiv.innerHTML = `
-                        <div class="info-message">
-                            <i class="fa-solid fa-info-circle" style="color: #1e40af;"></i>
-                            <h3 style="color: #1e40af;">No hay registros para la fecha y servicio seleccionados</h3>
-                            <p style="color: #1e40af;">Fecha: ${formatearFechaTexto(fechaReporte)}</p>
-                            <p style="color: #1e40af;">Servicio: ${servicioReporte}</p>
-                            <p style="color: #1e40af;"><small>Se encontraron ${datos.length} registros en total, pero ninguno coincide con los filtros.</small></p>
-                        </div>
-                    `;
+                <div class="info-message">
+                    <i class="fa-solid fa-info-circle" style="color: #1e40af;"></i>
+                    <h3 style="color: #1e40af;">No hay registros para la fecha y servicio seleccionados</h3>
+                    <p style="color: #1e40af;">Fecha: ${formatearFechaTexto(fechaReporte)}</p>
+                    <p style="color: #1e40af;">Servicio: ${servicioReporte}</p>
+                    <p style="color: #1e40af;"><small>Se encontraron ${datos.length} registros en total, pero ninguno coincide con los filtros.</small></p>
+                </div>
+            `;
           document.getElementById('btnPDF').style.display = 'none';
           return;
         }
@@ -250,17 +249,16 @@
       } catch (error) {
         console.error('❌ Error al generar vista previa:', error);
         resultadosDiv.innerHTML = `
-                    <div class="mensaje-error">
-                        <i class="fa-solid fa-exclamation-triangle"></i>
-                        <h3>Error al generar el reporte</h3>
-                        <p>${error.message}</p>
-                        <p><small>Verifica tu conexión a internet e intenta nuevamente.</small></p>
-                    </div>
-                `;
+            <div class="mensaje-error">
+                <i class="fa-solid fa-exclamation-triangle"></i>
+                <h3>Error al generar el reporte</h3>
+                <p>${error.message}</p>
+                <p><small>Verifica tu conexión a internet e intenta nuevamente.</small></p>
+            </div>
+        `;
         document.getElementById('btnPDF').style.display = 'none';
       }
     }
-
     function obtenerDatos() {
       return new Promise((resolve, reject) => {
         console.log('🔗 Conectando a Google Apps Script...');
