@@ -326,36 +326,46 @@
       });
     }
 
-    function normalizarFecha(fechaISO) {
-      if (!fechaISO) return null;
+    function normalizarFecha(fechaStr) {
+      if (!fechaStr) return null;
 
       try {
         // Si ya está en formato YYYY-MM-DD
-        if (/^\d{4}-\d{2}-\d{2}$/.test(fechaISO)) {
-          return fechaISO;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(fechaStr)) {
+          return fechaStr;
         }
 
-        // Si tiene tiempo (ISO format)
-        if (fechaISO.includes('T')) {
-          const fechaObj = new Date(fechaISO);
-          if (!isNaN(fechaObj.getTime())) {
-            return fechaObj.toISOString().split('T')[0];
+        // Si está en formato DD/MM/YYYY
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(fechaStr)) {
+          const partes = fechaStr.split('/');
+          return `${partes[2]}-${partes[1]}-${partes[0]}`;
+        }
+
+        // Si está en formato con tiempo
+        let fecha = new Date(fechaStr);
+
+        // Si es un timestamp de Google Sheets
+        if (typeof fechaStr === 'number' && fechaStr > 10000) {
+          // Google Sheets usa días desde 1899-12-30
+          const fechaGoogle = new Date((fechaStr - 25569) * 86400 * 1000);
+          if (!isNaN(fechaGoogle.getTime())) {
+            fecha = fechaGoogle;
           }
         }
 
-        // Intentar parsear como fecha
-        const fechaObj = new Date(fechaISO);
-        if (!isNaN(fechaObj.getTime())) {
-          return fechaObj.toISOString().split('T')[0];
+        if (!isNaN(fecha.getTime())) {
+          const year = fecha.getFullYear();
+          const month = String(fecha.getMonth() + 1).padStart(2, '0');
+          const day = String(fecha.getDate()).padStart(2, '0');
+          return `${year}-${month}-${day}`;
         }
 
         return null;
       } catch (error) {
-        console.error('❌ Error normalizando fecha:', fechaISO, error);
+        console.error('❌ Error normalizando fecha:', fechaStr, error);
         return null;
       }
     }
-
     function calcularTotalesSINBA(datos, totalCamas) {
       console.log('🧮 Calculando totales SINBA...');
       console.log('Datos recibidos para cálculo:', datos);
