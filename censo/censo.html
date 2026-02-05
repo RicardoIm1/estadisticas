@@ -173,22 +173,34 @@
         // Filtrar datos por fecha y servicio
         const datosFiltrados = datos.filter(registro => {
           try {
-            const fechaRegistroISO = registro[0];
-            const servicio = registro[2];
+            const fechaRegistro = registro[0]; // Columna 1 - Fecha
+            const servicio = registro[2]; // Columna 3 - Servicio
+            const datos = await obtenerDatos();
+            debugRegistros(datos); // Añade esta línea
 
-            if (!fechaRegistroISO || !servicio) return false;
+            if (!fechaRegistro || !servicio) {
+              console.log('Registro sin fecha o servicio:', registro);
+              return false;
+            }
+
+            console.log('Comparando fecha:', fechaRegistro, 'con:', fechaReporte);
+            console.log('Comparando servicio:', servicio, 'con:', servicioReporte);
 
             // Normalizar fecha
-            const fechaNormalizada = normalizarFecha(fechaRegistroISO);
+            const fechaNormalizada = normalizarFecha(fechaRegistro);
+            console.log('Fecha normalizada:', fechaNormalizada);
+
             if (!fechaNormalizada) return false;
 
             // Comparar fechas (solo el día específico)
             return fechaNormalizada === fechaReporte && servicio === servicioReporte;
           } catch (error) {
-            console.error('Error procesando registro:', error);
+            console.error('Error procesando registro:', error, registro);
             return false;
           }
         });
+
+            // Luego en generarVistaPrevia, después de obtener los datos:
 
         console.log('📊 Datos filtrados:', datosFiltrados.length, 'registros');
 
@@ -1088,6 +1100,23 @@
         window.location.href = '/estadisticas/login.html';
       }
     });
+
+    function debugRegistros(datos) {
+      console.log('=== DEBUG DE REGISTROS ===');
+      console.log('Total registros:', datos.length);
+
+      if (datos.length > 0) {
+        console.log('Primer registro:', datos[0]);
+        console.log('Estructura del primer registro:');
+        datos[0].forEach((valor, index) => {
+          console.log(`Columna ${index}:`, valor, 'Tipo:', typeof valor);
+        });
+      }
+
+      console.log('=== FIN DEBUG ===');
+    }
+
+
   </script>
 </body>
 
