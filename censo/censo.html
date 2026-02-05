@@ -11,7 +11,399 @@
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
 </head>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .glass {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #ccc;
+        }
+
+        .logo img {
+            height: 50px;
+        }
+
+        .usuario {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        h1 {
+            color: #1e3a8a;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .filtros {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .bloque {
+            margin-bottom: 10px;
+        }
+
+        .bloque label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #1e40af;
+            font-size: 14px;
+        }
+
+        .bloque input,
+        .bloque select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .bloque input:focus,
+        .bloque select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.25);
+        }
+
+        .botones {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-generar {
+            background: #1e40af;
+            color: white;
+        }
+
+        .btn-pdf {
+            background: #dc2626;
+            color: white;
+        }
+
+        .btn-generar:hover {
+            background: #1e3a8a;
+        }
+
+        .btn-pdf:hover {
+            background: #b91c1c;
+        }
+
+        .resultados {
+            margin-top: 20px;
+        }
+
+        .sin-datos {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .info-message {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border: 1px solid #93c5fd;
+        }
+
+        .mensaje-error {
+            background: #fecaca;
+            color: #b91c1c;
+            padding: 15px;
+            border-radius: 4px;
+            text-align: center;
+            margin: 20px 0;
+            border: 1px solid #fca5a5;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #1e40af;
+        }
+
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: #6c757d;
+            font-size: 12px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+
+        /* ===== ESTILOS ESPECÍFICOS PARA EL FORMATO SINBA ===== */
+        .formato-sinba-preview {
+            background: white;
+            border: 2px solid #1e3a8a;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.2;
+            position: relative;
+            min-height: 800px;
+            color: #1e3a8a !important;
+        }
+
+        .sinba-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #1e40af;
+        }
+
+        .sinba-unidad {
+            font-weight: bold;
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #1e3a8a !important;
+        }
+
+        .sinba-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 14px;
+            margin: 10px 0;
+            color: #1e3a8a !important;
+        }
+
+        .sinba-form-code {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-weight: bold;
+            font-size: 12px;
+            color: #dc2626 !important;
+        }
+
+        .sinba-grid {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 11px;
+        }
+
+        .sinba-grid th,
+        .sinba-grid td {
+            border: 1px solid #3b82f6;
+            padding: 2px 4px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .sinba-grid th {
+            background: #eff6ff;
+            font-weight: bold;
+            color: #1e40af !important;
+        }
+
+        .sinba-grid td {
+            color: #1e3a8a !important;
+        }
+
+        .column-numero {
+            width: 40px;
+        }
+
+        .column-expediente {
+            width: 80px;
+        }
+
+        .column-nombre {
+            width: 180px;
+            text-align: left;
+        }
+
+        .column-pases-de {
+            width: 100px;
+        }
+
+        .column-ingresos {
+            width: 50px;
+        }
+
+        .column-egresos {
+            width: 50px;
+        }
+
+        .column-pases-a {
+            width: 100px;
+        }
+
+        .column-total {
+            width: 60px;
+        }
+
+        .sinba-footer {
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 2px solid #1e40af;
+            font-size: 11px;
+            color: #1e3a8a !important;
+        }
+
+        .camas-section {
+            display: grid;
+            grid-template-columns: 120px 60px 60px;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        .camas-label {
+            font-weight: bold;
+            color: #1e3a8a !important;
+        }
+
+        .servicio-sala {
+            display: grid;
+            grid-template-columns: 200px 100px;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        /* Estilos para valores numéricos */
+        .sinba-footer div div:last-child {
+            color: #dc2626 !important;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        /* Estilos para etiquetas strong */
+        .formato-sinba-preview strong {
+            color: #1e40af !important;
+        }
+
+        /* Efecto hover en celdas */
+        .sinba-grid tbody tr:hover td {
+            background-color: #eff6ff !important;
+        }
+
+        /* Para los valores "X" en ingresos/egresos */
+        .sinba-grid td[style*="color: #dc2626"] {
+            color: #dc2626 !important;
+            font-weight: bold;
+        }
+
+        /* Estilo especial para números de cama */
+        .column-numero {
+            font-weight: bold;
+            color: #1e40af !important;
+        }
+
+        /* Estilo para nombres de pacientes */
+        .column-nombre {
+            font-weight: 500;
+            color: #1e3a8a !important;
+        }
+
+        /* Grid para resumen */
+        .resumen-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 5px;
+            margin-top: 20px;
+            font-size: 11px;
+        }
+
+        .resumen-item {
+            text-align: center;
+            padding: 5px;
+            border: 1px solid #3b82f6;
+            border-radius: 4px;
+            background: #f8fafc;
+        }
+
+        .firmas-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #1e40af;
+        }
+
+        .firma-area {
+            text-align: center;
+            padding: 10px;
+            min-height: 80px;
+        }
+
+        .linea-firma {
+            width: 80%;
+            height: 1px;
+            background: #1e3a8a;
+            margin: 40px auto 5px;
+        }
+
+        .debug-info {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 11px;
+            color: #495057;
+            display: none;
+        }
+    </style>
 <body>
   <div class="glass" id="dashboard">
     <h5>REGISTRO DIARIO DEL MOVIMIENTO DE PACIENTES EN HOSPITALIZACIÓN</h5>
