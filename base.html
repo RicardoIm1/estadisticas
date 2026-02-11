@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,15 +11,317 @@
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
 </head>
+<style>
+  /* === 📊 GRID PRINCIPAL === */
+  .grid-lumia-glass {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 14px;
+    padding: 1rem;
+    grid-auto-flow: dense;
+  }
+
+  /* === 💠 TILE BASE === */
+  .tile {
+    position: relative;
+    /* importante para enlaces absolutos */
+    overflow: hidden;
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 160px;
+    transition: all 0.25s ease-in-out;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  }
+
+  /* 🔗 Hace que el enlace cubra todo el tile */
+  .tile a {
+    position: absolute;
+    inset: 0;
+    /* top:0; right:0; bottom:0; left:0 */
+    z-index: 1;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  /* 🧱 El contenido visual va encima del enlace invisible */
+  .tile-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* ✨ Suaviza hover visual */
+  .tile:hover .tile-content {
+    opacity: 0.95;
+  }
+
+
+  /* === 📏 TAMAÑOS === */
+  .tile-wide {
+    grid-column: span 2;
+  }
+
+  .tile-short {
+    min-height: 100px;
+  }
+
+  /* === 🎨 PALETA GLASS === */
+  .azul {
+    background: rgba(70, 130, 180, 0.25);
+  }
+
+  .verde {
+    background: rgba(34, 139, 34, 0.25);
+  }
+
+  .naranja {
+    background: rgba(218, 112, 48, 0.25);
+  }
+
+  .morado {
+    background: rgba(123, 104, 238, 0.25);
+  }
+
+  .gris {
+    background: rgba(100, 100, 100, 0.25);
+  }
+
+  .amarillo {
+    background: rgba(228, 214, 18, 0.25);
+  }
+
+  /* === 🔠 TIPOGRAFÍA Y DETALLES === */
+  .tile h3 {
+    font-size: 1.8rem;
+    margin: 0;
+    opacity: 0.9;
+  }
+
+  .tile h4 {
+    margin: 0.3rem 0 0.5rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+  }
+
+  .tile p,
+  .tile ul,
+  .tile blockquote {
+    font-size: 0.95rem;
+    margin: 0.3rem 0;
+    line-height: 1.4;
+  }
+
+  .tile ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .tile ul li {
+    margin-bottom: 0.2rem;
+  }
+
+  .tile a {
+    color: #fff;
+    text-decoration: underline;
+    opacity: 0.85;
+  }
+
+  .tile a:hover {
+    opacity: 1;
+  }
+
+  blockquote {
+    font-style: italic;
+    color: #e0e0e0;
+    margin: 0;
+  }
+
+  /* === 📱 RESPONSIVE ADAPTATION === */
+  @media (max-width: 1024px) {
+    .grid-lumia-glass {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .grid-lumia-glass {
+      grid-template-columns: 1fr;
+    }
+
+    /* Los tiles “anchos” vuelven a tamaño normal */
+    .tile-wide {
+      grid-column: span 1;
+    }
+
+    /* Pequeño ajuste de padding y tipografía en móvil */
+    .tile {
+      padding: 1rem;
+    }
+
+    .tile h3 {
+      font-size: 1.5rem;
+    }
+
+    .tile h4 {
+      font-size: 1rem;
+    }
+  }
+
+  /* === ✨ ANIMACIÓN DE ENTRADA SUAVE === */
+  @keyframes tileFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .tile {
+    opacity: 0;
+    animation: tileFadeIn 0.6s ease-out forwards;
+  }
+
+  /* Efecto escalonado */
+  .tile:nth-child(1) {
+    animation-delay: 0.1s;
+  }
+
+  .tile:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .tile:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .tile:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+
+  .tile:nth-child(5) {
+    animation-delay: 0.5s;
+  }
+
+  .tile:nth-child(6) {
+    animation-delay: 0.6s;
+  }
+
+  .tile:nth-child(7) {
+    animation-delay: 0.7s;
+  }
+
+  .tile:nth-child(8) {
+    animation-delay: 0.8s;
+  }
+
+  .tile:nth-child(9) {
+    animation-delay: 0.9s;
+  }
+</style>
+
 <body>
   <div class="glass" id="dashboard">
-    <h5>Base</h5>
+    <h5>Departamento de Estadísticas y Archivo Clínico</h5>
+    <h6>Hospital Regional Puerto Vallarta</h6>
     <div id="header"></div>
-    <div class="grid">
-<!-- AQUI
-      VA
-      EL
-  CONTENIDO -->
+    <!-- 🏥 Panel principal tipo Lumia + Glassmorphism -->
+    <div class="grid-lumia-glass">
+
+      <!-- Indicador principal (doble ancho) -->
+      <div class="tile tile-wide azul">
+        <h3><i class="fa-solid fa-chart-line"></i></h3>
+        <h4>Indicador del día</h4>
+        <p>Tasa de ocupación hospitalaria: <strong>82%</strong></p>
+        <small>Actualizado: 15 Dic 2025</small>
+      </div>
+
+      <!-- Noticias -->
+      <div class="tile naranja">
+        <h3><i class="fa-solid fa-newspaper"></i></h3>
+        <h4>Artículos recientes</h4>
+        <ul>
+          <li><a href="#">Tendencias 2025 en gestión de datos</a></li>
+          <li><a href="#">El impacto del archivo digital</a></li>
+          <li><a href="#">Indicadores de eficiencia hospitalaria</a></li>
+        </ul>
+      </div>
+
+      <!-- Tip del día (media altura) -->
+      <div class="tile tile-short verde">
+        <h3><i class="fa-solid fa-lightbulb"></i> Tip del día</h3>
+        <p>Verifica la calidad de tus datos antes de cada cierre mensual.</p>
+      </div>
+
+      <!-- Efemérides -->
+      <div class="tile morado">
+        <h3><i class="fa-solid fa-calendar-day"></i></h3>
+        <h4>Efemérides de salud</h4>
+        <ul>
+          <li>🗓️ 14 junio — Donante de Sangre</li>
+          <li>🗓️ 12 mayo — Enfermería</li>
+          <li>🗓️ 19 octubre — Cáncer de Mama</li>
+        </ul>
+      </div>
+
+      <!-- Frase institucional (doble ancho y baja altura) -->
+      <div class="tile tile-wide tile-short gris">
+        <blockquote>“La información es la base de la mejora continua en salud.”</blockquote>
+        <p>— Dpto. de Estadísticas y Archivo Clínico</p>
+      </div>
+
+      <!-- Estado del sistema -->
+      <div class="tile azul">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>Estado del sistema</h4>
+        <p>✅ Sistema operativo<br>🔒 Sesión segura<br>💾 Último respaldo: hoy 03:24</p>
+      </div>
+
+      <!-- Archivo clínico -->
+      <div class="tile verde">
+        <h3><i class="fa-solid fa-folder-open"></i></h3>
+        <h4>Archivo clínico</h4>
+        <p>Documentos activos: <strong>12,540</strong><br>Último ingreso: 15 Dic 2025</p>
+      </div>
+
+      <!-- Panel de resumen -->
+      <div class="tile tile-wide naranja">
+        <h3><i class="fa-solid fa-database"></i></h3>
+        <h4>Resumen estadístico</h4>
+        <p>📊 Egresos: 147 esta semana<br>🧾 Consultas: 320<br>🧠 Promedio estancia: 4.2 días</p>
+      </div>
+      <a href="/estadisticas/defunciones/principales1.html">
+        <div class="tile tile-wide naranja">
+          <h3><i class="fa-solid fa-chart-column"></i></h3>
+          <h4> Defunciones</h4>
+          <p>Principales Causas</p>
+        </div>
+      </a>
+
+      <!-- Panel de graficas -->
+      <a href="/estadisticas/graficas/">
+        <div class="tile amarillo">
+          <h3><i class="fa-solid fa-chart-column"></i></h3>
+          <h4>Gráficas</h4>
+          <p>Egresos, Urgencias, <br>Lesiones, Nacimientos y <br>Defunciones</p>
+        </div>
+      </a>
     </div>
     <div id="footer"></div>
   </div>
@@ -55,4 +358,5 @@
   <script src="/estadisticas/comun/estadoSistema.js"></script>
   <script src="/estadisticas/comun/sesion_bk.js"></script>
 </body>
+
 </html>
