@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Estadísticas y Archivo Clínico</title>
+    <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="/estadisticas/censo/censo.css" rel="stylesheet">
+    <link href="/estadisticas/censo/tabla-wrapper-censo.css" rel="stylesheet">
+</head>
+
+<body>
+    <div class="glass" id="dashboard">
+        <h5>Registro diario del movimiento de pacientes en hospitalización</h5>
+        <div class="header">
+            <div class="logo">
+                <a href="/estadisticas"><img src="../img/logo-hrpv.png" alt="Logo" width="120"></a>
+            </div>
+            <div class="buscador-wrapper">
+                <input type="text" id="buscador" placeholder="🔍 Buscar por cualquier campo..." class="input-busqueda">
+            </div>
+            <a href="/estadisticas/censo/total-censo.html" target="_self"class="btn-salir-ultra">
+                Ver censo
+            </a>
+            <div>
+                <div class="usuario">
+                    <i class="fa-solid fa-user-circle"></i>
+                    <span id="user-info"></span>
+                    <button onclick="cerrarSesion()" class="btn-salir-ultra">
+                        Salir
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="contenedor-flex">
+            <!-- EL FORMULARIO HA SIDO ELIMINADO -->
+            <div class="glass-inner">
+                <div id="contenedorTabla" class="tabla-wrapper cargando">
+                    Cargando registros...
+                </div>
+            </div>
+        </div>
+        <footer>
+            <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
+        </footer>
+    </div> <!-- end .glass -->
+    <!-- SCRIPTS DEL FORMULARIO (TABULACIÓN, GUARDADO) HAN SIDO ELIMINADOS -->
+    <script>
+        /* -----------------------
+           setEstado: aplica clases a .glass
+           ----------------------- */
+        function setEstado(estado) {
+            const glass = document.querySelector('.glass');
+            if (!glass) return; // evita errores si el DOM cambia
+            glass.classList.remove('loading', 'success', 'error');
+            glass.classList.add(estado);
+            if (estado === 'success' || estado === 'error') {
+                setTimeout(() => glass.classList.remove(estado), 2500);
+            }
+        }
+        // footer dinámico (seguro)
+        const ft = document.getElementById('footerText');
+        if (ft) ft.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+    </script>
+    <script>
+        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyhMRSZlKTZeveL0wHukElK92ntfc7yTfFCCyEeFnLsQCvIra2Tzn5_cN3MZdqZbgGH/exec"; // tu WebApp JSONP
+        const tablaContenedor = document.getElementById("contenedorTabla");
+
+        // ---------------------- Cargar registros ----------------------
+        function cargarRegistros() {
+            setEstado("loading");
+            const cb = "cb_get_" + Date.now();
+            window[cb] = function (data) {
+                if (!data || !data.length) {
+                    if (tablaContenedor) tablaContenedor.innerHTML = "<p class='tiny'>Sin registros aún.</p>";
+                    setEstado("success");
+                    delete window[cb];
+                    return;
+                }
+                const headers = [
+                    "Fecha", "Unidad", "Servicio", "Pase de", "Sala", "Cama", "Expediente", "Nombre",
+                    "Ingreso (consulta)", "Ingreso (urgencias)", "Ingreso (otra)", "Egreso (vivo)", "Egreso (muerto)",
+                    "Servicio destino", "Foliador", "Observaciones", "Registro TS"
+                ];
+                const idxFecha = 0;
+                const idxHoraCols = [8, 9, 10, 11, 12, 16];
+                const ocultarIdx = [1, 4, 16];
+                let html = "<table><thead><tr>" +
+                    headers.map((h, i) => ocultarIdx.includes(i) ? "" : `<th>${h}</th>`).join("") +
+                    "</tr></thead><tbody>";
+                data = data.reverse(); // mostrar más reciente primero
+                // Índices fijos según el orden del HEADER del backend
+                const idxExpediente = 6;  // "expediente"
+                const idxFoliador = 14; // "foliador"
+                data.forEach(fila => {
+                    html += "<tr>";
+                    fila.forEach((celda, i) => {
+                        if (ocultarIdx.includes(i)) return;
+                        let valor = celda;
+                        // === Ajustes visuales ===
+                        if (i === idxFecha) valor = formatearFecha(celda);
+                        if (idxHoraCols.includes(i)) valor = formatearHora(celda);
+                        // === Mantener ceros iniciales ===
+                        if (i === idxExpediente && valor) valor = valor.toString().padStart(6, "0");
+                        if (i === idxFoliador && valor) valor = valor.toString().padStart(3, "0");
+                        html += `<td>${valor || ""}</td>`;
+                    });
+                    html += "</tr>";
+                });
+                html += "</tbody></table>";
+                if (tablaContenedor) tablaContenedor.innerHTML = html;
+                setEstado("success");
+                delete window[cb];
+            };
+            const s = document.createElement("script");
+            s.src = `${URL_SCRIPT}?action=get&callback=${cb}`;
+            s.onerror = () => {
+                setEstado("error");
+                if (tablaContenedor) tablaContenedor.innerHTML = "<p class='tiny'>Error al cargar los registros.</p>";
+            };
+            document.body.appendChild(s);
+        }
+
+        // ---------------------- Formatear fecha y hora ----------------------
+        function formatearFecha(fechaISO) {
+            if (!fechaISO) return "";
+            const d = new Date(fechaISO);
+            if (isNaN(d)) return fechaISO;
+            const dia = String(d.getDate()).padStart(2, '0');
+            const mes = String(d.getMonth() + 1).padStart(2, '0');
+            const anio = d.getFullYear();
+            return `${dia}/${mes}/${anio}`;
+        }
+        function formatearHora(valor) {
+            if (!valor) return "";
+            const d = new Date(valor);
+            if (!isNaN(d)) return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+            if (/^\d{1,2}:\d{2}$/.test(valor)) return valor;
+            return "";
+        }
+
+        // ---------------------- Inicializar ----------------------
+        cargarRegistros();
+    </script>
+    <script>
+        // === FILTRO DE BÚSQUEDA ===
+        const buscador = document.getElementById('buscador');
+        if (buscador) {
+            buscador.addEventListener('input', function () {
+                const filtro = this.value.toLowerCase().trim();
+                const filas = document.querySelectorAll('#contenedorTabla table tbody tr');
+
+                filas.forEach(fila => {
+                    const texto = fila.textContent.toLowerCase();
+                    fila.style.display = texto.includes(filtro) ? '' : 'none';
+                });
+            });
+        }
+    </script>
+
+    <script>
+        // ========== VERIFICACIÓN DE SESIÓN CORREGIDA ==========
+        function verificarAutenticacion() {
+            const usuario = localStorage.getItem('usuario');
+            const rol = localStorage.getItem('rol');
+            const loginTime = localStorage.getItem('loginTime');
+
+            console.log('🔍 Verificando sesión:', { usuario, rol, loginTime });
+
+            // ✅ Si NO hay sesión activa, redirigir AL LOGIN CORRECTO
+            if (!usuario || !rol || !loginTime) {
+                console.warn('❌ No hay sesión activa - Redirigiendo a login');
+                window.location.href = '/estadisticas/login.html';
+                return false;
+            }
+
+            // Verificar expiración (24 horas)
+            const ahora = Date.now();
+            const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+
+            if (horasTranscurridas > 24) {
+                console.warn('⏰ Sesión expirada - Redirigiendo a login');
+                localStorage.clear();
+                window.location.href = '/estadisticas/login.html';
+                return false;
+            }
+
+            console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+
+            // Mostrar en el header
+            const userElement = document.getElementById('user-info');
+            if (userElement) {
+                userElement.innerHTML = `${usuario} (${rol})`;
+            }
+
+            return true;
+        }
+
+        // Cerrar sesión
+        function cerrarSesion() {
+            if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                localStorage.clear();
+                // ✅ Redirigir al login CORRECTO
+                window.location.href = '/estadisticas/login.html';
+            }
+        }
+
+        // Verificar al cargar la página - VERSIÓN MEJORADA
+        document.addEventListener('DOMContentLoaded', function () {
+            console.log('📍 Página cargada:', window.location.href);
+
+            // Verificar sesión inmediatamente
+            if (!verificarAutenticacion()) {
+                console.log('🚨 Redirección en proceso...');
+                // Detener cualquier ejecución adicional
+                return;
+            }
+
+            // Solo ejecutar esto si la sesión es válida
+            console.log('✅ Sesión válida, continuando...');
+
+            // Hacer función global
+            window.cerrarSesion = cerrarSesion;
+        });
+
+        // También verificar en window.load por si acaso
+        window.addEventListener('load', function () {
+            console.log('🔄 Window loaded - Verificando sesión nuevamente');
+            verificarAutenticacion();
+        });
+    </script>
+
+    <script src="../main_js/estadoSistema.js"></script>
+</body>
+
+</html>
