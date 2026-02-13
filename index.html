@@ -24,7 +24,6 @@
   /* === 💠 TILE BASE === */
   .tile {
     position: relative;
-    /* importante para enlaces absolutos */
     overflow: hidden;
     backdrop-filter: blur(10px) saturate(140%);
     -webkit-backdrop-filter: blur(10px) saturate(140%);
@@ -39,35 +38,12 @@
     min-height: 160px;
     transition: all 0.25s ease-in-out;
     cursor: pointer;
-    text-decoration: none;
   }
 
   .tile:hover {
     transform: translateY(-4px);
     box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
   }
-
-  /* 🔗 Hace que el enlace cubra todo el tile */
-  .tile a {
-    position: absolute;
-    inset: 0;
-    /* top:0; right:0; bottom:0; left:0 */
-    z-index: 1;
-    text-decoration: none;
-    color: inherit;
-  }
-
-  /* 🧱 El contenido visual va encima del enlace invisible */
-  .tile-content {
-    position: relative;
-    z-index: 2;
-  }
-
-  /* ✨ Suaviza hover visual */
-  .tile:hover .tile-content {
-    opacity: 0.95;
-  }
-
 
   /* === 📏 TAMAÑOS === */
   .tile-wide {
@@ -161,12 +137,10 @@
       grid-template-columns: 1fr;
     }
 
-    /* Los tiles “anchos” vuelven a tamaño normal */
     .tile-wide {
       grid-column: span 1;
     }
 
-    /* Pequeño ajuste de padding y tipografía en móvil */
     .tile {
       padding: 1rem;
     }
@@ -186,7 +160,6 @@
       opacity: 0;
       transform: translateY(20px) scale(0.98);
     }
-
     to {
       opacity: 1;
       transform: translateY(0) scale(1);
@@ -198,42 +171,16 @@
     animation: tileFadeIn 0.6s ease-out forwards;
   }
 
-  /* Efecto escalonado */
-  .tile:nth-child(1) {
-    animation-delay: 0.1s;
-  }
-
-  .tile:nth-child(2) {
-    animation-delay: 0.2s;
-  }
-
-  .tile:nth-child(3) {
-    animation-delay: 0.3s;
-  }
-
-  .tile:nth-child(4) {
-    animation-delay: 0.4s;
-  }
-
-  .tile:nth-child(5) {
-    animation-delay: 0.5s;
-  }
-
-  .tile:nth-child(6) {
-    animation-delay: 0.6s;
-  }
-
-  .tile:nth-child(7) {
-    animation-delay: 0.7s;
-  }
-
-  .tile:nth-child(8) {
-    animation-delay: 0.8s;
-  }
-
-  .tile:nth-child(9) {
-    animation-delay: 0.9s;
-  }
+  .tile:nth-child(1) { animation-delay: 0.1s; }
+  .tile:nth-child(2) { animation-delay: 0.2s; }
+  .tile:nth-child(3) { animation-delay: 0.3s; }
+  .tile:nth-child(4) { animation-delay: 0.4s; }
+  .tile:nth-child(5) { animation-delay: 0.5s; }
+  .tile:nth-child(6) { animation-delay: 0.6s; }
+  .tile:nth-child(7) { animation-delay: 0.7s; }
+  .tile:nth-child(8) { animation-delay: 0.8s; }
+  .tile:nth-child(9) { animation-delay: 0.9s; }
+  .tile:nth-child(10) { animation-delay: 1.0s; }
 </style>
 
 <body>
@@ -241,6 +188,7 @@
     <h5>Departamento de Estadísticas y Archivo Clínico</h5>
     <h6>Hospital Regional Puerto Vallarta</h6>
     <div id="header"></div>
+    
     <!-- 🏥 Panel principal tipo Lumia + Glassmorphism -->
     <div class="grid-lumia-glass">
 
@@ -306,55 +254,46 @@
         <h4>Resumen estadístico</h4>
         <p>📊 Egresos: 147 esta semana<br>🧾 Consultas: 320<br>🧠 Promedio estancia: 4.2 días</p>
       </div>
-      <a href="/estadisticas/defunciones/principales1.html">
-        <div class="tile tile-wide naranja">
-          <h3><i class="fa-solid fa-chart-column"></i></h3>
-          <h4> Defunciones</h4>
-          <p>Principales Causas</p>
-        </div>
-      </a>
 
-      <!-- Panel de graficas -->
-      <a href="/estadisticas/graficas/">
-        <div class="tile amarillo">
-          <h3><i class="fa-solid fa-chart-column"></i></h3>
-          <h4>Gráficas</h4>
-          <p>Egresos, Urgencias, <br>Lesiones, Nacimientos y <br>Defunciones</p>
-        </div>
-      </a>
+      <!-- Defunciones (con enlace mediante onclick) -->
+      <div class="tile tile-wide naranja" onclick="window.location.href='/estadisticas/defunciones/principales1.html'">
+        <h3><i class="fa-solid fa-chart-column"></i></h3>
+        <h4>Defunciones</h4>
+        <p>Principales Causas</p>
+      </div>
+
+      <!-- Panel de gráficas (con enlace mediante onclick) -->
+      <div class="tile amarillo" onclick="window.location.href='/estadisticas/graficas/'">
+        <h3><i class="fa-solid fa-chart-column"></i></h3>
+        <h4>Gráficas</h4>
+        <p>Egresos, Urgencias, <br>Lesiones, Nacimientos y <br>Defunciones</p>
+      </div>
     </div>
     <div id="footer"></div>
   </div>
+
   <script>
+    // Cargar header
     fetch('/estadisticas/comun/header.html')
       .then(r => r.text())
       .then(html => {
         document.getElementById('header').innerHTML = html;
-
-        // Cargar sesión.js después de insertar el HTML
-        const s = document.createElement('script');
-        s.src = '/estadisticas/comun/sesion_bk.js';
-
-        s.onload = () => {
-          console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
-          verificarAutenticacion();
-        };
-
-        document.body.appendChild(s);
+        // La verificación de sesión se hará mediante el script cargado abajo
       });
 
+    // Cargar footer
     fetch('/estadisticas/comun/footer.html')
       .then(r => r.text())
       .then(html => {
         document.getElementById('footer').innerHTML = html;
-
-        // Ya existe footerText
         const footer = document.getElementById('footerText');
         if (footer) {
           footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
         }
       });
   </script>
+  
+  <!-- Scripts - Cargados UNA SOLA VEZ -->
   <script src="/estadisticas/comun/estadoSistema.js"></script>
   <script src="/estadisticas/comun/sesion_bk.js"></script>
 </body>
