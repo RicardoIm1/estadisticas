@@ -2,9 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Estadísticas y Archivo Clínico</title>
-    <link rel="shortcut icon" href="..img/favicon.ico" type="image/x-icon">
-    <link rel="icon" href="..img/favicon.ico" type="image/x-icon">
+  <title>URGENCIAS</title>
+  <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/img/favicon.ico" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -14,82 +14,99 @@
 </head>
 
 <body>
-  <!-- Loader -->
-  <div id="loader-pagina">
-    <div class="spinner"></div>
-    <div style="margin-top: 10px;">Inicializando terminal...</div>
-  </div>
-
-  <div class="terminal-flex">
-    <!-- Escaneo + Formulario -->
-   <div class="terminal-escaneo">
-      <h2>Ingresos por Urgencias</h2>
-      <div id="reader"></div>
-      <div id="status">
-        »PRESIONA "INICIAR ESCANEO" DESPUÉS DE LLENAR LOS CAMPOS«
-      </div>
-
-      <div id="formularioAdicional">
-        <label for="motivo">MOTIVO:</label>
-        <input type="text" id="motivo" placeholder="EJ. CAÍDA DE MOTOCICLETA" required>
-
-        <label for="cajera">CAJERO(A):</label>
-        <select id="cajera" required>
-          <option value="">-- SELECCIONA TU NOMBRE --</option>
-          <option value="ALICIA">ALICIA</option>
-          <option value="ANGELICA">ANGELICA</option>
-          <option value="BELEN">BELEN</option>
-          <option value="FELIX">FELIX</option>
-          <option value="KARLA V">KARLA V</option>
-          <option value="ROCIO">ROCIO</option>
-          <option value="RUBI">RUBI</option>
-        </select>
-
-        <label for="referencia">NÚMERO DE REFERENCIA:</label>
-        <input type="text" id="referencia" placeholder="EJ. EXPEDIENTE" required>
-
-        <label for="observaciones">OBSERVACIONES:</label>
-        <textarea id="observaciones" placeholder="COMENTARIOS ADICIONALES..."></textarea>
-      </div>
-
-      <div class="button-group">
-        <button id="btnStart">INICIAR ESCANEO</button>
-        <button id="btnStop" disabled>DETENER</button>
-      </div>
+  <div class="glass" id="dashboard">
+    <!-- <h5>Inicio</h5> -->    
+    <!-- Loader -->
+    <div id="loader-pagina">
+      <div class="spinner"></div>
+      <div style="margin-top: 10px;">Inicializando terminal...</div>
     </div>
- 
-    <!-- Tabla dinámica -->
-    <div class="terminal-tabla">
-      <input type="text" id="busqueda" placeholder="Buscar..." 
-             style="margin-bottom: 10px; width: 100%; padding: 6px; font-family: 'Courier New'; background: #222; color: #0f0; border: 1px solid #0f0;">
-      <table class="pacientes" id="pacientes">
-        <thead>
-          <tr>
-            <th>FOLIO</th><th>FECHA</th><th>HORA</th><th>CURP</th><th>PATERNO</th><th>MATERNO</th>
-            <th>NOMBRE(S)</th><th>FECHA NAC</th><th>SEXO</th><th>ENTIDAD</th>
-            <th>MOTIVO</th><th>EDAD</th><th>CAJERO(A)</th><th>REFERENCIA</th><th>OBSERVACIONES</th>
-          </tr>
-        </thead>
-        <tbody id="tabla-pacientes">
-          <tr>
-            <td colspan="16" style="text-align: center;">Cargando registros...</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-  <div>
-<!--     <footer>
+    
+    <div class="header">
+      <div class="logo">
+        <a href="/estadisticas" > <img src="../img/logo-hrpv.png" alt="Logo" width="120"></a>
+        <h2>Ingresos por Urgencias</h2>
+      </div>
+
+      <div class="usuario">
+        <i class="fas fa-user-circle"></i>
+          <span id="user-info"></span>
+          <!-- Botón de cerrar sesión -->
+          <button onclick="cerrarSesion()" class="btn-salir-ultra">
+          Salir
+        </button>
+      </div>
+      <div class="terminal-flex">
+        <!-- Escaneo + Formulario -->
+        <div class="terminal-escaneo">
+          <div id="reader"></div>
+          <div id="status" style="width: 100%; text-align: center; margin: 10px 0;">
+            » PRESIONA "INICIAR ESCANEO" DESPUÉS DE LLENAR LOS CAMPOS «
+          </div>
+
+          <div id="formularioAdicional">
+            <label for="motivo">MOTIVO:</label>
+            <input type="text" id="motivo" placeholder="EJ. CAÍDA DE MOTOCICLETA" required>
+
+            <label for="cajera">CAJERO(A):</label>
+            <select id="cajera" required>
+              <option value="">-- SELECCIONA TU NOMBRE --</option>
+              <option value="ALICIA">ALICIA</option>
+              <option value="ANGELICA">ANGELICA</option>
+              <option value="BELEN">BELEN</option>
+              <option value="FELIX">FELIX</option>
+              <option value="KARLA V">KARLA V</option>
+              <option value="ROCIO">ROCIO</option>
+              <option value="RUBI">RUBI</option>
+            </select>
+
+            <label for="referencia">NÚMERO DE REFERENCIA:</label>
+            <input type="text" id="referencia" placeholder="EJ. EXPEDIENTE" required>
+
+            <label for="observaciones">OBSERVACIONES:</label>
+            <textarea id="observaciones" placeholder="COMENTARIOS ADICIONALES..."></textarea>
+          </div>
+
+          <div class="button-group">
+            <button id="btnStart">INICIAR ESCANEO</button>
+            <button id="btnStop" disabled>DETENER</button>
+            <!--button id="btnRefresh" title="Actualizar tabla">ACTUALIZAR</button-->
+          </div>
+        </div>
+
+        <!-- Tabla dinámica -->
+        <div class="terminal-tabla">
+          <input type="text" id="busqueda" placeholder="Buscar..." 
+                style="margin-bottom: 10px; width: 100%; padding: 6px; font-family: 'Courier New'; background: #222; color: #0f0; border: 1px solid #0f0;">
+          <table class="pacientes" id="pacientes">
+            <thead>
+              <tr>
+                <th>FOLIO</th><th>FECHA</th><th>HORA</th><th>CURP</th><th>PATERNO</th><th>MATERNO</th>
+                <th>NOMBRE(S)</th><th>FECHA NAC.</th><th>SEXO</th><th>ENTIDAD</th>
+                <th>MOTIVO</th><th>EDAD</th><th>CAJERO(A)</th><th>REFERENCIA</th><th>OBSERVACIONES</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-pacientes">
+              <tr>
+                <td colspan="16" style="text-align: center;">Cargando registros...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <div>
+    <footer>
       <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
-    </footer> -->
+    </footer>
   </div>
 
   <script>
     // Footer dinámico
-/*     document.getElementById('footerText').innerHTML =
-      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`; */
-    
-    const URL_API = "https://script.google.com/macros/s/AKfycbzBL9Ms9YkkB_M8xnMepCSQ7zT3wXHTJXiM82GojntZy25bddXiQBp3QjxCrCEldNb6_g/exec";
+    document.getElementById('footerText').innerHTML =
+      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`; 
+
+    //const URL_API = "https://script.google.com/macros/s/AKfycbzBL9Ms9YkkB_M8xnMepCSQ7zT3wXHTJXiM82GojntZy25bddXiQBp3QjxCrCEldNb6_g/exec";
+    const URL_API = "https://script.google.com/macros/s/AKfycbwEgr4ICW8Rx8aPf5JPCUEoGKF3fOs8Cz9aUv69q5Jpiwd0vhoE950niuuWegpgqq7i0g/exec";
     let html5QrCode, filaDestacada = null;
 
     // Función para formatear fecha dd/mm/yyyy
@@ -108,12 +125,12 @@
 // Función para formatear hora hh:mm (FRONTEND)
 function formatearHora(valor) {
   if (!valor) return "";
-  
+
   // Si ya está en formato hh:mm, devolverlo tal cual
   if (typeof valor === 'string' && /^\d{2}:\d{2}$/.test(valor)) {
     return valor;
   }
-  
+
   // Si es un objeto Date o timestamp
   const fecha = new Date(valor);
   if (!isNaN(fecha)) {
@@ -123,28 +140,28 @@ function formatearHora(valor) {
       hour12: false // Formato 24 horas
     });
   }
-  
+
   // Si es string con formato "8:42:52 p.m."
   if (typeof valor === 'string') {
     try {
       if (valor.includes('p.m.') || valor.includes('a.m.')) {
         const [horaPart] = valor.split(' ');
         const [horas, minutos] = horaPart.split(':');
-        
+
         let horas24 = parseInt(horas);
         if (valor.includes('p.m.') && horas24 < 12) {
           horas24 += 12;
         } else if (valor.includes('a.m.') && horas24 === 12) {
           horas24 = 0;
         }
-        
+
         return horas24.toString().padStart(2, '0') + ':' + minutos.padStart(2, '0');
       }
     } catch (e) {
       console.warn("Error formateando hora:", valor, e);
     }
   }
-  
+
   return valor; // Devolver original si no se puede formatear
 }
 
@@ -152,18 +169,18 @@ function formatearHora(valor) {
     function filtrarTabla() {
       const input = document.getElementById("busqueda").value.toLowerCase();
       const filas = document.querySelectorAll("#tabla-pacientes tr");
-      
+
       for (let i = 0; i < filas.length; i++) {
         const celdas = filas[i].getElementsByTagName("td");
         let coincide = false;
-        
+
         for (let j = 0; j < celdas.length; j++) {
           if (celdas[j] && celdas[j].textContent && celdas[j].textContent.toLowerCase().includes(input)) { 
             coincide = true; 
             break; 
           }
         }
-        
+
         filas[i].style.display = coincide ? "" : "none";
       }
     }
@@ -171,7 +188,7 @@ function formatearHora(valor) {
     // 📋 Carga registros desde Google Sheets - VERSIÓN SIMPLIFICADA
     function cargarTabla() {
       console.log("Cargando tabla desde:", URL_API);
-      
+
       fetch(URL_API + '?action=get')
         .then(response => {
           if (!response.ok) {
@@ -183,16 +200,16 @@ function formatearHora(valor) {
           console.log("Registros recibidos:", registros);
           const cuerpo = document.getElementById("tabla-pacientes");
           cuerpo.innerHTML = "";
-          
+
           if (!registros || registros.length === 0) {
             cuerpo.innerHTML = "<tr><td colspan='16' style='text-align:center'>No hay registros disponibles.</td></tr>";
             return;
           }
-          
+
           // Mostrar registros
           registros.forEach(reg => {
             const fila = document.createElement("tr");
-            
+
             const valores = [
               reg.folio || reg.FOLIO || "",
               formatearFecha(reg.fecha || reg.FECHA || ""),
@@ -210,14 +227,14 @@ function formatearHora(valor) {
               reg.referencia || reg.REFERENCIA || reg["NUMERO DE REFERENCIA"] || "",
               reg.observaciones || reg.OBSERVACIONES || ""
             ];
-            
+
             valores.forEach(valor => {
               const celda = document.createElement("td");
               celda.textContent = valor;
               celda.style.color = "#0f0"; // Forzar color verde
               fila.appendChild(celda);
             });
-            
+
             cuerpo.appendChild(fila);
           });
         })
@@ -235,7 +252,7 @@ function formatearHora(valor) {
         for (const key in datos) {
           formData.append(key, datos[key]);
         }
-        
+
         fetch(URL_API, {
           method: 'POST',
           headers: {
@@ -266,10 +283,10 @@ function formatearHora(valor) {
         setTimeout(() => loader.style.display = 'none', 500);
         cargarTabla();
       }, 2000);
-      
+
       // Configurar evento de búsqueda
       document.getElementById("busqueda").addEventListener("keyup", filtrarTabla);
-      
+
       // Configurar botón de actualización
       document.getElementById("btnRefresh").addEventListener("click", cargarTabla);
     });
@@ -285,12 +302,12 @@ function formatearHora(valor) {
       const motivo = document.getElementById('motivo').value;
       const cajera = document.getElementById('cajera').value;
       const referencia = document.getElementById('referencia').value;
-      
+
       if (!motivo || !cajera || !referencia) {
         status.innerHTML = "<span style='color: #f00;'>✗ COMPLETA TODOS LOS CAMPOS OBLIGATORIOS ✗</span>";
         return;
       }
-      
+
       try {
         html5QrCode = new Html5Qrcode("reader");
         btnStart.disabled = true; 
@@ -315,12 +332,12 @@ function formatearHora(valor) {
             enviarDatos(datosEnvio)
             .then(response => {
               status.innerHTML = "<span style='color: #0f0;'>✓ REGISTRO EXITOSO: " + response.folio + "</span>";
-              
+
               // Limpiar formulario
               document.getElementById('motivo').value = '';
               document.getElementById('referencia').value = '';
               document.getElementById('observaciones').value = '';
-              
+
               // Recargar tabla
               setTimeout(cargarTabla, 1000);
             })
@@ -371,36 +388,88 @@ function formatearHora(valor) {
     });
   </script>
   <script>
-// Verificar si el usuario está logueado
-function verificarAutenticacion() {
-    const usuario = localStorage.getItem('usuario');
-    const rol = localStorage.getItem('rol');
-    
-    if (!usuario) {
-        window.location.href = 'index.html';
-        return;
+    // ========== VERIFICACIÓN DE SESIÓN MEJORADA ==========
+    function verificarAutenticacion() {
+        const usuario = localStorage.getItem('usuario');
+        const rol = localStorage.getItem('rol');
+        const loginTime = localStorage.getItem('loginTime');
+        
+        if (!usuario || !rol || !loginTime) {
+            console.log('❌ No hay sesión activa');
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        // Verificar expiración (24 horas)
+        const ahora = new Date().getTime();
+        const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+        
+        if (horasTranscurridas > 24) {
+            console.log('⏰ Sesión expirada');
+            localStorage.clear();
+            window.location.href = 'index.html';
+            return;
+        }
+        
+        console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+        
+        // Mostrar en el header
+        const userElement = document.getElementById('user-info');
+        if (userElement) {
+            userElement.innerHTML = `${usuario} (${rol})`;
+        }
     }
-    
-    // Mostrar información del usuario
-    console.log('Usuario:', usuario, 'Rol:', rol);
-    
-    // Mostrar en la interfaz
-    const userElement = document.getElementById('user-info');
-    if (userElement) {
-        userElement.innerHTML = `${usuario} (${rol})`;
-    }
-}
 
-// Cerrar sesión
-function cerrarSesion() {
-    localStorage.removeItem('usuario');
-    localStorage.removeItem('rol'); 
-    localStorage.removeItem('loginTime');
-    window.location.href = 'index.html';
-}
+        // Cerrar sesión
+        function cerrarSesion() {
+          if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+            localStorage.clear();
 
-// Verificar al cargar la página
-window.addEventListener('load', verificarAutenticacion);
-</script>
-</body>
+            // ✅ Ajusta la ruta de redirección al LOGIN REAL
+            // Si el login está en la raíz del proyecto:
+            window.location.href = '/estadisticas/login.html';
+            // o, si estás dentro de una subcarpeta (por ejemplo, /panel/):
+            // window.location.href = '../login.html';
+          }
+        }
+       
+        // Verificar al cargar la página
+        window.addEventListener('load', verificarAutenticacion);
+        
+        // Hacer función global
+        window.cerrarSesion = cerrarSesion;
+
+        function verificarAutenticacion() {
+          const usuario = localStorage.getItem('usuario');
+          const rol = localStorage.getItem('rol');
+          const loginTime = localStorage.getItem('loginTime');
+
+          // ✅ Si no hay sesión activa, manda al login sin parpadeo
+          if (!usuario || !rol || !loginTime) {
+            console.warn('❌ No hay sesión activa');
+            window.location.replace('/login.html');
+            return;
+          }
+
+          // Verificar expiración (24 horas)
+          const ahora = Date.now();
+          const horasTranscurridas = (ahora - parseInt(loginTime)) / (1000 * 60 * 60);
+
+          if (horasTranscurridas > 24) {
+            console.warn('⏰ Sesión expirada');
+            localStorage.clear();
+            window.location.replace('estadisticas/login.html');
+            return;
+          }
+
+          console.log('✅ Sesión activa:', usuario, 'Rol:', rol);
+
+          const userElement = document.getElementById('user-info');
+          if (userElement) {
+            userElement.innerHTML = `${usuario} (${rol})`;
+          }
+        }
+
+    </script>
+  </body>
 </html>
