@@ -271,55 +271,33 @@
     }
  */
 
+    // Función para enviar datos al servidor - VERSIÓN FINAL CORREGIDA
     function enviarDatos(datos) {
       return new Promise((resolve, reject) => {
-        const formData = new URLSearchParams();
-        for (const key in datos) {
-          formData.append(key, datos[key]);
-        }
+        console.log("Enviando a:", URL_API);
+        console.log("Datos:", datos);
 
         fetch(URL_API, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'Content-Type': 'application/json'
           },
-          body: formData
+          body: JSON.stringify(datos)
         })
-          .then(response => response.text()) // Siempre obtener como texto
-          .then(text => {
-            console.log("Respuesta del servidor:", text);
-
-            // Intentar parsear como JSON si es posible
-            try {
-              const jsonData = JSON.parse(text);
-              if (jsonData && jsonData.success) {
-                resolve(jsonData);
-              } else {
-                reject(jsonData && jsonData.error ? jsonData.error : 'Error en respuesta');
-              }
-            } catch (e) {
-              // No es JSON, pero puede ser texto con información útil
-              // Buscar patrones como "folio: ABC123" o "folio=ABC123"
-              const folioMatch = text.match(/folio[:\s]+([A-Z0-9]+)/i) ||
-                text.match(/folio=([^&\s]+)/);
-
-              if (folioMatch) {
-                resolve({
-                  success: true,
-                  folio: folioMatch[1],
-                  rawResponse: text
-                });
-              } else {
-                // Si no hay folio, asumimos éxito pero con mensaje
-                resolve({
-                  success: true,
-                  folio: 'SIN-FOLIO',
-                  message: text.substring(0, 200)
-                });
-              }
+          .then(response => {
+            console.log("Respuesta status:", response.status);
+            return response.json(); // El GAS devuelve JSON
+          })
+          .then(data => {
+            console.log("Respuesta data:", data);
+            if (data && data.success) {
+              resolve(data);
+            } else {
+              reject(data && data.error ? data.error : 'Error desconocido');
             }
           })
           .catch(error => {
+            console.error("Error en fetch:", error);
             reject('Error de conexión: ' + error.message);
           });
       });
