@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8" />
   <title>Estadísticas y Archivo Clínico</title>
-  <link rel="shortcut icon" href="..img/favicon.ico" type="image/x-icon">
-  <link rel="icon" href="..img/favicon.ico" type="image/x-icon">
+    <link rel="shortcut icon" href="..img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="..img/favicon.ico" type="image/x-icon">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -23,7 +22,7 @@
 
   <div class="terminal-flex">
     <!-- Escaneo + Formulario -->
-    <div class="terminal-escaneo">
+   <div class="terminal-escaneo">
       <h2>Ingresos por Urgencias</h2>
       <div id="reader"></div>
       <div id="status">
@@ -58,29 +57,17 @@
         <button id="btnStop" disabled>DETENER</button>
       </div>
     </div>
-
+ 
     <!-- Tabla dinámica -->
     <div class="terminal-tabla">
-      <input type="text" id="busqueda" placeholder="Buscar..."
-        style="margin-bottom: 10px; width: 100%; padding: 6px; font-family: 'Courier New'; background: #222; color: #0f0; border: 1px solid #0f0;">
+      <input type="text" id="busqueda" placeholder="Buscar..." 
+             style="margin-bottom: 10px; width: 100%; padding: 6px; font-family: 'Courier New'; background: #222; color: #0f0; border: 1px solid #0f0;">
       <table class="pacientes" id="pacientes">
         <thead>
           <tr>
-            <th>FOLIO</th>
-            <th>FECHA</th>
-            <th>HORA</th>
-            <th>CURP</th>
-            <th>PATERNO</th>
-            <th>MATERNO</th>
-            <th>NOMBRE(S)</th>
-            <th>FECHA NAC</th>
-            <th>SEXO</th>
-            <th>ENTIDAD</th>
-            <th>MOTIVO</th>
-            <th>EDAD</th>
-            <th>CAJERO(A)</th>
-            <th>REFERENCIA</th>
-            <th>OBSERVACIONES</th>
+            <th>FOLIO</th><th>FECHA</th><th>HORA</th><th>CURP</th><th>PATERNO</th><th>MATERNO</th>
+            <th>NOMBRE(S)</th><th>FECHA NAC</th><th>SEXO</th><th>ENTIDAD</th>
+            <th>MOTIVO</th><th>EDAD</th><th>CAJERO(A)</th><th>REFERENCIA</th><th>OBSERVACIONES</th>
           </tr>
         </thead>
         <tbody id="tabla-pacientes">
@@ -92,18 +79,16 @@
     </div>
   </div>
   <div>
-    <!--     <footer>
+<!--     <footer>
       <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
     </footer> -->
   </div>
 
   <script>
     // Footer dinámico
-    /*     document.getElementById('footerText').innerHTML =
-          `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`; */
-
-    const PROXY_URL = 'https://api.allorigins.win/raw?url=';
-
+/*     document.getElementById('footerText').innerHTML =
+      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`; */
+    
     const URL_API = "https://script.google.com/macros/s/AKfycbzBL9Ms9YkkB_M8xnMepCSQ7zT3wXHTJXiM82GojntZy25bddXiQBp3QjxCrCEldNb6_g/exec";
     let html5QrCode, filaDestacada = null;
 
@@ -120,64 +105,65 @@
     }
 
     // Función para formatear hora hh:mm
-    function formatearHora(valor) {
-      if (!valor) return "";
-
-      // Si ya está en formato hh:mm, devolverlo tal cual
-      if (typeof valor === 'string' && /^\d{2}:\d{2}$/.test(valor)) {
-        return valor;
-      }
-
-      // Si es un objeto Date o timestamp
-      const fecha = new Date(valor);
-      if (!isNaN(fecha)) {
-        return fecha.toLocaleTimeString("es-MX", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false // Formato 24 horas
-        });
-      }
-
-      // Si es string con formato "8:42:52 p.m."
-      if (typeof valor === 'string') {
-        try {
-          if (valor.includes('p.m.') || valor.includes('a.m.')) {
-            const [horaPart] = valor.split(' ');
-            const [horas, minutos] = horaPart.split(':');
-
-            let horas24 = parseInt(horas);
-            if (valor.includes('p.m.') && horas24 < 12) {
-              horas24 += 12;
-            } else if (valor.includes('a.m.') && horas24 === 12) {
-              horas24 = 0;
-            }
-
-            return horas24.toString().padStart(2, '0') + ':' + minutos.padStart(2, '0');
-          }
-        } catch (e) {
-          console.warn("Error formateando hora:", valor, e);
+// Función para formatear hora hh:mm (FRONTEND)
+function formatearHora(valor) {
+  if (!valor) return "";
+  
+  // Si ya está en formato hh:mm, devolverlo tal cual
+  if (typeof valor === 'string' && /^\d{2}:\d{2}$/.test(valor)) {
+    return valor;
+  }
+  
+  // Si es un objeto Date o timestamp
+  const fecha = new Date(valor);
+  if (!isNaN(fecha)) {
+    return fecha.toLocaleTimeString("es-MX", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false // Formato 24 horas
+    });
+  }
+  
+  // Si es string con formato "8:42:52 p.m."
+  if (typeof valor === 'string') {
+    try {
+      if (valor.includes('p.m.') || valor.includes('a.m.')) {
+        const [horaPart] = valor.split(' ');
+        const [horas, minutos] = horaPart.split(':');
+        
+        let horas24 = parseInt(horas);
+        if (valor.includes('p.m.') && horas24 < 12) {
+          horas24 += 12;
+        } else if (valor.includes('a.m.') && horas24 === 12) {
+          horas24 = 0;
         }
+        
+        return horas24.toString().padStart(2, '0') + ':' + minutos.padStart(2, '0');
       }
-
-      return valor; // Devolver original si no se puede formatear
+    } catch (e) {
+      console.warn("Error formateando hora:", valor, e);
     }
+  }
+  
+  return valor; // Devolver original si no se puede formatear
+}
 
     // Función para filtrar la tabla
     function filtrarTabla() {
       const input = document.getElementById("busqueda").value.toLowerCase();
       const filas = document.querySelectorAll("#tabla-pacientes tr");
-
+      
       for (let i = 0; i < filas.length; i++) {
         const celdas = filas[i].getElementsByTagName("td");
         let coincide = false;
-
+        
         for (let j = 0; j < celdas.length; j++) {
-          if (celdas[j] && celdas[j].textContent && celdas[j].textContent.toLowerCase().includes(input)) {
-            coincide = true;
-            break;
+          if (celdas[j] && celdas[j].textContent && celdas[j].textContent.toLowerCase().includes(input)) { 
+            coincide = true; 
+            break; 
           }
         }
-
+        
         filas[i].style.display = coincide ? "" : "none";
       }
     }
@@ -185,7 +171,7 @@
     // 📋 Carga registros desde Google Sheets - VERSIÓN SIMPLIFICADA
     function cargarTabla() {
       console.log("Cargando tabla desde:", URL_API);
-
+      
       fetch(URL_API + '?action=get')
         .then(response => {
           if (!response.ok) {
@@ -197,16 +183,16 @@
           console.log("Registros recibidos:", registros);
           const cuerpo = document.getElementById("tabla-pacientes");
           cuerpo.innerHTML = "";
-
+          
           if (!registros || registros.length === 0) {
             cuerpo.innerHTML = "<tr><td colspan='16' style='text-align:center'>No hay registros disponibles.</td></tr>";
             return;
           }
-
+          
           // Mostrar registros
           registros.forEach(reg => {
             const fila = document.createElement("tr");
-
+            
             const valores = [
               reg.folio || reg.FOLIO || "",
               formatearFecha(reg.fecha || reg.FECHA || ""),
@@ -224,14 +210,14 @@
               reg.referencia || reg.REFERENCIA || reg["NUMERO DE REFERENCIA"] || "",
               reg.observaciones || reg.OBSERVACIONES || ""
             ];
-
+            
             valores.forEach(valor => {
               const celda = document.createElement("td");
               celda.textContent = valor;
               celda.style.color = "#0f0"; // Forzar color verde
               fila.appendChild(celda);
             });
-
+            
             cuerpo.appendChild(fila);
           });
         })
@@ -243,64 +229,31 @@
     }
 
     // Función para enviar datos al servidor - VERSIÓN SIMPLIFICADA
-    /*     function enviarDatos(datos) {
-          return new Promise((resolve, reject) => {
-            const formData = new URLSearchParams();
-            for (const key in datos) {
-              formData.append(key, datos[key]);
-            }
-            
-            fetch(URL_API, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-              },
-              body: formData
-            })
-            .then(response => response.json())
-            .then(data => {
-              if (data && data.success) {
-                resolve(data);
-              } else {
-                reject(data && data.error ? data.error : 'Error desconocido');
-              }
-            })
-            .catch(error => {
-              reject('Error de conexión: ' + error.message);
-            });
-          });
-        } */
-
-    // Proxy más confiable que cors-anywhere
-    
     function enviarDatos(datos) {
       return new Promise((resolve, reject) => {
-        // Codificar la URL completa
-        const targetUrl = encodeURIComponent(URL_API);
-
-        fetch(PROXY_URL + targetUrl, {
+        const formData = new URLSearchParams();
+        for (const key in datos) {
+          formData.append(key, datos[key]);
+        }
+        
+        fetch(URL_API, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/x-www-form-urlencoded'
           },
-          body: JSON.stringify(datos)
+          body: formData
         })
-          .then(response => response.text()) // AllOrigins devuelve texto
-          .then(text => {
-            try {
-              const data = JSON.parse(text);
-              if (data && data.success) {
-                resolve(data);
-              } else {
-                reject(data && data.error ? data.error : 'Error desconocido');
-              }
-            } catch (e) {
-              reject('Error parseando respuesta: ' + text.substring(0, 100));
-            }
-          })
-          .catch(error => {
-            reject('Error: ' + error.message);
-          });
+        .then(response => response.json())
+        .then(data => {
+          if (data && data.success) {
+            resolve(data);
+          } else {
+            reject(data && data.error ? data.error : 'Error desconocido');
+          }
+        })
+        .catch(error => {
+          reject('Error de conexión: ' + error.message);
+        });
       });
     }
 
@@ -313,10 +266,10 @@
         setTimeout(() => loader.style.display = 'none', 500);
         cargarTabla();
       }, 2000);
-
+      
       // Configurar evento de búsqueda
       document.getElementById("busqueda").addEventListener("keyup", filtrarTabla);
-
+      
       // Configurar botón de actualización
       document.getElementById("btnRefresh").addEventListener("click", cargarTabla);
     });
@@ -332,15 +285,15 @@
       const motivo = document.getElementById('motivo').value;
       const cajera = document.getElementById('cajera').value;
       const referencia = document.getElementById('referencia').value;
-
+      
       if (!motivo || !cajera || !referencia) {
         status.innerHTML = "<span style='color: #f00;'>✗ COMPLETA TODOS LOS CAMPOS OBLIGATORIOS ✗</span>";
         return;
       }
-
+      
       try {
         html5QrCode = new Html5Qrcode("reader");
-        btnStart.disabled = true;
+        btnStart.disabled = true; 
         btnStop.disabled = false;
         status.textContent = "» INICIANDO CÁMARA... «";
         reader.classList.add('scanning');
@@ -360,23 +313,23 @@
 
             // Enviar datos
             enviarDatos(datosEnvio)
-              .then(response => {
-                status.innerHTML = "<span style='color: #0f0;'>✓ REGISTRO EXITOSO: " + response.folio + "</span>";
-
-                // Limpiar formulario
-                document.getElementById('motivo').value = '';
-                document.getElementById('referencia').value = '';
-                document.getElementById('observaciones').value = '';
-
-                // Recargar tabla
-                setTimeout(cargarTabla, 1000);
-              })
-              .catch(err => {
-                status.innerHTML = "<span style='color: #f00;'>✗ ERROR: " + err + "</span>";
-              });
+            .then(response => {
+              status.innerHTML = "<span style='color: #0f0;'>✓ REGISTRO EXITOSO: " + response.folio + "</span>";
+              
+              // Limpiar formulario
+              document.getElementById('motivo').value = '';
+              document.getElementById('referencia').value = '';
+              document.getElementById('observaciones').value = '';
+              
+              // Recargar tabla
+              setTimeout(cargarTabla, 1000);
+            })
+            .catch(err => {
+              status.innerHTML = "<span style='color: #f00;'>✗ ERROR: " + err + "</span>";
+            });
 
             html5QrCode.stop().then(() => {
-              btnStart.disabled = false;
+              btnStart.disabled = false; 
               btnStop.disabled = true;
               reader.classList.remove('scanning');
             });
@@ -387,14 +340,14 @@
         ).catch(err => {
           console.error(err);
           status.innerHTML = "<span style='color: #f00;'>✗ ERROR AL INICIAR CÁMARA ✗</span>";
-          btnStart.disabled = false;
+          btnStart.disabled = false; 
           btnStop.disabled = true;
           reader.classList.remove('scanning');
         });
       } catch (err) {
         console.error(err);
         status.innerHTML = "<span style='color: #f00;'>ERROR: NO SE CARGÓ HTML5QRCODE</span>";
-        btnStart.disabled = false;
+        btnStart.disabled = false; 
         btnStop.disabled = true;
         reader.classList.remove('scanning');
       }
@@ -404,13 +357,13 @@
       if (html5QrCode && html5QrCode.isScanning) {
         html5QrCode.stop().then(() => {
           status.textContent = "» ESCANEO DETENIDO «";
-          btnStart.disabled = false;
+          btnStart.disabled = false; 
           btnStop.disabled = true;
           reader.classList.remove('scanning');
         }).catch(err => {
           console.error(err);
           status.textContent = "» ERROR AL DETENER ESCANEO «";
-          btnStart.disabled = false;
+          btnStart.disabled = false; 
           btnStop.disabled = true;
           reader.classList.remove('scanning');
         });
@@ -418,37 +371,36 @@
     });
   </script>
   <script>
-    // Verificar si el usuario está logueado
-    function verificarAutenticacion() {
-      const usuario = localStorage.getItem('usuario');
-      const rol = localStorage.getItem('rol');
-
-      if (!usuario) {
+// Verificar si el usuario está logueado
+function verificarAutenticacion() {
+    const usuario = localStorage.getItem('usuario');
+    const rol = localStorage.getItem('rol');
+    
+    if (!usuario) {
         window.location.href = 'index.html';
         return;
-      }
-
-      // Mostrar información del usuario
-      console.log('Usuario:', usuario, 'Rol:', rol);
-
-      // Mostrar en la interfaz
-      const userElement = document.getElementById('user-info');
-      if (userElement) {
+    }
+    
+    // Mostrar información del usuario
+    console.log('Usuario:', usuario, 'Rol:', rol);
+    
+    // Mostrar en la interfaz
+    const userElement = document.getElementById('user-info');
+    if (userElement) {
         userElement.innerHTML = `${usuario} (${rol})`;
-      }
     }
+}
 
-    // Cerrar sesión
-    function cerrarSesion() {
-      localStorage.removeItem('usuario');
-      localStorage.removeItem('rol');
-      localStorage.removeItem('loginTime');
-      window.location.href = 'index.html';
-    }
+// Cerrar sesión
+function cerrarSesion() {
+    localStorage.removeItem('usuario');
+    localStorage.removeItem('rol'); 
+    localStorage.removeItem('loginTime');
+    window.location.href = 'index.html';
+}
 
-    // Verificar al cargar la página
-    window.addEventListener('load', verificarAutenticacion);
-  </script>
+// Verificar al cargar la página
+window.addEventListener('load', verificarAutenticacion);
+</script>
 </body>
-
 </html>
