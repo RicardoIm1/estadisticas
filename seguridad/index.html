@@ -3,245 +3,322 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plan de Acción - Seguridad Google Apps Script</title>
+<title>Plan de Regularización de Seguridad - Sistema GAS</title>
 
 <style>
 :root {
-  --primary: #2563eb;
-  --success: #16a34a;
-  --warning: #f59e0b;
-  --danger: #dc2626;
-  --bg: #f4f6f9;
-  --card: #ffffff;
-  --text: #1f2937;
-  --muted: #6b7280;
+  --primary:#1f2937;
+  --accent:#2563eb;
+  --bg:#f3f4f6;
+  --card:#ffffff;
+  --border:#e5e7eb;
 }
 
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-}
+* { box-sizing:border-box; }
 
 body {
-  background: var(--bg);
-  color: var(--text);
-  line-height: 1.5;
+  margin:0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  background:var(--bg);
+  color:#111827;
 }
 
 header {
-  background: var(--primary);
-  color: white;
-  padding: 1.5rem;
-  text-align: center;
+  background:var(--primary);
+  color:white;
+  padding:1.5rem;
 }
 
 header h1 {
-  font-size: 1.8rem;
+  margin:0;
+  font-size:1.6rem;
 }
 
-header p {
-  opacity: 0.9;
-  font-size: 0.95rem;
+nav {
+  display:flex;
+  flex-wrap:wrap;
+  background:white;
+  border-bottom:1px solid var(--border);
 }
 
-.container {
-  max-width: 1100px;
-  margin: auto;
-  padding: 1.5rem;
+nav button {
+  flex:1;
+  padding:1rem;
+  border:none;
+  background:white;
+  cursor:pointer;
+  font-weight:600;
+  transition:0.2s;
 }
 
-.section {
-  background: var(--card);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+nav button.active {
+  border-bottom:3px solid var(--accent);
+  color:var(--accent);
 }
 
-.section h2 {
-  margin-bottom: 1rem;
-  font-size: 1.2rem;
-  border-left: 4px solid var(--primary);
-  padding-left: 0.5rem;
+nav button:hover {
+  background:#f9fafb;
 }
 
-.task {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 0.75rem;
+section {
+  display:none;
+  padding:1.5rem;
+  max-width:1000px;
+  margin:auto;
 }
 
-.task input {
-  margin-right: 0.75rem;
-  margin-top: 4px;
-  transform: scale(1.2);
+section.active {
+  display:block;
 }
 
-.task label {
-  cursor: pointer;
+.card {
+  background:var(--card);
+  padding:1.2rem;
+  margin-bottom:1rem;
+  border-radius:8px;
+  border:1px solid var(--border);
 }
 
-.task.completed label {
-  text-decoration: line-through;
-  color: var(--muted);
+.card h3 {
+  margin-top:0;
 }
 
-.badge {
-  font-size: 0.75rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 5px;
-  margin-left: 0.5rem;
-  font-weight: 600;
+details {
+  border:1px solid var(--border);
+  border-radius:6px;
+  margin-bottom:0.8rem;
+  background:white;
 }
 
-.critica { background: var(--danger); color: white; }
-.alta { background: var(--warning); color: white; }
-.media { background: var(--success); color: white; }
-
-.progress-container {
-  margin-top: 1rem;
+summary {
+  padding:0.8rem;
+  font-weight:600;
+  cursor:pointer;
+  background:#f9fafb;
 }
 
-progress {
-  width: 100%;
-  height: 20px;
+details div {
+  padding:0.8rem 1rem;
+}
+
+ul {
+  padding-left:1.2rem;
+}
+
+.code {
+  background:#111827;
+  color:#e5e7eb;
+  padding:0.8rem;
+  border-radius:6px;
+  font-family: monospace;
+  overflow:auto;
+  font-size:0.85rem;
 }
 
 footer {
-  text-align: center;
-  padding: 1rem;
-  font-size: 0.85rem;
-  color: var(--muted);
-}
-
-@media (min-width: 768px) {
-  .grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
+  text-align:center;
+  padding:1rem;
+  font-size:0.85rem;
+  color:#6b7280;
 }
 </style>
 </head>
-
 <body>
 
 <header>
-  <h1>Plan de Acción - Seguridad GAS</h1>
-  <p>Checklist operativo para corregir vulnerabilidades en sistema interno</p>
+  <h1>Plan de Regularización y Fortalecimiento de Seguridad</h1>
+  <p>Sistema Interno basado en Google Apps Script + Google Sheets</p>
 </header>
 
-<div class="container">
+<nav>
+  <button class="active" onclick="openTab('diagnostico', this)">Diagnóstico</button>
+  <button onclick="openTab('riesgos', this)">Riesgos Identificados</button>
+  <button onclick="openTab('acciones', this)">Acciones Inmediatas</button>
+  <button onclick="openTab('estrategia', this)">Estrategia Mediano Plazo</button>
+  <button onclick="openTab('datos', this)">Datos Sensibles</button>
+</nav>
 
-<div class="section">
-  <h2>Acciones Inmediatas</h2>
-
-  <div class="task">
-    <input type="checkbox" id="t1">
-    <label for="t1">Desactivar deployment público actual del Apps Script <span class="badge critica">CRÍTICA</span></label>
+<section id="diagnostico" class="active">
+  <div class="card">
+    <h3>Situación Actual</h3>
+    <ul>
+      <li>Sistema interno desarrollado con Google Apps Script.</li>
+      <li>Base de datos almacenada en Google Sheets.</li>
+      <li>Autenticación personalizada mediante usuario y contraseña.</li>
+      <li>Uso de JSONP y GET para login.</li>
+      <li>Contraseñas originalmente almacenadas en texto plano.</li>
+      <li>Control de sesión basado en localStorage.</li>
+    </ul>
   </div>
 
-  <div class="task">
-    <input type="checkbox" id="t2">
-    <label for="t2">Eliminar uso de JSONP y parámetros GET para credenciales <span class="badge critica">CRÍTICA</span></label>
+  <details>
+    <summary>Arquitectura Actual</summary>
+    <div>
+      Frontend en GitHub Pages → Llamadas a GAS público → Google Sheets como almacenamiento.
+      <br><br>
+      Problemas detectados:
+      <ul>
+        <li>Credenciales enviadas por URL.</li>
+        <li>Token de sesión equivalente a contraseña.</li>
+        <li>Endpoint público accesible sin restricción real.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section id="riesgos">
+  <details open>
+    <summary>1. Contraseñas en texto plano</summary>
+    <div>
+      Riesgo alto si alguien accede a la hoja "Usuarios".
+      <div class="code">
+if (u === usuario && c === clave) { }
+      </div>
+    </div>
+  </details>
+
+  <details>
+    <summary>2. Credenciales enviadas por GET</summary>
+    <div>
+      Se almacenan en historial, logs y tráfico visible.
+    </div>
+  </details>
+
+  <details>
+    <summary>3. Sistema de sesión débil</summary>
+    <div>
+      Token = contraseña.
+      No existe validación criptográfica real.
+    </div>
+  </details>
+
+  <details>
+    <summary>4. Datos de categoría especial</summary>
+    <div>
+      Registros de defunciones contienen:
+      <ul>
+        <li>Nombre completo</li>
+        <li>Fecha</li>
+        <li>Área médica</li>
+      </ul>
+      Esto constituye dato personal sensible.
+    </div>
+  </details>
+</section>
+
+<section id="acciones">
+  <div class="card">
+    <h3>Medidas Obligatorias Inmediatas</h3>
   </div>
 
-  <div class="task">
-    <input type="checkbox" id="t3">
-    <label for="t3">Migrar contraseñas en texto plano a hash SHA-256 con sal <span class="badge critica">CRÍTICA</span></label>
+  <details>
+    <summary>Hash de contraseñas (Ejecutar una vez)</summary>
+    <div class="code">
+function migrarContrasenasUnaVez() {
+  var hoja = SpreadsheetApp.getActive().getSheetByName("Usuarios");
+  var datos = hoja.getDataRange().getValues();
+  for (var i=1; i<datos.length; i++) {
+    var claveOriginal = datos[i][1];
+    if (claveOriginal && !claveOriginal.startsWith("hash:")) {
+      var hash = Utilities.computeDigest(
+        Utilities.DigestAlgorithm.SHA_256,
+        claveOriginal + "SAL_SECRETA"
+      ).map(function(b){return ('0'+(b&0xFF).toString(16)).slice(-2);}).join('');
+      datos[i][1] = "hash:" + hash;
+    }
+  }
+  hoja.getRange(1,1,datos.length,datos[0].length).setValues(datos);
+}
+    </div>
+  </details>
+
+  <details>
+    <summary>Bloqueo por intentos fallidos</summary>
+    <div class="code">
+var cache = CacheService.getScriptCache();
+var key = "intento_" + usuario;
+var intentos = parseInt(cache.get(key)) || 0;
+
+if (intentos >= 5) {
+  return responderJSON({ success:false, error:"Espere 15 min" }, e);
+}
+    </div>
+  </details>
+
+  <details>
+    <summary>Restricción de origen</summary>
+    <div class="code">
+output.setHeader(
+  "Access-Control-Allow-Origin",
+  "https://ricardoim1.github.io"
+);
+    </div>
+  </details>
+</section>
+
+<section id="estrategia">
+  <div class="card">
+    <h3>Plan de Evolución</h3>
+    <ul>
+      <li>Eliminar JSONP y migrar a POST con fetch.</li>
+      <li>Implementar token de sesión real con expiración.</li>
+      <li>Eliminar contraseñas permanentes y migrar a OAuth institucional.</li>
+      <li>Controlar accesos mediante Session.getActiveUser().</li>
+      <li>Documentar medidas técnicas implementadas.</li>
+    </ul>
   </div>
 
-</div>
+  <details>
+    <summary>Cronograma sugerido</summary>
+    <div>
+      <ul>
+        <li>Hoy: Hash + bloqueo + cabecera.</li>
+        <li>Esta semana: Migrar a POST.</li>
+        <li>Este mes: Sistema de sesión robusto.</li>
+        <li>Fase futura: OAuth institucional.</li>
+      </ul>
+    </div>
+  </details>
+</section>
 
-<div class="grid">
-
-<div class="section">
-  <h2>Correcciones Técnicas</h2>
-
-  <div class="task">
-    <input type="checkbox" id="t4">
-    <label for="t4">Implementar login vía POST (fetch API)</label>
+<section id="datos">
+  <div class="card">
+    <h3>Tratamiento de Datos Sensibles</h3>
+    <ul>
+      <li>Limitar acceso solo a personal necesario.</li>
+      <li>Eliminar cuentas inactivas.</li>
+      <li>No compartir usuarios.</li>
+      <li>Evitar exponer registros de defunción en entorno web si no es indispensable.</li>
+      <li>Documentar proceso de fortalecimiento.</li>
+    </ul>
   </div>
 
-  <div class="task">
-    <input type="checkbox" id="t5">
-    <label for="t5">Generar token de sesión temporal con expiración</label>
-  </div>
-
-  <div class="task">
-    <input type="checkbox" id="t6">
-    <label for="t6">Crear hoja "Sesiones" para validación segura</label>
-  </div>
-
-  <div class="task">
-    <input type="checkbox" id="t7">
-    <label for="t7">Eliminar uso de contraseña como token de validación</label>
-  </div>
-</div>
-
-<div class="section">
-  <h2>Mejoras Recomendadas</h2>
-
-  <div class="task">
-    <input type="checkbox" id="t8">
-    <label for="t8">Evaluar migración futura a Google OAuth 2.0 <span class="badge media">MEJORA</span></label>
-  </div>
-
-  <div class="task">
-    <input type="checkbox" id="t9">
-    <label for="t9">Implementar rate limiting contra fuerza bruta</label>
-  </div>
-
-  <div class="task">
-    <input type="checkbox" id="t10">
-    <label for="t10">Reducir datos almacenados en hoja de Logs</label>
-  </div>
-
-</div>
-
-</div>
-
-<div class="section progress-container">
-  <h2>Progreso</h2>
-  <progress id="progressBar" value="0" max="10"></progress>
-  <p id="progressText">0% completado</p>
-</div>
-
-</div>
+  <details>
+    <summary>Postura ante supervisión</summary>
+    <div>
+      Se encuentra en proceso activo de fortalecimiento técnico conforme a circular institucional.
+      <br><br>
+      Medidas ya implementadas:
+      <ul>
+        <li>Hash de contraseñas.</li>
+        <li>Bloqueo antifuerza bruta.</li>
+        <li>Restricción de origen.</li>
+      </ul>
+    </div>
+  </details>
+</section>
 
 <footer>
-Sistema interno · Seguridad primero · Actualiza conforme avances
+  Documento interno de guía técnica y cumplimiento — 2026
 </footer>
 
 <script>
-const checkboxes = document.querySelectorAll("input[type='checkbox']");
-const progressBar = document.getElementById("progressBar");
-const progressText = document.getElementById("progressText");
-
-checkboxes.forEach(cb => {
-  cb.addEventListener("change", updateProgress);
-});
-
-function updateProgress() {
-  let completed = 0;
-
-  checkboxes.forEach(cb => {
-    if (cb.checked) {
-      completed++;
-      cb.parentElement.classList.add("completed");
-    } else {
-      cb.parentElement.classList.remove("completed");
-    }
-  });
-
-  progressBar.value = completed;
-  const percent = Math.round((completed / checkboxes.length) * 100);
-  progressText.textContent = percent + "% completado";
+function openTab(id, btn) {
+  document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  btn.classList.add("active");
 }
-
-updateProgress();
 </script>
 
 </body>
