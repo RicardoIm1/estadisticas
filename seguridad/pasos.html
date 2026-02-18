@@ -148,13 +148,12 @@
     <div class="container">
         <h1>Guía Práctica Paso a Paso para Corregirlo</h1>
         <section>
-            <div>
-                <details class="acordeon">
-                    <summary>
-                        <h3>Con el script de login:</h3>
-                    </summary>
-                    <div class="contenido paso acordeon">
-                        <pre>
+            <details class="acordeon">
+                <summary>
+                    <h3>Con el script de login:</h3>
+                </summary>
+                <div class="contenido paso acordeon">
+                    <pre>
                             // ========== LÓGICA DEL LOGIN CON JSONP ==========
                             document.getElementById(
                             "footerText"
@@ -342,57 +341,54 @@
                             // Ejecutar cada hora
                             setInterval(verificarSesionExpirada, 60 * 60 * 1000);
                         </pre>
-                    </div>
-                </details>
-            </div>
+                </div>
+            </details>
+            <details class="acordeon">
+                <summary>
+                    <h3>1. Reescribe el Cliente (HTML/JS) para usar google.script.run:</h3>
+                </summary>
+                <p>Esto es lo más seguro para comunicar tu web con GAS, ya que maneja la autenticación de Google de
+                    forma transparente.</p>
+                <div class="contenido paso acordeon">
+                    <pre>
+                        // 1. En tu HTML, carga la API de Google
+                        <script src="https://accounts.google.com/gsi/client"></script>
+                        <script src="https://apis.google.com/js/api.js"></script>
 
-            <div>
-                <details class="acordeon">
-                    <summary>
-                        <h3>1. Reescribe el Cliente (HTML/JS) para usar google.script.run:</h3>
-                    </summary>
-                    <p>Esto es lo más seguro para comunicar tu web con GAS, ya que maneja la autenticación de Google de forma transparente.</p>
-                    <div class="contenido paso acordeon">
-                            <pre>
-                                // 1. En tu HTML, carga la API de Google
-                                <script src="https://accounts.google.com/gsi/client"></script>
-                                <script src="https://apis.google.com/js/api.js"></script>
-        
-                                // 2. En tu login.js, implementa Google Sign-In
-                                function handleCredentialResponse(response) {
-                                    // response.credential es el JWT de Google
-                                    google.script.run
-                                    .withSuccessHandler(function(rolDelServidor) {
-                                        // Login exitoso. El servidor nos devuelve el rol.
-                                        redirigirSegunRol(rolDelServidor);
-                                    })
-                                    .withFailureHandler(function(error) {
-                                        // Login fallido (email no autorizado)
-                                        mostrarError("Acceso denegado. No estás en la lista.");
-                                    })
-                                    .procesarLoginGoogle(response.credential); // Esta función está en tu GAS.
-                                }
-        
-                                // 3. Botón de Google en tu HTML
-                                <div id="g_id_onload"
-                                    data-client_id="TU_CLIENT_ID_DE_GOOGLE_CLOUD"
-                                    data-callback="handleCredentialResponse">
-                                </div>
-                                <div class="g_id_signin" data-type="standard"></div>
-                            </pre>
-                    </div>
-                </details>
-            </div>
+                        // 2. En tu login.js, implementa Google Sign-In
+                        function handleCredentialResponse(response) {
+                            // response.credential es el JWT de Google
+                            google.script.run
+                            .withSuccessHandler(function(rolDelServidor) {
+                                // Login exitoso. El servidor nos devuelve el rol.
+                                redirigirSegunRol(rolDelServidor);
+                            })
+                            .withFailureHandler(function(error) {
+                                // Login fallido (email no autorizado)
+                                mostrarError("Acceso denegado. No estás en la lista.");
+                            })
+                            .procesarLoginGoogle(response.credential); // Esta función está en tu GAS.
+                        }
 
-                    <div class="contenido">
-                        <h2>2. Reestructura el Servidor (GAS - Código .gs) - La Parte Más Importante:</h2>
-                        <p>Tu servidor debe hacer dos cosas:
-                        <ul>
-                            <li>Verificar la identidad real usando el token de Google.</li>
-                            <li>Comprobar los permisos en una hoja de cálculo "Maestra de Usuarios" (usuario -> rol).</li>
-                        </ul>
-                        </p>
-                        <pre>
+                        // 3. Botón de Google en tu HTML
+                        <div id="g_id_onload"
+                            data-client_id="TU_CLIENT_ID_DE_GOOGLE_CLOUD"
+                            data-callback="handleCredentialResponse">
+                        </div>
+                        <div class="g_id_signin" data-type="standard"></div>
+                    </pre>
+                </div>
+            </details>
+
+            <div class="contenido">
+                <h2>2. Reestructura el Servidor (GAS - Código .gs) - La Parte Más Importante:</h2>
+                <p>Tu servidor debe hacer dos cosas:
+                <ul>
+                    <li>Verificar la identidad real usando el token de Google.</li>
+                    <li>Comprobar los permisos en una hoja de cálculo "Maestra de Usuarios" (usuario -> rol).</li>
+                </ul>
+                </p>
+                <pre>
                                 // En tu Code.gs
                                 function procesarLoginGoogle(idToken) {
                                 try {
@@ -426,61 +422,61 @@
                                 // ... buscar rol de 'usuario' y solo devolver HTML si es ADMIN ...
                                 }
                             </pre>
-                    </div>
+            </div>
 
-                    <div class="contenido">
-                        <h2>3. Elimina por Completo la Lógica de JSONP y GET con credenciales. Esa técnica ya no debe
-                            existir en
-                            tu
-                            aplicación.</h2>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Característica</th>
-                                    <th>Enfoque actual</th>
-                                    <th>Enfoque propuesto</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>autenticación</td>
-                                    <td>Contraseña propia, enviada en texto claro</td>
-                                    <td>Google OAuth 2.0 estandar industrial</td>
-                                </tr>
-                                <tr>
-                                    <td>Canal</td>
-                                    <td>JSONP/GET (visible)</td>
-                                    <td>HTTPS POST (encriptado)</td>
-                                </tr>
-                                <tr>
-                                    <td>Verificación</td>
-                                    <td>Lógica propia de GAS</td>
-                                    <td>Verificada por Google</td>
-                                </tr>
-                                <tr>
-                                    <td>Sesión</td>
-                                    <td>Falsa, almacenada en el navegador</td>
-                                    <td>Real, gestionada por Google</td>
-                                </tr>
-                                <tr>
-                                    <td>Protección</td>
-                                    <td>Casi nula</td>
-                                    <td>Alta, contra inyección y suplantación</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                    </div>
-
-    </section>
-
-    <section>
-        <details class="acordeon">
-            <summary>
-                <h3>Con el script de GAS:</h3>
-            </summary>
             <div class="contenido">
-                <pre>
+                <h2>3. Elimina por Completo la Lógica de JSONP y GET con credenciales. Esa técnica ya no debe
+                    existir en
+                    tu
+                    aplicación.</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Característica</th>
+                            <th>Enfoque actual</th>
+                            <th>Enfoque propuesto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>autenticación</td>
+                            <td>Contraseña propia, enviada en texto claro</td>
+                            <td>Google OAuth 2.0 estandar industrial</td>
+                        </tr>
+                        <tr>
+                            <td>Canal</td>
+                            <td>JSONP/GET (visible)</td>
+                            <td>HTTPS POST (encriptado)</td>
+                        </tr>
+                        <tr>
+                            <td>Verificación</td>
+                            <td>Lógica propia de GAS</td>
+                            <td>Verificada por Google</td>
+                        </tr>
+                        <tr>
+                            <td>Sesión</td>
+                            <td>Falsa, almacenada en el navegador</td>
+                            <td>Real, gestionada por Google</td>
+                        </tr>
+                        <tr>
+                            <td>Protección</td>
+                            <td>Casi nula</td>
+                            <td>Alta, contra inyección y suplantación</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+            </div>
+
+        </section>
+
+        <section>
+            <details class="acordeon">
+                <summary>
+                    <h3>Con el script de GAS:</h3>
+                </summary>
+                <div class="contenido">
+                    <pre>
                     function doGet(e) {
                     try {
                     const accion = e.parameter.accion;
@@ -547,12 +543,12 @@
                         .setMimeType(ContentService.MimeType.JAVASCRIPT); } return
                         ContentService.createTextOutput(salida) .setMimeType(ContentService.MimeType.JSON); } 
                     </pre>
-            </div>
-            <div class="paso acordeon">
-                <h2>hola men</h2>
-            </div>
-        </details>
-    </section>
+                </div>
+                <div class="paso acordeon">
+                    <h2>hola men</h2>
+                </div>
+            </details>
+        </section>
     </div>
 </body>
 
