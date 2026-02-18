@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,9 @@
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * {
@@ -75,7 +78,7 @@
             background: #ffffffb3;
             border-radius: 0 12px 12px 0;
             padding: 1rem 1.5rem;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
         }
 
         /* phase blocks */
@@ -90,10 +93,10 @@
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             border-radius: 32px;
-            box-shadow: 0 20px 35px -8px rgba(0,32,64,0.12), 0 0 0 1px rgba(0,0,0,0.02);
+            box-shadow: 0 20px 35px -8px rgba(0, 32, 64, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.02);
             overflow: hidden;
             transition: transform 0.15s;
-            border: 1px solid rgba(255,255,255,0.7);
+            border: 1px solid rgba(255, 255, 255, 0.7);
         }
 
         .phase-header {
@@ -122,7 +125,7 @@
             justify-content: center;
             font-size: 1.6rem;
             color: #1e4a6f;
-            box-shadow: 0 4px 12px rgba(0,80,150,0.15);
+            box-shadow: 0 4px 12px rgba(0, 80, 150, 0.15);
         }
 
         .phase-name {
@@ -263,7 +266,7 @@
             color: #1b3b55;
             font-weight: 500;
             border: 1px solid #b3d0eb;
-            box-shadow: 0 2px 10px rgba(0,60,130,0.1);
+            box-shadow: 0 2px 10px rgba(0, 60, 130, 0.1);
         }
 
         .footer-note a {
@@ -285,7 +288,7 @@
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
             border: 1px solid #deecf7;
             font-weight: 500;
         }
@@ -316,305 +319,186 @@
         }
     </style>
 </head>
+
 <body>
-<div class="container">
-    <div class="header">
-        <h1>🛡️ Hoja de Ruta · Seguridad GAS</h1>
-        <div class="badge"><i class="fas fa-shield-alt"></i> Migración basada en análisis real · Datos de defunciones detectados</div>
-        <div class="subheader">
-            <i class="fas fa-quote-left" style="margin-right: 8px; opacity:0.6;"></i> 
-            He procesado toda la conversación, desde las vulnerabilidades críticas (JSONP, texto plano, GET, sesiones falsas) hasta las 4 fases de solución. Esta lista contiene <strong>cada recomendación</strong>, cada fragmento de código y cada advertencia, sin omitir nada.
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Hoja de Ruta · Seguridad GAS</h1>
+            <div class="badge"><i class="fas fa-shield-alt"></i> Migración basada en análisis real · Datos de
+                defunciones detectados</div>
+            <div class="subheader">
+                <i class="fas fa-quote-left" style="margin-right: 8px; opacity:0.6;"></i>
+                He procesado toda la conversación, desde las vulnerabilidades críticas (JSONP, texto plano, GET,
+                sesiones falsas) hasta las 4 fases de solución. Esta lista contiene <strong>cada recomendación</strong>,
+                cada fragmento de código y cada advertencia, sin omitir nada.
+            </div>
+        </div>
+
+        <!-- resumen contador -->
+        <div class="summary-bar">
+            <span><i class="far fa-list-alt"></i> 23 tareas · Prioridad: datos de defunciones reales en
+                producción</span>
+            <button id="resetProgress"><i class="far fa-trash-alt"></i> Reiniciar progreso</button>
+        </div>
+
+        <!-- fases -->
+        <div class="phase-grid" id="phaseGrid"></div>
+
+        <!-- footer legado -->
+        <div class="footer-note">
+            <i class="fas fa-check-circle" style="color:#1f6d2f;"></i>
+            Hecho con integridad — cada línea de código y observación está extraída directamente del análisis.
+            <a href="#" id="creditsLink">📄 ver contexto</a>
         </div>
     </div>
+    <script>
+        (function () {
 
-    <!-- resumen contador -->
-    <div class="summary-bar">
-        <span><i class="far fa-list-alt"></i> 23 tareas · Prioridad: datos de defunciones reales en producción</span>
-        <button id="resetProgress"><i class="far fa-trash-alt"></i> Reiniciar progreso</button>
-    </div>
+            const phases = window.phases || []; // Mantiene tu array original ya declarado arriba
 
-    <!-- fases -->
-    <div class="phase-grid" id="phaseGrid"></div>
-
-    <!-- footer legado -->
-    <div class="footer-note">
-        <i class="fas fa-check-circle" style="color:#1f6d2f;"></i> 
-        Hecho con integridad — cada línea de código y observación está extraída directamente del análisis. 
-        <a href="#" id="creditsLink">📄 ver contexto</a>
-    </div>
-</div>
-
-<script>
-    (function() {
-        // ---------- BASE DE DATOS DE TAREAS (extraído fielmente de la conversación) ----------
-        const phases = [
-            {
-                name: '⚡ FASE 0 · CONTENCIÓN DE EMERGENCIA',
-                description: 'Datos sensibles (defunciones) visibles hoy. Aplicar medidas inmediatas.',
-                tasks: [
-                    { 
-                        title: 'Retirar datos de defunciones de la hoja pública', 
-                        description: 'Copia los registros reales a un Excel protegido con contraseña (disco local). Sustituye en la hoja "Usuarios" o "DEFUNCIONES" por datos ficticios (ej. PACIENTE_PRUEBA_XXX).', 
-                        code: '// Reemplazo manual directo en Sheets\n// Mantén solo filas de prueba mientras el sistema esté en línea.', 
-                        critical: true, 
-                        tags: ['inmediato', 'datos salud'] 
-                    },
-                    { 
-                        title: 'Documentar la retirada (fecha, motivo, acción)', 
-                        description: 'Genera un registro escrito: "Ante circular 002/2026 y la identificación de datos de defunciones, se retiran temporalmente del sistema en línea mientras se implementan medidas de seguridad".', 
-                        code: '// Guardar en drive institucional o papel\n// Ej: 19-feb-2026 - retirada de datos reales de defunciones', 
-                        tags: ['auditoría'] 
-                    },
-                    { 
-                        title: 'Ejecutar script: migrar contraseñas a HASH (SHA‑256 + sal)', 
-                        description: 'Pega y ejecuta una vez esta función en el editor GAS (Code.gs). Convierte todas las claves de texto plano a hash.', 
-                        code: 'function migrarContrasenasUnaVez() {\n  var hoja = SpreadsheetApp.getActive().getSheetByName("Usuarios");\n  var datos = hoja.getDataRange().getValues();\n  for (var i=1; i<datos.length; i++) {\n    var claveOriginal = datos[i][1];\n    if (claveOriginal && !claveOriginal.startsWith("hash:")) {\n      var hash = Utilities.computeDigest(\n          Utilities.DigestAlgorithm.SHA_256, \n          claveOriginal + "SAL_SECRETA_CAMBIA")\n        .map(function(b) { return ("0" + (b & 0xFF).toString(16)).slice(-2); }).join("");\n      datos[i][1] = "hash:" + hash;\n    }\n  }\n  hoja.getRange(1, 1, datos.length, datos[0].length).setValues(datos);\n}', 
-                        tags: ['hash', 'código'] 
-                    },
-                    { 
-                        title: 'Reemplazar loginPorGet por versión con verificación hash y bloqueo de intentos', 
-                        description: 'Sustituye tu función actual de login. Incluye cache de intentos fallidos y compara usando hash.', 
-                        code: 'function loginPorGet(e) {\n  var usuario = e.parameter.usuario;\n  var clave = e.parameter.clave;\n  var callback = e.parameter.callback;\n  \n  // Bloqueo por intentos\n  var cache = CacheService.getScriptCache();\n  var key = "intento_"+usuario;\n  var intentos = parseInt(cache.get(key)) || 0;\n  if (intentos >= 5) \n    return responderJSON({success:false, error:"Demasiados intentos. Espere 15 min."}, e);\n\n  var hashIngresado = Utilities.computeDigest(\n      Utilities.DigestAlgorithm.SHA_256, clave + "SAL_SECRETA_CAMBIA")\n    .map(function(b) { return ("0" + (b & 0xFF).toString(16)).slice(-2); }).join("");\n  var hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Usuarios");\n  var datos = hoja.getDataRange().getValues();\n  var resultado = { success: false, error: "Credenciales inválidas" };\n  for (var i=1; i<datos.length; i++) {\n    if (datos[i][0] === usuario && datos[i][1] === "hash:"+hashIngresado) {\n      if (datos[i][3] === "activo") resultado = { success: true, rol: datos[i][2] };\n      else resultado = { success: false, error: "Usuario bloqueado" };\n      break;\n    }\n  }\n  if (!resultado.success) cache.put(key, (intentos+1).toString(), 900);\n  else cache.remove(key);\n  return responderJSON(resultado, e);\n}', 
-                        tags: ['código crítico'] 
-                    },
-                    { 
-                        title: 'Añadir cabecera Access-Control-Allow-Origin en responderJSON', 
-                        description: 'Limita las llamadas a tu dominio específico (github.io).', 
-                        code: 'function responderJSON(obj, e) {\n  var callback = e.parameter?.callback;\n  var salida = JSON.stringify(obj);\n  if (callback) salida = callback + "(" + salida + ")";\n  var output = ContentService.createTextOutput(salida)\n    .setMimeType(callback ? ContentService.MimeType.JAVASCRIPT : ContentService.MimeType.JSON);\n  // 🔐  línea crítica:\n  output.setHeader("Access-Control-Allow-Origin", "https://ricardoim1.github.io");\n  return output;\n}', 
-                        tags: ['cors'] 
-                    }
-                ]
-            },
-            {
-                name: '📡 FASE 1 · ELIMINAR RIESGOS DE TRANSMISIÓN',
-                description: 'Erradicar GET con credenciales y JSONP. Migrar a POST.',
-                tasks: [
-                    { 
-                        title: 'Modificar doPost para procesar loginSeguro desde JSON', 
-                        description: 'En GAS, adapta doPost para recibir credenciales por POST y llamar a la lógica de validación.', 
-                        code: 'function doPost(e) {\n  try {\n    const body = JSON.parse(e.postData.contents);\n    if (body.accion === "loginSeguro") {\n      return loginSeguro({ parameter: body });\n    }\n    // ... otras acciones\n  } catch (error) {\n    return ContentService.createTextOutput(JSON.stringify({ success: false, error: "Error interno" }))\n      .setMimeType(ContentService.MimeType.JSON);\n  }\n}', 
-                        tags: ['backend'] 
-                    },
-                    { 
-                        title: 'Actualizar frontend: reemplazar JSONP por fetch POST', 
-                        description: 'Elimina la creación del tag script. Usa la API fetch para enviar credenciales.', 
-                        code: 'form.addEventListener("submit", async function (e) {\n  e.preventDefault();\n  const data = {\n    usuario: document.getElementById("usuario").value.trim(),\n    clave: document.getElementById("clave").value,\n    accion: "loginSeguro"\n  };\n  const response = await fetch(scriptUrl, {\n    method: "POST",\n    headers: { "Content-Type": "application/json" },\n    body: JSON.stringify(data)\n  });\n  const resultado = await response.json();\n  window.manejarLogin(resultado);\n});', 
-                        tags: ['frontend'] 
-                    },
-                    { 
-                        title: 'Eliminar toda lógica JSONP (callback) del backend', 
-                        description: 'Ya no necesitas manejar el parámetro "callback". El helper responderJSON puede simplificarse.', 
-                        code: '// Eliminar: if (callback) ... \n// Devolver siempre JSON puro.', 
-                        tags: ['limpieza'] 
-                    }
-                ]
-            },
-            {
-                name: '🔐 FASE 2 · AUTENTICACIÓN Y SESIÓN ROBUSTA',
-                description: 'Tokens reales, validación por Google y sesión con expiración.',
-                tasks: [
-                    { 
-                        title: 'Implementar token de sesión (JWT simplicado) tras login exitoso', 
-                        description: 'Genera un token opaco (no la contraseña) y almacénalo en una hoja "Sesiones" con expiración.', 
-                        code: '// En loginSeguro tras verificar credenciales\nconst token = Utilities.base64Encode(Utilities.computeDigest(\n  Utilities.DigestAlgorithm.MD5,\n  usuario + Date.now() + Math.random()\n));\n// Guardar en hoja Sesiones: [usuario, token, new Date(Date.now()+24*60*60*1000), rol]\n// Devolver token al cliente.', 
-                        tags: ['sesión'] 
-                    },
-                    { 
-                        title: 'Crear función validarSesionSegura (con token y expiración)', 
-                        description: 'En cada petición a recursos protegidos, llama a esta función.', 
-                        code: 'function validarSesionSegura(e) {\n  var usuario = e.parameter.usuario;\n  var token = e.parameter.token;\n  var ss = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Sesiones");\n  var datos = ss.getDataRange().getValues();\n  var ahora = new Date();\n  for (var i=1; i<datos.length; i++) {\n    if (datos[i][0] === usuario && datos[i][1] === token && new Date(datos[i][2]) > ahora) {\n      return { success: true, rol: datos[i][3], usuario: usuario };\n    }\n  }\n  return { success: false, error: "Sesión inválida o expirada" };\n}', 
-                        tags: ['sesión'] 
-                    },
-                    { 
-                        title: 'Modificar cliente para guardar token (no la contraseña) en localStorage', 
-                        description: 'Cuando el login responda con {success: true, token, rol}, almacenar token.', 
-                        code: 'localStorage.setItem("sessionToken", resultado.token);\nlocalStorage.setItem("userEmail", usuario);\nlocalStorage.removeItem("clave");  // asegurar que no se guarda', 
-                        tags: ['frontend'] 
-                    }
-                ]
-            },
-            {
-                name: '☁️ FASE 3 · ARQUITECTURA FINAL (Google Identity)',
-                description: 'Eliminar gestión propia de contraseñas. Integrar OAuth 2.0 institucional.',
-                tasks: [
-                    { 
-                        title: 'Crear proyecto en Google Cloud Console y obtener Client ID', 
-                        description: 'Pasos: 1. Ir a console.cloud.google.com 2. Crear proyecto 3. "APIs & Services" → "Credentials" → OAuth 2.0 Client ID (tipo aplicación web). Authorized JavaScript origins: https://ricardoim1.github.io', 
-                        code: '// Client_ID: guardar para frontend', 
-                        tags: ['oauth'] 
-                    },
-                    { 
-                        title: 'Cargar Google Identity Services en el frontend', 
-                        description: 'Agrega el script y el botón de Google Sign-In.', 
-                        code: '<script src="https://accounts.google.com/gsi/client" async defer></script>\n<div id="g_id_onload"\n     data-client_id="TU_CLIENT_ID"\n     data-callback="handleCredentialResponse">\n</div>\n<div class="g_id_signin" data-type="standard"></div>', 
-                        tags: ['frontend'] 
-                    },
-                    { 
-                        title: 'Callback handleCredentialResponse envía idToken por POST a GAS', 
-                        description: 'Función global que recibe la respuesta de Google y envía el token al backend.', 
-                        code: 'function handleCredentialResponse(response) {\n  fetch("https://script.google.com/macros/s/SCRIPT_ID/exec", {\n    method: "POST",\n    headers: {"Content-Type":"application/json"},\n    body: JSON.stringify({ accion: "loginGoogle", idToken: response.credential })\n  }).then(function(r) { return r.json(); }).then(function(data) {\n    if (data.success) window.location.href = "/dashboard";\n  });\n}', 
-                        tags: ['frontend'] 
-                    },
-                    { 
-                        title: 'Backend: verificar idToken con Google y buscar email en hoja', 
-                        description: 'Función que recibe el token, lo valida con tokeninfo y obtiene el email autorizado.', 
-                        code: 'function procesarLoginGoogle(idToken) {\n  var respuesta = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken);\n  var datosUsuario = JSON.parse(respuesta.getContentText());\n  var email = datosUsuario.email;\n  // buscar email en hoja "Usuarios" (columna email)\n  // si existe y activo → login exitoso, devolver rol y token de sesión propio\n}', 
-                        tags: ['backend', 'oauth'] 
-                    },
-                    { 
-                        title: 'Eliminar definitivamente columnas de contraseñas de la hoja', 
-                        description: 'Ya no se almacena ningún hash propio. Solo emails y roles.', 
-                        code: '// La hoja Usuarios ahora tiene: email | rol | estado | fecha_alta', 
-                        tags: ['limpieza'] 
-                    }
-                ]
-            },
-            {
-                name: '📋 FASE 4 · AUDITORÍA Y BUENAS PRÁCTICAS',
-                description: 'Logs sin datos sensibles, control de acceso y documentación.',
-                tasks: [
-                    { 
-                        title: 'Modificar hoja de logs: no guardar contraseñas, solo usuario parcial', 
-                        description: 'Registrar usuario con primeros 3 caracteres + *** y éxito/fallo, fecha, acción.', 
-                        code: 'logs.appendRow([usuario.substring(0,3)+"***", new Date(), "login", resultado.success ? "EXITO" : "FALLO"]);', 
-                        tags: ['logs'] 
-                    },
-                    { 
-                        title: 'Añadir rate‑limiting por IP (CacheService) en todas las funciones públicas', 
-                        description: 'Limita peticiones por minuto para evitar abusos.', 
-                        code: 'var ip = e.parameter.ip || "desconocida";\nvar count = parseInt(cache.get("rate_"+ip))||0;\nif(count>30) return;', 
-                        tags: ['protección'] 
-                    },
-                    { 
-                        title: 'Aplicar principio de mínimo privilegio en despliegue', 
-                        description: 'En "Deploy" → "Manage deployments" → cambiar "Execute as" a "User accessing the web app" si es posible, o al menos restringir acceso a tu dominio corporativo.', 
-                        code: '// Configuración del despliegue: quién tiene acceso: "Solo yo" o "Cualquier usuario de este dominio"', 
-                        tags: ['config'] 
-                    },
-                    { 
-                        title: 'Redactar documento de medidas implementadas (para auditoría)', 
-                        description: 'Compendio de acciones: hash, POST, bloqueo fuerza bruta, CORS, migración OAuth (en progreso). Sirve para responder a la circular OPDSSJ/DG/UTPDP/CT/002/2026.', 
-                        code: '// Fecha, responsable, lista de cambios\n// Adjuntar evidencia: capturas de código, hoja con migración', 
-                        tags: ['documentación'] 
-                    }
-                ]
+            function loadProgress() {
+                var stored = localStorage.getItem('gas_security_todo');
+                return stored ? JSON.parse(stored) : {};
             }
-        ];
 
-        // utils
-        function loadProgress() {
-            const stored = localStorage.getItem('gas_security_todo');
-            return stored ? JSON.parse(stored) : {};
-        }
+            function saveProgress(progress) {
+                localStorage.setItem('gas_security_todo', JSON.stringify(progress));
+            }
 
-        function saveProgress(progress) {
-            localStorage.setItem('gas_security_todo', JSON.stringify(progress));
-        }
+            var phaseGrid = document.getElementById('phaseGrid');
+            var progress = loadProgress();
 
-        // render
-        const phaseGrid = document.getElementById('phaseGrid');
-        const progress = loadProgress();
+            function renderAll() {
+                phaseGrid.innerHTML = '';
 
-        function renderAll() {
-            phaseGrid.innerHTML = '';
-            phases.forEach((phase, pIdx) => {
-                const phaseDiv = document.createElement('div');
-                phaseDiv.className = 'phase-card';
+                phases.forEach(function (phase, pIdx) {
 
-                // header
-                const header = document.createElement('div');
-                header.className = 'phase-header';
-                let completedCount = 0;
-                phase.tasks.forEach((_, tIdx) => { 
-                    if (progress[`p${pIdx}t${tIdx}`]) completedCount++; 
-                });
-                const totalTasks = phase.tasks.length;
-                const progressPercent = Math.round((completedCount/totalTasks)*100) || 0;
+                    var phaseDiv = document.createElement('div');
+                    phaseDiv.className = 'phase-card';
 
-                header.innerHTML = `
-                    <div class="phase-title">
-                        <span class="phase-icon">${pIdx === 0 ? '🔥' : pIdx === 1 ? '📡' : pIdx === 2 ? '🔐' : pIdx === 3 ? '☁️' : '📋'}</span>
-                        <span class="phase-name">${phase.name}</span>
-                    </div>
-                    <div class="phase-stats">
-                        <span><i class="far fa-check-circle"></i> ${completedCount}/${totalTasks}</span>
-                        <div class="progress-ring"><i class="far fa-chart-bar"></i> ${progressPercent}%</div>
-                    </div>
-                `;
+                    var header = document.createElement('div');
+                    header.className = 'phase-header';
 
-                // tasks
-                const listDiv = document.createElement('div');
-                listDiv.className = 'todo-list';
-
-                phase.tasks.forEach((task, tIdx) => {
-                    const taskId = `p${pIdx}t${tIdx}`;
-                    const isChecked = progress[taskId] || false;
-
-                    const item = document.createElement('div');
-                    item.className = 'todo-item';
-
-                    const checkboxDiv = document.createElement('div');
-                    checkboxDiv.className = 'todo-check';
-                    checkboxDiv.innerHTML = `<input type="checkbox" id="${taskId}" ${isChecked ? 'checked' : ''}>`;
-
-                    const contentDiv = document.createElement('div');
-                    contentDiv.className = 'todo-content';
-
-                    let tagsHtml = task.tags ? task.tags.map(t => `<span class="tag">${t}</span>`).join('') : '';
-                    if (task.critical) tagsHtml += `<span class="tag critical">CRÍTICO</span>`;
-
-                    // Escapar el código para que se muestre correctamente
-                    const escapedCode = task.code ? task.code.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
-
-                    contentDiv.innerHTML = `
-                        <div class="todo-title">
-                            <span>${task.title}</span>
-                            ${tagsHtml}
-                        </div>
-                        <div class="todo-description">${task.description}</div>
-                        ${task.code ? `<div class="code-snippet">${escapedCode}</div>` : ''}
-                        <div class="meta-note"><i class="fas fa-shield"></i> extraído textual de la conversación</div>
-                    `;
-
-                    item.appendChild(checkboxDiv);
-                    item.appendChild(contentDiv);
-
-                    const checkbox = item.querySelector('input[type="checkbox"]');
-                    checkbox.addEventListener('change', (e) => {
-                        progress[taskId] = e.target.checked;
-                        saveProgress(progress);
-                        renderAll();
+                    var completedCount = 0;
+                    phase.tasks.forEach(function (_, tIdx) {
+                        if (progress['p' + pIdx + 't' + tIdx]) {
+                            completedCount++;
+                        }
                     });
 
-                    listDiv.appendChild(item);
+                    var totalTasks = phase.tasks.length;
+                    var progressPercent = totalTasks ? Math.round((completedCount / totalTasks) * 100) : 0;
+
+                    var icon;
+                    if (pIdx === 0) icon = '🔥';
+                    else if (pIdx === 1) icon = '📡';
+                    else if (pIdx === 2) icon = '🔐';
+                    else if (pIdx === 3) icon = '☁️';
+                    else icon = '📋';
+
+                    header.innerHTML =
+                        '<div class="phase-title">' +
+                        '<span class="phase-icon">' + icon + '</span>' +
+                        '<span class="phase-name">' + phase.name + '</span>' +
+                        '</div>' +
+                        '<div class="phase-stats">' +
+                        '<span><i class="far fa-check-circle"></i> ' + completedCount + '/' + totalTasks + '</span>' +
+                        '<div class="progress-ring"><i class="far fa-chart-bar"></i> ' + progressPercent + '%</div>' +
+                        '</div>';
+
+                    var listDiv = document.createElement('div');
+                    listDiv.className = 'todo-list';
+
+                    phase.tasks.forEach(function (task, tIdx) {
+
+                        var taskId = 'p' + pIdx + 't' + tIdx;
+                        var isChecked = progress[taskId] || false;
+
+                        var item = document.createElement('div');
+                        item.className = 'todo-item';
+
+                        var checkboxDiv = document.createElement('div');
+                        checkboxDiv.className = 'todo-check';
+                        checkboxDiv.innerHTML =
+                            '<input type="checkbox" id="' + taskId + '" ' +
+                            (isChecked ? 'checked' : '') +
+                            '>';
+
+                        var contentDiv = document.createElement('div');
+                        contentDiv.className = 'todo-content';
+
+                        var tagsHtml = '';
+                        if (task.tags) {
+                            tagsHtml = task.tags.map(function (t) {
+                                return '<span class="tag">' + t + '</span>';
+                            }).join('');
+                        }
+                        if (task.critical) {
+                            tagsHtml += '<span class="tag critical">CRÍTICO</span>';
+                        }
+
+                        var escapedCode = '';
+                        if (task.code) {
+                            escapedCode = task.code
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;');
+                        }
+
+                        contentDiv.innerHTML =
+                            '<div class="todo-title">' +
+                            '<span>' + task.title + '</span>' +
+                            tagsHtml +
+                            '</div>' +
+                            '<div class="todo-description">' + task.description + '</div>' +
+                            (task.code ? '<div class="code-snippet">' + escapedCode + '</div>' : '') +
+                            '<div class="meta-note"><i class="fas fa-shield"></i> extraído textual de la conversación</div>';
+
+                        item.appendChild(checkboxDiv);
+                        item.appendChild(contentDiv);
+
+                        var checkbox = item.querySelector('input[type="checkbox"]');
+                        checkbox.addEventListener('change', function (e) {
+                            progress[taskId] = e.target.checked;
+                            saveProgress(progress);
+                            renderAll();
+                        });
+
+                        listDiv.appendChild(item);
+                    });
+
+                    phaseDiv.appendChild(header);
+
+                    if (pIdx === 0) {
+                        var warnDiv = document.createElement('div');
+                        warnDiv.className = 'warning-badge';
+                        warnDiv.innerHTML =
+                            '<i class="fas fa-exclamation-triangle" style="margin-right:10px;"></i> ' +
+                            '<strong>Datos de defunción reales identificados (EDGAR MORALES PALMA, 13/02/2026, CIRUGIA GENERAL)</strong> – prioridad máxima retirar de hoja pública.';
+                        phaseDiv.appendChild(warnDiv);
+                    }
+
+                    phaseDiv.appendChild(listDiv);
+                    phaseGrid.appendChild(phaseDiv);
                 });
-
-                phaseDiv.appendChild(header);
-                if (pIdx === 0) {
-                    const warnDiv = document.createElement('div');
-                    warnDiv.className = 'warning-badge';
-                    warnDiv.innerHTML = '<i class="fas fa-exclamation-triangle" style="margin-right:10px;"></i> <strong>Datos de defunción reales identificados (EDGAR MORALES PALMA, 13/02/2026, CIRUGIA GENERAL)</strong> – prioridad máxima retirar de hoja pública.';
-                    phaseDiv.appendChild(warnDiv);
-                }
-                phaseDiv.appendChild(listDiv);
-                phaseGrid.appendChild(phaseDiv);
-            });
-        }
-
-        renderAll();
-
-        document.getElementById('resetProgress').addEventListener('click', () => {
-            if (confirm('¿Reiniciar todo el progreso de tareas?')) {
-                localStorage.removeItem('gas_security_todo');
-                location.reload();
             }
-        });
 
-        document.getElementById('creditsLink').addEventListener('click', (e) => {
-            e.preventDefault();
-            alert('Documento original: "qué podría hacer un usuario mal intencionado con las implementaciones exec de mis GAS.docx". Análisis completo, código, circular OPDSSJ/DG/UTPDP/CT/002/2026 y tabla con defunciones: 14U01755E00000222 EDGAR MORALES PALMA 13/02/2026 CIRUGIA GENERAL. Todo preservado.');
-        });
-    })();
-</script>
+            renderAll();
+
+            document.getElementById('resetProgress').addEventListener('click', function () {
+                if (confirm('¿Reiniciar todo el progreso de tareas?')) {
+                    localStorage.removeItem('gas_security_todo');
+                    location.reload();
+                }
+            });
+
+            document.getElementById('creditsLink').addEventListener('click', function (e) {
+                e.preventDefault();
+                alert('Documento original: "qué podría hacer un usuario mal intencionado con las implementaciones exec de mis GAS.docx". Análisis completo, código, circular OPDSSJ/DG/UTPDP/CT/002/2026 y tabla con defunciones: 14U01755E00000222 EDGAR MORALES PALMA 13/02/2026 CIRUGIA GENERAL. Todo preservado.');
+            });
+
+        })();
+    </script>
+
 </body>
+
 </html>
