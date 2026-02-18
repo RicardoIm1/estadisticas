@@ -409,6 +409,159 @@
 
             </div>
         </section>
+        <section>
+            <h3>Con el script del GAS</h3>
+            <div>
+                <pre>
+                    function doGet(e) {
+  try {
+    const accion = e.parameter.accion;
+
+    // === ROUTER CLARO ===
+    switch (accion) {
+      case "validarSesion":
+        return validarSesion(e);
+
+      case "login":
+        return loginPorGet(e);
+
+      default:
+        return responderJSON({ success: false, error: "Acción no reconocida" }, e);
+    }
+
+  } catch (error) {
+    console.error("Error en doGet:", error);
+    return responderJSON({ success: false, error: "Error interno: " + error.message }, e);
+  }
+}
+
+function loginPorGet(e) {
+  const usuario = e.parameter.usuario;
+  const clave = e.parameter.clave;
+  const callback = e.parameter.callback;
+
+  const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Usuarios");
+  const logs = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Logs");
+  const datosUsuarios = hoja.getDataRange().getValues();
+
+  let resultado = { success: false, error: "Credenciales inválidas" };
+
+  for (let i = 1; i < datosUsuarios.length; i++) {
+    const [u, c, rol, estado] = datosUsuarios[i];
+    if (u === usuario && c === clave) {
+      if (estado === "activo") {
+        resultado = { success: true, rol: rol };
+      } else {
+        resultado = { success: false, error: "Usuario bloqueado" };
+      }
+      break;
+    }
+  }
+
+  logs.appendRow([
+    usuario,
+    new Date(),
+    e.parameter.ip || "GET",
+    resultado.success ? "ÉXITO" : "FALLO",
+    resultado.rol || "",
+    resultado.error || ""
+  ]);
+
+  return responderJSON(resultado, e);
+}
+
+// === POST ORIGINAL (ligeramente arreglado) ===
+function doPost(e) {
+  try {
+    const body = JSON.parse(e.postData.contents);
+    const usuario = body.usuario;
+    const clave = body.clave;
+
+    const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Usuarios");
+    const logs = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Logs");
+    const datosUsuarios = hoja.getDataRange().getValues();
+
+    let resultado = { success: false, error: "Credenciales inválidas" };
+
+    for (let i = 1; i < datosUsuarios.length; i++) {
+      const [u, c, rol, estado] = datosUsuarios[i];
+      if (u === usuario && c === clave) {
+        if (estado === "activo") {
+          resultado = { success: true, rol: rol };
+        } else {
+          resultado = { success: false, error: "Usuario bloqueado" };
+        }
+        break;
+      }
+    }
+
+    logs.appendRow([
+      usuario,
+      new Date(),
+      e.parameter.ip || "POST",
+      resultado.success ? "ÉXITO" : "FALLO",
+      resultado.rol || "",
+      resultado.error || ""
+    ]);
+
+    return responderJSON(resultado, body);
+
+  } catch (error) {
+    console.error("Error en doPost:", error);
+    return responderJSON({ success: false, error: "Error interno del servidor" }, {});
+  }
+}
+
+// === VALIDAR SESIÓN ===
+function validarSesion(e) {
+  const usuario = e.parameter.usuario;
+  const token = e.parameter.token; 
+  const callback = e.parameter.callback;
+
+  const hoja = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Usuarios");
+  const datosUsuarios = hoja.getDataRange().getValues();
+
+  let resultado = { success: false, error: "Sesión inválida" };
+
+  for (let i = 1; i < datosUsuarios.length; i++) {
+    const [u, c, rol, estado] = datosUsuarios[i];
+    if (u === usuario && c === token && estado === "activo") {
+      resultado = { success: true, rol: rol, usuario: u };
+      break;
+    }
+  }
+
+  const logs = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Logs");
+  logs.appendRow([
+    usuario,
+    new Date(),
+    e.parameter.ip || "validacion_sesion",
+    resultado.success ? "SESION_VALIDA" : "SESION_INVALIDA",
+    resultado.rol || "",
+    resultado.error || ""
+  ]);
+
+  return responderJSON(resultado, e);
+}
+
+// === HELPER GENERAL ===
+function responderJSON(obj, e) {
+  const callback = e.parameter?.callback;
+  let salida = JSON.stringify(obj);
+
+  if (callback) {
+    salida = `${callback}(${salida})`;
+    return ContentService.createTextOutput(salida)
+      .setMimeType(ContentService.MimeType.JAVASCRIPT);
+  }
+
+  return ContentService.createTextOutput(salida)
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+                </pre>
+            </div>
+        </section>
     </div>
 </body>
 
