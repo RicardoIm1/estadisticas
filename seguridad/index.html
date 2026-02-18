@@ -3,17 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hoja de Ruta Técnica · Proyecto GAS</title>
+<title>Panel Técnico Integral · Proyecto GAS</title>
 
 <style>
 :root{
   --primary:#2563eb;
-  --bg:#f8fafc;
+  --bg:#f1f5f9;
   --card:#ffffff;
   --border:#e2e8f0;
   --text:#1e293b;
   --muted:#64748b;
   --success:#16a34a;
+  --warning:#f59e0b;
 }
 
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
@@ -21,24 +22,21 @@
 body{
   background:var(--bg);
   color:var(--text);
-  line-height:1.6;
   padding:20px;
 }
+
+h1{font-size:1.5rem;margin-bottom:10px;}
 
 header{
   margin-bottom:20px;
 }
 
-h1{
-  font-size:1.6rem;
-  margin-bottom:10px;
-}
-
 .progress-container{
   background:var(--border);
-  border-radius:8px;
-  overflow:hidden;
+  border-radius:6px;
   height:10px;
+  overflow:hidden;
+  margin-top:8px;
 }
 
 .progress-bar{
@@ -48,20 +46,35 @@ h1{
   transition:width .3s ease;
 }
 
-.tabs{
-  display:flex;
-  flex-wrap:wrap;
+.dashboard{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
   gap:10px;
   margin:20px 0;
 }
 
+.metric{
+  background:var(--card);
+  border:1px solid var(--border);
+  padding:10px;
+  border-radius:8px;
+  font-size:.85rem;
+}
+
+.tabs{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-bottom:15px;
+}
+
 .tab-btn{
-  padding:8px 14px;
+  padding:6px 12px;
+  font-size:.85rem;
   border-radius:6px;
   border:1px solid var(--border);
   background:var(--card);
   cursor:pointer;
-  font-size:.9rem;
 }
 
 .tab-btn.active{
@@ -70,30 +83,24 @@ h1{
   border-color:var(--primary);
 }
 
-.tab-content{
-  display:none;
-}
-
-.tab-content.active{
-  display:block;
-}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
 
 .card{
   background:var(--card);
   border:1px solid var(--border);
-  border-radius:10px;
-  padding:15px;
-  margin-bottom:15px;
+  border-radius:8px;
+  padding:12px;
+  margin-bottom:10px;
 }
 
 .accordion{
   cursor:pointer;
-  padding:10px;
+  font-weight:600;
+  padding:8px;
   border-radius:6px;
   background:var(--bg);
   border:1px solid var(--border);
-  font-weight:600;
-  margin-top:10px;
 }
 
 .panel{
@@ -103,29 +110,33 @@ h1{
   padding-left:10px;
 }
 
-.panel ul{
-  list-style:none;
-  padding:10px 0;
+.panel ul{list-style:none;padding:10px 0;}
+.panel li{margin-bottom:5px;}
+
+label{display:flex;gap:8px;font-size:.85rem;}
+
+.audit-log{
+  max-height:200px;
+  overflow:auto;
+  font-size:.75rem;
+  background:#0f172a;
+  color:#e2e8f0;
+  padding:10px;
+  border-radius:6px;
 }
 
-.panel li{
-  margin-bottom:6px;
-}
-
-label{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  font-size:.9rem;
+button.action{
+  padding:6px 10px;
+  font-size:.8rem;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:white;
   cursor:pointer;
+  margin-right:5px;
 }
 
-small{
-  color:var(--muted);
-}
-
-@media (min-width:768px){
-  body{max-width:1000px;margin:auto;}
+@media(min-width:900px){
+  body{max-width:1100px;margin:auto;}
 }
 </style>
 </head>
@@ -133,156 +144,195 @@ small{
 <body>
 
 <header>
-<h1>Hoja de Ruta Técnica · Reestructura Proyecto GAS</h1>
-<small>Documento operativo para implementación progresiva</small>
+<h1>Panel Técnico Integral · Reestructura Proyecto GAS</h1>
+<small>Seguimiento operativo detallado</small>
 <div class="progress-container">
-<div class="progress-bar" id="progressBar"></div>
+<div class="progress-bar" id="globalProgress"></div>
 </div>
 </header>
 
+<section class="dashboard">
+<div class="metric"><strong>Total tareas:</strong> <span id="totalTasks"></span></div>
+<div class="metric"><strong>Completadas:</strong> <span id="completedTasks"></span></div>
+<div class="metric"><strong>% Avance:</strong> <span id="percentComplete"></span></div>
+<div class="metric"><strong>Último cambio:</strong> <span id="lastUpdate">—</span></div>
+</section>
+
+<section style="margin-bottom:15px;">
+<button class="action" onclick="exportData()">Exportar JSON</button>
+<button class="action" onclick="importData()">Importar JSON</button>
+<button class="action" onclick="clearData()">Reset</button>
+<input type="file" id="fileInput" style="display:none;">
+</section>
+
 <div class="tabs">
-<button class="tab-btn active" data-tab="arquitectura">Arquitectura</button>
+<button class="tab-btn active" data-tab="core">Core</button>
 <button class="tab-btn" data-tab="sesiones">Sesiones</button>
 <button class="tab-btn" data-tab="frontend">Frontend</button>
 <button class="tab-btn" data-tab="seguridad">Seguridad</button>
-<button class="tab-btn" data-tab="deploy">Deploy</button>
+<button class="tab-btn" data-tab="auditoria">Auditoría</button>
 </div>
 
-<!-- ARQUITECTURA -->
-<div class="tab-content active" id="arquitectura">
-
+<div class="tab-content active" id="core">
 <div class="card">
-<div class="accordion">Estructura Base del Sistema</div>
+<div class="accordion">Arquitectura Modular</div>
 <div class="panel">
 <ul>
-<li><label><input type="checkbox"> Consolidar arquitectura modular (index.html como contenedor principal)</label></li>
-<li><label><input type="checkbox"> Mantener redirección por UUID de rol</label></li>
-<li><label><input type="checkbox"> Backend separado en main.gs y auth.gs</label></li>
-<li><label><input type="checkbox"> Validación de acceso por id_t_usuario desde BigQuery</label></li>
-<li><label><input type="checkbox"> Eliminar archivos HTML redundantes</label></li>
+<li><label><input type="checkbox" data-section="core"> index.html como contenedor dinámico</label></li>
+<li><label><input type="checkbox" data-section="core"> UUID como control de roles</label></li>
+<li><label><input type="checkbox" data-section="core"> Backend separado (main.gs / auth.gs)</label></li>
+<li><label><input type="checkbox" data-section="core"> Validación BigQuery optimizada</label></li>
 </ul>
 </div>
 </div>
-
-<div class="card">
-<div class="accordion">Base de Datos</div>
-<div class="panel">
-<ul>
-<li><label><input type="checkbox"> Validar conexión BigQuery proyecto hallowed-tape-459314-d3</label></li>
-<li><label><input type="checkbox"> Confirmar columnas: id_usuario, nombre, curp, celular, id_clues, id_t_usuario, activo</label></li>
-<li><label><input type="checkbox"> Validar filtros por región sanitaria</label></li>
-<li><label><input type="checkbox"> Crear consultas optimizadas para login</label></li>
-</ul>
-</div>
 </div>
 
-</div>
-
-<!-- SESIONES -->
 <div class="tab-content" id="sesiones">
-
 <div class="card">
-<div class="accordion">Sistema de Login</div>
+<div class="accordion">Sistema de Autenticación</div>
 <div class="panel">
 <ul>
-<li><label><input type="checkbox"> Login solo con CURP + celular</label></li>
-<li><label><input type="checkbox"> Redirección correcta a index.html</label></li>
-<li><label><input type="checkbox"> Bloquear acceso si activo = false</label></li>
-<li><label><input type="checkbox"> Manejo de errores consistente</label></li>
+<li><label><input type="checkbox" data-section="sesiones"> Login CURP + celular</label></li>
+<li><label><input type="checkbox" data-section="sesiones"> Redirección estable</label></li>
+<li><label><input type="checkbox" data-section="sesiones"> Persistencia obtenerSesionCompleta()</label></li>
+<li><label><input type="checkbox" data-section="sesiones"> Logout seguro</label></li>
 </ul>
 </div>
 </div>
-
-<div class="card">
-<div class="accordion">Persistencia de Sesión</div>
-<div class="panel">
-<ul>
-<li><label><input type="checkbox"> Implementar obtenerSesionCompleta()</label></li>
-<li><label><input type="checkbox"> Evitar redirecciones erráticas</label></li>
-<li><label><input type="checkbox"> Validar sesión antes de cargar formularios</label></li>
-<li><label><input type="checkbox"> Logout limpio</label></li>
-</ul>
-</div>
 </div>
 
-</div>
-
-<!-- FRONTEND -->
 <div class="tab-content" id="frontend">
-
 <div class="card">
 <div class="accordion">Compatibilidad</div>
 <div class="panel">
 <ul>
-<li><label><input type="checkbox"> Eliminar backticks problemáticos</label></li>
-<li><label><input type="checkbox"> Compatibilidad Safari iOS</label></li>
-<li><label><input type="checkbox"> Evitar doble menú en pantallas grandes</label></li>
-<li><label><input type="checkbox"> CSS responsive consistente</label></li>
+<li><label><input type="checkbox" data-section="frontend"> Eliminar backticks</label></li>
+<li><label><input type="checkbox" data-section="frontend"> Safari iOS validado</label></li>
+<li><label><input type="checkbox" data-section="frontend"> Responsive completo</label></li>
 </ul>
 </div>
 </div>
-
-<div class="card">
-<div class="accordion">UX Funcional</div>
-<div class="panel">
-<ul>
-<li><label><input type="checkbox"> Animación visual al guardar registro</label></li>
-<li><label><input type="checkbox"> Indicador de progreso en formularios</label></li>
-<li><label><input type="checkbox"> Terminal visual solo en desktop</label></li>
-<li><label><input type="checkbox"> Validaciones claras y visibles</label></li>
-</ul>
-</div>
 </div>
 
-</div>
-
-<!-- SEGURIDAD -->
 <div class="tab-content" id="seguridad">
-
-<div class="card">
-<div class="accordion">Control de Accesos</div>
-<div class="panel">
-<ul>
-<li><label><input type="checkbox"> Validación backend obligatoria</label></li>
-<li><label><input type="checkbox"> Evitar ejecución arbitraria en GAS</label></li>
-<li><label><input type="checkbox"> Sanitizar entradas</label></li>
-<li><label><input type="checkbox"> Registrar logs críticos</label></li>
-</ul>
-</div>
-</div>
-
 <div class="card">
 <div class="accordion">Hardening</div>
 <div class="panel">
 <ul>
-<li><label><input type="checkbox"> Limitar métodos expuestos</label></li>
-<li><label><input type="checkbox"> Revisión de permisos en Apps Script</label></li>
-<li><label><input type="checkbox"> Validar roles en cada operación</label></li>
+<li><label><input type="checkbox" data-section="seguridad"> Validación backend obligatoria</label></li>
+<li><label><input type="checkbox" data-section="seguridad"> Sanitización inputs</label></li>
+<li><label><input type="checkbox" data-section="seguridad"> Logs críticos activos</label></li>
 </ul>
 </div>
 </div>
-
 </div>
 
-<!-- DEPLOY -->
-<div class="tab-content" id="deploy">
-
+<div class="tab-content" id="auditoria">
 <div class="card">
-<div class="accordion">GitHub Pages</div>
-<div class="panel">
-<ul>
-<li><label><input type="checkbox"> Verificar rutas relativas</label></li>
-<li><label><input type="checkbox"> Evitar errores net::ERR_NAME_NOT_RESOLVED</label></li>
-<li><label><input type="checkbox"> Versionado limpio</label></li>
-<li><label><input type="checkbox"> Pruebas cross-browser finales</label></li>
-</ul>
+<strong>Registro de eventos</strong>
+<div class="audit-log" id="auditLog"></div>
 </div>
-</div>
-
 </div>
 
 <script>
-// Tabs
+const checkboxes=document.querySelectorAll("input[type='checkbox']");
+const progressBar=document.getElementById("globalProgress");
+const totalTasksEl=document.getElementById("totalTasks");
+const completedTasksEl=document.getElementById("completedTasks");
+const percentEl=document.getElementById("percentComplete");
+const lastUpdateEl=document.getElementById("lastUpdate");
+const auditLog=document.getElementById("auditLog");
+
+function updateMetrics(){
+  const total=checkboxes.length;
+  const completed=[...checkboxes].filter(cb=>cb.checked).length;
+  const percent=Math.round((completed/total)*100);
+
+  progressBar.style.width=percent+"%";
+  totalTasksEl.textContent=total;
+  completedTasksEl.textContent=completed;
+  percentEl.textContent=percent+"%";
+}
+
+function logEvent(text){
+  const time=new Date().toLocaleString();
+  const entry=`[${time}] ${text}`;
+  const logs=JSON.parse(localStorage.getItem("auditLog")||"[]");
+  logs.push(entry);
+  localStorage.setItem("auditLog",JSON.stringify(logs));
+  renderLogs();
+  lastUpdateEl.textContent=time;
+}
+
+function renderLogs(){
+  const logs=JSON.parse(localStorage.getItem("auditLog")||"[]");
+  auditLog.innerHTML=logs.slice(-50).reverse().join("<br>");
+}
+
+function saveState(){
+  const state=[...checkboxes].map(cb=>cb.checked);
+  localStorage.setItem("progressState",JSON.stringify(state));
+  updateMetrics();
+}
+
+function loadState(){
+  const state=JSON.parse(localStorage.getItem("progressState"));
+  if(state){
+    checkboxes.forEach((cb,i)=>cb.checked=state[i]);
+  }
+  updateMetrics();
+  renderLogs();
+}
+
+checkboxes.forEach(cb=>{
+  cb.addEventListener("change",()=>{
+    logEvent((cb.checked?"✔ ":"✖ ")+cb.parentElement.textContent.trim());
+    saveState();
+  });
+});
+
+function exportData(){
+  const data={
+    state:JSON.parse(localStorage.getItem("progressState")),
+    logs:JSON.parse(localStorage.getItem("auditLog"))
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="progreso_gas.json";
+  a.click();
+}
+
+function importData(){
+  document.getElementById("fileInput").click();
+}
+
+document.getElementById("fileInput").addEventListener("change",function(){
+  const file=this.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const data=JSON.parse(e.target.result);
+    localStorage.setItem("progressState",JSON.stringify(data.state));
+    localStorage.setItem("auditLog",JSON.stringify(data.logs));
+    loadState();
+  };
+  reader.readAsText(file);
+});
+
+function clearData(){
+  localStorage.clear();
+  location.reload();
+}
+
+document.querySelectorAll(".accordion").forEach(acc=>{
+  acc.addEventListener("click",()=>{
+    const panel=acc.nextElementSibling;
+    panel.style.maxHeight?panel.style.maxHeight=null:panel.style.maxHeight=panel.scrollHeight+"px";
+  });
+});
+
 document.querySelectorAll(".tab-btn").forEach(btn=>{
   btn.addEventListener("click",()=>{
     document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
@@ -292,39 +342,7 @@ document.querySelectorAll(".tab-btn").forEach(btn=>{
   });
 });
 
-// Accordions
-document.querySelectorAll(".accordion").forEach(acc=>{
-  acc.addEventListener("click",()=>{
-    const panel=acc.nextElementSibling;
-    panel.style.maxHeight?panel.style.maxHeight=null:panel.style.maxHeight=panel.scrollHeight+"px";
-  });
-});
-
-// Progress + Persistence
-const checkboxes=document.querySelectorAll("input[type='checkbox']");
-const progressBar=document.getElementById("progressBar");
-
-function updateProgress(){
-  const total=checkboxes.length;
-  const checked=document.querySelectorAll("input[type='checkbox']:checked").length;
-  const percent=(checked/total)*100;
-  progressBar.style.width=percent+"%";
-  localStorage.setItem("roadmapProgress",JSON.stringify(
-    [...checkboxes].map(cb=>cb.checked)
-  ));
-}
-
-function loadProgress(){
-  const saved=JSON.parse(localStorage.getItem("roadmapProgress"));
-  if(saved){
-    checkboxes.forEach((cb,i)=>cb.checked=saved[i]);
-  }
-  updateProgress();
-}
-
-checkboxes.forEach(cb=>cb.addEventListener("change",updateProgress));
-
-loadProgress();
+loadState();
 </script>
 
 </body>
