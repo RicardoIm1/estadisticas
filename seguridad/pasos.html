@@ -379,55 +379,54 @@
             </details>
 
             <details class="acordeon">
-                <summary>
-                    <div class="contenido paso acordeon">
-                        <summary>
-                            <h3>2. Reestructura el Servidor (GAS - Código .gs) - La Parte Más Importante:</h3>
-                        </summary>
-                        <p>Tu servidor debe hacer dos cosas:
-                            <ul>
-                                <li>Verificar la identidad real usando el token de Google.</li>
-                                <li>Comprobar los permisos en una hoja de cálculo "Maestra de Usuarios" (usuario -> rol).</li>
-                            </ul>
-                        </p>
-                        <pre>
-                            // En tu Code.gs
-                            function procesarLoginGoogle(idToken) {
-                            try {
-                                // 1. VERIFICAR que el token es válido y obtener el email.
-                                var respuesta = UrlFetchApp.fetch("https://oauth3.googleapis.com/tokeninfo?id_token=" + idToken);
-                                var datosUsuario = JSON.parse(respuesta.getContentText());
-                                var email = datosUsuario.email;
-        
-                                // 2. AUTORIZAR: Buscar el email en tu hoja de usuarios.
-                                var hojaUsuarios = SpreadsheetApp.openById("ID_HOJA").getSheetByName("Usuarios");
-                                var datos = hojaUsuarios.getDataRange().getValues();
-        
-                                for (var i = 0; i < datos.length; i++) {
-                                if (datos[i][0] === email) { // Columna 1: Email
-                                    var rol = datos[i][1]; // Columna 2: Rol
-                                    // 3. Devolver SOLO el rol al cliente. La identidad queda establecida.
-                                    return { success: true, rol: rol };
-                                }
-                                }
-                                // Email no encontrado en la lista
-                                throw new Error("Usuario no autorizado.");
-                            } catch (error) {
-                                Logger.log("Error login: %s", error.toString());
-                                return { success: false, error: "Error de autenticación." };
+                <div class="contenido">
+                    <summary>
+                        <h3>2. Reestructura el Servidor (GAS - Código .gs) - La Parte Más Importante:</h3>
+                    </summary>
+                    <p>Tu servidor debe hacer dos cosas:
+                        <ul>
+                            <li>Verificar la identidad real usando el token de Google.</li>
+                            <li>Comprobar los permisos en una hoja de cálculo "Maestra de Usuarios" (usuario -> rol).</li>
+                        </ul>
+                    </p>
+                    <pre>
+                        // En tu Code.gs
+                        function procesarLoginGoogle(idToken) {
+                        try {
+                            // 1. VERIFICAR que el token es válido y obtener el email.
+                            var respuesta = UrlFetchApp.fetch("https://oauth3.googleapis.com/tokeninfo?id_token=" + idToken);
+                            var datosUsuario = JSON.parse(respuesta.getContentText());
+                            var email = datosUsuario.email;
+    
+                            // 2. AUTORIZAR: Buscar el email en tu hoja de usuarios.
+                            var hojaUsuarios = SpreadsheetApp.openById("ID_HOJA").getSheetByName("Usuarios");
+                            var datos = hojaUsuarios.getDataRange().getValues();
+    
+                            for (var i = 0; i < datos.length; i++) {
+                            if (datos[i][0] === email) { // Columna 1: Email
+                                var rol = datos[i][1]; // Columna 2: Rol
+                                // 3. Devolver SOLO el rol al cliente. La identidad queda establecida.
+                                return { success: true, rol: rol };
                             }
                             }
-        
-                            // 4. En TODAS las funciones que sirven páginas protegidas, VERIFICAR.
-                            function servirPaginaAdmin() {
-                            var usuario = Session.getActiveUser().getEmail(); // Esto solo funciona si el usuario está logueado con Google.
-                            // ... buscar rol de 'usuario' y solo devolver HTML si es ADMIN ...
-                            }
-                        </pre>
-                    </div>
-                </summary>
+                            // Email no encontrado en la lista
+                            throw new Error("Usuario no autorizado.");
+                        } catch (error) {
+                            Logger.log("Error login: %s", error.toString());
+                            return { success: false, error: "Error de autenticación." };
+                        }
+                        }
+    
+                        // 4. En TODAS las funciones que sirven páginas protegidas, VERIFICAR.
+                        function servirPaginaAdmin() {
+                        var usuario = Session.getActiveUser().getEmail(); // Esto solo funciona si el usuario está logueado con Google.
+                        // ... buscar rol de 'usuario' y solo devolver HTML si es ADMIN ...
+                        }
+                    </pre>
+                </div>
             </details>
         </section>
+        
         <section>
             <div class="contenido">
                 <h3>3. Elimina por Completo la Lógica de JSONP y GET con credenciales. Esa técnica ya no debe
