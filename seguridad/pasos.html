@@ -12,33 +12,77 @@
         <h1>🔧 Guía Práctica Paso a Paso para Corregirlo</h1>
         <div class="paso">
             <h2>1. Reescribe el Cliente (HTML/JS) para usar google.script.run:</h2>
+            <p>Esto es lo más seguro para comunicar tu web con GAS, ya que maneja la autenticación de Google de forma
+                transparente.</p>
             <pre>
                 // 1. En tu HTML, carga la API de Google
-<script src="https://accounts.google.com/gsi/client"></script>
-<script src="https://apis.google.com/js/api.js"></script>
+                <script src="https://accounts.google.com/gsi/client"></script>
+                <script src="https://apis.google.com/js/api.js"></script>
 
-// 2. En tu login.js, implementa Google Sign-In
-function handleCredentialResponse(response) {
-    // response.credential es el JWT de Google
-    google.script.run
-      .withSuccessHandler(function(rolDelServidor) {
-          // Login exitoso. El servidor nos devuelve el rol.
-          redirigirSegunRol(rolDelServidor);
-      })
-      .withFailureHandler(function(error) {
-          // Login fallido (email no autorizado)
-          mostrarError("Acceso denegado. No estás en la lista.");
-      })
-      .procesarLoginGoogle(response.credential); // Esta función está en tu GAS.
-}
+                // 2. En tu login.js, implementa Google Sign-In
+                function handleCredentialResponse(response) {
+                    // response.credential es el JWT de Google
+                    google.script.run
+                    .withSuccessHandler(function(rolDelServidor) {
+                        // Login exitoso. El servidor nos devuelve el rol.
+                        redirigirSegunRol(rolDelServidor);
+                    })
+                    .withFailureHandler(function(error) {
+                        // Login fallido (email no autorizado)
+                        mostrarError("Acceso denegado. No estás en la lista.");
+                    })
+                    .procesarLoginGoogle(response.credential); // Esta función está en tu GAS.
+                }
 
-// 3. Botón de Google en tu HTML
-<div id="g_id_onload"
-     data-client_id="TU_CLIENT_ID_DE_GOOGLE_CLOUD"
-     data-callback="handleCredentialResponse">
-</div>
-<div class="g_id_signin" data-type="standard"></div>
+                // 3. Botón de Google en tu HTML
+                <div id="g_id_onload"
+                    data-client_id="TU_CLIENT_ID_DE_GOOGLE_CLOUD"
+                    data-callback="handleCredentialResponse">
+                </div>
+                <div class="g_id_signin" data-type="standard"></div>
+            </pre>
+        </div>
+        <div class="paso">
+            <h2>2. Reestructura el Servidor (GAS - Código .gs) - La Parte Más Importante:</h2>
+            <p>Tu servidor debe hacer dos cosas:
+            <ul>
+                <li>Verificar la identidad real usando el token de Google.</li>
+                <li>Comprobar los permisos en una hoja de cálculo "Maestra de Usuarios" (usuario -> rol).</li>
+            </ul>
+            </p>
+            <pre>
+                // En tu Code.gs
+                function procesarLoginGoogle(idToken) {
+                try {
+                    // 1. VERIFICAR que el token es válido y obtener el email.
+                    var respuesta = UrlFetchApp.fetch("https://oauth2.googleapis.com/tokeninfo?id_token=" + idToken);
+                    var datosUsuario = JSON.parse(respuesta.getContentText());
+                    var email = datosUsuario.email;
 
+                    // 2. AUTORIZAR: Buscar el email en tu hoja de usuarios.
+                    var hojaUsuarios = SpreadsheetApp.openById("ID_HOJA").getSheetByName("Usuarios");
+                    var datos = hojaUsuarios.getDataRange().getValues();
+
+                    for (var i = 0; i < datos.length; i++) {
+                    if (datos[i][0] === email) { // Columna 1: Email
+                        var rol = datos[i][1]; // Columna 2: Rol
+                        // 3. Devolver SOLO el rol al cliente. La identidad queda establecida.
+                        return { success: true, rol: rol };
+                    }
+                    }
+                    // Email no encontrado en la lista
+                    throw new Error("Usuario no autorizado.");
+                } catch (error) {
+                    Logger.log("Error login: %s", error.toString());
+                    return { success: false, error: "Error de autenticación." };
+                }
+                }
+
+                // 4. En TODAS las funciones que sirven páginas protegidas, VERIFICAR.
+                function servirPaginaAdmin() {
+                var usuario = Session.getActiveUser().getEmail(); // Esto solo funciona si el usuario está logueado con Google.
+                // ... buscar rol de 'usuario' y solo devolver HTML si es ADMIN ...
+                }
             </pre>
         </div>
     </div>
