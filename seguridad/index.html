@@ -3,322 +3,328 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plan de Regularización de Seguridad - Sistema GAS</title>
+<title>Hoja de Ruta Técnica · Proyecto GAS</title>
 
 <style>
-:root {
-  --primary:#1f2937;
-  --accent:#2563eb;
-  --bg:#f3f4f6;
+:root{
+  --primary:#2563eb;
+  --bg:#f8fafc;
   --card:#ffffff;
-  --border:#e5e7eb;
+  --border:#e2e8f0;
+  --text:#1e293b;
+  --muted:#64748b;
+  --success:#16a34a;
 }
 
-* { box-sizing:border-box; }
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;}
 
-body {
-  margin:0;
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+body{
   background:var(--bg);
-  color:#111827;
+  color:var(--text);
+  line-height:1.6;
+  padding:20px;
 }
 
-header {
-  background:var(--primary);
-  color:white;
-  padding:1.5rem;
+header{
+  margin-bottom:20px;
 }
 
-header h1 {
-  margin:0;
+h1{
   font-size:1.6rem;
+  margin-bottom:10px;
 }
 
-nav {
+.progress-container{
+  background:var(--border);
+  border-radius:8px;
+  overflow:hidden;
+  height:10px;
+}
+
+.progress-bar{
+  height:100%;
+  width:0%;
+  background:var(--success);
+  transition:width .3s ease;
+}
+
+.tabs{
   display:flex;
   flex-wrap:wrap;
-  background:white;
-  border-bottom:1px solid var(--border);
+  gap:10px;
+  margin:20px 0;
 }
 
-nav button {
-  flex:1;
-  padding:1rem;
-  border:none;
-  background:white;
+.tab-btn{
+  padding:8px 14px;
+  border-radius:6px;
+  border:1px solid var(--border);
+  background:var(--card);
   cursor:pointer;
-  font-weight:600;
-  transition:0.2s;
+  font-size:.9rem;
 }
 
-nav button.active {
-  border-bottom:3px solid var(--accent);
-  color:var(--accent);
+.tab-btn.active{
+  background:var(--primary);
+  color:white;
+  border-color:var(--primary);
 }
 
-nav button:hover {
-  background:#f9fafb;
-}
-
-section {
+.tab-content{
   display:none;
-  padding:1.5rem;
-  max-width:1000px;
-  margin:auto;
 }
 
-section.active {
+.tab-content.active{
   display:block;
 }
 
-.card {
+.card{
   background:var(--card);
-  padding:1.2rem;
-  margin-bottom:1rem;
-  border-radius:8px;
   border:1px solid var(--border);
+  border-radius:10px;
+  padding:15px;
+  margin-bottom:15px;
 }
 
-.card h3 {
-  margin-top:0;
-}
-
-details {
-  border:1px solid var(--border);
-  border-radius:6px;
-  margin-bottom:0.8rem;
-  background:white;
-}
-
-summary {
-  padding:0.8rem;
-  font-weight:600;
+.accordion{
   cursor:pointer;
-  background:#f9fafb;
-}
-
-details div {
-  padding:0.8rem 1rem;
-}
-
-ul {
-  padding-left:1.2rem;
-}
-
-.code {
-  background:#111827;
-  color:#e5e7eb;
-  padding:0.8rem;
+  padding:10px;
   border-radius:6px;
-  font-family: monospace;
-  overflow:auto;
-  font-size:0.85rem;
+  background:var(--bg);
+  border:1px solid var(--border);
+  font-weight:600;
+  margin-top:10px;
 }
 
-footer {
-  text-align:center;
-  padding:1rem;
-  font-size:0.85rem;
-  color:#6b7280;
+.panel{
+  max-height:0;
+  overflow:hidden;
+  transition:max-height .3s ease;
+  padding-left:10px;
+}
+
+.panel ul{
+  list-style:none;
+  padding:10px 0;
+}
+
+.panel li{
+  margin-bottom:6px;
+}
+
+label{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:.9rem;
+  cursor:pointer;
+}
+
+small{
+  color:var(--muted);
+}
+
+@media (min-width:768px){
+  body{max-width:1000px;margin:auto;}
 }
 </style>
 </head>
+
 <body>
 
 <header>
-  <h1>Plan de Regularización y Fortalecimiento de Seguridad</h1>
-  <p>Sistema Interno basado en Google Apps Script + Google Sheets</p>
+<h1>Hoja de Ruta Técnica · Reestructura Proyecto GAS</h1>
+<small>Documento operativo para implementación progresiva</small>
+<div class="progress-container">
+<div class="progress-bar" id="progressBar"></div>
+</div>
 </header>
 
-<nav>
-  <button class="active" onclick="openTab('diagnostico', this)">Diagnóstico</button>
-  <button onclick="openTab('riesgos', this)">Riesgos Identificados</button>
-  <button onclick="openTab('acciones', this)">Acciones Inmediatas</button>
-  <button onclick="openTab('estrategia', this)">Estrategia Mediano Plazo</button>
-  <button onclick="openTab('datos', this)">Datos Sensibles</button>
-</nav>
+<div class="tabs">
+<button class="tab-btn active" data-tab="arquitectura">Arquitectura</button>
+<button class="tab-btn" data-tab="sesiones">Sesiones</button>
+<button class="tab-btn" data-tab="frontend">Frontend</button>
+<button class="tab-btn" data-tab="seguridad">Seguridad</button>
+<button class="tab-btn" data-tab="deploy">Deploy</button>
+</div>
 
-<section id="diagnostico" class="active">
-  <div class="card">
-    <h3>Situación Actual</h3>
-    <ul>
-      <li>Sistema interno desarrollado con Google Apps Script.</li>
-      <li>Base de datos almacenada en Google Sheets.</li>
-      <li>Autenticación personalizada mediante usuario y contraseña.</li>
-      <li>Uso de JSONP y GET para login.</li>
-      <li>Contraseñas originalmente almacenadas en texto plano.</li>
-      <li>Control de sesión basado en localStorage.</li>
-    </ul>
-  </div>
+<!-- ARQUITECTURA -->
+<div class="tab-content active" id="arquitectura">
 
-  <details>
-    <summary>Arquitectura Actual</summary>
-    <div>
-      Frontend en GitHub Pages → Llamadas a GAS público → Google Sheets como almacenamiento.
-      <br><br>
-      Problemas detectados:
-      <ul>
-        <li>Credenciales enviadas por URL.</li>
-        <li>Token de sesión equivalente a contraseña.</li>
-        <li>Endpoint público accesible sin restricción real.</li>
-      </ul>
-    </div>
-  </details>
-</section>
+<div class="card">
+<div class="accordion">Estructura Base del Sistema</div>
+<div class="panel">
+<ul>
+<li><label><input type="checkbox"> Consolidar arquitectura modular (index.html como contenedor principal)</label></li>
+<li><label><input type="checkbox"> Mantener redirección por UUID de rol</label></li>
+<li><label><input type="checkbox"> Backend separado en main.gs y auth.gs</label></li>
+<li><label><input type="checkbox"> Validación de acceso por id_t_usuario desde BigQuery</label></li>
+<li><label><input type="checkbox"> Eliminar archivos HTML redundantes</label></li>
+</ul>
+</div>
+</div>
 
-<section id="riesgos">
-  <details open>
-    <summary>1. Contraseñas en texto plano</summary>
-    <div>
-      Riesgo alto si alguien accede a la hoja "Usuarios".
-      <div class="code">
-if (u === usuario && c === clave) { }
-      </div>
-    </div>
-  </details>
+<div class="card">
+<div class="accordion">Base de Datos</div>
+<div class="panel">
+<ul>
+<li><label><input type="checkbox"> Validar conexión BigQuery proyecto hallowed-tape-459314-d3</label></li>
+<li><label><input type="checkbox"> Confirmar columnas: id_usuario, nombre, curp, celular, id_clues, id_t_usuario, activo</label></li>
+<li><label><input type="checkbox"> Validar filtros por región sanitaria</label></li>
+<li><label><input type="checkbox"> Crear consultas optimizadas para login</label></li>
+</ul>
+</div>
+</div>
 
-  <details>
-    <summary>2. Credenciales enviadas por GET</summary>
-    <div>
-      Se almacenan en historial, logs y tráfico visible.
-    </div>
-  </details>
+</div>
 
-  <details>
-    <summary>3. Sistema de sesión débil</summary>
-    <div>
-      Token = contraseña.
-      No existe validación criptográfica real.
-    </div>
-  </details>
+<!-- SESIONES -->
+<div class="tab-content" id="sesiones">
 
-  <details>
-    <summary>4. Datos de categoría especial</summary>
-    <div>
-      Registros de defunciones contienen:
-      <ul>
-        <li>Nombre completo</li>
-        <li>Fecha</li>
-        <li>Área médica</li>
-      </ul>
-      Esto constituye dato personal sensible.
-    </div>
-  </details>
-</section>
+<div class="card">
+<div class="accordion">Sistema de Login</div>
+<div class="panel">
+<ul>
+<li><label><input type="checkbox"> Login solo con CURP + celular</label></li>
+<li><label><input type="checkbox"> Redirección correcta a index.html</label></li>
+<li><label><input type="checkbox"> Bloquear acceso si activo = false</label></li>
+<li><label><input type="checkbox"> Manejo de errores consistente</label></li>
+</ul>
+</div>
+</div>
 
-<section id="acciones">
-  <div class="card">
-    <h3>Medidas Obligatorias Inmediatas</h3>
-  </div>
+<div class="card">
+<div class="accordion">Persistencia de Sesión</div>
+<div class="panel">
+<ul>
+<li><label><input type="checkbox"> Implementar obtenerSesionCompleta()</label></li>
+<li><label><input type="checkbox"> Evitar redirecciones erráticas</label></li>
+<li><label><input type="checkbox"> Validar sesión antes de cargar formularios</label></li>
+<li><label><input type="checkbox"> Logout limpio</label></li>
+</ul>
+</div>
+</div>
 
-  <details>
-    <summary>Hash de contraseñas (Ejecutar una vez)</summary>
-    <div class="code">
-function migrarContrasenasUnaVez() {
-  var hoja = SpreadsheetApp.getActive().getSheetByName("Usuarios");
-  var datos = hoja.getDataRange().getValues();
-  for (var i=1; i<datos.length; i++) {
-    var claveOriginal = datos[i][1];
-    if (claveOriginal && !claveOriginal.startsWith("hash:")) {
-      var hash = Utilities.computeDigest(
-        Utilities.DigestAlgorithm.SHA_256,
-        claveOriginal + "SAL_SECRETA"
-      ).map(function(b){return ('0'+(b&0xFF).toString(16)).slice(-2);}).join('');
-      datos[i][1] = "hash:" + hash;
-    }
-  }
-  hoja.getRange(1,1,datos.length,datos[0].length).setValues(datos);
-}
-    </div>
-  </details>
+</div>
 
-  <details>
-    <summary>Bloqueo por intentos fallidos</summary>
-    <div class="code">
-var cache = CacheService.getScriptCache();
-var key = "intento_" + usuario;
-var intentos = parseInt(cache.get(key)) || 0;
+<!-- FRONTEND -->
+<div class="tab-content" id="frontend">
 
-if (intentos >= 5) {
-  return responderJSON({ success:false, error:"Espere 15 min" }, e);
-}
-    </div>
-  </details>
+<div class="card">
+<div class="accordion">Compatibilidad</div>
+<div class="panel">
+<ul>
+<li><label><input type="checkbox"> Eliminar backticks problemáticos</label></li>
+<li><label><input type="checkbox"> Compatibilidad Safari iOS</label></li>
+<li><label><input type="checkbox"> Evitar doble menú en pantallas grandes</label></li>
+<li><label><input type="checkbox"> CSS responsive consistente</label></li>
+</ul>
+</div>
+</div>
 
-  <details>
-    <summary>Restricción de origen</summary>
-    <div class="code">
-output.setHeader(
-  "Access-Control-Allow-Origin",
-  "https://ricardoim1.github.io"
-);
-    </div>
-  </details>
-</section>
+<div class="card">
+<div class="accordion">UX Funcional</div>
+<div class="panel">
+<ul>
+<li><label><input type="checkbox"> Animación visual al guardar registro</label></li>
+<li><label><input type="checkbox"> Indicador de progreso en formularios</label></li>
+<li><label><input type="checkbox"> Terminal visual solo en desktop</label></li>
+<li><label><input type="checkbox"> Validaciones claras y visibles</label></li>
+</ul>
+</div>
+</div>
 
-<section id="estrategia">
-  <div class="card">
-    <h3>Plan de Evolución</h3>
-    <ul>
-      <li>Eliminar JSONP y migrar a POST con fetch.</li>
-      <li>Implementar token de sesión real con expiración.</li>
-      <li>Eliminar contraseñas permanentes y migrar a OAuth institucional.</li>
-      <li>Controlar accesos mediante Session.getActiveUser().</li>
-      <li>Documentar medidas técnicas implementadas.</li>
-    </ul>
-  </div>
+</div>
 
-  <details>
-    <summary>Cronograma sugerido</summary>
-    <div>
-      <ul>
-        <li>Hoy: Hash + bloqueo + cabecera.</li>
-        <li>Esta semana: Migrar a POST.</li>
-        <li>Este mes: Sistema de sesión robusto.</li>
-        <li>Fase futura: OAuth institucional.</li>
-      </ul>
-    </div>
-  </details>
-</section>
+<!-- SEGURIDAD -->
+<div class="tab-content" id="seguridad">
 
-<section id="datos">
-  <div class="card">
-    <h3>Tratamiento de Datos Sensibles</h3>
-    <ul>
-      <li>Limitar acceso solo a personal necesario.</li>
-      <li>Eliminar cuentas inactivas.</li>
-      <li>No compartir usuarios.</li>
-      <li>Evitar exponer registros de defunción en entorno web si no es indispensable.</li>
-      <li>Documentar proceso de fortalecimiento.</li>
-    </ul>
-  </div>
+<div class="card">
+<div class="accordion">Control de Accesos</div>
+<div class="panel">
+<ul>
+<li><label><input type="checkbox"> Validación backend obligatoria</label></li>
+<li><label><input type="checkbox"> Evitar ejecución arbitraria en GAS</label></li>
+<li><label><input type="checkbox"> Sanitizar entradas</label></li>
+<li><label><input type="checkbox"> Registrar logs críticos</label></li>
+</ul>
+</div>
+</div>
 
-  <details>
-    <summary>Postura ante supervisión</summary>
-    <div>
-      Se encuentra en proceso activo de fortalecimiento técnico conforme a circular institucional.
-      <br><br>
-      Medidas ya implementadas:
-      <ul>
-        <li>Hash de contraseñas.</li>
-        <li>Bloqueo antifuerza bruta.</li>
-        <li>Restricción de origen.</li>
-      </ul>
-    </div>
-  </details>
-</section>
+<div class="card">
+<div class="accordion">Hardening</div>
+<div class="panel">
+<ul>
+<li><label><input type="checkbox"> Limitar métodos expuestos</label></li>
+<li><label><input type="checkbox"> Revisión de permisos en Apps Script</label></li>
+<li><label><input type="checkbox"> Validar roles en cada operación</label></li>
+</ul>
+</div>
+</div>
 
-<footer>
-  Documento interno de guía técnica y cumplimiento — 2026
-</footer>
+</div>
+
+<!-- DEPLOY -->
+<div class="tab-content" id="deploy">
+
+<div class="card">
+<div class="accordion">GitHub Pages</div>
+<div class="panel">
+<ul>
+<li><label><input type="checkbox"> Verificar rutas relativas</label></li>
+<li><label><input type="checkbox"> Evitar errores net::ERR_NAME_NOT_RESOLVED</label></li>
+<li><label><input type="checkbox"> Versionado limpio</label></li>
+<li><label><input type="checkbox"> Pruebas cross-browser finales</label></li>
+</ul>
+</div>
+</div>
+
+</div>
 
 <script>
-function openTab(id, btn) {
-  document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
-  btn.classList.add("active");
+// Tabs
+document.querySelectorAll(".tab-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".tab-content").forEach(c=>c.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
+
+// Accordions
+document.querySelectorAll(".accordion").forEach(acc=>{
+  acc.addEventListener("click",()=>{
+    const panel=acc.nextElementSibling;
+    panel.style.maxHeight?panel.style.maxHeight=null:panel.style.maxHeight=panel.scrollHeight+"px";
+  });
+});
+
+// Progress + Persistence
+const checkboxes=document.querySelectorAll("input[type='checkbox']");
+const progressBar=document.getElementById("progressBar");
+
+function updateProgress(){
+  const total=checkboxes.length;
+  const checked=document.querySelectorAll("input[type='checkbox']:checked").length;
+  const percent=(checked/total)*100;
+  progressBar.style.width=percent+"%";
+  localStorage.setItem("roadmapProgress",JSON.stringify(
+    [...checkboxes].map(cb=>cb.checked)
+  ));
 }
+
+function loadProgress(){
+  const saved=JSON.parse(localStorage.getItem("roadmapProgress"));
+  if(saved){
+    checkboxes.forEach((cb,i)=>cb.checked=saved[i]);
+  }
+  updateProgress();
+}
+
+checkboxes.forEach(cb=>cb.addEventListener("change",updateProgress));
+
+loadProgress();
 </script>
 
 </body>
