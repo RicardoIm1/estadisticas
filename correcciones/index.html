@@ -1,593 +1,222 @@
-function doGet() {
-return HtmlService.createHtmlOutput(`
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Interactivo | Responsables Mensual</title>
-    <!-- Chart.js CDN para gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Font Awesome para íconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Storytelling de Datos 2025</title>
 
-        /* body {
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-            background: #f4f7fb;
-            padding: 2rem 1.5rem;
-            color: #1a2639;
-        } */
-
-        body {
-            font-family: 'Inter', system-ui, sans-serif;
-            background: linear-gradient(180deg, #f6f9fc 0%, #eef2f7 100%);
-            padding: 2rem 1.5rem;
-            color: #1a2639;
-        }
-
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        .dashboard-header h1 {
-            font-weight: 600;
-            font-size: 1.8rem;
-            background: linear-gradient(145deg, #1e3c72, #2a5298);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stats-cards {
-            display: flex;
-            gap: 1.2rem;
-            flex-wrap: wrap;
-        }
-
-        .card {
-            background: white;
-            border-radius: 20px;
-            padding: 1.2rem 2rem;
-            box-shadow: 0 8px 20px rgba(0, 20, 50, 0.06);
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            transition: all 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(2px);
-        }
-
-        .card i {
-            font-size: 2rem;
-            color: #2a5298;
-            opacity: 0.7;
-        }
-
-        .card-info h3 {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: #4a5568;
-        }
-
-        .card-info .value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: #0b2b4b;
-            line-height: 1.2;
-        }
-
-        .grafico-container {
-            background: white;
-            border-radius: 24px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.04);
-            transition: transform 0.2s ease;
+<style>
+body{
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin:0;
+    background:#f4f6f9;
+    color:#1e1e1e;
 }
-.grafico-container:hover {
-    transform: translateY(-3px);
-        }
 
-        .grafico-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            flex-wrap: wrap;
-        }
+header{
+    background:#111827;
+    color:white;
+    padding:40px 20px;
+    text-align:center;
+}
 
-        .grafico-header h2 {
-            font-size: 1.4rem;
-            font-weight: 600;
-        }
+header h1{
+    margin:0;
+    font-size:28px;
+    letter-spacing:1px;
+}
 
-        .tabla-wrapper {
-            background: white;
-            border-radius: 24px;
-            padding: 1.5rem 1rem 1.5rem 1.5rem;
-            box-shadow: 0 16px 35px rgba(0, 0, 0, 0.03);
-            overflow-x: auto;
-        }
+header p{
+    margin-top:10px;
+    font-size:16px;
+    opacity:.8;
+}
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-            min-width: 1600px;
-        }
+.section{
+    padding:50px 8%;
+}
 
-        th {
-            background: #f0f4fe;
-            color: #102a4e;
-            font-weight: 600;
-            padding: 0.9rem 0.5rem;
-            white-space: nowrap;
-        }
+.highlight-box{
+    background:#111827;
+    color:white;
+    padding:30px;
+    border-radius:10px;
+    margin-top:20px;
+}
 
-        td {
-            padding: 0.75rem 0.5rem;
-            border-bottom: 1px solid #e2e8f0;
-            text-align: center;
-            font-weight: 500;
-        }
+.highlight-box strong{
+    color:#f97316;
+}
 
-        tr:last-child td {
-            border-bottom: none;
-        }
+canvas{
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
 
-        tbody tr:hover {
-            background: #f0f7ff;
-            transition: 0.1s;
-        }
+.grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit,minmax(300px,1fr));
+    gap:30px;
+}
 
-        .responsable-col {
-            text-align: left;
-            font-weight: 600;
-            color: #0b2b4b;
-            position: sticky;
-            left: 0;
-            background: white;
-            box-shadow: 2px 0 5px -2px rgba(0, 0, 0, 0.05);
-        }
+.table{
+    width:100%;
+    border-collapse:collapse;
+    background:white;
+    border-radius:10px;
+    overflow:hidden;
+    box-shadow:0 5px 20px rgba(0,0,0,.08);
+}
 
-        th:first-child,
-        td:first-child {
-            position: sticky;
-            left: 0;
-            background: inherit;
-            z-index: 2;
-            padding-left: 1rem;
-        }
+.table th{
+    background:#111827;
+    color:white;
+    padding:12px;
+}
 
-        th:first-child {
-            background: #f0f4fe;
-            z-index: 3;
-        }
+.table td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+}
 
-        .total-row {
-            background: #e9eff9;
-            font-weight: 700;
-            border-top: 2px solid #b3c7e5;
-        }
+.top{
+    background:#f97316;
+    color:white;
+    font-weight:bold;
+}
 
-        .total-row td {
-            background: #e9eff9;
-        }
-
-        .badge-mes {
-            background: #d9e6f2;
-            padding: 0.2rem 0.6rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            color: #1e3c72;
-        }
-
-        .sort-btn {
-            background: none;
-            border: 1px solid #cbd5e0;
-            padding: 0.3rem 0.8rem;
-            border-radius: 40px;
-            margin-left: 0.8rem;
-            font-size: 0.75rem;
-            cursor: pointer;
-            background: white;
-            transition: 0.2s;
-        }
-
-        .sort-btn:hover {
-            background: #dce5f0;
-            border-color: #2a5298;
-        }
-
-        .footer-notes {
-            margin-top: 1.5rem;
-            text-align: right;
-            color: #5f6b7a;
-            font-size: 0.8rem;
-        }
-
-        @media (max-width: 700px) {
-            body {
-                padding: 1rem;
-            }
-
-            .stats-cards .card {
-                padding: 1rem;
-            }
-
-            .grafico-container {
-                padding: 1rem;
-            }
-        }
-
-        td,
-        th {
-            min-width: 60px;
-        }
-
-        th:first-child,
-        td:first-child {
-            min-width: 220px;
-        }
-    </style>
+footer{
+    text-align:center;
+    padding:40px;
+    font-size:14px;
+    opacity:.6;
+}
+</style>
 </head>
 
 <body>
 
-    <div class="dashboard-header">
-        <h1><i class="fas fa-chart-pie" style="margin-right: 12px; color:#2a5298;"></i>Dashboard de responsables · 2025
-        </h1>
-        <div class="stats-cards">
-            <div class="card">
-                <i class="fas fa-users"></i>
-                <div class="card-info">
-                    <h3>Total responsables</h3>
-                    <span class="value" id="totalPersonas">30</span>
-                </div>
-            </div>
-            <div class="card">
-                <i class="fas fa-calendar-check"></i>
-                <div class="card-info">
-                    <h3>Registros totales</h3>
-                    <span class="value" id="totalGeneral">1364</span>
-                </div>
-            </div>
-            <div class="card">
-                <i class="fas fa-chart-line"></i>
-                <div class="card-info">
-                    <h3>Promedio x responsable</h3>
-                    <span class="value" id="promedioXR">45.5</span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="grafico-container">
-        <div class="grafico-header">
-            <h2><i class="fas fa-filter" style="margin-right:8px;color:#3f6699;"></i>Filtros de análisis</h2>
-        </div>
-        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-            <select id="selectTop" style="padding:0.6rem 1rem; border-radius:12px; border:1px solid #d0d7e2;">
-                <option value="5">Top 5 responsables</option>
-                <option value="10">Top 10 responsables</option>
-                <option value="30">Todos</option>
-            </select>
+<header>
+<h1>2025: De la Calma a la Saturación</h1>
+<p>72% del trabajo ocurrió en el último cuatrimestre</p>
+</header>
 
-            <select id="selectResponsable" style="padding:0.6rem 1rem; border-radius:12px; border:1px solid #d0d7e2;">
-                <option value="ALL">Comparar todos</option>
-            </select>
-        </div>
-    </div>
-    <!-- Gráfico de evolución mensual (totales por mes) -->
-    <div class="grafico-container">
-        <div class="grafico-header">
-            <h2><i class="fas fa-chart-bar" style="margin-right: 8px; color:#3f6699;"></i>Totales por mes · 2025</h2>
-            <span class="badge-mes"><i class="far fa-calendar-alt"></i> Datos acumulados</span>
-        </div>
-        <canvas id="chartMensual" style="width:100%; max-height: 280px; height: 280px;"></canvas>
-    </div>
-    <div class="grafico-container">
-        <div class="grafico-header">
-            <h2><i class="fas fa-chart-line" style="margin-right:8px;color:#2a5298;"></i>Evolución mensual por
-                responsable</h2>
-        </div>
-        <canvas id="chartResponsables" style="width:100%; max-height:350px; height:350px;"></canvas>
-    </div>
+<div class="section">
+<h2>El Mensaje Central</h2>
+<div class="highlight-box">
+En solo <strong>4 meses</strong> (Sept–Dic) se concentró el 
+<strong>72% del total anual</strong>.<br><br>
+El sistema pasó de estabilidad a presión estructural.
+</div>
+</div>
 
-    <!-- Tabla interactiva con opción de ordenamiento -->
-    <div class="tabla-wrapper">
-        <div
-            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-right: 1rem;">
-            <h2 style="font-size: 1.3rem;"><i class="fas fa-table" style="margin-right: 8px; color:#2a5298;"></i>Detalle
-                mensual por responsable</h2>
-            <div>
-                <span style="font-size:0.85rem; margin-right: 8px;">Ordenar por:</span>
-                <button class="sort-btn" id="sortNombre"><i class="fas fa-sort-alpha-down"></i> Nombre</button>
-                <button class="sort-btn" id="sortTotal"><i class="fas fa-sort-numeric-down"></i> Total (desc)</button>
-                <button class="sort-btn" id="sortReset"><i class="fas fa-undo"></i> Reiniciar</button>
-            </div>
-        </div>
-        <table id="tablaDatos">
-            <thead>
-                <tr>
-                    <th>RESPONSABLE</th>
-                    <th>Jan 2025</th>
-                    <th>feb 2025</th>
-                    <th>mar 2025</th>
-                    <th>Apr 2025</th>
-                    <th>may 2025</th>
-                    <th>jun 2025</th>
-                    <th>jul 2025</th>
-                    <th>Aug 2025</th>
-                    <th>sep 2025</th>
-                    <th>oct 2025</th>
-                    <th>nov 2025</th>
-                    <th>Dec 2025</th>
-                    <th>TOTAL</th>
-                </tr>
-            </thead>
-            <tbody id="tablaBody">
-                <!-- Se inyecta via javascript -->
-            </tbody>
-        </table>
-    </div>
-    <div class="footer-notes">
-        <i class="far fa-clock"></i> Datos mostrados corresponden a proyección 2025 · Dashboard interactivo
-    </div>
+<div class="section grid">
+<div>
+<h2>Evolución Mensual</h2>
+<canvas id="lineChart"></canvas>
+</div>
 
-    <script>
-        (function () {
-            // --------------------------------------------------------------
-            // DATOS: Responsable y valores mensuales (mismo orden que el enunciado)
-            // --------------------------------------------------------------
-            const datosOriginales = [
-                { nombre: "SUSANA GOMEZ", meses: [11, 4, 8, 6, 5, 4, 4, 13, 38, 51, 30, 18] },
-                { nombre: "VICTOR ALFONSO PASILLAS", meses: [6, 1, 7, 9, 4, 5, 3, 19, 32, 50, 9, 28] },
-                { nombre: "MARIO SOLANO", meses: [5, 0, 13, 2, 11, 7, 0, 13, 29, 27, 36, 10] },
-                { nombre: "RODRIGO SALVADOR OLEA", meses: [3, 3, 12, 4, 8, 0, 2, 4, 11, 18, 34, 30] },
-                { nombre: "MARIA LETICIA ROMO", meses: [9, 4, 0, 5, 3, 3, 5, 0, 13, 13, 22, 19] },
-                { nombre: "VICTOR CARRILLO", meses: [5, 4, 5, 1, 5, 2, 3, 1, 15, 20, 20, 8] },
-                { nombre: "RICARDO LIMON", meses: [4, 4, 0, 3, 3, 4, 0, 3, 9, 10, 16, 8] },
-                { nombre: "SALVADOR SEGURA", meses: [1, 1, 4, 2, 2, 0, 0, 3, 9, 16, 11, 14] },
-                { nombre: "MARIA ELENA ALATORRE", meses: [3, 3, 2, 1, 2, 0, 8, 5, 14, 5, 7, 8] },
-                { nombre: "DAVID VENEGAS", meses: [0, 1, 2, 1, 0, 1, 1, 2, 17, 12, 13, 6] },
-                { nombre: "REY DAVID HERNANDEZ", meses: [2, 3, 1, 1, 1, 0, 0, 3, 7, 11, 9, 10] },
-                { nombre: "ULISES RUIZ", meses: [0, 0, 0, 0, 2, 3, 4, 1, 25, 1, 4, 7] },
-                { nombre: "MARIA LUISA GARCIA", meses: [0, 0, 0, 0, 0, 0, 0, 7, 10, 2, 9, 1] },
-                { nombre: "VICTOR MANUEL HERNANDEZ", meses: [1, 0, 1, 0, 0, 1, 1, 2, 1, 4, 13, 1] },
-                { nombre: "ANA FERNANDA HERNANDEZ", meses: [1, 1, 3, 0, 0, 1, 0, 2, 5, 3, 3, 4] },
-                { nombre: "EMILIO BOTELLO", meses: [2, 0, 3, 0, 0, 0, 0, 0, 6, 3, 3, 1] },
-                { nombre: "MARIA VANESSA SALCEDO", meses: [0, 0, 0, 0, 0, 0, 0, 0, 5, 2, 2, 6] },
-                { nombre: "CRUZ CASTILLO", meses: [0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 10, 2] },
-                { nombre: "ERIKA ESMERALDA SOLARES", meses: [0, 1, 0, 0, 0, 1, 1, 1, 3, 1, 1, 5] },
-                { nombre: "LUIS MIGUEL ANTONIO ORTIZ", meses: [0, 1, 0, 1, 0, 0, 1, 0, 4, 1, 1, 2] },
-                { nombre: "ULISES ALI CONTRERAS", meses: [0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 2, 5] },
-                { nombre: "MARIO ANTONIO ARRIZON", meses: [0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 4] },
-                { nombre: "VIOLETA CORONA", meses: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 5] },
-                { nombre: "SOTERO GUTIERREZ", meses: [0, 0, 0, 0, 0, 0, 1, 0, 2, 1, 1, 0] },
-                { nombre: "MA JOSEFINA RAMIREZ", meses: [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 3] },
-                { nombre: "MARIA ANGELICA RODRIGUEZ", meses: [0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 3, 0] },
-                { nombre: "OSCAR GONZALEZ", meses: [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0] },
-                { nombre: "ISAAC GABRIEL MORALES", meses: [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0] },
-                { nombre: "VANESSA ALEJANDRA PARRA", meses: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0] },
-                { nombre: "TERESA GUADALUPE ZARATE", meses: [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0] }
-            ];
+<div>
+<h2>Top 4 vs Resto</h2>
+<canvas id="barChart"></canvas>
+</div>
+</div>
 
-            // calcular total x responsable y gran total
-            const datos = datosOriginales.map(d => {
-                const total = d.meses.reduce((acc, v) => acc + v, 0);
-                return { ...d, total };
-            });
+<div class="section">
+<h2>Concentración Operativa</h2>
+<table class="table">
+<tr>
+<th>Responsable</th>
+<th>Total</th>
+<th>% Anual</th>
+</tr>
+<tr class="top"><td>Susana Gómez</td><td>192</td><td>14%</td></tr>
+<tr class="top"><td>Víctor A. Pasillas</td><td>173</td><td>13%</td></tr>
+<tr class="top"><td>Mario Solano</td><td>153</td><td>11%</td></tr>
+<tr class="top"><td>Rodrigo S. Olea</td><td>129</td><td>9%</td></tr>
+</table>
+</div>
 
-            const totalGeneral = datos.reduce((acc, d) => acc + d.total, 0);
-            const promedio = (totalGeneral / datos.length).toFixed(1);
+<footer>
+Storytelling estratégico aplicado a datos operativos 2025
+</footer>
 
-            document.getElementById('totalPersonas').innerText = datos.length;
-            document.getElementById('totalGeneral').innerText = totalGeneral;
-            document.getElementById('promedioXR').innerText = promedio;
+<script>
+const monthlyTotals = [53,32,61,36,48,32,36,83,259,256,263,205];
+const months = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
-            // Totales por mes para gráfico
-            const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-            const totalesMes = Array(12).fill(0);
-            datos.forEach(d => {
-                d.meses.forEach((val, idx) => totalesMes[idx] += val);
-            });
+function drawLineChart(){
+    const canvas = document.getElementById("lineChart");
+    const ctx = canvas.getContext("2d");
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 350;
 
-            // Inicializar gráfico
-            const ctx = document.getElementById('chartMensual').getContext('2d');
-            new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: meses,
-                    datasets: [{
-                        label: 'Total mensual',
-                        data: totalesMes,
-                        backgroundColor: 'rgba(47, 85, 151, 0.7)',
-                        borderRadius: 8,
-                        barPercentage: 0.65,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#e2e8f0' },
-                        }
-                    }
-                }
-            });
+    const max = Math.max(...monthlyTotals);
+    const padding = 50;
+    const width = canvas.width - padding*2;
+    const height = canvas.height - padding*2;
 
-            // Referencia al cuerpo de la tabla
-            const tbody = document.getElementById('tablaBody');
-            let currentData = [...datos]; // copia para ordenamiento
+    ctx.beginPath();
+    ctx.moveTo(padding, canvas.height-padding);
 
-            function renderTabla(dataArray) {
-                tbody.innerHTML = '';
-                dataArray.forEach(item => {
-                    const tr = document.createElement('tr');
-                    // Columna responsable
-                    const tdNombre = document.createElement('td');
-                    tdNombre.className = 'responsable-col';
-                    tdNombre.textContent = item.nombre;
-                    tr.appendChild(tdNombre);
+    monthlyTotals.forEach((value, i)=>{
+        const x = padding + (i/(monthlyTotals.length-1))*width;
+        const y = canvas.height - padding - (value/max)*height;
 
-                    // 12 columnas de meses
-                    item.meses.forEach(val => {
-                        const td = document.createElement('td');
-                        td.textContent = val;
-                        tr.appendChild(td);
-                    });
+        if(i===0) ctx.moveTo(x,y);
+        else ctx.lineTo(x,y);
+    });
 
-                    // Columna total
-                    const tdTotal = document.createElement('td');
-                    tdTotal.textContent = item.total;
-                    tdTotal.style.fontWeight = '700';
-                    tdTotal.style.backgroundColor = '#f5f9ff';
-                    tr.appendChild(tdTotal);
+    ctx.strokeStyle="#f97316";
+    ctx.lineWidth=3;
+    ctx.stroke();
 
-                    tbody.appendChild(tr);
-                });
+    monthlyTotals.forEach((value, i)=>{
+        const x = padding + (i/(monthlyTotals.length-1))*width;
+        const y = canvas.height - padding - (value/max)*height;
 
-                // Añadir fila de total por mes (fija abajo del todo)
-                const trTotal = document.createElement('tr');
-                trTotal.className = 'total-row';
-                const tdLabel = document.createElement('td');
-                tdLabel.textContent = 'TOTAL POR MES';
-                tdLabel.style.fontWeight = '700';
-                tdLabel.style.position = 'sticky';
-                tdLabel.style.left = '0';
-                tdLabel.style.background = '#e9eff9';
-                trTotal.appendChild(tdLabel);
+        ctx.beginPath();
+        ctx.arc(x,y,5,0,Math.PI*2);
+        ctx.fillStyle = i>=8 ? "#dc2626" : "#111827";
+        ctx.fill();
+    });
+}
 
-                for (let i = 0; i < 12; i++) {
-                    const td = document.createElement('td');
-                    td.textContent = totalesMes[i];
-                    td.style.fontWeight = '700';
-                    trTotal.appendChild(td);
-                }
-                const tdGranTotal = document.createElement('td');
-                tdGranTotal.textContent = totalGeneral;
-                tdGranTotal.style.fontWeight = '800';
-                trTotal.appendChild(tdGranTotal);
-                tbody.appendChild(trTotal);
-            }
+function drawBarChart(){
+    const canvas = document.getElementById("barChart");
+    const ctx = canvas.getContext("2d");
+    canvas.width = canvas.offsetWidth;
+    canvas.height = 350;
 
-            // ordenamientos
-            function sortByName() {
-                currentData.sort((a, b) => a.nombre.localeCompare(b.nombre));
-                renderTabla(currentData);
-            }
-            function sortByTotalDesc() {
-                currentData.sort((a, b) => b.total - a.total);
-                renderTabla(currentData);
-            }
-            function resetOrder() {
-                currentData = [...datos]; // orden original: como aparecen en el planteamiento
-                renderTabla(currentData);
-            }
+    const top4 = 647;
+    const rest = 1364 - top4;
+    const max = 1364;
 
-            document.getElementById('sortNombre').addEventListener('click', sortByName);
-            document.getElementById('sortTotal').addEventListener('click', sortByTotalDesc);
-            document.getElementById('sortReset').addEventListener('click', resetOrder);
+    const barWidth = 100;
+    const gap = 100;
 
-            // Render inicial
-            renderTabla(datos); // orden original
-        })();
-        // --------------------------------------------------
-        // GRÁFICA DE LÍNEAS POR RESPONSABLE
-        // --------------------------------------------------
+    const values = [top4, rest];
+    const labels = ["Top 4","Resto"];
 
-        const selectTop = document.getElementById("selectTop");
-        const selectResponsable = document.getElementById("selectResponsable");
+    values.forEach((value,i)=>{
+        const x = 150 + i*(barWidth+gap);
+        const height = (value/max)*250;
+        const y = canvas.height - 50 - height;
 
-        datos.forEach(d => {
-            const opt = document.createElement("option");
-            opt.value = d.nombre;
-            opt.textContent = d.nombre;
-            selectResponsable.appendChild(opt);
-        });
+        ctx.fillStyle = i===0 ? "#f97316" : "#111827";
+        ctx.fillRect(x,y,barWidth,height);
 
-        let chartResp;
+        ctx.fillStyle = "#000";
+        ctx.fillText(labels[i], x+15, canvas.height-20);
+        ctx.fillText(value, x+25, y-10);
+    });
+}
 
-        function generarGraficaResponsables() {
-
-            let datasetSeleccionado = [];
-
-            if (selectResponsable.value !== "ALL") {
-                const persona = datos.find(d => d.nombre === selectResponsable.value);
-                datasetSeleccionado = [persona];
-            } else {
-                const top = parseInt(selectTop.value);
-                datasetSeleccionado = [...datos]
-                    .sort((a, b) => b.total - a.total)
-                    .slice(0, top);
-            }
-
-            const datasets = datasetSeleccionado.map(d => ({
-                label: d.nombre,
-                data: d.meses,
-                tension: 0.3,
-                borderWidth: 2,
-                fill: false
-            }));
-
-            if (chartResp) chartResp.destroy();
-
-            const ctx2 = document.getElementById("chartResponsables").getContext("2d");
-
-            chartResp = new Chart(ctx2, {
-                type: "line",
-                data: {
-                    labels: meses,
-                    datasets: datasets
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: {
-                            position: "bottom",
-                            labels: { boxWidth: 12 }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: "#edf2f7" }
-                        }
-                    }
-                }
-            });
-        }
-
-        selectTop.addEventListener("change", generarGraficaResponsables);
-        selectResponsable.addEventListener("change", generarGraficaResponsables);
-
-        generarGraficaResponsables();
-    </script>
+drawLineChart();
+drawBarChart();
+</script>
 
 </body>
-
 </html>
-`)
-.setTitle('Dashboard Responsables 2025')
-.setFaviconUrl('https://www.google.com/favicon.ico');
-}
