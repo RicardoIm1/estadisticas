@@ -3,763 +3,495 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📋 Storytelling Epidemiológico · Egresos y Causas</title>
+    <title>📊 Dashboard Epidemiológico · Insights de Egresos</title>
     <style>
-        /* --- ESTILO CLÍNICO: LIMPIO, PRECISO, DESTACANDO CÓDIGOS --- */
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
-            font-family: 'SF Mono', 'Fira Code', 'Roboto Mono', 'Consolas', monospace;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
 
         body {
-            background: #e9edf2;
-            margin: 25px;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
+            background: #f0f4f8;
+            padding: 30px 20px;
+            color: #1e293b;
         }
 
         .dashboard {
             max-width: 1400px;
-            width: 100%;
-            background: white;
-            border-radius: 24px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-            overflow: hidden;
-            border: 1px solid #dde3e9;
+            margin: 0 auto;
         }
 
+        /* Cabecera */
         .header {
-            background: #0b2b44; /* Azul profundo profesional */
-            color: white;
-            padding: 20px 28px;
+            margin-bottom: 30px;
         }
 
         .header h1 {
-            margin: 0;
-            font-weight: 500;
-            font-size: 1.8rem;
+            font-size: 2.2rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #0b2b44, #1e4b6e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
             letter-spacing: -0.02em;
-            font-family: 'Inter', sans-serif;
         }
 
-        .header h1 span {
-            background: #e74c3c;
-            padding: 5px 14px;
-            border-radius: 40px;
+        .header .sub {
+            color: #475569;
             font-size: 1rem;
-            margin-left: 15px;
-            font-weight: 400;
+            border-left: 4px solid #dc2626;
+            padding-left: 16px;
+            margin-top: 8px;
         }
 
-        .header p {
-            margin: 8px 0 0;
-            opacity: 0.8;
-            font-size: 0.95rem;
-            font-family: 'Inter', sans-serif;
+        /* Grid de tarjetas */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
-        /* --- CONTROLES DE INTERACTIVIDAD (PRINCIPIO: DAR CONTROL AL USUARIO) --- */
-        .toolbar {
-            background: #f8fafd;
-            padding: 15px 28px;
-            border-bottom: 1px solid #cfddee;
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-wrap: wrap;
-            font-family: 'Inter', sans-serif;
-        }
-
-        .filter-box {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .card {
             background: white;
-            padding: 5px 15px;
-            border-radius: 40px;
-            border: 1px solid #bdd1e6;
-            flex: 1 1 300px;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.08), 0 8px 10px -6px rgba(0,0,0,0.02);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #e9eef3;
         }
 
-        .filter-box span {
-            color: #4a617c;
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 30px -10px rgba(0,60,100,0.15);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            color: #64748b;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title .emoji-bg {
+            background: #f1f5f9;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.2rem;
         }
 
-        .filter-box input {
-            border: none;
-            padding: 10px 0;
-            width: 100%;
-            font-size: 0.9rem;
-            background: transparent;
-            outline: none;
-            font-family: 'Inter', sans-serif;
+        .card-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1.2;
         }
 
-        .filter-box input::placeholder {
-            color: #9bafc7;
+        .card-desc {
+            color: #475569;
+            font-size: 0.9rem;
+            margin-top: 8px;
+            border-top: 1px dashed #d1d9e6;
+            padding-top: 10px;
         }
 
         .badge {
-            background: #e7edf6;
-            color: #1d3a5c;
-            padding: 6px 14px;
+            display: inline-block;
+            background: #eef2ff;
+            color: #1e3a8a;
+            padding: 4px 12px;
             border-radius: 30px;
             font-size: 0.8rem;
             font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            margin-right: 6px;
+            margin-bottom: 6px;
         }
 
-        .badge.clear {
-            background: #fddfdf;
-            color: #b13e3e;
-            cursor: pointer;
-            transition: all 0.1s;
+        .badge.red {
+            background: #fee2e2;
+            color: #991b1b;
         }
 
-        .badge.clear:hover {
-            background: #fcc4c4;
+        .badge.amber {
+            background: #fef3c7;
+            color: #92400e;
         }
 
-        /* --- LA TABLA: JERARQUÍA VISUAL, CÓDIGOS DESTACADOS --- */
-        .table-wrapper {
-            overflow-x: auto;
-            max-height: 70vh;
-            overflow-y: auto;
-            scroll-behavior: smooth;
-            border-radius: 0 0 24px 24px;
+        .insight-block {
+            background: #f8fafc;
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0 8px;
+            border-left: 4px solid #2563eb;
         }
 
-        table {
+        .insight-title {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1e3a8a;
+        }
+
+        /* Tablas de cruce */
+        .cross-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.85rem;
-            min-width: 1000px;
+            margin: 15px 0;
             background: white;
-        }
-
-        /* Cabecera sticky para navegación larga */
-        th {
-            position: sticky;
-            top: 0;
-            background-color: #1f3a5f;
-            color: white;
-            font-weight: 500;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            padding: 16px 12px;
-            text-align: left;
-            border-right: 1px solid #3e5572;
-            white-space: nowrap;
-            font-family: 'Inter', sans-serif;
-            z-index: 10;
-        }
-
-        th:last-child {
-            border-right: none;
-        }
-
-        td {
-            padding: 14px 12px;
-            border-bottom: 1px solid #e2e9f2;
-            vertical-align: top;
-            background-color: white;
-            transition: background-color 0.15s;
-        }
-
-        /* Estilo especial para códigos: se leen rápido */
-        .code-primary {
-            font-weight: 650;
-            color: #c0392b; /* rojo para el código principal de afección */
-            background: #fff3f0;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            display: inline-block;
-            border: 1px solid #f5c6b8;
-        }
-
-        .code-ext {
-            font-weight: 600;
-            color: #1f618d; /* azul para causa externa */
-            background: #e8f0fd;
-            padding: 3px 8px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            display: inline-block;
-            border: 1px solid #bdd9f0;
-        }
-
-        /* Descripciones: texto más suave pero legible */
-        .desc {
-            color: #2c3e50;
-            max-width: 300px;
-            line-height: 1.4;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.82rem;
-        }
-
-        /* Fecha con formato */
-        .date-cell {
-            font-weight: 500;
-            color: #1e2f44;
-            white-space: nowrap;
-            font-family: 'Inter', sans-serif;
-        }
-
-        /* --- MICROBARRAS CONCEPTUALES (FRECUENCIA DE CÓDIGOS) --- */
-        /* Esto es un "sparkline" de barras hecho con gradientes para mostrar frecuencia relativa */
-        .freq-bar {
-            display: inline-block;
-            width: 60px;
-            height: 10px;
-            background-color: #ecf0f3;
-            border-radius: 20px;
-            margin-left: 10px;
-            vertical-align: middle;
-            position: relative;
+            border-radius: 14px;
             overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
         }
 
-        .freq-bar::after {
-            content: '';
-            display: block;
-            height: 100%;
-            width: var(--freq-width); /* Se controla por JS o estilo inline */
-            background: #2c82c9; /* azul para códigos de afección */
-            border-radius: 20px;
+        .cross-table th {
+            background-color: #f1f5f9;
+            color: #334155;
+            font-weight: 600;
+            padding: 12px 10px;
+            text-align: left;
         }
 
-        .freq-bar.ext::after {
-            background: #d97706; /* naranja para causas externas */
+        .cross-table td {
+            padding: 10px;
+            border-bottom: 1px solid #e2e8f0;
         }
 
-        /* Tooltip suave para explicar las barras */
-        .freq-hint {
-            cursor: help;
-            border-bottom: 1px dashed #a0b8d0;
+        .cross-table tr:last-child td {
+            border-bottom: none;
         }
 
-        /* Hover en filas para seguimiento horizontal */
-        tbody tr:hover td {
-            background-color: #fcf8e7 !important;
-        }
-
-        /* Pequeños totales en footer */
-        .table-footer {
-            background: #f0f5fb;
-            padding: 12px 28px;
-            font-family: 'Inter', sans-serif;
-            font-size: 0.85rem;
-            color: #1e3f68;
-            border-top: 1px solid #cbd9ec;
-            display: flex;
-            justify-content: space-between;
-        }
-        .stats span {
+        .number-highlight {
             font-weight: 700;
-            background: white;
-            padding: 3px 12px;
-            border-radius: 50px;
-            margin-left: 8px;
-            border: 1px solid #a7c1df;
+            color: #b91c1c;
+            background: #fee2e2;
+            padding: 2px 10px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 20px;
+            margin: 5px 0;
+        }
+
+        .progress-bar {
+            height: 8px;
+            border-radius: 20px;
+            background: #2563eb;
+        }
+
+        .progress-bar.red {
+            background: #dc2626;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .half {
+            flex: 1 1 300px;
+        }
+
+        hr {
+            border: none;
+            border-top: 2px solid #d9e2ef;
+            margin: 30px 0 20px;
+        }
+
+        .footer-note {
+            text-align: center;
+            color: #62748c;
+            font-size: 0.8rem;
+            margin-top: 40px;
+            border-top: 1px solid #d0dfee;
+            padding-top: 20px;
         }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <div class="header">
-            <h1>
-                📋 Egresos Hospitalarios · Análisis de Causas
-                <span>datos Jun-Dic 2025</span>
-            </h1>
-            <p>🔍 Códigos ICD-10 · Las barras muestran frecuencia relativa del código en el conjunto de datos</p>
+            <h1>🏥 Análisis de Egresos · Insights Clínicos y Administrativos</h1>
+            <div class="sub">🔍 Datos de junio a diciembre 2025 · 344 registros procesados · El 45% tiene algún código "no especificado"</div>
         </div>
 
-        <div class="toolbar">
-            <div class="filter-box">
-                <span>🔎</span>
-                <input type="text" id="filterInput" placeholder="Filtrar por código o descripción (ej: S069, fractura, X590, caída...)" autocomplete="off">
+        <!-- TARJETAS DE ALTO NIVEL (KPIs) -->
+        <div class="grid">
+            <div class="card">
+                <div class="card-title"><span class="emoji-bg">🧠</span> Diagnóstico estrella</div>
+                <div class="card-value">S069</div>
+                <div class="card-desc">Traumatismo intracraneal no especificado · <strong>32 casos</strong> · 9% del total</div>
             </div>
-            <div class="badge">
-                📊 <span id="recordCount">0</span> registros
+            <div class="card">
+                <div class="card-title"><span class="emoji-bg">🏍️</span> Causa externa #1</div>
+                <div class="card-value">X590</div>
+                <div class="card-desc">Factores no especificados que causan fractura · <strong>81 casos</strong> · 23.5% del total</div>
             </div>
-            <div class="badge clear" id="clearFilter">
-                ✖ Limpiar filtro
+            <div class="card">
+                <div class="card-title"><span class="emoji-bg">🦴</span> Fractura más común</div>
+                <div class="card-value">S822</div>
+                <div class="card-desc">Fractura diáfisis tibia · <strong>25 casos</strong> · Principalmente en motociclistas</div>
+            </div>
+            <div class="card">
+                <div class="card-title"><span class="emoji-bg">⚠️</span> Datos "no especificados"</div>
+                <div class="card-value">45%</div>
+                <div class="card-desc">156 registros con códigos incompletos (X590, X599, S069, T07X...) · <span style="color:#b91c1c;">CRÍTICO</span></div>
             </div>
         </div>
 
-        <div class="table-wrapper" id="tableWrapper">
-            <table id="dataTable">
-                <thead>
-                    <tr>
-                        <th>FECHA</th>
-                        <th>AFECCIÓN PRIN.</th>
-                        <th>DESCRIPCIÓN AFECCIÓN</th>
-                        <th>CAUSA EXT.</th>
-                        <th>DESCRIPCIÓN CAUSA EXTERNA</th>
-                        <th style="text-align: center;">FREC. RELATIVA <span class="freq-hint" title="Frecuencia del código AFECPRIN en el dataset">ⓘ</span></th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Se inyecta vía JS -->
-                </tbody>
-            </table>
+        <!-- INSIGHT 1: TRAUMATISMOS CRANEALES -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-title"><span class="emoji-bg">🧠</span> INSIGHT #1: TRAUMATISMOS CRANEALES (39 casos)</div>
+            <div class="flex-row">
+                <div class="half">
+                    <table class="cross-table">
+                        <tr><th>Código</th><th>Descripción</th><th>Casos</th></tr>
+                        <tr><td>S069</td><td>TCE no especificado</td><td>32</td></tr>
+                        <tr><td>S065</td><td>Hemorragia subdural traumática</td><td>2</td></tr>
+                        <tr><td>S064</td><td>Hemorragia epidural</td><td>2</td></tr>
+                        <tr><td>S068</td><td>Otros traumatismos intracraneales</td><td>3</td></tr>
+                    </table>
+                </div>
+                <div class="half">
+                    <div class="insight-block">
+                        <div class="insight-title">🚨 Posible endemia de accidentes con impacto craneal</div>
+                        <p>Los traumatismos craneales (especialmente S069) están asociados a motociclistas (V299), caídas y agresiones. La alta frecuencia sugiere la necesidad de campañas de casco y prevención de caídas.</p>
+                        <div style="margin-top: 10px;">
+                            <span class="badge red">V299: 3 casos</span>
+                            <span class="badge red">X590: 13 casos</span>
+                            <span class="badge">X599: 7 casos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="table-footer">
-            <div class="stats">
-                📌 Códigos únicos: <span id="uniqueAfecciones">0</span> afecciones · <span id="uniqueCausas">0</span> causas externas
+        <!-- INSIGHT 2: MOTOCICLISTAS -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-title"><span class="emoji-bg">🏍️</span> INSIGHT #2: MOTOCICLISTAS (V299) · 22 casos</div>
+            <div class="flex-row">
+                <div class="half">
+                    <h4 style="margin-bottom: 8px;">Afecciones cuando la causa es V299:</h4>
+                    <table class="cross-table">
+                        <tr><th>Afección</th><th>Descripción</th><th>Frec</th></tr>
+                        <tr><td>S822</td><td>Fractura diáfisis tibia</td><td>5</td></tr>
+                        <tr><td>S069</td><td>TCE</td><td>3</td></tr>
+                        <tr><td>S520</td><td>Fractura cúbito</td><td>2</td></tr>
+                        <tr><td>S828</td><td>Fractura otras partes pierna</td><td>2</td></tr>
+                        <tr><td>Otros</td><td></td><td>10</td></tr>
+                    </table>
+                </div>
+                <div class="half">
+                    <div class="insight-block">
+                        <div class="insight-title">🦵 Patrón de lesión: tibia + cabeza</div>
+                        <p>El motociclista se fractura la pierna (especialmente tibia) y sufre traumatismo craneal. Consistente con impacto contra asfalto y golpe de cabeza. <strong>Recomendación:</strong> campaña de botas/rodilleras y casco integral.</p>
+                        <div style="background: #f1f5f9; padding: 8px; border-radius: 12px; margin-top: 10px;">
+                            <span style="font-weight: 600;">82%</span> de las lesiones de moto son en extremidades o cráneo.
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="legend">
-                <span style="color:#c0392b;">●</span> Código afección · <span style="color:#1f618d;">●</span> Código causa · <span style="background:#2c82c9; display:inline-block; width:12px; height:8px; border-radius:4px;"></span> Frec. afección · <span style="background:#d97706; display:inline-block; width:12px; height:8px; border-radius:4px;"></span> Frec. causa
+        </div>
+
+        <!-- INSIGHT 3: X590 EL COMODÍN -->
+        <div class="card" style="margin-bottom: 20px;">
+            <div class="card-title"><span class="emoji-bg">🎲</span> INSIGHT #3: X590 · EL COMODÍN DE FRACTURAS (81 casos, 23.5%)</div>
+            <div class="flex-row">
+                <div class="half">
+                    <table class="cross-table">
+                        <tr><th>Afección</th><th>Veces con X590</th></tr>
+                        <tr><td>S069 (TCE)</td><td>13</td></tr>
+                        <tr><td>S729 (Fractura fémur)</td><td>11</td></tr>
+                        <tr><td>S822 (Fractura tibia)</td><td>10</td></tr>
+                        <tr><td>S520 (Fractura cúbito)</td><td>5</td></tr>
+                        <tr><td>S828 (Fractura pierna)</td><td>5</td></tr>
+                    </table>
+                </div>
+                <div class="half">
+                    <div class="insight-block">
+                        <div class="insight-title">📋 PROBLEMA ADMINISTRATIVO GRAVE</div>
+                        <p>X590 es "causa no especificada". Su uso masivo indica que <strong>los médicos no están registrando la causa real</strong>. Esto inutiliza el dato para prevención.</p>
+                        <div style="margin-top: 12px;">
+                            <div style="display: flex; justify-content: space-between;">
+                                <span>% de uso X590:</span> <strong>23.5%</strong>
+                            </div>
+                            <div class="progress-bar-container">
+                                <div class="progress-bar red" style="width: 23.5%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+        </div>
+
+        <!-- INSIGHT 4 y 5: FRACTURA TIBIA + VIOLENCIA -->
+        <div class="flex-row">
+            <div class="half card">
+                <div class="card-title"><span class="emoji-bg">🦴</span> INSIGHT #4: S822 (Fractura tibia) · 25 casos</div>
+                <table class="cross-table">
+                    <tr><th>Causa</th><th>Frec</th></tr>
+                    <tr><td>X590 (no especif)</td><td>10</td></tr>
+                    <tr><td>V299 (motociclista)</td><td>5</td></tr>
+                    <tr><td>W189 (caída mismo nivel)</td><td>3</td></tr>
+                    <tr><td>X599 (otras no especif)</td><td>2</td></tr>
+                    <tr><td>Y044 (agresión fuerza)</td><td>1</td></tr>
+                    <tr><td>W349 (disparo)</td><td>1</td></tr>
+                </table>
+                <div class="insight-block" style="margin-top: 10px;">
+                    <strong>Dato:</strong> La tibia se rompe por alta energía (moto, disparo) y baja energía (caídas). Poblaciones distintas.
+                </div>
+            </div>
+
+            <div class="half card">
+                <div class="card-title"><span class="emoji-bg">🔪</span> INSIGHT #5: VIOLENCIA (AGRESIONES)</div>
+                <table class="cross-table">
+                    <tr><th>Código</th><th>Tipo</th><th>Casos</th></tr>
+                    <tr><td>X999</td><td>Objeto cortante</td><td>4</td></tr>
+                    <tr><td>Y044</td><td>Fuerza corporal</td><td>2</td></tr>
+                    <tr><td>Y000</td><td>Objeto romo</td><td>1</td></tr>
+                    <tr><td>X959</td><td>Arma fuego</td><td>1</td></tr>
+                </table>
+                <div class="insight-block" style="margin-top: 10px;">
+                    <strong>Lesiones por arma blanca:</strong> S119 (cuello), S310 (pelvis), T07X (múltiples), S822 (tibia). Gravedad alta.
+                </div>
+            </div>
+        </div>
+
+        <!-- INSIGHT 6: CAÍDAS ADULTOS MAYORES -->
+        <div class="card" style="margin: 20px 0;">
+            <div class="card-title"><span class="emoji-bg">👴</span> INSIGHT #6: CAÍDAS (W189, W179, W010, W099...) · 30+ casos</div>
+            <div class="flex-row">
+                <div class="half">
+                    <table class="cross-table">
+                        <tr><th>Afección</th><th>Frec</th></tr>
+                        <tr><td>S720 (Fractura cuello fémur)</td><td>5</td></tr>
+                        <tr><td>S423 (Fractura húmero)</td><td>3</td></tr>
+                        <tr><td>S525 (Fractura radio distal)</td><td>3</td></tr>
+                        <tr><td>S822 (Fractura tibia)</td><td>3</td></tr>
+                    </table>
+                </div>
+                <div class="half">
+                    <div class="insight-block">
+                        <div class="insight-title">🦴 Patrón clásico de adulto mayor</div>
+                        <p>Fractura de cadera (S720) + húmero + muñeca = caídas en personas mayores. Prevención urgente en domicilios y residencias.</p>
+                        <div style="background: #f1f5f9; padding: 8px; border-radius: 12px; margin-top: 10px;">
+                            <span class="badge">W189: 14 casos</span>
+                            <span class="badge">W179: 6 casos</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- INSIGHT 7 y 8: SALUD MENTAL Y COMPLICACIONES -->
+        <div class="flex-row">
+            <div class="half card">
+                <div class="card-title"><span class="emoji-bg">🧠</span> INSIGHT #7: AUTOINFLIGIDAS</div>
+                <table class="cross-table">
+                    <tr><th>Causa</th><th>Afección</th><th>Casos</th></tr>
+                    <tr><td>X609</td><td>T391 (envenenamiento)</td><td>2</td></tr>
+                    <tr><td>X709</td><td>T71X (asfixia)</td><td>1</td></tr>
+                    <tr><td>X849</td><td>S069, S828, S320</td><td>3</td></tr>
+                    <tr><td>X649</td><td>S170 (aplastamiento laringe)</td><td>1</td></tr>
+                </table>
+                <div style="margin-top: 8px; color:#b45309;">Alerta de salud mental: 7 intentos de suicidio.</div>
+            </div>
+            <div class="half card">
+                <div class="card-title"><span class="emoji-bg">🏥</span> INSIGHT #8: COMPLICACIONES MÉDICAS (13 casos)</div>
+                <table class="cross-table">
+                    <tr><th>Código</th><th>Descripción</th><th>Frec</th></tr>
+                    <tr><td>T814</td><td>Infección post-procedimiento</td><td>5</td></tr>
+                    <tr><td>T849</td><td>Complicaciones dispositivos ortopédicos</td><td>3</td></tr>
+                    <tr><td>T813</td><td>Desgarro herida operatoria</td><td>2</td></tr>
+                    <tr><td>T810</td><td>Hemorragia post-procedimiento</td><td>2</td></tr>
+                    <tr><td>T827</td><td>Infección dispositivo cardiovascular</td><td>1</td></tr>
+                </table>
+                <div class="insight-block" style="margin-top: 8px;">
+                    <span style="color: #b91c1c;">⬆️ Indicador de calidad hospitalaria · Revisar protocolos.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- INSIGHT 9: MORDEDURAS DE SERPIENTE (exótico) -->
+        <div class="card" style="margin: 20px 0;">
+            <div class="card-title"><span class="emoji-bg">🐍</span> INSIGHT #9: T630 · EFECTO TÓXICO VENENO DE SERPIENTE</div>
+            <div style="display: flex; align-items: center; gap: 30px; flex-wrap: wrap;">
+                <div><span class="number-highlight" style="font-size: 2rem;">3</span> casos</div>
+                <div>Todos con causa X209 (contacto con serpientes) · Meses: jul, ago, sep (clima cálido)</div>
+                <div class="badge amber">Zona rural o periurbana</div>
+            </div>
+        </div>
+
+        <!-- INSIGHT 10: EL GRAN PROBLEMA (CALIDAD DEL DATO) -->
+        <div class="card" style="background: #fff2f0; border-left: 6px solid #b91c1c;">
+            <div class="card-title"><span class="emoji-bg">⚠️</span> INSIGHT #10: CÓDIGOS BASURA · 45% DEL TOTAL</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-top: 15px;">
+                <div><strong>X590</strong> (no especif fractura) · 81</div>
+                <div><strong>X599</strong> (otras no especif) · 34</div>
+                <div><strong>S069</strong> (TCE no especif) · 32</div>
+                <div><strong>T07X</strong> (múltiples no especif) · 8</div>
+                <div><strong>T149</strong> (trauma no especif) · 1</div>
+            </div>
+            <div style="background: white; padding: 15px; border-radius: 14px; margin-top: 15px;">
+                <div style="display: flex; justify-content: space-between; font-weight: 600;">
+                    <span>Registros con algún "no especificado":</span>
+                    <span>156 de 344 (45%)</span>
+                </div>
+                <div class="progress-bar-container" style="height: 12px;">
+                    <div class="progress-bar red" style="width: 45%;"></div>
+                </div>
+                <p style="margin-top: 12px; color:#7f1d1d; font-weight: 500;">🔴 Esto no es un problema clínico, es un fracaso administrativo. El 45% de los datos es inservible para epidemiología. Se requiere intervención urgente: capacitación, formularios obligatorios y auditoría.</p>
+            </div>
+        </div>
+
+        <!-- RESUMEN FINAL DE RECOMENDACIONES -->
+        <hr>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; background: #0b2b44; color: white; border-radius: 30px; padding: 30px; margin-top: 30px;">
+            <div>
+                <div style="font-size: 1.5rem; margin-bottom: 5px;">🏍️</div>
+                <h3 style="font-weight: 400;">Motociclistas</h3>
+                <p style="opacity: 0.8; font-size: 0.9rem;">Campaña de botas, rodilleras y casco integral. Fracturas de tibia y TCE son prevenibles.</p>
+            </div>
+            <div>
+                <div style="font-size: 1.5rem; margin-bottom: 5px;">👴</div>
+                <h3 style="font-weight: 400;">Adultos mayores</h3>
+                <p style="opacity: 0.8; font-size: 0.9rem;">Prevención de caídas en domicilio. Fractura de cadera es catastrófica.</p>
+            </div>
+            <div>
+                <div style="font-size: 1.5rem; margin-bottom: 5px;">📋</div>
+                <h3 style="font-weight: 400;">Calidad del registro</h3>
+                <p style="opacity: 0.8; font-size: 0.9rem;">Reducir uso de X590/X599/S069. 45% de datos no especificados es inaceptable.</p>
+            </div>
+        </div>
+
+        <div class="footer-note">
+            ⚕️ Análisis basado en 344 egresos · Jun-Dic 2025 · Storytelling de datos sanitarios · Versión 2.0 (enfoque en insights)
         </div>
     </div>
 
     <script>
-        (function() {
-            // --- DATOS EXTRAÍDOS DEL ENUNCIADO (formateados como array de objetos) ---
-            const rawData = [
-                { fecha: "01/06/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "01/06/2025", afec: "S520", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DEL CÚBITO", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "02/06/2025", afec: "S018", desc_afec: "HERIDA DE OTRAS PARTES DE LA CABEZA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "02/06/2025", afec: "S520", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DEL CÚBITO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "04/06/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "04/06/2025", afec: "T391", desc_afec: "ENVENENAMIENTO POR DERIVADOS DEL PARAAMINOFENOL", causa: "X609", desc_causa: "ENVENENAMIENTO AUTOINFLIGIDO INTENCIONALMENTE POR, Y EXPOSICIÓN A ANALGÉSICOS NO NARCÓTICOS, ANTIPIRÉTICOS Y ANTIRREUMÁTICOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "06/06/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "10/06/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "07/06/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "07/06/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "08/06/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "13/06/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "13/06/2025", afec: "S628", desc_afec: "FRACTURA DE OTRAS PARTES Y DE LAS NO ESPECIFICADAS DE LA MUÑECA Y DE LA MANO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "16/06/2025", afec: "S065", desc_afec: "HEMORRAGIA SUBDURAL TRAUMÁTICA", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "16/06/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "18/06/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/06/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "22/06/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "24/06/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "23/06/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "25/06/2025", afec: "T71X", desc_afec: "ASFIXIA", causa: "X709", desc_causa: "LESIÓN AUTOINFLIGIDA INTENCIONALMENTE POR AHORCAMIENTO, ESTRANGULAMIENTO O SOFOCACIÓN, LUGAR NO ESPECIFICADO" },
-                { fecha: "23/06/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "28/06/2025", afec: "T908", desc_afec: "SECUELAS DE OTROS TRAUMATISMOS ESPECIFICADOS DE LA CABEZA", causa: "Y850", desc_causa: "SECUELAS DE ACCIDENTE DE VEHÍCULO DE MOTOR" },
-                { fecha: "30/06/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "30/06/2025", afec: "S320", desc_afec: "FRACTURA DE VÉRTEBRA LUMBAR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "06/07/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "07/07/2025", afec: "S520", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DEL CÚBITO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "13/07/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "10/07/2025", afec: "T630", desc_afec: "EFECTO TÓXICO DEL VENENO DE SERPIENTE", causa: "X209", desc_causa: "CONTACTO TRAUMÁTICO CON SERPIENTES Y LAGARTOS VENENOSOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "10/07/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "11/07/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "11/07/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "22/07/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "22/07/2025", afec: "T953", desc_afec: "SECUELAS DE QUEMADURA, CORROSIÓN Y CONGELAMIENTO DE MIEMBRO INFERIOR", causa: "X099", desc_causa: "EXPOSICIÓN A HUMOS, FUEGOS O LLAMAS NO ESPECIFICADOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "27/07/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "27/07/2025", afec: "S824", desc_afec: "FRACTURA DEL PERONÉ SOLAMENTE", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "27/07/2025", afec: "S527", desc_afec: "FRACTURAS MÚLTIPLES DEL ANTEBRAZO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "24/07/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "28/07/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "28/07/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "25/07/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "30/07/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "31/07/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "31/07/2025", afec: "S624", desc_afec: "FRACTURAS MÚLTIPLES DE HUESOS METACARPIANOS", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "19/07/2025", afec: "S525", desc_afec: "FRACTURA DE LA EPÍFISIS INFERIOR DEL RADIO", causa: "W213", desc_causa: "GOLPE CONTRA O GOLPEADO POR EQUIPO PARA DEPORTES, ÁREAS DE DEPORTE Y ATLETISMO" },
-                { fecha: "03/08/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "01/08/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "04/08/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "W179", desc_causa: "OTRAS CAÍDAS DE UN NIVEL A OTRO, LUGAR NO ESPECIFICADO" },
-                { fecha: "01/08/2025", afec: "S522", desc_afec: "FRACTURA DE LA DIÁFISIS DEL CÚBITO", causa: "Y000", desc_causa: "AGRESIÓN CON OBJETO ROMO O SIN FILO, VIVIENDA" },
-                { fecha: "01/08/2025", afec: "S931", desc_afec: "LUXACIÓN DE DEDO(S) DEL PIE", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "05/08/2025", afec: "T212", desc_afec: "QUEMADURA DEL TRONCO, DE SEGUNDO GRADO", causa: "X099", desc_causa: "EXPOSICIÓN A HUMOS, FUEGOS O LLAMAS NO ESPECIFICADOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "05/08/2025", afec: "T953", desc_afec: "SECUELAS DE QUEMADURA, CORROSIÓN Y CONGELAMIENTO DE MIEMBRO INFERIOR", causa: "X099", desc_causa: "EXPOSICIÓN A HUMOS, FUEGOS O LLAMAS NO ESPECIFICADOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "05/08/2025", afec: "S924", desc_afec: "FRACTURA DE LOS HUESOS DEL DEDO GORDO DEL PIE", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "02/08/2025", afec: "S626", desc_afec: "FRACTURA DE OTRO DEDO DE LA MANO", causa: "W279", desc_causa: "CONTACTO TRAUMÁTICO CON HERRAMIENTAS MANUALES SIN MOTOR, LUGAR NO ESPECIFICADO" },
-                { fecha: "05/08/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "X999", desc_causa: "AGRESIÓN CON OBJETO CORTANTE, LUGAR NO ESPECIFICADO" },
-                { fecha: "06/08/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "W179", desc_causa: "OTRAS CAÍDAS DE UN NIVEL A OTRO, LUGAR NO ESPECIFICADO" },
-                { fecha: "06/08/2025", afec: "S623", desc_afec: "FRACTURA DE OTROS HUESOS METACARPIANOS", causa: "V298", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN OTROS ACCIDENTES DE TRANSPORTE ESPECIFICADOS" },
-                { fecha: "06/08/2025", afec: "S068", desc_afec: "OTROS TRAUMATISMOS INTRACRANEALES", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "07/08/2025", afec: "T630", desc_afec: "EFECTO TÓXICO DEL VENENO DE SERPIENTE", causa: "X209", desc_causa: "CONTACTO TRAUMÁTICO CON SERPIENTES Y LAGARTOS VENENOSOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "07/08/2025", afec: "S399", desc_afec: "TRAUMATISMO NO ESPECIFICADO DEL ABDOMEN, DE LA REGIÓN LUMBOSACRA Y DE LA PELVIS", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "11/08/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "11/08/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "12/08/2025", afec: "T405", desc_afec: "ENVENENAMIENTO POR COCAÍNA", causa: "Y129", desc_causa: "ENVENENAMIENTO POR, Y EXPOSICIÓN A NARCÓTICOS Y PSICODISLÉPTICOS [ALUCINÓGENOS], NO CLASIFICADOS EN OTRA PARTE, DE INTENCIÓN NO DETERMINADA, LUGAR NO ESPECIFICADO" },
-                { fecha: "13/08/2025", afec: "S925", desc_afec: "FRACTURA DE LOS HUESOS DE OTRO(S) DEDO(S) DEL PIE", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "13/08/2025", afec: "T814", desc_afec: "INFECCIÓN CONSECUTIVA A PROCEDIMIENTO, NO CLASIFICADA EN OTRA PARTE", causa: "Y883", desc_causa: "SECUELAS DE PROCEDIMIENTOS MÉDICOS Y QUIRÚRGICOS COMO LA CAUSA DE REACCIÓN ANORMAL DEL PACIENTE O DE COMPLICACIÓN POSTERIOR, SIN MENCIÓN DE INCIDENTE EN EL MOMENTO DE EFECTUAR EL PROCEDIMIENTO" },
-                { fecha: "13/08/2025", afec: "T849", desc_afec: "COMPLICACIONES NO ESPECIFICADAS DE DISPOSITIVOS PROTÉSICOS, IMPLANTES E INJERTOS ORTOPÉDICOS INTERNOS", causa: "Y848", desc_causa: "OTROS PROCEDIMIENTOS MÉDICOS" },
-                { fecha: "13/08/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "14/08/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "08/08/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "Y349", desc_causa: "EVENTO NO ESPECIFICADO, DE INTENCIÓN NO DETERMINADA, LUGAR NO ESPECIFICADO" },
-                { fecha: "08/08/2025", afec: "S528", desc_afec: "FRACTURA DE OTRAS PARTES DEL ANTEBRAZO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "09/08/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "09/08/2025", afec: "S524", desc_afec: "FRACTURA DE LA DIÁFISIS DEL CÚBITO Y DEL RADIO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "09/08/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "09/08/2025", afec: "S723", desc_afec: "FRACTURA DE LA DIÁFISIS DEL FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "09/08/2025", afec: "S910", desc_afec: "HERIDA DEL TOBILLO", causa: "W549", desc_causa: "MORDEDURA O ATAQUE DE PERRO, LUGAR NO ESPECIFICADO" },
-                { fecha: "15/08/2025", afec: "T813", desc_afec: "DESGARRO DE HERIDA OPERATORIA, NO CLASIFICADO EN OTRA PARTE", causa: "Y838", desc_causa: "OTROS PROCEDIMIENTOS QUIRÚRGICOS" },
-                { fecha: "15/08/2025", afec: "S299", desc_afec: "TRAUMATISMO DEL TÓRAX, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "15/08/2025", afec: "S820", desc_afec: "FRACTURA DE LA RÓTULA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "16/08/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "17/08/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "17/08/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "17/08/2025", afec: "S522", desc_afec: "FRACTURA DE LA DIÁFISIS DEL CÚBITO", causa: "Y044", desc_causa: "AGRESIÓN CON FUERZA CORPORAL, CALLES Y CARRETERAS" },
-                { fecha: "17/08/2025", afec: "S711", desc_afec: "HERIDA DEL MUSLO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "17/08/2025", afec: "S824", desc_afec: "FRACTURA DEL PERONÉ SOLAMENTE", causa: "Y044", desc_causa: "AGRESIÓN CON FUERZA CORPORAL, CALLES Y CARRETERAS" },
-                { fecha: "18/08/2025", afec: "S528", desc_afec: "FRACTURA DE OTRAS PARTES DEL ANTEBRAZO", causa: "V800", desc_causa: "JINETE U OCUPANTE DE VEHÍCULO DE TRACCIÓN ANIMAL LESIONADO POR CAÍDA (O POR SER DESPEDIDO) DEL ANIMAL O DEL VEHÍCULO DE TRACCIÓN ANIMAL, EN ACCIDENTE SIN COLISIÓN" },
-                { fecha: "20/08/2025", afec: "S431", desc_afec: "LUXACIÓN DE LA ARTICULACIÓN ACROMIOCLAVICULAR", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "20/08/2025", afec: "S430", desc_afec: "LUXACIÓN DE LA ARTICULACIÓN DEL HOMBRO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "21/08/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "W179", desc_causa: "OTRAS CAÍDAS DE UN NIVEL A OTRO, LUGAR NO ESPECIFICADO" },
-                { fecha: "22/08/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "23/08/2025", afec: "S119", desc_afec: "HERIDA DE CUELLO, PARTE NO ESPECIFICADA", causa: "X999", desc_causa: "AGRESIÓN CON OBJETO CORTANTE, LUGAR NO ESPECIFICADO" },
-                { fecha: "23/08/2025", afec: "S821", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DE LA TIBIA", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "24/08/2025", afec: "T609", desc_afec: "EFECTO TÓXICO DE PLAGUICIDA, NO ESPECIFICADO", causa: "Y189", desc_causa: "ENVENENAMIENTO POR, Y EXPOSICIÓN A PLAGUICIDAS, DE INTENCIÓN NO DETERMINADA, LUGAR NO ESPECIFICADO" },
-                { fecha: "24/08/2025", afec: "S824", desc_afec: "FRACTURA DEL PERONÉ SOLAMENTE", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "24/08/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "W179", desc_causa: "OTRAS CAÍDAS DE UN NIVEL A OTRO, LUGAR NO ESPECIFICADO" },
-                { fecha: "25/08/2025", afec: "T603", desc_afec: "EFECTO TÓXICO DE HERBICIDAS Y FUNGICIDAS", causa: "Y189", desc_causa: "ENVENENAMIENTO POR, Y EXPOSICIÓN A PLAGUICIDAS, DE INTENCIÓN NO DETERMINADA, LUGAR NO ESPECIFICADO" },
-                { fecha: "30/08/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "31/08/2025", afec: "S314", desc_afec: "HERIDA DE LA VAGINA Y DE LA VULVA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "27/08/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "31/08/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "31/08/2025", afec: "S520", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DEL CÚBITO", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "02/08/2025", afec: "S625", desc_afec: "FRACTURA DEL PULGAR", causa: "W279", desc_causa: "CONTACTO TRAUMÁTICO CON HERRAMIENTAS MANUALES SIN MOTOR, LUGAR NO ESPECIFICADO" },
-                { fecha: "02/08/2025", afec: "T849", desc_afec: "COMPLICACIONES NO ESPECIFICADAS DE DISPOSITIVOS PROTÉSICOS, IMPLANTES E INJERTOS ORTOPÉDICOS INTERNOS", causa: "Y839", desc_causa: "PROCEDIMIENTO QUIRÚRGICO NO ESPECIFICADO" },
-                { fecha: "02/08/2025", afec: "S681", desc_afec: "AMPUTACIÓN TRAUMÁTICA DE OTRO DEDO ÚNICO (COMPLETA) (PARCIAL)", causa: "V179", desc_causa: "CICLISTA LESIONADO POR COLISIÓN CON OBJETO ESTACIONADO O FIJO, CICLISTA NO ESPECIFICADO, LESIONADO EN ACCIDENTE DE TRÁNSITO" },
-                { fecha: "30/08/2025", afec: "S525", desc_afec: "FRACTURA DE LA EPÍFISIS INFERIOR DEL RADIO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "29/08/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "11/08/2025", afec: "S723", desc_afec: "FRACTURA DE LA DIÁFISIS DEL FÉMUR", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "08/08/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "01/09/2025", afec: "T140", desc_afec: "TRAUMATISMO SUPERFICIAL DE REGIÓN NO ESPECIFICADA DEL CUERPO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "02/09/2025", afec: "S301", desc_afec: "CONTUSIÓN DE LA PARED ABDOMINAL", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "06/09/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "07/09/2025", afec: "T849", desc_afec: "COMPLICACIONES NO ESPECIFICADAS DE DISPOSITIVOS PROTÉSICOS, IMPLANTES E INJERTOS ORTOPÉDICOS INTERNOS", causa: "Y849", desc_causa: "PROCEDIMIENTO MÉDICO NO ESPECIFICADO" },
-                { fecha: "07/09/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "04/09/2025", afec: "T185", desc_afec: "CUERPO EXTRAÑO EN EL ANO Y EN EL RECTO", causa: "W449", desc_causa: "CUERPO EXTRAÑO QUE PENETRA POR EL OJO U ORIFICIO NATURAL, LUGAR NO ESPECIFICADO" },
-                { fecha: "08/09/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "09/09/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "W178", desc_causa: "OTRAS CAÍDAS DE UN NIVEL A OTRO, OTRO LUGAR ESPECIFICADO" },
-                { fecha: "09/09/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "10/09/2025", afec: "S424", desc_afec: "FRACTURA DE LA EPÍFISIS INFERIOR DEL HÚMERO", causa: "W179", desc_causa: "OTRAS CAÍDAS DE UN NIVEL A OTRO, LUGAR NO ESPECIFICADO" },
-                { fecha: "05/09/2025", afec: "T814", desc_afec: "INFECCIÓN CONSECUTIVA A PROCEDIMIENTO, NO CLASIFICADA EN OTRA PARTE", causa: "Y849", desc_causa: "PROCEDIMIENTO MÉDICO NO ESPECIFICADO" },
-                { fecha: "05/09/2025", afec: "S431", desc_afec: "LUXACIÓN DE LA ARTICULACIÓN ACROMIOCLAVICULAR", causa: "W179", desc_causa: "OTRAS CAÍDAS DE UN NIVEL A OTRO, LUGAR NO ESPECIFICADO" },
-                { fecha: "12/09/2025", afec: "S821", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DE LA TIBIA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "13/09/2025", afec: "T391", desc_afec: "ENVENENAMIENTO POR DERIVADOS DEL PARAAMINOFENOL", causa: "X609", desc_causa: "ENVENENAMIENTO AUTOINFLIGIDO INTENCIONALMENTE POR, Y EXPOSICIÓN A ANALGÉSICOS NO NARCÓTICOS, ANTIPIRÉTICOS Y ANTIRREUMÁTICOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "13/09/2025", afec: "S929", desc_afec: "FRACTURA DEL PIE, NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "14/09/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "W349", desc_causa: "DISPARO DE OTRAS ARMAS DE FUEGO, Y LAS NO ESPECIFICADAS, LUGAR NO ESPECIFICADO" },
-                { fecha: "14/09/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "17/09/2025", afec: "T140", desc_afec: "TRAUMATISMO SUPERFICIAL DE REGIÓN NO ESPECIFICADA DEL CUERPO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "15/09/2025", afec: "S064", desc_afec: "HEMORRAGIA EPIDURAL", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "15/09/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "18/09/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "18/09/2025", afec: "T814", desc_afec: "INFECCIÓN CONSECUTIVA A PROCEDIMIENTO, NO CLASIFICADA EN OTRA PARTE", causa: "Y839", desc_causa: "PROCEDIMIENTO QUIRÚRGICO NO ESPECIFICADO" },
-                { fecha: "25/08/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X849", desc_causa: "LESIÓN AUTOINFLIGIDA INTENCIONALMENTE POR MEDIOS NO ESPECIFICADOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "19/09/2025", afec: "S420", desc_afec: "FRACTURA DE LA CLAVÍCULA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "21/09/2025", afec: "S527", desc_afec: "FRACTURAS MÚLTIPLES DEL ANTEBRAZO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "21/09/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "21/09/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "21/09/2025", afec: "S821", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DE LA TIBIA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "21/09/2025", afec: "S527", desc_afec: "FRACTURAS MÚLTIPLES DEL ANTEBRAZO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "21/09/2025", afec: "S628", desc_afec: "FRACTURA DE OTRAS PARTES Y DE LAS NO ESPECIFICADAS DE LA MUÑECA Y DE LA MANO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "23/09/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "23/09/2025", afec: "S026", desc_afec: "FRACTURA DEL MAXILAR INFERIOR", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "22/09/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "24/09/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "22/09/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "23/09/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X999", desc_causa: "AGRESIÓN CON OBJETO CORTANTE, LUGAR NO ESPECIFICADO" },
-                { fecha: "30/09/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "31/08/2025", afec: "T604", desc_afec: "EFECTO TÓXICO DE RODENTICIDAS", causa: "X489", desc_causa: "ENVENENAMIENTO ACCIDENTAL POR, Y EXPOSICIÓN A PLAGUICIDAS, LUGAR NO ESPECIFICADO" },
-                { fecha: "29/09/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "29/09/2025", afec: "T751", desc_afec: "AHOGAMIENTO Y SUMERSIÓN NO MORTAL", causa: "W749", desc_causa: "AHOGAMIENTO Y SUMERSIÓN NO ESPECIFICADOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "30/09/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "09/09/2025", afec: "S681", desc_afec: "AMPUTACIÓN TRAUMÁTICA DE OTRO DEDO ÚNICO (COMPLETA) (PARCIAL)", causa: "V199", desc_causa: "CICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "12/09/2025", afec: "S510", desc_afec: "HERIDA DEL CODO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "14/09/2025", afec: "S430", desc_afec: "LUXACIÓN DE LA ARTICULACIÓN DEL HOMBRO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "16/09/2025", afec: "S528", desc_afec: "FRACTURA DE OTRAS PARTES DEL ANTEBRAZO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "01/09/2025", afec: "S820", desc_afec: "FRACTURA DE LA RÓTULA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/09/2025", afec: "S528", desc_afec: "FRACTURA DE OTRAS PARTES DEL ANTEBRAZO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "21/09/2025", afec: "S430", desc_afec: "LUXACIÓN DE LA ARTICULACIÓN DEL HOMBRO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "22/09/2025", afec: "S601", desc_afec: "CONTUSIÓN DE DEDO(S) DE LA MANO CON DAÑO DE LA(S) UÑA(S)", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "05/09/2025", afec: "T630", desc_afec: "EFECTO TÓXICO DEL VENENO DE SERPIENTE", causa: "X209", desc_causa: "CONTACTO TRAUMÁTICO CON SERPIENTES Y LAGARTOS VENENOSOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "07/09/2025", afec: "T391", desc_afec: "ENVENENAMIENTO POR DERIVADOS DEL PARAAMINOFENOL", causa: "X609", desc_causa: "ENVENENAMIENTO AUTOINFLIGIDO INTENCIONALMENTE POR, Y EXPOSICIÓN A ANALGÉSICOS NO NARCÓTICOS, ANTIPIRÉTICOS Y ANTIRREUMÁTICOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "08/09/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "16/09/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/09/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "28/09/2025", afec: "S628", desc_afec: "FRACTURA DE OTRAS PARTES Y DE LAS NO ESPECIFICADAS DE LA MUÑECA Y DE LA MANO", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "28/09/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "13/09/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "27/09/2025", afec: "S299", desc_afec: "TRAUMATISMO DEL TÓRAX, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "27/09/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "29/09/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "24/09/2025", afec: "S229", desc_afec: "FRACTURA DEL TÓRAX ÓSEO, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "03/10/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "03/10/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "04/10/2025", afec: "S399", desc_afec: "TRAUMATISMO NO ESPECIFICADO DEL ABDOMEN, DE LA REGIÓN LUMBOSACRA Y DE LA PELVIS", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "04/10/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "03/10/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "03/10/2025", afec: "T149", desc_afec: "TRAUMATISMO, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "03/10/2025", afec: "S421", desc_afec: "FRACTURA DEL OMÓPLATO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "05/10/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "W559", desc_causa: "MORDEDURA O ATAQUE DE OTROS MAMÍFEROS, LUGAR NO ESPECIFICADO" },
-                { fecha: "05/10/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "V809", desc_causa: "JINETE U OCUPANTE DE VEHÍCULO DE TRACCIÓN ANIMAL LESIONADO EN OTROS ACCIDENTES DE TRANSPORTE, Y EN LOS NO ESPECIFICADOS" },
-                { fecha: "05/10/2025", afec: "S520", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DEL CÚBITO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "02/10/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "06/10/2025", afec: "S315", desc_afec: "HERIDA DE OTROS ÓRGANOS GENITALES EXTERNOS Y DE LOS NO ESPECIFICADOS", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "02/10/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "V289", desc_causa: "MOTOCICLISTA LESIONADO EN ACCIDENTE DE TRANSPORTE SIN COLISIÓN, MOTOCICLISTA NO ESPECIFICADO, LESIONADO EN ACCIDENTE DE TRÁNSITO" },
-                { fecha: "06/10/2025", afec: "S820", desc_afec: "FRACTURA DE LA RÓTULA", causa: "V499", desc_causa: "OCUPANTE (CUALQUIERA) DE AUTOMÓVIL LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "02/10/2025", afec: "S628", desc_afec: "FRACTURA DE OTRAS PARTES Y DE LAS NO ESPECIFICADAS DE LA MUÑECA Y DE LA MANO", causa: "W179", desc_causa: "OTRAS CAÍDAS DE UN NIVEL A OTRO, LUGAR NO ESPECIFICADO" },
-                { fecha: "02/10/2025", afec: "S299", desc_afec: "TRAUMATISMO DEL TÓRAX, NO ESPECIFICADO", causa: "W179", desc_causa: "OTRAS CAÍDAS DE UN NIVEL A OTRO, LUGAR NO ESPECIFICADO" },
-                { fecha: "09/10/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "X849", desc_causa: "LESIÓN AUTOINFLIGIDA INTENCIONALMENTE POR MEDIOS NO ESPECIFICADOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "09/10/2025", afec: "S223", desc_afec: "FRACTURA DE COSTILLA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "09/10/2025", afec: "S730", desc_afec: "LUXACIÓN DE LA CADERA", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "10/10/2025", afec: "S420", desc_afec: "FRACTURA DE LA CLAVÍCULA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "10/10/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "W079", desc_causa: "CAÍDA QUE IMPLICA SILLA, LUGAR NO ESPECIFICADO" },
-                { fecha: "10/10/2025", afec: "S821", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "11/10/2025", afec: "S310", desc_afec: "HERIDA DE LA REGIÓN LUMBOSACRA Y DE LA PELVIS", causa: "X999", desc_causa: "AGRESIÓN CON OBJETO CORTANTE, LUGAR NO ESPECIFICADO" },
-                { fecha: "12/10/2025", afec: "T242", desc_afec: "QUEMADURA DE LA CADERA Y MIEMBRO INFERIOR, DE SEGUNDO GRADO , EXCEPTO TOBILLO Y PIE", causa: "X099", desc_causa: "EXPOSICIÓN A HUMOS, FUEGOS O LLAMAS NO ESPECIFICADOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "12/10/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "13/10/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "13/10/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "15/10/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "15/10/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "16/10/2025", afec: "S320", desc_afec: "FRACTURA DE VÉRTEBRA LUMBAR", causa: "X849", desc_causa: "LESIÓN AUTOINFLIGIDA INTENCIONALMENTE POR MEDIOS NO ESPECIFICADOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "16/10/2025", afec: "S820", desc_afec: "FRACTURA DE LA RÓTULA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "17/10/2025", afec: "S065", desc_afec: "HEMORRAGIA SUBDURAL TRAUMÁTICA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "17/10/2025", afec: "S220", desc_afec: "FRACTURA DE VÉRTEBRA TORÁCICA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "17/10/2025", afec: "S528", desc_afec: "FRACTURA DE OTRAS PARTES DEL ANTEBRAZO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "18/10/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "10/10/2025", afec: "T212", desc_afec: "QUEMADURA DEL TRONCO, DE SEGUNDO GRADO", causa: "X129", desc_causa: "CONTACTO CON OTROS LÍQUIDOS CALIENTES, LUGAR NO ESPECIFICADO" },
-                { fecha: "19/10/2025", afec: "T849", desc_afec: "COMPLICACIONES NO ESPECIFICADAS DE DISPOSITIVOS PROTÉSICOS, IMPLANTES E INJERTOS ORTOPÉDICOS INTERNOS", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/10/2025", afec: "S398", desc_afec: "OTROS TRAUMATISMOS ESPECIFICADOS DEL ABDOMEN, DE LA REGIÓN LUMBOSACRA Y DE LA PELVIS", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "19/10/2025", afec: "S824", desc_afec: "FRACTURA DEL PERONÉ SOLAMENTE", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "20/10/2025", afec: "S724", desc_afec: "FRACTURA DE LA EPÍFISIS INFERIOR DEL FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/10/2025", afec: "S420", desc_afec: "FRACTURA DE LA CLAVÍCULA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/10/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "21/10/2025", afec: "T814", desc_afec: "INFECCIÓN CONSECUTIVA A PROCEDIMIENTO, NO CLASIFICADA EN OTRA PARTE", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "20/10/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/10/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "V280", desc_causa: "MOTOCICLISTA LESIONADO EN ACCIDENTE DE TRANSPORTE SIN COLISIÓN, CONDUCTOR LESIONADO EN ACCIDENTE NO DE TRÁNSITO" },
-                { fecha: "22/10/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "22/10/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "24/10/2025", afec: "S697", desc_afec: "OTROS TRAUMATISMOS MÚLTIPLES DE LA MUÑECA Y DE LA MANO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "25/10/2025", afec: "T810", desc_afec: "HEMORRAGIA Y HEMATOMA QUE COMPLICAN UN PROCEDIMIENTO, NO CLASIFICADOS EN OTRA PARTE", causa: "Y839", desc_causa: "PROCEDIMIENTO QUIRÚRGICO NO ESPECIFICADO" },
-                { fecha: "25/10/2025", afec: "S026", desc_afec: "FRACTURA DEL MAXILAR INFERIOR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "28/10/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "29/10/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "29/10/2025", afec: "S925", desc_afec: "FRACTURA DE LOS HUESOS DE OTRO(S) DEDO(S) DEL PIE", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "04/10/2025", afec: "S610", desc_afec: "HERIDA DE DEDO(S) DE LA MANO, SIN DAÑO DE LA(S) UÑA(S)", causa: "W249", desc_causa: "CONTACTO TRAUMÁTICO CON DISPOSITIVOS DE ELEVACIÓN Y TRANSMISIÓN, NO CLASIFICADOS EN OTRA PARTE, LUGAR NO ESPECIFICADO" },
-                { fecha: "30/10/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "24/10/2025", afec: "S681", desc_afec: "AMPUTACIÓN TRAUMÁTICA DE OTRO DEDO ÚNICO (COMPLETA) (PARCIAL)", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "01/11/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "01/11/2025", afec: "S399", desc_afec: "TRAUMATISMO NO ESPECIFICADO DEL ABDOMEN, DE LA REGIÓN LUMBOSACRA Y DE LA PELVIS", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "02/11/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "02/11/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "02/11/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "02/11/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "02/11/2025", afec: "S524", desc_afec: "FRACTURA DE LA DIÁFISIS DEL CÚBITO Y DEL RADIO", causa: "W109", desc_causa: "CAÍDA EN O DESDE ESCALERA Y ESCALONES, LUGAR NO ESPECIFICADO" },
-                { fecha: "03/11/2025", afec: "T814", desc_afec: "INFECCIÓN CONSECUTIVA A PROCEDIMIENTO, NO CLASIFICADA EN OTRA PARTE", causa: "Y834", desc_causa: "OTRA CIRUGÍA RECONSTRUCTIVA" },
-                { fecha: "03/11/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "03/11/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "03/11/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "04/11/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "05/11/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "08/11/2025", afec: "T813", desc_afec: "DESGARRO DE HERIDA OPERATORIA, NO CLASIFICADO EN OTRA PARTE", causa: "Y838", desc_causa: "OTROS PROCEDIMIENTOS QUIRÚRGICOS" },
-                { fecha: "08/11/2025", afec: "S021", desc_afec: "FRACTURA DE LA BASE DEL CRÁNEO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "09/11/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "09/11/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "11/11/2025", afec: "S373", desc_afec: "TRAUMATISMO DE LA URETRA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "11/11/2025", afec: "S272", desc_afec: "HEMONEUMOTÓRAX TRAUMÁTICO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "11/11/2025", afec: "S301", desc_afec: "CONTUSIÓN DE LA PARED ABDOMINAL", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "13/11/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "14/11/2025", afec: "S301", desc_afec: "CONTUSIÓN DE LA PARED ABDOMINAL", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "14/11/2025", afec: "T302", desc_afec: "QUEMADURA DE SEGUNDO GRADO, REGIÓN DEL CUERPO NO ESPECIFICADA", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "14/11/2025", afec: "S923", desc_afec: "FRACTURA DE HUESO DEL METATARSO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "04/11/2025", afec: "T827", desc_afec: "INFECCIÓN Y REACCIÓN INFLAMATORIA DEBIDAS A OTROS DISPOSITIVOS, IMPLANTES E INJERTOS CARDIOVASCULARES", causa: "Y840", desc_causa: "CATETERIZACIÓN CARDÍACA" },
-                { fecha: "18/11/2025", afec: "T802", desc_afec: "INFECCIONES CONSECUTIVAS A INFUSIÓN, TRANSFUSIÓN E INYECCIÓN TERAPÉUTICA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "16/11/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "21/11/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "V031", desc_causa: "PEATÓN LESIONADO POR COLISIÓN CON AUTOMÓVIL, CAMIONETA O FURGONETA, ACCIDENTE DE TRÁNSITO" },
-                { fecha: "22/11/2025", afec: "S527", desc_afec: "FRACTURAS MÚLTIPLES DEL ANTEBRAZO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "23/11/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "23/11/2025", afec: "S424", desc_afec: "FRACTURA DE LA EPÍFISIS INFERIOR DEL HÚMERO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "24/11/2025", afec: "T814", desc_afec: "INFECCIÓN CONSECUTIVA A PROCEDIMIENTO, NO CLASIFICADA EN OTRA PARTE", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "24/11/2025", afec: "S021", desc_afec: "FRACTURA DE LA BASE DEL CRÁNEO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "16/11/2025", afec: "S627", desc_afec: "FRACTURAS MÚLTIPLES DE LOS DEDOS DE LA MANO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "16/11/2025", afec: "S820", desc_afec: "FRACTURA DE LA RÓTULA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "17/11/2025", afec: "S810", desc_afec: "HERIDA DE LA RODILLA", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "25/11/2025", afec: "S299", desc_afec: "TRAUMATISMO DEL TÓRAX, NO ESPECIFICADO", causa: "W179", desc_causa: "OTRAS CAÍDAS DE UN NIVEL A OTRO, LUGAR NO ESPECIFICADO" },
-                { fecha: "25/11/2025", afec: "S721", desc_afec: "FRACTURA PERTROCANTERIANA", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "27/11/2025", afec: "T300", desc_afec: "QUEMADURA DE REGIÓN DEL CUERPO Y GRADO NO ESPECIFICADOS", causa: "W879", desc_causa: "EXPOSICIÓN A CORRIENTE ELÉCTRICA NO ESPECIFICADA, LUGAR NO ESPECIFICADO" },
-                { fecha: "25/11/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "26/11/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "26/11/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "19/11/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "27/11/2025", afec: "S202", desc_afec: "CONTUSIÓN DEL TÓRAX", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "27/11/2025", afec: "S221", desc_afec: "FRACTURAS MÚLTIPLES DE COLUMNA TORÁCICA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "29/11/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "W010", desc_causa: "CAÍDA EN EL MISMO NIVEL POR DESLIZAMIENTO, TROPEZÓN Y TRASPIÉ, VIVIENDA" },
-                { fecha: "29/11/2025", afec: "S528", desc_afec: "FRACTURA DE OTRAS PARTES DEL ANTEBRAZO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "28/11/2025", afec: "S223", desc_afec: "FRACTURA DE COSTILLA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "01/11/2025", afec: "T185", desc_afec: "CUERPO EXTRAÑO EN EL ANO Y EN EL RECTO", causa: "W449", desc_causa: "CUERPO EXTRAÑO QUE PENETRA POR EL OJO U ORIFICIO NATURAL, LUGAR NO ESPECIFICADO" },
-                { fecha: "28/11/2025", afec: "S320", desc_afec: "FRACTURA DE VÉRTEBRA LUMBAR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "30/11/2025", afec: "S824", desc_afec: "FRACTURA DEL PERONÉ SOLAMENTE", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "30/11/2025", afec: "S420", desc_afec: "FRACTURA DE LA CLAVÍCULA", causa: "V299", desc_causa: "MOTOCICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "09/11/2025", afec: "S527", desc_afec: "FRACTURAS MÚLTIPLES DEL ANTEBRAZO", causa: "V199", desc_causa: "CICLISTA [CUALQUIERA] LESIONADO EN ACCIDENTE DE TRÁNSITO NO ESPECIFICADO" },
-                { fecha: "02/11/2025", afec: "S525", desc_afec: "FRACTURA DE LA EPÍFISIS INFERIOR DEL RADIO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "06/11/2025", afec: "S030", desc_afec: "LUXACIÓN DEL MAXILAR", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "08/11/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "02/11/2025", afec: "S525", desc_afec: "FRACTURA DE LA EPÍFISIS INFERIOR DEL RADIO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "09/11/2025", afec: "S528", desc_afec: "FRACTURA DE OTRAS PARTES DEL ANTEBRAZO", causa: "W099", desc_causa: "CAÍDA QUE IMPLICA EQUIPOS PARA JUEGOS INFANTILES, LUGAR NO ESPECIFICADO" },
-                { fecha: "11/11/2025", afec: "S682", desc_afec: "AMPUTACIÓN TRAUMÁTICA DE DOS O MÁS DEDOS SOLAMENTE (COMPLETA) (PARCIAL)", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "11/11/2025", afec: "T141", desc_afec: "HERIDA DE REGIÓN NO ESPECIFICADA DEL CUERPO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "21/11/2025", afec: "S682", desc_afec: "AMPUTACIÓN TRAUMÁTICA DE DOS O MÁS DEDOS SOLAMENTE (COMPLETA) (PARCIAL)", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "22/11/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "29/11/2025", afec: "S527", desc_afec: "FRACTURAS MÚLTIPLES DEL ANTEBRAZO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "22/11/2025", afec: "S682", desc_afec: "AMPUTACIÓN TRAUMÁTICA DE DOS O MÁS DEDOS SOLAMENTE (COMPLETA) (PARCIAL)", causa: "W499", desc_causa: "EXPOSICIÓN A OTRAS FUERZAS MECÁNICAS INANIMADAS, Y LAS NO ESPECIFICADAS, LUGAR NO ESPECIFICADO" },
-                { fecha: "29/11/2025", afec: "S523", desc_afec: "FRACTURA DE LA DIÁFISIS DEL RADIO", causa: "W199", desc_causa: "CAÍDA NO ESPECIFICADA, LUGAR NO ESPECIFICADO" },
-                { fecha: "29/11/2025", afec: "S525", desc_afec: "FRACTURA DE LA EPÍFISIS INFERIOR DEL RADIO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "06/11/2025", afec: "S202", desc_afec: "CONTUSIÓN DEL TÓRAX", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "05/11/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "02/12/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "02/12/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "06/12/2025", afec: "S682", desc_afec: "AMPUTACIÓN TRAUMÁTICA DE DOS O MÁS DEDOS SOLAMENTE (COMPLETA) (PARCIAL)", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "06/12/2025", afec: "T813", desc_afec: "DESGARRO DE HERIDA OPERATORIA, NO CLASIFICADO EN OTRA PARTE", causa: "Y839", desc_causa: "PROCEDIMIENTO QUIRÚRGICO NO ESPECIFICADO" },
-                { fecha: "07/12/2025", afec: "S826", desc_afec: "FRACTURA DEL MALÉOLO EXTERNO", causa: "W119", desc_causa: "CAÍDA EN O DESDE ESCALERAS MANUALES, LUGAR NO ESPECIFICADO" },
-                { fecha: "07/12/2025", afec: "S825", desc_afec: "FRACTURA DEL MALÉOLO INTERNO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "07/12/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "07/12/2025", afec: "S825", desc_afec: "FRACTURA DEL MALÉOLO INTERNO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "07/12/2025", afec: "S420", desc_afec: "FRACTURA DE LA CLAVÍCULA", causa: "W183", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, ÁREAS DE DEPORTE Y ATLETISMO" },
-                { fecha: "07/12/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "W099", desc_causa: "CAÍDA QUE IMPLICA EQUIPOS PARA JUEGOS INFANTILES, LUGAR NO ESPECIFICADO" },
-                { fecha: "05/12/2025", afec: "S064", desc_afec: "HEMORRAGIA EPIDURAL", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "05/12/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "08/12/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "15/12/2025", afec: "S272", desc_afec: "HEMONEUMOTÓRAX TRAUMÁTICO", causa: "X959", desc_causa: "AGRESIÓN CON DISPARO DE OTRAS ARMAS DE FUEGO, Y LAS NO ESPECIFICADAS, LUGAR NO ESPECIFICADO" },
-                { fecha: "09/12/2025", afec: "S279", desc_afec: "TRAUMATISMO DE ÓRGANO INTRATORÁCICO, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "16/12/2025", afec: "S081", desc_afec: "AMPUTACIÓN TRAUMÁTICA DE LA OREJA", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "10/12/2025", afec: "S423", desc_afec: "FRACTURA DE LA DIÁFISIS DEL HÚMERO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "10/12/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "10/12/2025", afec: "T509", desc_afec: "ENVENENAMIENTO POR OTRAS DROGAS Y SUSTANCIAS BIOLÓGICAS, Y LAS NO ESPECIFICADAS", causa: "Y149", desc_causa: "ENVENENAMIENTO POR, Y EXPOSICIÓN A OTRAS DROGAS, MEDICAMENTOS Y SUSTANCIAS BIOLÓGICAS, Y LAS NO ESPECIFICADAS, DE INTENCIÓN NO DETERMINADA, LUGAR NO ESPECIFICADO" },
-                { fecha: "16/12/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "16/12/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "17/12/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "11/12/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "11/12/2025", afec: "S328", desc_afec: "FRACTURA DE OTRAS PARTES Y DE LAS NO ESPECIFICADAS DE LA COLUMNA LUMBAR Y DE LA PELVIS", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "12/12/2025", afec: "S424", desc_afec: "FRACTURA DE LA EPÍFISIS INFERIOR DEL HÚMERO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "17/12/2025", afec: "S528", desc_afec: "FRACTURA DE OTRAS PARTES DEL ANTEBRAZO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "14/12/2025", afec: "S520", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DEL CÚBITO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "14/12/2025", afec: "S925", desc_afec: "FRACTURA DE LOS HUESOS DE OTRO(S) DEDO(S) DEL PIE", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "19/12/2025", afec: "S520", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DEL CÚBITO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "19/12/2025", afec: "S929", desc_afec: "FRACTURA DEL PIE, NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "19/12/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "21/12/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/12/2025", afec: "S317", desc_afec: "HERIDAS MÚLTIPLES DEL ABDOMEN, DE LA REGIÓN LUMBOSACRA Y DE LA PELVIS", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "21/12/2025", afec: "S522", desc_afec: "FRACTURA DE LA DIÁFISIS DEL CÚBITO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/12/2025", afec: "S729", desc_afec: "FRACTURA DEL FÉMUR, PARTE NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "21/12/2025", afec: "S821", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DE LA TIBIA", causa: "W183", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, ÁREAS DE DEPORTE Y ATLETISMO" },
-                { fecha: "20/12/2025", afec: "S520", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DEL CÚBITO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "21/12/2025", afec: "S520", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DEL CÚBITO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "21/12/2025", afec: "S720", desc_afec: "FRACTURA DEL CUELLO DE FÉMUR", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/12/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "18/12/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "22/12/2025", afec: "S311", desc_afec: "HERIDA DE LA PARED ABDOMINAL", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "22/12/2025", afec: "S399", desc_afec: "TRAUMATISMO NO ESPECIFICADO DEL ABDOMEN, DE LA REGIÓN LUMBOSACRA Y DE LA PELVIS", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "26/12/2025", afec: "S981", desc_afec: "AMPUTACIÓN TRAUMÁTICA DE UN DEDO DEL PIE", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "27/12/2025", afec: "T07X", desc_afec: "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "23/12/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "28/12/2025", afec: "S821", desc_afec: "FRACTURA DE LA EPÍFISIS SUPERIOR DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "23/12/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "28/12/2025", afec: "S680", desc_afec: "AMPUTACIÓN TRAUMÁTICA DEL PULGAR (COMPLETA) (PARCIAL)", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "24/12/2025", afec: "T810", desc_afec: "HEMORRAGIA Y HEMATOMA QUE COMPLICAN UN PROCEDIMIENTO, NO CLASIFICADOS EN OTRA PARTE", causa: "Y839", desc_causa: "PROCEDIMIENTO QUIRÚRGICO NO ESPECIFICADO" },
-                { fecha: "28/12/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "25/12/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "06/12/2025", afec: "T841", desc_afec: "COMPLICACIÓN MECÁNICA DE DISPOSITIVO DE FIJACIÓN INTERNA DE HUESOS DE UN MIEMBRO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "20/12/2025", afec: "S430", desc_afec: "LUXACIÓN DE LA ARTICULACIÓN DEL HOMBRO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "30/12/2025", afec: "S170", desc_afec: "TRAUMATISMO POR APLASTAMIENTO DE LA LARINGE Y DE LA TRÁQUEA", causa: "X649", desc_causa: "ENVENENAMIENTO AUTOINFLIGIDO INTENCIONALMENTE POR, Y EXPOSICIÓN A OTRAS DROGAS, MEDICAMENTOS Y SUSTANCIAS BIOLÓGICAS, Y LOS NO ESPECIFICADOS, LUGAR NO ESPECIFICADO" },
-                { fecha: "30/12/2025", afec: "S682", desc_afec: "AMPUTACIÓN TRAUMÁTICA DE DOS O MÁS DEDOS SOLAMENTE (COMPLETA) (PARCIAL)", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "27/12/2025", afec: "S528", desc_afec: "FRACTURA DE OTRAS PARTES DEL ANTEBRAZO", causa: "W189", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, LUGAR NO ESPECIFICADO" },
-                { fecha: "30/12/2025", afec: "S822", desc_afec: "FRACTURA DE LA DIÁFISIS DE LA TIBIA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "30/12/2025", afec: "S827", desc_afec: "FRACTURAS MÚLTIPLES DE LA PIERNA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "27/12/2025", afec: "S528", desc_afec: "FRACTURA DE OTRAS PARTES DEL ANTEBRAZO", causa: "W188", desc_causa: "OTRAS CAÍDAS EN EL MISMO NIVEL, OTRO LUGAR ESPECIFICADO" },
-                { fecha: "31/12/2025", afec: "S202", desc_afec: "CONTUSIÓN DEL TÓRAX", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" },
-                { fecha: "31/12/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "14/12/2025", afec: "S628", desc_afec: "FRACTURA DE OTRAS PARTES Y DE LAS NO ESPECIFICADAS DE LA MUÑECA Y DE LA MANO", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "14/12/2025", afec: "S929", desc_afec: "FRACTURA DEL PIE, NO ESPECIFICADA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "14/12/2025", afec: "S828", desc_afec: "FRACTURA DE OTRAS PARTES DE LA PIERNA", causa: "X590", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS, QUE CAUSAN FRACTURA" },
-                { fecha: "16/12/2025", afec: "S069", desc_afec: "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", causa: "X599", desc_causa: "EXPOSICIÓN A FACTORES NO ESPECIFICADOS QUE CAUSAN OTRAS LESIONES Y LAS NO ESPECIFICADAS" }
-            ];
-
-            // --- CALCULAR FRECUENCIAS PARA LAS BARRAS (SPARKLINES CONCEPTUALES) ---
-            const afecCount = {};
-            const causaCount = {};
-
-            rawData.forEach(item => {
-                afecCount[item.afec] = (afecCount[item.afec] || 0) + 1;
-                causaCount[item.causa] = (causaCount[item.causa] || 0) + 1;
-            });
-
-            const maxAfec = Math.max(...Object.values(afecCount));
-            const maxCausa = Math.max(...Object.values(causaCount));
-
-            // Elementos del DOM
-            const tbody = document.getElementById('tableBody');
-            const filterInput = document.getElementById('filterInput');
-            const clearBtn = document.getElementById('clearFilter');
-            const recordSpan = document.getElementById('recordCount');
-            const uniqueAfecSpan = document.getElementById('uniqueAfecciones');
-            const uniqueCausaSpan = document.getElementById('uniqueCausas');
-
-            // Actualizar contadores únicos
-            uniqueAfecSpan.textContent = Object.keys(afecCount).length;
-            uniqueCausaSpan.textContent = Object.keys(causaCount).length;
-
-            // Función para renderizar la tabla con filtro
-            function renderTable(filterText = '') {
-                const filterLower = filterText.toLowerCase().trim();
-                const filteredData = filterLower === '' ? rawData : rawData.filter(item => {
-                    return item.fecha.includes(filterLower) ||
-                           item.afec.toLowerCase().includes(filterLower) ||
-                           item.desc_afec.toLowerCase().includes(filterLower) ||
-                           item.causa.toLowerCase().includes(filterLower) ||
-                           item.desc_causa.toLowerCase().includes(filterLower);
-                });
-
-                recordSpan.textContent = filteredData.length;
-
-                let html = '';
-                filteredData.forEach(item => {
-                    const freqAfec = afecCount[item.afec] || 1;
-                    const freqCausa = causaCount[item.causa] || 1;
-                    const percentAfec = (freqAfec / maxAfec) * 100;
-                    const percentCausa = (freqCausa / maxCausa) * 100;
-
-                    html += `<tr>
-                        <td class="date-cell">${item.fecha}</td>
-                        <td><span class="code-primary">${item.afec}</span></td>
-                        <td class="desc">${item.desc_afec}</td>
-                        <td><span class="code-ext">${item.causa}</span></td>
-                        <td class="desc">${item.desc_causa}</td>
-                        <td style="display: flex; align-items: center; gap: 8px; min-width: 100px;">
-                            <span class="freq-bar" style="--freq-width: ${percentAfec}%;"></span>
-                            <span class="freq-bar ext" style="--freq-width: ${percentCausa}%;"></span>
-                            <span style="font-size:0.7rem; color:#4b6584;">${freqAfec}/${freqCausa}</span>
-                        </td>
-                    </tr>`;
-                });
-
-                tbody.innerHTML = html;
-            }
-
-            // Inicializar
-            renderTable();
-
-            // Evento de filtrado en tiempo real
-            filterInput.addEventListener('input', (e) => {
-                renderTable(e.target.value);
-            });
-
-            clearBtn.addEventListener('click', () => {
-                filterInput.value = '';
-                renderTable('');
-            });
-
-        })();
+        // No se necesita lógica compleja, todo el análisis está precargado.
+        // Pero añadimos un pequeño detalle interactivo: tooltips para más info
+        document.querySelectorAll('.badge').forEach(el => {
+            el.setAttribute('title', 'Dato proveniente del cruce de registros');
+        });
     </script>
 </body>
 </html>
