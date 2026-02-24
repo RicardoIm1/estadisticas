@@ -1,267 +1,452 @@
+function doGet() {
+  return HtmlService.createHtmlOutput(`
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hojas Faltanes de Violencia y Lesiones</title>
-    <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
-    <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-        crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
-    <link href="/estadisticas/correcciones/correcciones.css" rel="stylesheet">
+    <title>Dashboard Interactivo | Responsables Mensual</title>
+    <!-- Chart.js CDN para gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Font Awesome para íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            background: #f4f7fb;
+            padding: 2rem 1.5rem;
+            color: #1a2639;
+        }
+
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .dashboard-header h1 {
+            font-weight: 600;
+            font-size: 1.8rem;
+            background: linear-gradient(145deg, #1e3c72, #2a5298);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stats-cards {
+            display: flex;
+            gap: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 1.2rem 2rem;
+            box-shadow: 0 8px 20px rgba(0,20,50,0.06);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s;
+            border: 1px solid rgba(255,255,255,0.5);
+            backdrop-filter: blur(2px);
+        }
+
+        .card i {
+            font-size: 2rem;
+            color: #2a5298;
+            opacity: 0.7;
+        }
+
+        .card-info h3 {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #4a5568;
+        }
+
+        .card-info .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0b2b4b;
+            line-height: 1.2;
+        }
+
+        .grafico-container {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.04);
+        }
+
+        .grafico-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .grafico-header h2 {
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+
+        .tabla-wrapper {
+            background: white;
+            border-radius: 24px;
+            padding: 1.5rem 1rem 1.5rem 1.5rem;
+            box-shadow: 0 16px 35px rgba(0,0,0,0.03);
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            min-width: 1600px;
+        }
+
+        th {
+            background: #f0f4fe;
+            color: #102a4e;
+            font-weight: 600;
+            padding: 0.9rem 0.5rem;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tbody tr:hover {
+            background: #f0f7ff;
+            transition: 0.1s;
+        }
+
+        .responsable-col {
+            text-align: left;
+            font-weight: 600;
+            color: #0b2b4b;
+            position: sticky;
+            left: 0;
+            background: white;
+            box-shadow: 2px 0 5px -2px rgba(0,0,0,0.05);
+        }
+
+        th:first-child, td:first-child {
+            position: sticky;
+            left: 0;
+            background: inherit;
+            z-index: 2;
+            padding-left: 1rem;
+        }
+        th:first-child {
+            background: #f0f4fe;
+            z-index: 3;
+        }
+
+        .total-row {
+            background: #e9eff9;
+            font-weight: 700;
+            border-top: 2px solid #b3c7e5;
+        }
+        .total-row td {
+            background: #e9eff9;
+        }
+
+        .badge-mes {
+            background: #d9e6f2;
+            padding: 0.2rem 0.6rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            color: #1e3c72;
+        }
+
+        .sort-btn {
+            background: none;
+            border: 1px solid #cbd5e0;
+            padding: 0.3rem 0.8rem;
+            border-radius: 40px;
+            margin-left: 0.8rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            background: white;
+            transition: 0.2s;
+        }
+
+        .sort-btn:hover {
+            background: #dce5f0;
+            border-color: #2a5298;
+        }
+
+        .footer-notes {
+            margin-top: 1.5rem;
+            text-align: right;
+            color: #5f6b7a;
+            font-size: 0.8rem;
+        }
+        
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .stats-cards .card { padding: 1rem; }
+            .grafico-container { padding: 1rem; }
+        }
+        td, th { min-width: 60px; }
+        th:first-child, td:first-child { min-width: 220px; }
+    </style>
 </head>
-
 <body>
-    <div class="glass" id="dashboard">
-        <h5>Hojas Faltantes de Violencia y Lesiones</h5>
-        <div id="header"></div>
-        <div class="grid">
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-color high-color"></div>
-                    <span>Número alto (15+)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color medium-color"></div>
-                    <span>Número medio (5-14)</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-color low-color"></div>
-                    <span>Número bajo (1-4)</span>
-                </div>
-            </div>
 
-            <div class="controls">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Buscar médico...">
-                </div>
-                <div class="sort-buttons">
-                    <button id="sortName">Ordenar por Nombre</button>
-                    <button id="sortNumber">Ordenar por Número</button>
-                </div>
-            </div>
-
-            <table id="doctorsTable">
-                <thead>
-                    <tr>
-                        <th data-sort="name">Médico</th>
-                        <th data-sort="number">Número</th>
-                    </tr>
-                </thead>
-                <tbody id="tableBody">
-                    <!-- Los datos se cargarán con JavaScript -->
-                </tbody>
-            </table>
-
-            <div class="stats">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalDoctors">0</div>
-                    <div class="stat-label">Total de Médicos</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="totalNumbers">0</div>
-                    <div class="stat-label">Total de Números</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="averageNumbers">0</div>
-                    <div class="stat-label">Promedio por Médico</div>
-                </div>
+<div class="dashboard-header">
+    <h1><i class="fas fa-chart-pie" style="margin-right: 12px; color:#2a5298;"></i>Dashboard de responsables · 2025</h1>
+    <div class="stats-cards">
+        <div class="card">
+            <i class="fas fa-users"></i>
+            <div class="card-info">
+                <h3>Total responsables</h3>
+                <span class="value" id="totalPersonas">30</span>
             </div>
         </div>
-        <div id="footer"></div>
+        <div class="card">
+            <i class="fas fa-calendar-check"></i>
+            <div class="card-info">
+                <h3>Registros totales</h3>
+                <span class="value" id="totalGeneral">1364</span>
+            </div>
+        </div>
+        <div class="card">
+            <i class="fas fa-chart-line"></i>
+            <div class="card-info">
+                <h3>Promedio x responsable</h3>
+                <span class="value" id="promedioXR">45.5</span>
+            </div>
+        </div>
     </div>
-    <script>
-        fetch('/estadisticas/comun/header.html')
-            .then(r => r.text())
-            .then(html => {
-                document.getElementById('header').innerHTML = html;
+</div>
 
-                // Cargar sesión.js después de insertar el HTML
-                const s = document.createElement('script');
-                s.src = '/estadisticas/comun/sesion_bk.js';
+<!-- Gráfico de evolución mensual (totales por mes) -->
+<div class="grafico-container">
+    <div class="grafico-header">
+        <h2><i class="fas fa-chart-bar" style="margin-right: 8px; color:#3f6699;"></i>Totales por mes · 2025</h2>
+        <span class="badge-mes"><i class="far fa-calendar-alt"></i> Datos acumulados</span>
+    </div>
+    <canvas id="chartMensual" style="width:100%; max-height: 280px; height: 280px;"></canvas>
+</div>
 
-                s.onload = () => {
-                    console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
-                    verificarAutenticacion();
-                };
+<!-- Tabla interactiva con opción de ordenamiento -->
+<div class="tabla-wrapper">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-right: 1rem;">
+        <h2 style="font-size: 1.3rem;"><i class="fas fa-table" style="margin-right: 8px; color:#2a5298;"></i>Detalle mensual por responsable</h2>
+        <div>
+            <span style="font-size:0.85rem; margin-right: 8px;">Ordenar por:</span>
+            <button class="sort-btn" id="sortNombre"><i class="fas fa-sort-alpha-down"></i> Nombre</button>
+            <button class="sort-btn" id="sortTotal"><i class="fas fa-sort-numeric-down"></i> Total (desc)</button>
+            <button class="sort-btn" id="sortReset"><i class="fas fa-undo"></i> Reiniciar</button>
+        </div>
+    </div>
+    <table id="tablaDatos">
+        <thead>
+            <tr>
+                <th>RESPONSABLE</th>
+                <th>Jan 2025</th><th>feb 2025</th><th>mar 2025</th><th>Apr 2025</th><th>may 2025</th><th>jun 2025</th>
+                <th>jul 2025</th><th>Aug 2025</th><th>sep 2025</th><th>oct 2025</th><th>nov 2025</th><th>Dec 2025</th>
+                <th>TOTAL</th>
+            </tr>
+        </thead>
+        <tbody id="tablaBody">
+            <!-- Se inyecta via javascript -->
+        </tbody>
+    </table>
+</div>
+<div class="footer-notes">
+    <i class="far fa-clock"></i> Datos mostrados corresponden a proyección 2025 · Dashboard interactivo
+</div>
 
-                document.body.appendChild(s);
-            });
-
-        fetch('/estadisticas/comun/footer.html')
-            .then(r => r.text())
-            .then(html => {
-                document.getElementById('footer').innerHTML = html;
-
-                // Ya existe footerText
-                const footer = document.getElementById('footerText');
-                if (footer) {
-                    footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-                }
-            });
-    </script>
-    <script>
-        // Datos de los médicos
-        const doctorsData = [
-            { name: "ADRIAN PONCE TARULA", number: 7 },
-            { name: "CARLOS MELENDREZ ALMIRALLA", number: 14 },
-            { name: "DIEGO ALONSO ROCHA SEGURA", number: 34 },
-            { name: "EDUARDO JOSE ELCOCK SARAWATARI", number: 13 },
-            { name: "EFRAIN VARGAS GARCIA", number: 2 },
-            { name: "ERICK DE JESUS DIAZ PELAYO", number: 2 },
-            { name: "FERNANDO MARQUEZ VELA", number: 6 },
-            { name: "FRANCISCO JAVIER SOLANO GARCIA", number: 1 },
-            { name: "GERARDO CALVILLO ARECHIGA", number: 2 },
-            { name: "JOSE DE JESUS NAVARRO SANCHEZ", number: 4 },
-            { name: "JUAN MANUEL LOPEZ DIAZ", number: 1 },
-            { name: "KURT KASTEN PAREDES", number: 3 },
-            { name: "OSCAR GONZALEZ GONZALEZ", number: 1 },
-            { name: "ROSALIO JIMENEZ DUARTE", number: 2 },
-            { name: "SERGIO ROSALES HERNANDEZ", number: 1 },
-            { name: "SOTERO GUTIERREZ PEÑA", number: 20 },
-            { name: "SUSANA GOMEZ SOSA", number: 1 }
+<script>
+    (function() {
+        // --------------------------------------------------------------
+        // DATOS: Responsable y valores mensuales (mismo orden que el enunciado)
+        // --------------------------------------------------------------
+        const datosOriginales = [
+            { nombre: "SUSANA GOMEZ", meses: [11,4,8,6,5,4,4,13,38,51,30,18] },
+            { nombre: "VICTOR ALFONSO PASILLAS", meses: [6,1,7,9,4,5,3,19,32,50,9,28] },
+            { nombre: "MARIO SOLANO", meses: [5,0,13,2,11,7,0,13,29,27,36,10] },
+            { nombre: "RODRIGO SALVADOR OLEA", meses: [3,3,12,4,8,0,2,4,11,18,34,30] },
+            { nombre: "MARIA LETICIA ROMO", meses: [9,4,0,5,3,3,5,0,13,13,22,19] },
+            { nombre: "VICTOR CARRILLO", meses: [5,4,5,1,5,2,3,1,15,20,20,8] },
+            { nombre: "RICARDO LIMON", meses: [4,4,0,3,3,4,0,3,9,10,16,8] },
+            { nombre: "SALVADOR SEGURA", meses: [1,1,4,2,2,0,0,3,9,16,11,14] },
+            { nombre: "MARIA ELENA ALATORRE", meses: [3,3,2,1,2,0,8,5,14,5,7,8] },
+            { nombre: "DAVID VENEGAS", meses: [0,1,2,1,0,1,1,2,17,12,13,6] },
+            { nombre: "REY DAVID HERNANDEZ", meses: [2,3,1,1,1,0,0,3,7,11,9,10] },
+            { nombre: "ULISES RUIZ", meses: [0,0,0,0,2,3,4,1,25,1,4,7] },
+            { nombre: "MARIA LUISA GARCIA", meses: [0,0,0,0,0,0,0,7,10,2,9,1] },
+            { nombre: "VICTOR MANUEL HERNANDEZ", meses: [1,0,1,0,0,1,1,2,1,4,13,1] },
+            { nombre: "ANA FERNANDA HERNANDEZ", meses: [1,1,3,0,0,1,0,2,5,3,3,4] },
+            { nombre: "EMILIO BOTELLO", meses: [2,0,3,0,0,0,0,0,6,3,3,1] },
+            { nombre: "MARIA VANESSA SALCEDO", meses: [0,0,0,0,0,0,0,0,5,2,2,6] },
+            { nombre: "CRUZ CASTILLO", meses: [0,0,0,0,0,0,0,0,1,2,10,2] },
+            { nombre: "ERIKA ESMERALDA SOLARES", meses: [0,1,0,0,0,1,1,1,3,1,1,5] },
+            { nombre: "LUIS MIGUEL ANTONIO ORTIZ", meses: [0,1,0,1,0,0,1,0,4,1,1,2] },
+            { nombre: "ULISES ALI CONTRERAS", meses: [0,1,0,0,0,0,0,1,1,1,2,5] },
+            { nombre: "MARIO ANTONIO ARRIZON", meses: [0,0,0,0,1,0,0,1,0,0,1,4] },
+            { nombre: "VIOLETA CORONA", meses: [0,0,0,0,0,0,0,0,0,0,2,5] },
+            { nombre: "SOTERO GUTIERREZ", meses: [0,0,0,0,0,0,1,0,2,1,1,0] },
+            { nombre: "MA JOSEFINA RAMIREZ", meses: [0,0,0,0,0,0,0,0,0,2,0,3] },
+            { nombre: "MARIA ANGELICA RODRIGUEZ", meses: [0,0,0,0,0,0,2,0,0,0,3,0] },
+            { nombre: "OSCAR GONZALEZ", meses: [0,0,0,0,1,0,0,0,1,0,0,0] },
+            { nombre: "ISAAC GABRIEL MORALES", meses: [0,0,0,0,0,0,0,0,1,0,1,0] },
+            { nombre: "VANESSA ALEJANDRA PARRA", meses: [0,0,0,0,0,0,0,1,0,0,0,0] },
+            { nombre: "TERESA GUADALUPE ZARATE", meses: [0,0,0,0,0,0,0,1,0,0,0,0] }
         ];
 
-        // Variables globales
-        let currentSort = { column: 'number', direction: 'desc' }; // Ordenar por número descendente por defecto
-        let filteredData = [...doctorsData];
-
-        // Función para determinar la clase de color según el número
-        function getNumberClass(number) {
-            if (number >= 15) {
-                return 'number-high';
-            } else if (number >= 5) {
-                return 'number-medium';
-            } else {
-                return 'number-low';
-            }
-        }
-
-        // Función para formatear números con separadores de miles
-        function formatNumber(num) {
-            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-        }
-
-        // Función para renderizar la tabla
-        function renderTable(data) {
-            const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = '';
-
-            // Calcular total
-            const total = data.reduce((sum, doctor) => sum + doctor.number, 0);
-
-            // Renderizar filas de médicos
-            data.forEach(doctor => {
-                const row = document.createElement('tr');
-                row.className = getNumberClass(doctor.number);
-                row.innerHTML = `
-                    <td>${doctor.name}</td>
-                    <td>${formatNumber(doctor.number)}</td>
-                `;
-                tableBody.appendChild(row);
-            });
-
-            // Agregar fila de total
-            const totalRow = document.createElement('tr');
-            totalRow.className = 'total-row';
-            totalRow.innerHTML = `
-                <td>TOTAL</td>
-                <td>${formatNumber(total)}</td>
-            `;
-            tableBody.appendChild(totalRow);
-
-            // Actualizar estadísticas
-            updateStats(data.length, total);
-        }
-
-        // Función para actualizar las estadísticas
-        function updateStats(count, total) {
-            document.getElementById('totalDoctors').textContent = count;
-            document.getElementById('totalNumbers').textContent = formatNumber(total);
-            document.getElementById('averageNumbers').textContent = (total / count).toFixed(1);
-        }
-
-        // Función para ordenar los datos
-        function sortData(column, direction) {
-            filteredData.sort((a, b) => {
-                let aValue = a[column];
-                let bValue = b[column];
-
-                if (column === 'name') {
-                    // Ordenamiento alfabético para nombres
-                    aValue = aValue.toLowerCase();
-                    bValue = bValue.toLowerCase();
-                }
-
-                if (direction === 'asc') {
-                    return aValue > bValue ? 1 : -1;
-                } else {
-                    return aValue < bValue ? 1 : -1;
-                }
-            });
-
-            renderTable(filteredData);
-
-            // Actualizar indicadores de ordenamiento en los encabezados
-            document.querySelectorAll('th').forEach(th => {
-                th.classList.remove('asc', 'desc');
-                if (th.dataset.sort === column) {
-                    th.classList.add(direction);
-                }
-            });
-        }
-
-        // Función para filtrar los datos
-        function filterData(searchTerm) {
-            if (searchTerm === '') {
-                filteredData = [...doctorsData];
-            } else {
-                filteredData = doctorsData.filter(doctor =>
-                    doctor.name.toLowerCase().includes(searchTerm.toLowerCase())
-                );
-            }
-
-            sortData(currentSort.column, currentSort.direction);
-        }
-
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', () => {
-            // Renderizar tabla inicial (ordenada por número descendente)
-            sortData('number', 'desc');
-
-            // Configurar eventos de búsqueda
-            document.getElementById('searchInput').addEventListener('input', (e) => {
-                filterData(e.target.value);
-            });
-
-            // Configurar eventos de ordenamiento
-            document.getElementById('sortName').addEventListener('click', () => {
-                currentSort.direction = currentSort.column === 'name' && currentSort.direction === 'asc' ? 'desc' : 'asc';
-                currentSort.column = 'name';
-                sortData('name', currentSort.direction);
-            });
-
-            document.getElementById('sortNumber').addEventListener('click', () => {
-                currentSort.direction = currentSort.column === 'number' && currentSort.direction === 'asc' ? 'desc' : 'asc';
-                currentSort.column = 'number';
-                sortData('number', currentSort.direction);
-            });
-
-            // Configurar ordenamiento al hacer clic en los encabezados de la tabla
-            document.querySelectorAll('th[data-sort]').forEach(th => {
-                th.addEventListener('click', () => {
-                    const column = th.dataset.sort;
-                    currentSort.direction = currentSort.column === column && currentSort.direction === 'asc' ? 'desc' : 'asc';
-                    currentSort.column = column;
-                    sortData(column, currentSort.direction);
-                });
-            });
+        // calcular total x responsable y gran total
+        const datos = datosOriginales.map(d => {
+            const total = d.meses.reduce((acc, v) => acc + v, 0);
+            return { ...d, total };
         });
-    </script>
-    <script src="/estadisticas/comun/estadoSistema.js"></script>
-    <script src="/estadisticas/comun/sesion_bk.js"></script>
-</body>
 
+        const totalGeneral = datos.reduce((acc, d) => acc + d.total, 0);
+        const promedio = (totalGeneral / datos.length).toFixed(1);
+
+        document.getElementById('totalPersonas').innerText = datos.length;
+        document.getElementById('totalGeneral').innerText = totalGeneral;
+        document.getElementById('promedioXR').innerText = promedio;
+
+        // Totales por mes para gráfico
+        const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const totalesMes = Array(12).fill(0);
+        datos.forEach(d => {
+            d.meses.forEach((val, idx) => totalesMes[idx] += val);
+        });
+
+        // Inicializar gráfico
+        const ctx = document.getElementById('chartMensual').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: meses,
+                datasets: [{
+                    label: 'Total mensual',
+                    data: totalesMes,
+                    backgroundColor: 'rgba(47, 85, 151, 0.7)',
+                    borderRadius: 8,
+                    barPercentage: 0.65,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#e2e8f0' },
+                    }
+                }
+            }
+        });
+
+        // Referencia al cuerpo de la tabla
+        const tbody = document.getElementById('tablaBody');
+        let currentData = [...datos]; // copia para ordenamiento
+
+        function renderTabla(dataArray) {
+            tbody.innerHTML = ''; 
+            dataArray.forEach(item => {
+                const tr = document.createElement('tr');
+                // Columna responsable
+                const tdNombre = document.createElement('td');
+                tdNombre.className = 'responsable-col';
+                tdNombre.textContent = item.nombre;
+                tr.appendChild(tdNombre);
+
+                // 12 columnas de meses
+                item.meses.forEach(val => {
+                    const td = document.createElement('td');
+                    td.textContent = val;
+                    tr.appendChild(td);
+                });
+
+                // Columna total
+                const tdTotal = document.createElement('td');
+                tdTotal.textContent = item.total;
+                tdTotal.style.fontWeight = '700';
+                tdTotal.style.backgroundColor = '#f5f9ff';
+                tr.appendChild(tdTotal);
+
+                tbody.appendChild(tr);
+            });
+
+            // Añadir fila de total por mes (fija abajo del todo)
+            const trTotal = document.createElement('tr');
+            trTotal.className = 'total-row';
+            const tdLabel = document.createElement('td');
+            tdLabel.textContent = 'TOTAL POR MES';
+            tdLabel.style.fontWeight = '700';
+            tdLabel.style.position = 'sticky';
+            tdLabel.style.left = '0';
+            tdLabel.style.background = '#e9eff9';
+            trTotal.appendChild(tdLabel);
+
+            for (let i = 0; i < 12; i++) {
+                const td = document.createElement('td');
+                td.textContent = totalesMes[i];
+                td.style.fontWeight = '700';
+                trTotal.appendChild(td);
+            }
+            const tdGranTotal = document.createElement('td');
+            tdGranTotal.textContent = totalGeneral;
+            tdGranTotal.style.fontWeight = '800';
+            trTotal.appendChild(tdGranTotal);
+            tbody.appendChild(trTotal);
+        }
+
+        // ordenamientos
+        function sortByName() {
+            currentData.sort((a,b) => a.nombre.localeCompare(b.nombre));
+            renderTabla(currentData);
+        }
+        function sortByTotalDesc() {
+            currentData.sort((a,b) => b.total - a.total);
+            renderTabla(currentData);
+        }
+        function resetOrder() {
+            currentData = [...datos]; // orden original: como aparecen en el planteamiento
+            renderTabla(currentData);
+        }
+
+        document.getElementById('sortNombre').addEventListener('click', sortByName);
+        document.getElementById('sortTotal').addEventListener('click', sortByTotalDesc);
+        document.getElementById('sortReset').addEventListener('click', resetOrder);
+
+        // Render inicial
+        renderTabla(datos); // orden original
+    })();
+</script>
+</body>
 </html>
+  `)
+  .setTitle('Dashboard Responsables 2025')
+  .setFaviconUrl('https://www.google.com/favicon.ico');
+}
