@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Examen CEMECE 2025 · Codificación Médica</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f7;
+            font-family: 'Segoe UI', 'Roboto', system-ui, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Tarjeta principal institucional */
+        .exam-container {
+            max-width: 950px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -10px rgba(0, 35, 70, 0.25);
+            overflow: hidden;
+            border: 1px solid #d9e2ef;
+        }
+
+        /* Encabezado institucional */
+        .header {
+            background: #003b6f; /* Azul institucional */
+            background: linear-gradient(135deg, #002b54, #004884);
+            padding: 1.8rem 2.5rem;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 4px solid #ffb347;
+        }
+        .header-left h1 {
+            font-weight: 500;
+            font-size: 1.9rem;
+            letter-spacing: -0.3px;
+        }
+        .header-left h1 strong {
+            font-weight: 700;
+            color: #ffd966;
+        }
+        .header-left p {
+            font-size: 1rem;
+            opacity: 0.85;
+            margin-top: 0.2rem;
+        }
+        .institution-badge {
+            background: rgba(255,255,255,0.12);
+            padding: 0.5rem 1.5rem;
+            border-radius: 60px;
+            font-weight: 600;
+            border: 1px solid #ffffff40;
+            backdrop-filter: blur(2px);
+            font-size: 1rem;
+        }
+
+        /* Barra de progreso */
+        .progress-section {
+            padding: 1.5rem 2.5rem 0.5rem;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #1e3e6d;
+            margin-bottom: 8px;
+        }
+        .progress-bar-bg {
+            background: #e9ecf0;
+            height: 12px;
+            border-radius: 40px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 4px #00000010;
+        }
+        .progress-fill {
+            height: 12px;
+            background: #1e7e34;
+            width: 0%;
+            border-radius: 40px;
+            transition: width 0.3s ease;
+        }
+
+        /* Área de pregunta (con animación) */
+        .question-area {
+            min-height: 340px;
+            padding: 1.5rem 2.5rem 1rem;
+            transition: opacity 0.25s ease-in-out;
+            opacity: 1;
+        }
+        .question-area.fade-out {
+            opacity: 0;
+        }
+
+        .q-num {
+            color: #003b6f;
+            font-weight: 700;
+            font-size: 1.1rem;
+            background: #e1edff;
+            display: inline-block;
+            padding: 0.3rem 1.5rem;
+            border-radius: 30px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #b7cfec;
+        }
+
+        .q-text {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #00203d;
+            line-height: 1.4;
+            margin-bottom: 2rem;
+        }
+
+        /* Opciones con estilo formal */
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .option {
+            background: #f8fafd;
+            border: 2px solid #dbe1ec;
+            border-radius: 18px;
+            padding: 1rem 1.8rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
+            font-size: 1.2rem;
+            color: #1f3a5f;
+            font-weight: 500;
+        }
+        .option:hover {
+            background: #edf3fd;
+            border-color: #8db4e0;
+        }
+        .option.selected {
+            background: #e2f0fa;
+            border-color: #0077be;
+            box-shadow: 0 4px 10px rgba(0,85,150,0.1);
+        }
+        .option input[type="radio"] {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #5679a9;
+            border-radius: 50%;
+            margin-right: 20px;
+            position: relative;
+            transition: 0.1s;
+        }
+        .option input[type="radio"]:checked {
+            background: #1e5b9e;
+            border-color: #002f60;
+            box-shadow: inset 0 0 0 4px white;
+        }
+
+        /* Botones de navegación */
+        .nav-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 2.5rem 2.5rem;
+            border-top: 2px solid #eef2f7;
+        }
+        .btn {
+            background: white;
+            border: 2px solid #bfd2eb;
+            color: #002b54;
+            font-weight: 600;
+            font-size: 1.2rem;
+            padding: 0.8rem 2.2rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.1s;
+            box-shadow: 0 4px 6px #00000008;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: #003b6f;
+            border: 2px solid #002951;
+            color: white;
+            box-shadow: 0 8px 0 #001e3a;
+        }
+        .btn-primary:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #001e3a;
+        }
+        .btn:disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: grayscale(0.5);
+        }
+        .btn-outline {
+            background: white;
+        }
+
+        .results-panel {
+            padding: 2rem 2.5rem;
+            background: #f2f8ff;
+            text-align: center;
+            border-radius: 40px 40px 0 0;
+        }
+        .final-score {
+            font-size: 4rem;
+            font-weight: 800;
+            color: #003b6f;
+            background: white;
+            display: inline-block;
+            padding: 0.5rem 2.5rem;
+            border-radius: 100px;
+            box-shadow: 0 6px 14px #0000001a;
+            margin: 1rem 0;
+        }
+        .reset-btn {
+            background: #a5b9d4;
+            border: none;
+            padding: 0.8rem 2.8rem;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #00203d;
+            margin-top: 1rem;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem 2.5rem 1.8rem;
+            background: #fcfcfc;
+            font-size: 0.9rem;
+            color: #3f5775;
+            border-top: 1px solid #d2deed;
+        }
+    </style>
+</head>
+<body>
+<div class="exam-container" id="examContainer">
+    <div class="header">
+        <div class="header-left">
+            <h1>CEMECE <strong>· Auxiliares 2025</strong></h1>
+            <p>Dirección General de Información en Salud · Evaluación de codificación</p>
+        </div>
+        <div class="institution-badge">
+            🩺 30 reactivos · personal médico
+        </div>
+    </div>
+
+    <!-- Progreso (se actualiza con JS) -->
+    <div class="progress-section">
+        <div class="progress-info">
+            <span id="currentQDisplay">Pregunta 1 de 30</span>
+            <span style="font-weight:700; color:#0f4c36;" id="answeredInfo">0 respondidas</span>
+        </div>
+        <div class="progress-bar-bg"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <!-- Contenedor dinámico para pregunta activa o resultados -->
+    <div id="dynamicContent"></div>
+
+    <!-- Botones de navegación (sólo visibles si no estamos en resultados) -->
+    <div id="navButtons" class="nav-section">
+        <button class="btn btn-outline" id="prevBtn" disabled>← Anterior</button>
+        <button class="btn btn-primary" id="nextBtn" disabled>Siguiente →</button>
+    </div>
+
+    <footer>
+        Basado en acuerdos CEMECE segundo semestre 2025 · COVID‑19, fentanilo, accidentes, obstetricia, CIE‑10
+    </footer>
+</div>
+
+<script>
+    (function() {
+        // ---------- BASE DE PREGUNTAS (30 reactivos, mismo contenido que versión anterior) ----------
+        const questions = [
+            { text: "Según los acuerdos, ¿qué código debe asignarse a 'Abdomen congelado' en mujeres?", options: ["K66.0", "N73.6", "R19.0", "K65.0"], correct: 1 },
+            { text: "¿Cuál es el código para 'Apnea emotiva' adquirida después de los 28 días de edad?", options: ["P28.4", "R06.8", "J98.8", "W84.-"], correct: 1 },
+            { text: "En mortalidad, cuando 'Broncoaspiración' se informa sola en >28 días sin intencionalidad, se codifica:", options: ["T17.5", "W84.-", "J98.8", "P24.9"], correct: 2 },
+            { text: "El código U94.0 corresponde a:", options: ["Intoxicación por fentanilo no determinada", "Intoxicación accidental por fentanilo", "Reacción adversa a fentanilo", "Intoxicación por fentanilo como agresión"], correct: 1 },
+            { text: "Para clasificar 'choque séptico del recién nacido' como causa básica se utiliza (después de revisión):", options: ["R57.2", "P36.9", "A41.9", "P96.8"], correct: 1 },
+            { text: "En un certificado de defunción materna con COVID-19 como causa básica, el código a emplear es:", options: ["U07.1", "O98.5", "U07.2", "B34.2"], correct: 1 },
+            { text: "El código U09.9 (condición posterior a COVID-19) NO debe usarse cuando:", options: ["Hay secuelas", "El paciente aún presenta COVID-19 activo", "Se desea relacionar con COVID antiguo", "En morbilidad como código adicional"], correct: 1 },
+            { text: "Para 'Interrupción Legal del Embarazo (ILE) por violación' con legrado por aspiración, el código de procedimiento es:", options: ["69.01", "69.51", "75.A1", "75.0X"], correct: 1 },
+            { text: "Según acuerdo para 'Colitis neutropénica' el código es:", options: ["K52.1", "M24.4", "K59.3", "K52.9"], correct: 0 },
+            { text: "Un peatón atropellado en una avenida (vía pública) sin mención de vehículo específico se codifica como:", options: ["V09.2", "V09.3", "V09.9", "V89.2"], correct: 1 },
+            { text: "¿Qué categoría NO debe aceptarse como 'debida a' otras afecciones, según secuencias rechazadas?", options: ["Influenza (J09-J11)", "Diabetes mellitus", "Neumonía", "Sepsis"], correct: 0 },
+            { text: "Según actualizaciones CIE-10 2019-2021, el código para 'parálisis facial de neurona motora superior' es:", options: ["G51.0", "G83.6", "G90.5", "G90.6"], correct: 1 },
+            { text: "¿Cuál es el código para 'Pinchazo en el metro' (agresión con drogas) como causa externa?", options: ["X85.-", "Y05.-", "X99.-", "Y09.9"], correct: 0 },
+            { text: "En un recién nacido de madre con sospecha de COVID-19 al nacer (certificado de nacimiento), se asigna:", options: ["P00.2", "Z20.8 (U07.2)", "U07.1", "O98.5"], correct: 1 },
+            { text: "El código de uso emergente para intoxicación intencional autoinfligida por fentanilo es:", options: ["U94.0", "U94.1", "U94.2", "U94.9"], correct: 1 },
+            { text: "La categoría M45 (Espondilitis anquilosante) se desagregó por sitio. ¿Cuál es el código para 'región toracolumbar'?", options: ["M45.5", "M45.4", "M45.6", "M45.3"], correct: 0 },
+            { text: "Para una defunción por 'neumonía por COVID-19' (virus identificado) en un mismo renglón, el orden según acuerdo CEMECE es:", options: ["J12.8, U07.1", "U07.1, J12.8", "U07.2, J12.8", "J12.8, U07.2"], correct: 1 },
+            { text: "La hemorragia postparto debida a atonía uterina se codifica en mortalidad como:", options: ["O72.1", "O75.4", "O99.8", "O67.9"], correct: 0 },
+            { text: "Si un diagnóstico dice 'síndrome de Sheehan' en una defunción materna, se considera causa básica y se mantiene en:", options: ["E23.0", "O99.8", "O75.9", "I99.X"], correct: 0 },
+            { text: "El código para 'vacuna COVID-19 AstraZeneca que causa efecto adverso' (vacuna específica) en morbilidad es:", options: ["U12.9", "U93.0", "Y59.0", "U11.9"], correct: 1 },
+            { text: "Según la tabla de accidentes, un choque de vehículo de motor contra objeto fijo (sin más datos) se clasifica:", options: ["V89.2", "V87.7", "V89.9", "V09.2"], correct: 0 },
+            { text: "En el paso SP6 (causa obvia), si se informa 'criptococosis' junto con 'enfermedad por VIH' ¿qué se selecciona?", options: ["Criptococosis", "VIH (B20-B24)", "Depleción volumen", "Ninguna"], correct: 1 },
+            { text: "El código para 'historia personal de COVID-19' (solo morbilidad) es:", options: ["U08.9", "U09.9", "U07.2", "Z86.1"], correct: 0 },
+            { text: "Una paciente con 'baja reserva fetal durante el trabajo de parto' se codifica:", options: ["P20.9", "O68.9", "O36.3", "O63.9"], correct: 1 },
+            { text: "¿Qué afección NO debe emplearse para causa básica? (códigos que no deben usarse):", options: ["I15.1 (si no se conoce causa)", "N18.-", "I10", "J44.9"], correct: 0 },
+            { text: "Según acuerdo, 'cardiopatía mixta' (en adulto mayor + cervicoclopitis) se desglosa en:", options: ["R54.X y N72.X", "I25.1 e I51.7", "I11.9 y N72", "I51.9 y R54"], correct: 0 },
+            { text: "El código para 'mordedura de serpiente de cascabel' (naturaleza) es:", options: ["T63.0, X20", "U60.0", "W59.-", "X22"], correct: 1 },
+            { text: "La 'encefalitis por virus del Zika congénita' se codifica en:", options: ["P35.3", "A92.5", "U06.9", "Q02"], correct: 0 },
+            { text: "Una volcadura de vehículo de motor en carretera, sin especificar vehículo, se clasifica como:", options: ["V89.2", "V48.5", "V89.0", "V87.7"], correct: 0 },
+            { text: "El código para PCR (reacción en cadena de polimerasa) para COVID-19 en CIE-9-MC vol.3 es:", options: ["00.J5", "00.J2", "90.9A", "99.4I"], correct: 0 }
+        ];
+
+        const totalQ = questions.length;
+        // userAnswers[i] = índice de opción elegida (null si no responde)
+        let userAnswers = new Array(totalQ).fill(null);
+        let currentIndex = 0;             // 0‑based
+        let showingResults = false;
+
+        // Elementos del DOM
+        const dynamicContent = document.getElementById('dynamicContent');
+        const navButtons = document.getElementById('navButtons');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const currentQSpan = document.getElementById('currentQDisplay');
+        const answeredInfo = document.getElementById('answeredInfo');
+        const progressFill = document.getElementById('progressFill');
+
+        // Utilidades
+        function countAnswered() {
+            return userAnswers.filter(a => a !== null).length;
+        }
+
+        function updateProgressBar() {
+            const answered = countAnswered();
+            answeredInfo.innerText = `${answered} respondidas`;
+            progressFill.style.width = `${(answered / totalQ) * 100}%`;
+            if (!showingResults) {
+                currentQSpan.innerText = `Pregunta ${currentIndex + 1} de ${totalQ}`;
+            }
+        }
+
+        // Animación suave (fade) antes de cambiar contenido
+        function transitionTo(newContentCallback) {
+            const qArea = document.querySelector('.question-area');
+            if (!qArea) {
+                newContentCallback();
+                return;
+            }
+            qArea.classList.add('fade-out');
+            setTimeout(() => {
+                newContentCallback();
+                // después de pintar, removemos clase para que aparezca
+                const newQArea = document.querySelector('.question-area');
+                if (newQArea) {
+                    setTimeout(() => newQArea.classList.remove('fade-out'), 20);
+                }
+            }, 200);
+        }
+
+        // Renderiza la pregunta actual o la pantalla de resultados
+        function render() {
+            if (showingResults) {
+                renderResults();
+                navButtons.style.display = 'none';
+            } else {
+                navButtons.style.display = 'flex';
+                renderQuestion(currentIndex);
+            }
+            updateProgressBar();
+            updateNavButtonsState();
+        }
+
+        function renderQuestion(index) {
+            const q = questions[index];
+            const selectedIdx = userAnswers[index];
+            let optionsHtml = '';
+            q.options.forEach((opt, optIdx) => {
+                const selectedClass = (selectedIdx === optIdx) ? 'selected' : '';
+                const checkedAttr = (selectedIdx === optIdx) ? 'checked' : '';
+                optionsHtml += `
+                    <div class="option ${selectedClass}" data-qidx="${index}" data-oidx="${optIdx}">
+                        <input type="radio" name="q" value="${optIdx}" ${checkedAttr}>
+                        ${opt}
+                    </div>
+                `;
+            });
+
+            const html = `
+                <div class="question-area">
+                    <div class="q-num">Pregunta ${index + 1} · ${q.text.substring(0,30)}…</div>
+                    <div class="q-text">${q.text}</div>
+                    <div class="options">${optionsHtml}</div>
+                </div>
+            `;
+            dynamicContent.innerHTML = html;
+
+            // Asignar listeners a opciones
+            document.querySelectorAll('.option').forEach(optDiv => {
+                optDiv.addEventListener('click', function(e) {
+                    if (showingResults) return;
+                    const qIdx = parseInt(this.dataset.qidx);
+                    const oIdx = parseInt(this.dataset.oidx);
+                    if (userAnswers[qIdx] !== oIdx) {
+                        userAnswers[qIdx] = oIdx;
+                        // refrescar pregunta para mostrar selección
+                        transitionTo(() => renderQuestion(qIdx));
+                        updateProgressBar();
+                        updateNavButtonsState();
+                    }
+                });
+            });
+        }
+
+        function renderResults() {
+            const correctCount = userAnswers.reduce((acc, ans, idx) => {
+                return acc + (ans === questions[idx].correct ? 1 : 0);
+            }, 0);
+            const percent = Math.round((correctCount/totalQ)*100);
+            let mensaje = '';
+            if (percent >= 90) mensaje = 'Excelente dominio de los acuerdos CEMECE.';
+            else if (percent >= 70) mensaje = 'Desempeño sólido, puede revisar secciones específicas.';
+            else if (percent >= 50) mensaje = 'Aceptable, se recomienda repasar el documento.';
+            else mensaje = 'Es necesario un estudio más detallado de los auxiliares.';
+
+            const html = `
+                <div class="results-panel">
+                    <h2 style="color:#002b54; margin-bottom: 1rem;">Resultado final</h2>
+                    <div class="final-score">${correctCount} / ${totalQ}</div>
+                    <p style="font-size:1.3rem; margin: 0.5rem 0 2rem; color:#1a4466;">${mensaje}</p>
+                    <button class="reset-btn" id="resetExamBtn">⟲ Iniciar nuevo intento</button>
+                </div>
+            `;
+            dynamicContent.innerHTML = html;
+            document.getElementById('resetExamBtn').addEventListener('click', resetExam);
+        }
+
+        // Navegación
+        function updateNavButtonsState() {
+            if (showingResults) return;
+            prevBtn.disabled = (currentIndex === 0);
+            // Habilitar next sólo si hay respuesta seleccionada
+            nextBtn.disabled = (userAnswers[currentIndex] === null);
+            // Cambiar texto del botón si es última pregunta
+            if (currentIndex === totalQ - 1) {
+                nextBtn.innerHTML = 'Finalizar →';
+            } else {
+                nextBtn.innerHTML = 'Siguiente →';
+            }
+        }
+
+        function goToPrev() {
+            if (currentIndex > 0) {
+                transitionTo(() => {
+                    currentIndex--;
+                    render();
+                });
+            }
+        }
+
+        function goToNext() {
+            if (userAnswers[currentIndex] === null) return; // no debería pasar
+            if (currentIndex === totalQ - 1) {
+                // Finalizar examen
+                showingResults = true;
+                transitionTo(() => render());
+            } else {
+                transitionTo(() => {
+                    currentIndex++;
+                    render();
+                });
+            }
+        }
+
+        // Reiniciar todo
+        function resetExam() {
+            userAnswers = new Array(totalQ).fill(null);
+            currentIndex = 0;
+            showingResults = false;
+            transitionTo(() => render());
+        }
+
+        // Event listeners
+        prevBtn.addEventListener('click', goToPrev);
+        nextBtn.addEventListener('click', goToNext);
+
+        // Inicial
+        render();
+
+        // Ajustar mensaje de respondidas al inicio
+        updateProgressBar();
+    })();
+</script>
+</body>
+</html>
