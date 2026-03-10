@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Estadísticas y Archivo Clínico</title>
+    <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
+    <link href="/estadisticas/main_css/tabla-wrapper.css" rel="stylesheet">
+    <style>
+        /* === NUEVO: Layout premium formulario + tabla === */
+        .layout-egresos {
+            display: grid;
+            grid-template-columns: 30% 1fr;
+            gap: 1rem;
+            height: calc(100vh - 160px);
+            min-height: 0;
+            padding: 1rem;
+        }
+
+        /* Formulario premium */
+        .form-panel {
+            background: rgba(255, 255, 255, 0.09);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 14px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            min-width: 200px;
+            overflow-y: auto;
+            color: #0f0;
+        }
+
+        /* Inputs minimalistas */
+        .form-panel input,
+        .form-panel textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.08);
+            color: #0f0;
+            font-size: 0.9rem;
+        }
+
+        .form-panel textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        /* Sección de estadísticas mensuales */
+        .estadisticas-mensuales {
+            background: rgba(0, 40, 0, 0.3);
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .estadisticas-mensuales h4 {
+            color: #0f0;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 1rem;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+            padding-bottom: 0.5rem;
+        }
+
+        .estadisticas-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.8rem;
+        }
+
+        .estadistica-item {
+            background: rgba(0, 30, 0, 0.4);
+            border-radius: 8px;
+            padding: 0.8rem;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .estadistica-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 255, 0, 0.15);
+            border-color: rgba(0, 255, 0, 0.3);
+        }
+
+        .estadistica-item .numero {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0f0;
+            display: block;
+        }
+
+        .estadistica-item .label {
+            font-size: 0.8rem;
+            color: #9fffa0;
+            margin-top: 0.3rem;
+        }
+
+        .estadistica-item.mes-actual {
+            background: rgba(0, 255, 0, 0.15);
+            border-color: rgba(0, 255, 0, 0.4);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
+        }
+
+        /* Wrapper para la tabla */
+        .tabla-zona {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.3rem;
+            min-height: 0;
+        }
+
+        /* CONTENEDOR PRINCIPAL - Scroll vertical aquí */
+        .tabla-wrapper {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        /* Para encabezados fijos - IMPORTANTE */
+        .tabla-wrapper table thead th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            border-bottom: 1px solid #0f0;
+        }
+
+        /* CONTENEDOR PARA SCROLL HORIZONTAL */
+        .tabla-scroll-x {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            max-width: 100%;
+        }
+
+        .tabla-scroll-x::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .tabla-scroll-x::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 0, 0.3);
+            border-radius: 3px;
+        }
+
+        /* Tabla con ancho mínimo */
+        .tabla-scroll-x table {
+            width: max-content;
+            min-width: 100%;
+            border-collapse: collapse;
+        }
+
+        /* Primera columna más ancha */
+        .tabla-scroll-x table th:first-child,
+        .tabla-scroll-x table td:first-child {
+            width: 260px !important;
+            min-width: 260px !important;
+            max-width: 360px;
+            white-space: normal !important;
+            overflow: visible !important;
+        }
+
+        /* Estilo para las celdas */
+        .tabla-scroll-x table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* Buscador y filtros */
+        .buscador-tabla {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.6rem;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            margin-bottom: 0.4rem;
+            justify-content: space-between;
+        }
+
+        .filtro-atendidos {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            font-size: 0.85rem;
+            color: #c9f9c9;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 46px;
+            height: 24px;
+            margin-left: 0.6rem;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 999px;
+            transition: all 0.25s ease;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        .toggle-slider::before {
+            content: "";
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            top: 2px;
+            background: #caffca;
+            border-radius: 50%;
+            transition: transform 0.25s ease;
+            box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: rgba(0, 255, 120, 0.25);
+        }
+
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(22px);
+        }
+
+        .buscador-tabla input[type="text"] {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.85rem;
+            outline: none;
+            min-width: 200px;
+        }
+
+        .buscador-tabla input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .buscador-tabla i {
+            font-size: 0.85rem;
+            color: #9fffa0;
+        }
+
+        /* Resumen total */
+        .resumen-total {
+            background: rgba(0, 50, 0, 0.25);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(0, 255, 0, 0.15);
+        }
+
+        .resumen-total h5 {
+            color: #0f0;
+            margin-top: 0;
+            margin-bottom: 0.8rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .total-visibles {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #0f0;
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(0, 255, 0, 0.1);
+            border-radius: 6px;
+            border: 1px solid rgba(0, 255, 0, 0.2);
+        }
+
+        /* Indicador de meses sin registros */
+        .sin-registros {
+            color: rgba(255, 255, 255, 0.4) !important;
+            font-style: italic;
+        }
+
+        .sin-registros .numero {
+            color: rgba(0, 255, 0, 0.4) !important;
+        }
+
+        /* Año anterior - estilo diferente */
+        .año-anterior {
+            background: rgba(50, 50, 0, 0.3) !important;
+            border-color: rgba(255, 255, 0, 0.2) !important;
+        }
+
+        .año-anterior .label {
+            color: #ffffa0 !important;
+        }
+
+        /* ===== ESTILOS PARA AGRUPACIÓN POR MES ===== */
+        .fila-mes {
+            background: rgba(0, 255, 0, 0.15) !important;
+            cursor: pointer;
+            border-top: 2px solid rgba(0, 255, 0, 0.3);
+            border-bottom: 2px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .fila-mes:hover {
+            background: rgba(0, 255, 0, 0.25) !important;
+        }
+
+        .encabezado-mes {
+            padding: 12px 10px !important;
+            font-weight: bold;
+            color: #0f0;
+            font-size: 1.1rem;
+        }
+
+        .mes-titulo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mes-icon {
+            font-size: 1.3rem;
+            filter: drop-shadow(0 0 5px rgba(0, 255, 0, 0.5));
+        }
+
+        .mes-texto {
+            flex-grow: 1;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .mes-contador {
+            background: rgba(0, 0, 0, 0.4);
+            color: #0f0;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            border: 1px solid rgba(0, 255, 0, 0.4);
+        }
+
+        .fila-mes.colapsado {
+            border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+        }
+
+        .fila-mes.colapsado + .fila-dato,
+        .fila-mes.colapsado ~ .fila-dato {
+            display: none;
+        }
+
+        .fila-dato {
+            transition: background-color 0.2s;
+        }
+
+        .fila-dato:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        /* Responsivo para móviles */
+        @media (max-width: 768px) {
+            .layout-egresos {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+            }
+
+            .form-panel {
+                max-height: none;
+            }
+
+            .estadisticas-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .buscador-tabla {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 0.8rem;
+            }
+
+            .buscador-tabla input[type="text"] {
+                min-width: unset;
+            }
+
+            .filtro-atendidos {
+                justify-content: space-between;
+            }
+        }
+
+        /* Para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .estadisticas-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="glass" id="dashboard">
+        <h5>Hojas Incompletas de Hospitalización</h5>
+        <div id="header"></div>
+        <div class="layout-egresos">
+
+            <form id="form-egresos" class="form-panel">
+                <input type="text" name="paciente" placeholder="Paciente" required>
+                <input type="date" name="fecha_egreso">
+                <input type="text" name="servicio" placeholder="Servicio">
+                <input type="text" name="personal_archivo" placeholder="Personal de archivo">
+                <input type="text" name="no_expediente" placeholder="No. expediente">
+                <textarea name="observaciones" placeholder="Observaciones"></textarea>
+                <button class="button" type="submit">Guardar</button>
+                
+                <!-- SECCIÓN DE ESTADÍSTICAS POR MES -->
+                <div class="estadisticas-mensuales">
+                    <h4><i class="fas fa-chart-bar"></i> Registros por Mes</h4>
+                    <div class="estadisticas-grid" id="estadisticasMensuales">
+                        <!-- Se llenará dinámicamente con JavaScript -->
+                        <div class="estadistica-item mes-actual">
+                            <span class="numero">0</span>
+                            <span class="label">Cargando...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RESUMEN TOTAL DE REGISTROS VISIBLES -->
+                <div class="resumen-total">
+                    <h5><i class="fas fa-list-ol"></i> Registros Mostrados</h5>
+                    <div class="total-visibles" id="totalVisibles">0</div>
+                </div>
+            </form>
+
+            <div class="tabla-zona">
+                <div class="buscador-tabla">
+                    <div class="filtro-atendidos">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="buscadorTabla" placeholder="Buscar en la tabla…">
+                    </div>
+                    <span>Mostrar atendidos</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="toggleAtendidos">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+
+                <!-- CONTENEDOR PRINCIPAL CON SCROLL VERTICAL -->
+                <div class="tabla-wrapper">
+                    <!-- CONTENEDOR CON SCROLL HORIZONTAL -->
+                    <div class="tabla-scroll-x">
+                        <table id="tabla-registros">
+                            <thead></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="footer"></div>
+    </div>
+
+    <!-- Scripts en orden CORRECTO -->
+    <!-- Primero estadoSistema.js -->
+    <script src="/estadisticas/comun/estadoSistema.js"></script>
+    
+    <script>
+        /* ================== CONFIG ================== */
+        const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec";
+
+        let mostrarAtendidos = false;
+        let textoBusqueda = "";
+        let todosRegistros = [];
+        let registrosFiltrados = [];
+
+        /* ================== TOGGLE ================== */
+        document.getElementById("toggleAtendidos").addEventListener("change", e => {
+            mostrarAtendidos = e.target.checked;
+            filtrarYMostrarRegistros();
+        });
+
+        /* ================== BUSCADOR ================== */
+        document.getElementById("buscadorTabla").addEventListener("input", e => {
+            textoBusqueda = e.target.value.toLowerCase().trim();
+            filtrarYMostrarRegistros();
+        });
+
+        /* ================== GUARDAR ================== */
+        document.getElementById("form-egresos").addEventListener("submit", async e => {
+            e.preventDefault();
+            setEstado('loading', 'Guardando registro...');
+            
+            try {
+                const data = Object.fromEntries(new FormData(e.target).entries());
+
+                const res = await fetch(URL, {
+                    method: "POST",
+                    body: JSON.stringify(data)
+                });
+
+                const json = await res.json();
+                if (json.ok) {
+                    setEstado('success', 'Registro guardado correctamente');
+                    cargarYProcesarRegistros();
+                    e.target.reset();
+                } else {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+            } catch (error) {
+                setEstado('error', 'Error al guardar el registro');
+                console.error('Error:', error);
+            }
+        });
+
+        /* ================== FUNCIÓN PARA EXTRAER FECHA DE REGISTRO ================== */
+        function extraerFecha(registro) {
+            // Buscar la fecha en diferentes campos posibles
+            const camposFecha = ["FECHA DE EGRESO", "REGISTRADO", "CUANDO", "Fecha", "fecha"];
+            
+            for (const campo of camposFecha) {
+                if (registro[campo]) {
+                    const fecha = new Date(registro[campo]);
+                    if (!isNaN(fecha)) return fecha;
+                }
+            }
+            
+            // Si no encuentra en campos específicos, buscar en cualquier valor que parezca fecha
+            for (const valor of Object.values(registro)) {
+                if (typeof valor === 'string') {
+                    // Intentar parsear como fecha (formatos comunes)
+                    const fechaStr = valor.trim();
+                    // Probamos diferentes formatos de fecha
+                    const fecha = new Date(fechaStr);
+                    if (!isNaN(fecha) && fecha.getFullYear() > 2000 && fecha.getFullYear() < 2100) {
+                        return fecha;
+                    }
+                    
+                    // También probar formato DD/MM/YYYY
+                    const match = fechaStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                    if (match) {
+                        const [_, dia, mes, año] = match;
+                        const fechaFormateada = new Date(año, mes-1, dia);
+                        if (!isNaN(fechaFormateada)) return fechaFormateada;
+                    }
+                }
+            }
+            
+            return null;
+        }
+
+        /* ================== FUNCIÓN PARA CALCULAR ESTADÍSTICAS POR MES ================== */
+        function calcularEstadisticasPorMes(registros) {
+            const estadisticas = {};
+            const nombresMeses = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+            
+            const ahora = new Date();
+            const añoActual = ahora.getFullYear();
+            const mesActual = ahora.getMonth();
+            
+            // Procesar cada registro
+            registros.forEach(registro => {
+                const fecha = extraerFecha(registro);
+                if (!fecha) return;
+                
+                const mes = fecha.getMonth();
+                const año = fecha.getFullYear();
+                const clave = `${año}-${String(mes+1).padStart(2, '0')}`;
+                
+                // Inicializar si no existe
+                if (!estadisticas[clave]) {
+                    estadisticas[clave] = {
+                        mes: mes,
+                        nombre: nombresMeses[mes],
+                        año: año,
+                        cantidad: 0,
+                        esMesActual: (año === añoActual && mes === mesActual),
+                        esAñoActual: (año === añoActual)
+                    };
+                }
+                
+                // Incrementar contador
+                estadisticas[clave].cantidad++;
+            });
+            
+            return estadisticas;
+        }
+
+        /* ================== MOSTRAR ESTADÍSTICAS ================== */
+        function mostrarEstadisticas(estadisticas) {
+            const container = document.getElementById('estadisticasMensuales');
+            container.innerHTML = '';
+            
+            const ahora = new Date();
+            const añoActual = ahora.getFullYear();
+            let totalVisibles = 0;
+            
+            // Convertir objeto a array y filtrar meses con registros
+            const mesesConRegistros = Object.values(estadisticas)
+                .filter(mes => mes.cantidad > 0)
+                .sort((a, b) => {
+                    // Ordenar por fecha descendente (más reciente primero)
+                    // Primero por año, luego por mes
+                    if (a.año !== b.año) return b.año - a.año;
+                    return b.mes - a.mes;
+                });
+            
+            // Si no hay registros, mostrar mensaje
+            if (mesesConRegistros.length === 0) {
+                container.innerHTML = `
+                    <div class="estadistica-item sin-registros" style="grid-column: span 2;">
+                        <span class="numero">0</span>
+                        <span class="label">No hay registros</span>
+                    </div>
+                `;
+                document.getElementById('totalVisibles').textContent = '0';
+                return;
+            }
+            
+            // Mostrar cada mes con registros
+            mesesConRegistros.forEach(mes => {
+                totalVisibles += mes.cantidad;
+                
+                const div = document.createElement('div');
+                div.className = 'estadistica-item';
+                
+                // Aplicar clases según el año
+                if (mes.esMesActual) {
+                    div.classList.add('mes-actual');
+                } else if (!mes.esAñoActual) {
+                    div.classList.add('año-anterior');
+                }
+                
+                div.innerHTML = `
+                    <span class="numero">${mes.cantidad}</span>
+                    <span class="label">${mes.nombre} ${mes.año}</span>
+                `;
+                
+                container.appendChild(div);
+            });
+            
+            // Actualizar contador total
+            document.getElementById('totalVisibles').textContent = totalVisibles;
+            
+            // Ajustar grid según cantidad de items
+            if (mesesConRegistros.length === 1) {
+                container.style.gridTemplateColumns = '1fr';
+            } else if (mesesConRegistros.length === 2) {
+                container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+            } else if (mesesConRegistros.length === 3) {
+                container.style.gridTemplateColumns = 'repeat(3, 1fr)';
+            } else {
+                container.style.gridTemplateColumns = 'repeat(2, 1fr)';
+            }
+        }
+
+        /* ================== FILTRAR REGISTROS ================== */
+        function filtrarRegistros() {
+            let filtrados = [...todosRegistros];
+            
+            // Filtro de checklist (atendidos)
+            if (!mostrarAtendidos) {
+                filtrados = filtrados.filter(r => {
+                    const checklist = String(Object.values(r)[7] ?? "").toLowerCase();
+                    return !["true", "sí", "si", "1", "checked"].includes(checklist);
+                });
+            }
+            
+            // Filtro de búsqueda
+            if (textoBusqueda) {
+                filtrados = filtrados.filter(r =>
+                    Object.values(r).some(v =>
+                        String(v).toLowerCase().includes(textoBusqueda)
+                    )
+                );
+            }
+            
+            registrosFiltrados = filtrados;
+            return filtrados;
+        }
+
+        /* ================== MOSTRAR TABLA CON AGRUPACIÓN POR MES ================== */
+        function mostrarTabla(registros) {
+            const thead = document.querySelector("#tabla-registros thead");
+            const tbody = document.querySelector("#tabla-registros tbody");
+            thead.innerHTML = "";
+            tbody.innerHTML = "";
+
+            if (!registros.length) {
+                setEstado('success', 'No hay registros para mostrar');
+                return;
+            }
+
+            const headers = Object.keys(registros[0]);
+            const nombresMeses = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
+
+            // Crear encabezados
+            thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
+
+            // 1. Preparar registros con fecha
+            const registrosConFecha = registros.map(registro => {
+                const fecha = extraerFecha(registro);
+                return {
+                    ...registro,
+                    _fechaObj: fecha
+                };
+            });
+
+            // 2. Agrupar por mes y año
+            const grupos = {};
+            registrosConFecha.forEach(registro => {
+                if (!registro._fechaObj) {
+                    if (!grupos['sin-fecha']) grupos['sin-fecha'] = [];
+                    grupos['sin-fecha'].push(registro);
+                    return;
+                }
+
+                const fecha = registro._fechaObj;
+                const mes = fecha.getMonth();
+                const año = fecha.getFullYear();
+                const clave = `${año}-${String(mes + 1).padStart(2, '0')}`;
+
+                if (!grupos[clave]) {
+                    grupos[clave] = [];
+                }
+                grupos[clave].push(registro);
+            });
+
+            // 3. Ordenar grupos (más reciente primero)
+            const clavesOrdenadas = Object.keys(grupos).sort((a, b) => {
+                if (a === 'sin-fecha') return 1;
+                if (b === 'sin-fecha') return -1;
+
+                const [añoA, mesA] = a.split('-').map(Number);
+                const [añoB, mesB] = b.split('-').map(Number);
+
+                if (añoA !== añoB) return añoB - añoA;
+                return mesB - mesA;
+            });
+
+            // 4. Renderizar cada grupo
+            clavesOrdenadas.forEach(clave => {
+                const registrosGrupo = grupos[clave];
+
+                // Ordenar registros dentro del grupo (más reciente primero)
+                registrosGrupo.sort((a, b) => {
+                    if (!a._fechaObj) return 1;
+                    if (!b._fechaObj) return -1;
+                    return b._fechaObj - a._fechaObj;
+                });
+
+                // Crear fila de encabezado del mes
+                const filaMes = document.createElement('tr');
+                filaMes.className = 'fila-mes';
+
+                let textoMes = '';
+                if (clave === 'sin-fecha') {
+                    textoMes = '📅 Sin fecha';
+                } else {
+                    const [año, mesNum] = clave.split('-');
+                    const nombreMes = nombresMeses[parseInt(mesNum) - 1];
+                    textoMes = `${nombreMes} ${año}`;
+                }
+
+                const celdaMes = document.createElement('td');
+                celdaMes.colSpan = headers.length;
+                celdaMes.className = 'encabezado-mes';
+                celdaMes.innerHTML = `
+                    <div class="mes-titulo">
+                        <span class="mes-icon">📅</span>
+                        <span class="mes-texto">${textoMes}</span>
+                        <span class="mes-contador">${registrosGrupo.length}</span>
+                    </div>
+                `;
+
+                // Función para colapsar/expandir
+                celdaMes.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const filaActual = this.parentElement;
+                    const estaColapsado = filaActual.classList.contains('colapsado');
+                    
+                    let elemento = filaActual.nextElementSibling;
+                    const filasGrupo = [];
+                    
+                    while (elemento && !elemento.classList.contains('fila-mes')) {
+                        filasGrupo.push(elemento);
+                        elemento = elemento.nextElementSibling;
+                    }
+                    
+                    if (estaColapsado) {
+                        filaActual.classList.remove('colapsado');
+                        filasGrupo.forEach(fila => fila.style.display = '');
+                        this.querySelector('.mes-icon').textContent = '📅';
+                    } else {
+                        filaActual.classList.add('colapsado');
+                        filasGrupo.forEach(fila => fila.style.display = 'none');
+                        this.querySelector('.mes-icon').textContent = '📁';
+                    }
+                });
+
+                filaMes.appendChild(celdaMes);
+                tbody.appendChild(filaMes);
+
+                // Crear filas de datos
+                registrosGrupo.forEach(registro => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'fila-dato';
+
+                    headers.forEach(h => {
+                        const td = document.createElement('td');
+                        let valor = registro[h] ?? "";
+
+                        // Formatear fechas
+                        if (["FECHA DE EGRESO", "REGISTRADO", "CUANDO", "Fecha", "fecha"].includes(h)) {
+                            if (registro._fechaObj) {
+                                const f = registro._fechaObj;
+                                valor = `${String(f.getDate()).padStart(2, "0")}/${String(f.getMonth() + 1).padStart(2, "0")}/${f.getFullYear()}`;
+                            }
+                        }
+
+                        td.textContent = valor;
+                        tr.appendChild(td);
+                    });
+
+                    tbody.appendChild(tr);
+                });
+            });
+
+            setEstado('success', `Mostrando ${registros.length} registros`);
+        }
+
+        /* ================== FILTRAR Y MOSTRAR TODO ================== */
+        function filtrarYMostrarRegistros() {
+            const registrosFiltrados = filtrarRegistros();
+            mostrarTabla(registrosFiltrados);
+            
+            // Calcular y mostrar estadísticas SOLO con los registros filtrados
+            const estadisticas = calcularEstadisticasPorMes(registrosFiltrados);
+            mostrarEstadisticas(estadisticas);
+        }
+
+        /* ================== CARGAR Y PROCESAR REGISTROS ================== */
+        async function cargarYProcesarRegistros() {
+            setEstado('loading', 'Cargando registros...');
+            
+            try {
+                const res = await fetch(URL);
+                const json = await res.json();
+                if (!json.ok) return;
+                
+                todosRegistros = json.registros;
+                console.log(`Cargados ${todosRegistros.length} registros totales`);
+                
+                // Mostrar información de depuración
+                todosRegistros.slice(0, 3).forEach((r, i) => {
+                    const fecha = extraerFecha(r);
+                    console.log(`Registro ${i}:`, fecha ? 
+                        `Fecha: ${fecha.getDate()}/${fecha.getMonth()+1}/${fecha.getFullYear()}` : 
+                        'Sin fecha válida');
+                });
+                
+                filtrarYMostrarRegistros();
+                
+            } catch (error) {
+                setEstado('error', 'Error al cargar registros');
+                console.error('Error:', error);
+            }
+        }
+
+        // Cargar header y footer
+        Promise.all([
+            fetch('/estadisticas/comun/header-archivo.html').then(r => r.text()),
+            fetch('/estadisticas/comun/footer.html').then(r => r.text())
+        ]).then(([headerHtml, footerHtml]) => {
+            document.getElementById('header').innerHTML = headerHtml;
+            document.getElementById('footer').innerHTML = footerHtml;
+
+            // Actualizar año en footer
+            const footerText = document.getElementById('footerText');
+            if (footerText) {
+                footerText.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+            }
+
+            // Ahora cargar sesión
+            const script = document.createElement('script');
+            script.src = '/estadisticas/comun/sesion_bk.js';
+            script.onload = () => {
+                console.log("🔥 sesion_bk.js cargado");
+                if (typeof verificarAutenticacion === 'function') {
+                    verificarAutenticacion();
+                }
+            };
+            document.body.appendChild(script);
+        }).catch(error => {
+            console.error('Error cargando header/footer:', error);
+            setEstado('error', 'Error cargando componentes');
+        });
+
+        // Cargar registros cuando todo esté listo
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(cargarYProcesarRegistros, 500);
+        });
+    </script>
+</body>
+</html>
