@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -113,9 +114,17 @@
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.4); }
-            70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(0, 255, 0, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(0, 255, 0, 0);
+            }
         }
 
         /* Wrapper para la tabla */
@@ -245,11 +254,11 @@
             box-shadow: 0 0 6px rgba(0, 255, 0, 0.6);
         }
 
-        .toggle-switch input:checked + .toggle-slider {
+        .toggle-switch input:checked+.toggle-slider {
             background: rgba(0, 255, 120, 0.25);
         }
 
-        .toggle-switch input:checked + .toggle-slider::before {
+        .toggle-switch input:checked+.toggle-slider::before {
             transform: translateX(22px);
         }
 
@@ -372,8 +381,8 @@
             border-bottom: 1px solid rgba(0, 255, 0, 0.1);
         }
 
-        .fila-mes.colapsado + .fila-dato,
-        .fila-mes.colapsado ~ .fila-dato {
+        .fila-mes.colapsado+.fila-dato,
+        .fila-mes.colapsado~.fila-dato {
             display: none;
         }
 
@@ -423,6 +432,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="glass" id="dashboard">
         <h5>Hojas Incompletas de Hospitalización</h5>
@@ -437,7 +447,7 @@
                 <input type="text" name="no_expediente" placeholder="No. expediente">
                 <textarea name="observaciones" placeholder="Observaciones"></textarea>
                 <button class="button" type="submit">Guardar</button>
-                
+
                 <!-- SECCIÓN DE ESTADÍSTICAS POR MES -->
                 <div class="estadisticas-mensuales">
                     <h4><i class="fas fa-chart-bar"></i> Registros por Mes</h4>
@@ -489,7 +499,7 @@
     <!-- Scripts en orden CORRECTO -->
     <!-- Primero estadoSistema.js -->
     <script src="/estadisticas/comun/estadoSistema.js"></script>
-    
+
     <script>
         /* ================== CONFIG ================== */
         const URL = "https://script.google.com/macros/s/AKfycbzZf97xag50EWpqVLAhaugl0PKMp6PsUvdoMApEEhIOJ9f_CqLR_pw3nYT5EIMTrHRy/exec";
@@ -515,7 +525,7 @@
         document.getElementById("form-egresos").addEventListener("submit", async e => {
             e.preventDefault();
             setEstado('loading', 'Guardando registro...');
-            
+
             try {
                 const data = Object.fromEntries(new FormData(e.target).entries());
 
@@ -542,14 +552,14 @@
         function extraerFecha(registro) {
             // Buscar la fecha en diferentes campos posibles
             const camposFecha = ["FECHA DE EGRESO", "REGISTRADO", "CUANDO", "Fecha", "fecha"];
-            
+
             for (const campo of camposFecha) {
                 if (registro[campo]) {
                     const fecha = new Date(registro[campo]);
                     if (!isNaN(fecha)) return fecha;
                 }
             }
-            
+
             // Si no encuentra en campos específicos, buscar en cualquier valor que parezca fecha
             for (const valor of Object.values(registro)) {
                 if (typeof valor === 'string') {
@@ -560,17 +570,17 @@
                     if (!isNaN(fecha) && fecha.getFullYear() > 2000 && fecha.getFullYear() < 2100) {
                         return fecha;
                     }
-                    
+
                     // También probar formato DD/MM/YYYY
                     const match = fechaStr.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
                     if (match) {
                         const [_, dia, mes, año] = match;
-                        const fechaFormateada = new Date(año, mes-1, dia);
+                        const fechaFormateada = new Date(año, mes - 1, dia);
                         if (!isNaN(fechaFormateada)) return fechaFormateada;
                     }
                 }
             }
-            
+
             return null;
         }
 
@@ -581,20 +591,20 @@
                 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
                 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
             ];
-            
+
             const ahora = new Date();
             const añoActual = ahora.getFullYear();
             const mesActual = ahora.getMonth();
-            
+
             // Procesar cada registro
             registros.forEach(registro => {
                 const fecha = extraerFecha(registro);
                 if (!fecha) return;
-                
+
                 const mes = fecha.getMonth();
                 const año = fecha.getFullYear();
-                const clave = `${año}-${String(mes+1).padStart(2, '0')}`;
-                
+                const clave = `${año}-${String(mes + 1).padStart(2, '0')}`;
+
                 // Inicializar si no existe
                 if (!estadisticas[clave]) {
                     estadisticas[clave] = {
@@ -606,11 +616,11 @@
                         esAñoActual: (año === añoActual)
                     };
                 }
-                
+
                 // Incrementar contador
                 estadisticas[clave].cantidad++;
             });
-            
+
             return estadisticas;
         }
 
@@ -618,11 +628,11 @@
         function mostrarEstadisticas(estadisticas) {
             const container = document.getElementById('estadisticasMensuales');
             container.innerHTML = '';
-            
+
             const ahora = new Date();
             const añoActual = ahora.getFullYear();
             let totalVisibles = 0;
-            
+
             // Convertir objeto a array y filtrar meses con registros
             const mesesConRegistros = Object.values(estadisticas)
                 .filter(mes => mes.cantidad > 0)
@@ -632,7 +642,7 @@
                     if (a.año !== b.año) return b.año - a.año;
                     return b.mes - a.mes;
                 });
-            
+
             // Si no hay registros, mostrar mensaje
             if (mesesConRegistros.length === 0) {
                 container.innerHTML = `
@@ -644,32 +654,32 @@
                 document.getElementById('totalVisibles').textContent = '0';
                 return;
             }
-            
+
             // Mostrar cada mes con registros
             mesesConRegistros.forEach(mes => {
                 totalVisibles += mes.cantidad;
-                
+
                 const div = document.createElement('div');
                 div.className = 'estadistica-item';
-                
+
                 // Aplicar clases según el año
                 if (mes.esMesActual) {
                     div.classList.add('mes-actual');
                 } else if (!mes.esAñoActual) {
                     div.classList.add('año-anterior');
                 }
-                
+
                 div.innerHTML = `
                     <span class="numero">${mes.cantidad}</span>
                     <span class="label">${mes.nombre} ${mes.año}</span>
                 `;
-                
+
                 container.appendChild(div);
             });
-            
+
             // Actualizar contador total
             document.getElementById('totalVisibles').textContent = totalVisibles;
-            
+
             // Ajustar grid según cantidad de items
             if (mesesConRegistros.length === 1) {
                 container.style.gridTemplateColumns = '1fr';
@@ -685,7 +695,7 @@
         /* ================== FILTRAR REGISTROS ================== */
         function filtrarRegistros() {
             let filtrados = [...todosRegistros];
-            
+
             // Filtro de checklist (atendidos)
             if (!mostrarAtendidos) {
                 filtrados = filtrados.filter(r => {
@@ -693,7 +703,7 @@
                     return !["true", "sí", "si", "1", "checked"].includes(checklist);
                 });
             }
-            
+
             // Filtro de búsqueda
             if (textoBusqueda) {
                 filtrados = filtrados.filter(r =>
@@ -702,7 +712,7 @@
                     )
                 );
             }
-            
+
             registrosFiltrados = filtrados;
             return filtrados;
         }
@@ -783,6 +793,7 @@
                 // Crear fila de encabezado del mes
                 const filaMes = document.createElement('tr');
                 filaMes.className = 'fila-mes';
+                filaMes.setAttribute('data-grupo', clave); // Identificador único
 
                 let textoMes = '';
                 if (clave === 'sin-fecha') {
@@ -797,34 +808,41 @@
                 celdaMes.colSpan = headers.length;
                 celdaMes.className = 'encabezado-mes';
                 celdaMes.innerHTML = `
-                    <div class="mes-titulo">
-                        <span class="mes-icon">📅</span>
-                        <span class="mes-texto">${textoMes}</span>
-                        <span class="mes-contador">${registrosGrupo.length}</span>
-                    </div>
-                `;
+            <div class="mes-titulo">
+                <span class="mes-icon">📅</span>
+                <span class="mes-texto">${textoMes}</span>
+                <span class="mes-contador">${registrosGrupo.length}</span>
+            </div>
+        `;
 
-                // Función para colapsar/expandir
-                celdaMes.addEventListener('click', function(e) {
+                // Función para colapsar/expandir - CORREGIDA
+                celdaMes.addEventListener('click', function (e) {
                     e.stopPropagation();
                     const filaActual = this.parentElement;
                     const estaColapsado = filaActual.classList.contains('colapsado');
-                    
+
+                    // Encontrar SOLO las filas de este grupo (hasta el próximo encabezado)
                     let elemento = filaActual.nextElementSibling;
                     const filasGrupo = [];
-                    
+
+                    // Recolectar todas las filas hasta encontrar otro encabezado de mes
                     while (elemento && !elemento.classList.contains('fila-mes')) {
                         filasGrupo.push(elemento);
                         elemento = elemento.nextElementSibling;
                     }
-                    
+
+                    // Alternar visibilidad SOLO de las filas de este grupo
                     if (estaColapsado) {
                         filaActual.classList.remove('colapsado');
-                        filasGrupo.forEach(fila => fila.style.display = '');
+                        filasGrupo.forEach(fila => {
+                            fila.style.display = ''; // Restaurar
+                        });
                         this.querySelector('.mes-icon').textContent = '📅';
                     } else {
                         filaActual.classList.add('colapsado');
-                        filasGrupo.forEach(fila => fila.style.display = 'none');
+                        filasGrupo.forEach(fila => {
+                            fila.style.display = 'none'; // Ocultar
+                        });
                         this.querySelector('.mes-icon').textContent = '📁';
                     }
                 });
@@ -864,7 +882,7 @@
         function filtrarYMostrarRegistros() {
             const registrosFiltrados = filtrarRegistros();
             mostrarTabla(registrosFiltrados);
-            
+
             // Calcular y mostrar estadísticas SOLO con los registros filtrados
             const estadisticas = calcularEstadisticasPorMes(registrosFiltrados);
             mostrarEstadisticas(estadisticas);
@@ -873,25 +891,25 @@
         /* ================== CARGAR Y PROCESAR REGISTROS ================== */
         async function cargarYProcesarRegistros() {
             setEstado('loading', 'Cargando registros...');
-            
+
             try {
                 const res = await fetch(URL);
                 const json = await res.json();
                 if (!json.ok) return;
-                
+
                 todosRegistros = json.registros;
                 console.log(`Cargados ${todosRegistros.length} registros totales`);
-                
+
                 // Mostrar información de depuración
                 todosRegistros.slice(0, 3).forEach((r, i) => {
                     const fecha = extraerFecha(r);
-                    console.log(`Registro ${i}:`, fecha ? 
-                        `Fecha: ${fecha.getDate()}/${fecha.getMonth()+1}/${fecha.getFullYear()}` : 
+                    console.log(`Registro ${i}:`, fecha ?
+                        `Fecha: ${fecha.getDate()}/${fecha.getMonth() + 1}/${fecha.getFullYear()}` :
                         'Sin fecha válida');
                 });
-                
+
                 filtrarYMostrarRegistros();
-                
+
             } catch (error) {
                 setEstado('error', 'Error al cargar registros');
                 console.error('Error:', error);
@@ -933,4 +951,5 @@
         });
     </script>
 </body>
+
 </html>
