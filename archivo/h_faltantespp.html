@@ -330,7 +330,6 @@
         }
     </style>
 </head>
-
 <body>
     <div class="glass" id="dashboard">
         <h5>Hojas Incompletas de Hospitalización</h5>
@@ -610,7 +609,7 @@
             return null;
         }
 
-        /* ================== RENDERIZAR TABLA ================== */
+        /* ================== RENDERIZAR TABLA CON AGRUPACIÓN POR MES ================== */
         function renderizarTabla(registros) {
             const thead = document.querySelector("#tabla-registros thead");
             const tbody = document.querySelector("#tabla-registros tbody");
@@ -623,49 +622,160 @@
             }
 
             const headers = Object.keys(registros[0]);
+            const nombresMeses = [
+                'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+            ];
 
             // Crear encabezados
             thead.innerHTML = "<tr>" + headers.map(h => `<th>${h}</th>`).join("") + "</tr>";
 
-            // Crear filas
-            registros.forEach(r => {
-                const tr = document.createElement('tr');
+            // 1. Agrupar registros por mes
+            const registrosConFecha = registros.map(registro => {
+                const fecha = extraerFecha(registro);
+                return {
+                    ...registro,
+                    _fechaObj: fecha,
+                    _fechaStr: fecha ? formatearFecha(fecha) : 'Sin fecha'
+                };
+            });
 
-                headers.forEach(h => {
-                    const td = document.createElement('td');
-                    let valor = r[h] ?? "";
+            // 2. Agrupar por mes y año
+            const grupos = {};
+            registrosConFecha.forEach(registro => {
+                if (!registro._fechaObj) {
+                    // Si no tiene fecha, poner en grupo "Sin fecha"
+                    if (!grupos['sin-fecha']) grupos['sin-fecha'] = [];
+                    grupos['sin-fecha'].push(registro);
+                    return;
+                }
 
-                    // Formatear fechas
-                    if (h.includes('FECHA') || h.includes('FECHA') || h.includes('CUANDO') || h.includes('REGISTRADO')) {
-                        valor = formatearFecha(valor);
+                const fecha = registro._fechaObj;
+                const mes = fecha.getMonth();
+                const año = fecha.getFullYear();
+                const clave = `${año}-${String(mes + 1).padStart(2, '0')}`;
+
+                if (!grupos[clave]) {
+                    grupos[clave] = [];
+                }
+                grupos[clave].push(registro);
+            });
+
+            // 3. Ordenar grupos por fecha descendente (más nuevo a más viejo)
+            const clavesOrdenadas = Object.keys(grupos).sort((a, b) => {
+                if (a === 'sin-fecha') return 1; // 'Sin fecha' al final
+                if (b === 'sin-fecha') return -1;
+
+                const [añoA, mesA] = a.split('-').map(Number);
+                const [añoB, mesB] = b.split('-').map(Number);
+
+                if (añoA !== añoB) return añoB - añoA;
+                return mesB - mesA;
+            });
+
+            // 4. Renderizar cada grupo
+            clavesOrdenadas.forEach(clave => {
+                const registrosGrupo = grupos[clave];
+
+                // Ordenar registros dentro del grupo por fecha descendente
+                registrosGrupo.sort((a, b) => {
+                    if (!a._fechaObj) return 1;
+                    if (!b._fechaObj) return -1;
+                    return b._fechaObj - a._fechaObj;
+                });
+
+                // Crear fila de encabezado del mes
+                const filaMes = document.createElement('tr');
+                filaMes.className = 'fila-mes';
+
+                let textoMes = '';
+                if (clave === 'sin-fecha') {
+                    textoMes = '+ Sin fecha';
+                } else {
+                    const [año, mesNum] = clave.split('-');
+                    const nombreMes = nombresMeses[parseInt(mesNum) - 1];
+                    textoMes = `+ ${nombreMes} ${año} (${registrosGrupo.length} registros)`;
+                }
+
+                const celdaMes = document.createElement('td');
+                celdaMes.colSpan = headers.length;
+                celdaMes.className = 'encabezado-mes';
+                celdaMes.innerHTML = `
+            <div class="mes-titulo">
+                <span class="mes-icon">+</span>
+                <span class="mes-texto">${textoMes}</span>
+                <span class="mes-contador">${registrosGrupo.length}</span>
+            </div>
+        `;
+
+                // Hacer clic en el encabezado para colapsar/expandir
+                celdaMes.addEventListener('click', function (e) {
+                    const siguiente = this.parentElement.nextElementSibling;
+                    let filasSiguientes = [];
+                    let elemento = siguiente;
+
+                    // Encontrar todas las filas de este grupo
+                    while (elemento && !elemento.classList.contains('fila-mes')) {
+                        filasSiguientes.push(elemento);
+                        elemento = elemento.nextElementSibling;
                     }
 
-                    // Aplicar estilos a la columna ATENDIDO
-                    if (h.toUpperCase().includes('ATENDIDO') || h.toUpperCase().includes('CHECK')) {
-                        td.classList.add('col-atendido');
-                        const valorNormalizado = String(valor).toUpperCase().trim();
-                        if (valorNormalizado === "VERDADERO" || valorNormalizado === "TRUE") {
-                            td.classList.add('atendido-verdadero');
-                            td.innerHTML = '<i class="fas fa-check-circle"></i> Atendido';
-                        } else if (valorNormalizado === "FALSO" || valorNormalizado === "FALSE") {
-                            td.classList.add('atendido-falso');
-                            td.innerHTML = '<i class="fas fa-times-circle"></i> Pendiente';
+                    // Alternar visibilidad
+                    const expandido = this.parentElement.classList.toggle('colapsado');
+                    filasSiguientes.forEach(fila => {
+                        fila.style.display = expandido ? 'none' : '';
+                    });
+
+                    // Cambiar icono
+                    const icono = this.querySelector('.mes-icon');
+                    if (icono) {
+                        icono.textContent = expandido ? '📁' : '+';
+                    }
+                });
+
+                filaMes.appendChild(celdaMes);
+                tbody.appendChild(filaMes);
+
+                // Crear filas de datos para este mes
+                registrosGrupo.forEach(registro => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'fila-dato';
+
+                    headers.forEach(h => {
+                        const td = document.createElement('td');
+                        let valor = registro[h] ?? "";
+
+                        // Formatear fechas
+                        if (h.includes('FECHA') || h.includes('CUANDO') || h.includes('REGISTRADO')) {
+                            valor = formatearFecha(valor);
+                        }
+
+                        // Aplicar estilos a la columna ATENDIDO
+                        if (h.toUpperCase().includes('ATENDIDO') || h.toUpperCase().includes('CHECK')) {
+                            td.classList.add('col-atendido');
+                            const valorNormalizado = String(valor).toUpperCase().trim();
+                            if (valorNormalizado === "VERDADERO" || valorNormalizado === "TRUE") {
+                                td.classList.add('atendido-verdadero');
+                                td.innerHTML = '<i class="fas fa-check-circle"></i> Atendido';
+                            } else if (valorNormalizado === "FALSO" || valorNormalizado === "FALSE") {
+                                td.classList.add('atendido-falso');
+                                td.innerHTML = '<i class="fas fa-times-circle"></i> Pendiente';
+                            } else {
+                                td.textContent = valor;
+                            }
                         } else {
                             td.textContent = valor;
                         }
-                    } else {
-                        td.textContent = valor;
-                    }
 
-                    tr.appendChild(td);
+                        tr.appendChild(td);
+                    });
+
+                    tbody.appendChild(tr);
                 });
-
-                tbody.appendChild(tr);
             });
 
             setEstado('success', `Mostrando ${registros.length} registros`);
         }
-
         function formatearFecha(v) {
             if (!v) return "";
             const f = new Date(v);
@@ -707,6 +817,63 @@
             setTimeout(cargarRegistros, 500);
         });
     </script>
+    <style>
+        /* Agregar a tu archivo CSS o en una etiqueta <style> */
+        .fila-mes {
+            /* background-color: #f0f0f0; */
+            background-color: important transparent;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .fila-mes:hover {
+            background-color: #e0e0e0;
+        }
+
+        .encabezado-mes {
+            padding: 10px !important;
+            font-weight: bold;
+            border-bottom: 2px solid #ccc;
+            border-top: 2px solid #ccc;
+        }
+
+        .mes-titulo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mes-icon {
+            font-size: 1.2em;
+        }
+
+        .mes-texto {
+            flex-grow: 1;
+            color: white;
+            font-weight: 800;
+        }
+
+        .mes-contador {
+            background-color: #666;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+        }
+
+        .fila-mes.colapsado+.fila-dato {
+            display: none;
+        }
+
+        .fila-dato {
+            transition: background-color 0.2s;
+        }
+
+        .fila-dato:hover {
+            background-color: #f5f5f5;
+            color: #0f0;
+        }
+    </style>
 </body>
 
 </html>
