@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -108,33 +107,61 @@
 </div>
 
 <script>
-// ⚠️ REEMPLAZA CON TU URL REAL DE GOOGLE APPS SCRIPT
-const API_URL = 'https://script.google.com/macros/s/AKfycbxtVpYPu7MhvP4YSCwYroaYyMsLgIpujRu8FNfrC1mj9ZxIsbjd-7SwaTqe3kl5FJ5FSw/exec';
+// ⚠️ REEMPLAZA CON TU URL REAL
+const API_URL = 'https://script.google.com/macros/s/AKfycbybqetiova5FCh8OX2A84VRYwe-Mlhh6DMXBf9fCZzeQPzPxlJH8BLdgRX6CmVzCzBFDA/exec';
 
-// Función genérica para llamar a la API
-async function callAPI(action, params = {}) {
-  // Construir URL con todos los parámetros
-  const urlParams = new URLSearchParams();
-  urlParams.append('action', action);
+// Función para llamar a la API usando POST (más confiable)
+async function callAPI(action, data = {}) {
+  // Crear FormData para enviar
+  const formData = new URLSearchParams();
+  formData.append('action', action);
   
-  for (const key in params) {
-    if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
-      urlParams.append(key, params[key]);
+  for (const key in data) {
+    if (data[key] !== undefined && data[key] !== null && data[key] !== '') {
+      formData.append(key, data[key]);
     }
   }
   
-  const url = `${API_URL}?${urlParams.toString()}`;
-  console.log('Llamando a:', url);
-  
-  const response = await fetch(url);
-  const text = await response.text();
-  console.log('Respuesta:', text);
+  console.log(`Enviando ${action}:`, Object.fromEntries(formData));
   
   try {
-    return JSON.parse(text);
-  } catch (e) {
-    console.error('Error parsing JSON:', text);
-    throw new Error(`Error del servidor: ${text.substring(0, 100)}`);
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: formData.toString()
+    });
+    
+    const text = await response.text();
+    console.log('Respuesta:', text);
+    
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error(`Respuesta no es JSON: ${text.substring(0, 200)}`);
+    }
+  } catch (error) {
+    console.error('Error en callAPI:', error);
+    throw error;
+  }
+}
+
+// Función especial para leer datos (usando GET)
+async function readData() {
+  try {
+    const response = await fetch(`${API_URL}?action=read`);
+    const text = await response.text();
+    console.log('Read response:', text);
+    
+    try {
+      return JSON.parse(text);
+    } catch (e) {
+      throw new Error(`No se pudieron cargar datos: ${text.substring(0, 200)}`);
+    }
+  } catch (error) {
+    console.error('Error reading data:', error);
+    throw error;
   }
 }
 
@@ -143,8 +170,12 @@ async function loadData() {
     document.getElementById('loading').style.display = 'block';
     document.getElementById('tableContainer').style.display = 'none';
     
-    const data = await callAPI('read');
+    const data = await readData();
     console.log('Datos cargados:', data);
+    
+    if (data.status === 'error') {
+      throw new Error(data.message);
+    }
     
     renderTable(data);
     document.getElementById('loading').style.display = 'none';
@@ -165,7 +196,6 @@ function renderTable(data) {
   }
   
   data.forEach(acuerdo => {
-    // Calcular progreso desde actividades
     let total = 0, completado = 0;
     if (acuerdo.ACTIVIDADES && acuerdo.ACTIVIDADES.length > 0) {
       acuerdo.ACTIVIDADES.forEach(act => {
@@ -199,7 +229,7 @@ async function openAcuerdoModal(id = null) {
   document.getElementById('acuerdoId').value = '';
   
   if (id) {
-    const data = await callAPI('read');
+    const data = await readData();
     const acuerdo = data.find(a => a.ID_ACUERDO == id);
     if (acuerdo) {
       document.getElementById('acuerdoId').value = acuerdo.ID_ACUERDO;
@@ -224,7 +254,7 @@ document.getElementById('acuerdoForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('acuerdoId').value;
   
-  const params = {
+  const data = {
     acuerdo: document.getElementById('acuerdoText').value,
     responsable: document.getElementById('responsable').value,
     fechap: document.getElementById('fechaP').value,
@@ -235,10 +265,10 @@ document.getElementById('acuerdoForm').addEventListener('submit', async (e) => {
   try {
     let result;
     if (id) {
-      params.id = id;
-      result = await callAPI('updateAcuerdo', params);
+      data.id = id;
+      result = await callAPI('updateAcuerdo', data);
     } else {
-      result = await callAPI('createAcuerdo', params);
+      result = await callAPI('createAcuerdo', data);
     }
     
     if (result.status === 'ok') {
@@ -258,7 +288,7 @@ async function openActividadModal(acuerdoId) {
   document.getElementById('actividadForm').reset();
   document.getElementById('actividadId').value = '';
   
-  const data = await callAPI('read');
+  const data = await readData();
   const acuerdo = data.find(a => a.ID_ACUERDO == acuerdoId);
   
   const actividadesList = document.getElementById('actividadesList');
@@ -291,7 +321,7 @@ function closeActividadModal() {
 
 document.getElementById('actividadForm').addEventListener('submit', async (e) => {
   e.preventDefault();
-  const params = {
+  const data = {
     id_acuerdo: document.getElementById('acuerdoIdForActividad').value,
     actividad: document.getElementById('actividadDesc').value,
     resultados: document.getElementById('resultados').value,
@@ -299,7 +329,7 @@ document.getElementById('actividadForm').addEventListener('submit', async (e) =>
   };
   
   try {
-    const result = await callAPI('createActividad', params);
+    const result = await callAPI('createActividad', data);
     if (result.status === 'ok') {
       closeActividadModal();
       loadData();
