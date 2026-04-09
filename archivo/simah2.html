@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BD SIMAH</title>
+
+  <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
+
+  <style>
+    /* 🎯 CONTENEDOR PRINCIPAL CON GRID */
+    .grid {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      /* fila 1: cards | fila 2: paginación */
+      height: 100%;
+      /* 👈 clave */
+      gap: 20px;
+    }
+
+
+    /* CARDS GRID - Usa todo el ancho disponible y 4 columnas por página */
+    .cards-grid {
+      grid-row: 1;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      width: 100%;
+      overflow-y: auto;
+    }
+
+
+    /* PAGINACIÓN - Centrada debajo de las cards */
+    .paginacion {
+      grid-row: 2;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      padding: 15px;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+    }
+
+
+    .paginacion button {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .paginacion button:hover {
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .paginacion span {
+      font-weight: 600;
+      color: white;
+    }
+
+    /* CARD INDIVIDUAL */
+    /* En tu CSS dentro del <style> del HTML, modifica la clase .card */
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      /* backdrop-filter: blur(10px); */
+      border-radius: 14px;
+      padding: 1.4rem;
+      /* box-shadow: 0 10px 25px rgba(0, 0, 0, .15); */
+      transition: transform .2s ease;
+      min-height: 100px;
+      overflow: hidden;
+      /* Añade esto */
+      word-wrap: break-word;
+      /* Rompe palabras largas */
+      hyphens: auto;
+      /* Agrega guiones automáticos */
+    }
+
+    .card span {
+      font-weight: 600;
+      font-size: 14px;
+      display: block;
+      margin-bottom: 5px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      /* Puntos suspensivos si es muy largo */
+      white-space: nowrap;
+      /* Mantiene en una línea */
+    }
+
+    /* O si prefieres que se rompa en múltiples líneas */
+    .card span.alternativa {
+      white-space: normal;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      /* Máximo 2 líneas */
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-height: 3em;
+      /* Aprox 2 líneas */
+    }
+
+    .card small {
+      /* opacity: .8; */
+      font-size: 1rem;
+      display: block;
+      margin-bottom: 3px;
+      color: #fff;
+    }
+
+    /* 🔍 BUSCADOR */
+    .buscador {
+      margin: 12px 0 20px;
+      position: relative;
+    }
+
+    .buscador input {
+      width: 100%;
+      padding: 10px 38px 10px 14px;
+      border-radius: 12px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.12);
+      color: #fff;
+    }
+
+    .buscador i {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      opacity: .6;
+    }
+
+    /* RESPONSIVE - Ajuste para pantallas pequeñas */
+    @media (max-width: 1200px) {
+      .cards-grid {
+        grid-template-columns: repeat(3, 1fr);
+        /* 3 columnas en tablets grandes */
+      }
+    }
+
+    @media (max-width: 900px) {
+      .cards-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2 columnas en tablets */
+      }
+    }
+
+    @media (max-width: 600px) {
+      .cards-grid {
+        grid-template-columns: 1fr;
+        /* 1 columna en móviles */
+      }
+
+      .paginacion {
+        flex-direction: column;
+        gap: 10px;
+      }
+    }
+
+    /* Estilo para estado DEFUNCION en rojo */
+    .estado-defuncion {
+      color: #ff4444 !important;
+      font-weight: bold !important;
+    }
+  </style>
+  <style>
+    /* OCULTAR SCROLL PERO MANTENER FUNCIONALIDAD */
+    .glass .grid,
+    .cards-grid,
+    .glass>.contenido {
+      overflow-y: auto;
+      scrollbar-width: none;
+      /* Firefox */
+      -ms-overflow-style: none;
+      /* IE 10+ */
+    }
+
+    /* Webkit browsers */
+    .glass .grid::-webkit-scrollbar,
+    .cards-grid::-webkit-scrollbar,
+    .glass>.contenido::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
+      background: transparent;
+    }
+
+    /* Alternativa: scroll que aparece solo al hover */
+    .glass .grid:hover::-webkit-scrollbar,
+    .cards-grid:hover::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .glass .grid:hover::-webkit-scrollbar-thumb,
+    .cards-grid:hover::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 3px;
+    }
+
+    .expediente-verde {
+      color: #00ff59;
+      /* Mismo verde que usas en tu CSS */
+      font-weight: bold;
+      text-shadow: 0 0 5px rgba(0, 255, 89, 0.3);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="glass" id="dashboard">
+    <h5>&#129519; EXPEDIENTES CLÍNICOS RESCATADOS DE SIMAH</h5>
+    <div id="header"></div>
+
+    <!-- 🔍 BUSCADOR -->
+    <div class="buscador">
+      <input type="text" id="busqueda" placeholder="Buscar por nombre, expediente o servicio…">
+      <i class="fa-solid fa-magnifying-glass"></i>
+    </div>
+
+    <!-- 🎯 CONTENEDOR GRID PRINCIPAL -->
+    <div class="grid">
+      <!-- FILA 1: CARDS (4 por página) -->
+      <div id="cards" class="cards-grid"></div>
+
+      <!-- FILA 2: PAGINACIÓN -->
+      <div class="paginacion">
+        <button onclick="cambiarPagina(-1)">← Anterior</button>
+        <span id="paginaActual"></span>
+        <button onclick="cambiarPagina(1)">Siguiente →</button>
+      </div>
+    </div>
+
+    <div id="footer"></div>
+  </div>
+
+  <script>
+    fetch('/estadisticas/comun/header-archivo.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('header').innerHTML = html;
+        const s = document.createElement('script');
+        s.src = '/estadisticas/comun/sesion_bk.js';
+        s.onload = () => verificarAutenticacion();
+        document.body.appendChild(s);
+      });
+
+    fetch('/estadisticas/comun/footer.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('footer').innerHTML = html;
+        const footer = document.getElementById('footerText');
+        if (footer) {
+          footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+        }
+      });
+  </script>
+
+  <script>
+    const ITEMS_PER_PAGE = 20;
+
+    let page = 1;
+    let totalPages = 1;
+    let datosOriginales = [];
+
+    // 🔄 CAMBIAR DE PÁGINA
+    async function cambiarPagina(delta) {
+      const newPage = page + delta;
+      if (newPage >= 1 && newPage <= totalPages) {
+        page = newPage;
+        mostrarPagina();
+      }
+    }
+
+    // 📥 CARGAR JSON LOCAL
+    async function cargar() {
+      const res = await fetch("https://script.google.com/macros/s/AKfycbzstm9udTBTXXtj7oOAhmwqYWBvWo36biqta06ioDBDGmsnSTADgEuSkPAIiROxuojI/exec?all=true");
+      const data = await res.json();
+
+      datosOriginales = (data.rows || []).sort((a, b) =>
+        (a["NOMBRE DEL PACIENTE"] || "").localeCompare(b["NOMBRE DEL PACIENTE"] || "", "es", { sensitivity: "base" })
+      );
+
+      totalPages = Math.ceil(datosOriginales.length / ITEMS_PER_PAGE);
+      mostrarPagina();
+    }
+
+    // 📄 MOSTRAR PÁGINA
+    let datosFiltrados = [];
+
+    function mostrarPagina() {
+      const base = (datosFiltrados.length ? datosFiltrados : datosOriginales).sort((a, b) =>
+        (a["NOMBRE DEL PACIENTE"] || "").localeCompare(b["NOMBRE DEL PACIENTE"] || "", "es", { sensitivity: "base" })
+      );
+
+      const inicio = (page - 1) * ITEMS_PER_PAGE;
+      const fin = inicio + ITEMS_PER_PAGE;
+      const paginaDatos = base.slice(inicio, fin);
+
+      totalPages = Math.ceil(base.length / ITEMS_PER_PAGE);
+      document.getElementById("paginaActual").textContent = `Página ${page} de ${totalPages}`;
+      render(paginaDatos);
+    }
+
+    // 🔍 BÚSQUEDA EN TIEMPO REAL
+    document.getElementById("busqueda").addEventListener("input", e => {
+      const q = e.target.value.toLowerCase().trim();
+
+      if (q === "") {
+        datosFiltrados = [];
+      } else {
+        datosFiltrados = datosOriginales.filter(r =>
+          (r["NOMBRE DEL PACIENTE"] || "").toString().toLowerCase().includes(q) ||
+          (r["EXPEDIENTE"] || "").toString().toLowerCase().includes(q) ||
+          (r["SERVICIO"] || "").toString().toLowerCase().includes(q) ||
+          (r["FECHA DE REGISTRO"] || "").toString().toLowerCase().includes(q) ||
+          (r["estado"] || "").toString().toLowerCase().includes(q) ||
+          (r["sexo"] || "").toString().toLowerCase().includes(q) ||
+          (r["fecha_nac"] || "").toString().toLowerCase().includes(q) ||
+          (r["tel_part"] || "").toString().toLowerCase().includes(q)
+        );
+      }
+
+      page = 1;
+      mostrarPagina();
+    });
+
+    // Función auxiliar para obtener la clase del estado
+    function getEstadoClass(estado) {
+      if (estado && estado.toUpperCase() === 'DEFUNCION') {
+        return 'estado-defuncion';
+      }
+      return '';
+    }
+
+    // 🎨 RENDER DE CARDS
+    function render(rows) {
+      const cont = document.getElementById("cards");
+      cont.innerHTML = "";
+
+      if (!rows.length) {
+        cont.innerHTML = "<small>No hay resultados</small>";
+        return;
+      }
+
+      rows.forEach(r => {
+        const estado = r["estado"] || "";
+        const estadoClass = getEstadoClass(estado);
+        
+        cont.innerHTML += `
+  <div class="card">
+    <span><b>${r["NOMBRE DEL PACIENTE"] || ""}</b></span>
+    <small>Expediente: <strong style="color: rgb(0, 255, 89); font-weight: 700; margin-left: 5px;">${r["EXPEDIENTE"] || ""}</strong></small>
+    <small>Fecha de registro: ${r["FECHA DE REGISTRO"] || ""}</small>
+    <small>Estado: <span class="${estadoClass}">${estado || ""}</span></small>
+    <small>Sexo: ${r["sexo"] || ""}</small>
+    <small>Fecha de nacimiento: ${r["fecha_nac"] || ""}</small>
+    <small>Teléfono: ${r["tel_part"] || ""}</small>
+  </div>
+  `;
+      });
+    }
+
+    window.onload = cargar;
+  </script>
+
+
+  <script src="/estadisticas/comun/sesion_bk.js"></script>
+  <script src="/estadisticas/comun/estadoSistema.js"></script>
+
+</body>
+
+</html>
