@@ -1,381 +1,299 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acuerdos y Actividades - COCASEP</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; padding: 20px; background: #f0f2f5; }
-    .container { max-width: 1400px; margin: 0 auto; }
-    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-    h1 { margin: 0; }
-    .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
-    .btn-primary { background: #667eea; color: white; }
-    .btn-success { background: #48bb78; color: white; }
-    .btn-warning { background: #ed8936; color: white; }
-    .btn-danger { background: #f56565; color: white; }
-    .btn-sm { padding: 5px 10px; font-size: 12px; }
-    table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; }
-    th, td { padding: 10px; border-bottom: 1px solid #ddd; text-align: left; }
-    th { background: #4a5568; color: white; }
-    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
-    .modal-content { background: white; border-radius: 10px; padding: 20px; max-width: 500px; width: 90%; max-height: 80%; overflow-y: auto; }
-    .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; font-weight: bold; }
-    input, textarea, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px; }
-    .progress-container { background: #e2e8f0; border-radius: 10px; overflow: hidden; }
-    .progress-bar { height: 20px; background: #48bb78; transition: width 0.3s; }
-    .loading { text-align: center; padding: 40px; }
-    .error { color: red; text-align: center; padding: 20px; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acuerdos y Actividades - COCASEP</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f0f2f5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+        }
+
+        th,
+        td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #4a5568;
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80%;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .progress-container {
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: #48bb78;
+            transition: width 0.3s;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .error {
+            color: red;
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
 </head>
+
 <body>
-<div class="container">
-  <div class="header">
-    <h1>📋 Control de Acuerdos y Actividades - COCASEP</h1>
-  </div>
-  
-  <button class="btn btn-primary" onclick="openAcuerdoModal()">➕ Nuevo Acuerdo</button>
-  
-  <div id="loading" class="loading">Cargando...</div>
-  <div id="tableContainer" style="display: none;">
-    <table id="acuerdosTable">
-      <thead><tr><th>ID</th><th>Acuerdo</th><th>Fechas</th><th>Progreso</th><th>Actividades</th><th>Acciones</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-</div>
+    <div class="container">
+        <div class="header">
+            <h1>📋 Control de Acuerdos y Actividades - COCASEP</h1>
+        </div>
 
-<!-- Modal Acuerdo -->
-<div id="acuerdoModal" class="modal">
-  <div class="modal-content">
-    <h2 id="acuerdoModalTitle">Nuevo Acuerdo</h2>
-    <form id="acuerdoForm">
-      <input type="hidden" id="acuerdoId">
-      <div class="form-group">
-        <label>Acuerdo *</label>
-        <textarea id="acuerdoText" required></textarea>
-      </div>
-      <div class="form-group">
-        <label>Responsable *</label>
-        <input type="text" id="responsable" required>
-      </div>
-      <div class="form-group">
-        <label>Fecha Programada</label>
-        <input type="date" id="fechaP">
-      </div>
-      <div class="form-group">
-        <label>Fecha Cumplimiento</label>
-        <input type="date" id="fechaC">
-      </div>
-      <div class="form-group">
-        <label>Observaciones</label>
-        <textarea id="observaciones"></textarea>
-      </div>
-      <button type="submit" class="btn btn-success">Guardar</button>
-      <button type="button" class="btn" onclick="closeAcuerdoModal()">Cancelar</button>
-    </form>
-  </div>
-</div>
+        <button class="btn btn-primary" onclick="openAcuerdoModal()">➕ Nuevo Acuerdo</button>
 
-<!-- Modal Actividad -->
-<div id="actividadModal" class="modal">
-  <div class="modal-content">
-    <h2>Gestionar Actividades</h2>
-    <div id="actividadesList"></div>
-    <hr>
-    <h3>Nueva Actividad</h3>
-    <form id="actividadForm">
-      <input type="hidden" id="actividadId">
-      <input type="hidden" id="acuerdoIdForActividad">
-      <div class="form-group">
-        <label>Actividad *</label>
-        <textarea id="actividadDesc" required></textarea>
-      </div>
-      <div class="form-group">
-        <label>Resultados</label>
-        <textarea id="resultados"></textarea>
-      </div>
-      <div class="form-group">
-        <label>Valor Ponderado (%)</label>
-        <input type="number" id="valorPonderado" value="0">
-      </div>
-      <button type="submit" class="btn btn-success">Agregar</button>
-    </form>
-  </div>
-</div>
+        <div id="loading" class="loading">Cargando...</div>
+        <div id="tableContainer" style="display: none;">
+            <table id="acuerdosTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Acuerdo</th>
+                        <th>Fechas</th>
+                        <th>Progreso</th>
+                        <th>Actividades</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
 
-<script>
-// ⚠️ REEMPLAZA CON TU URL REAL
-const API_URL = 'https://script.google.com/macros/s/AKfycbybqetiova5FCh8OX2A84VRYwe-Mlhh6DMXBf9fCZzeQPzPxlJH8BLdgRX6CmVzCzBFDA/exec?action=read';
+    <!-- Modal Acuerdo -->
+    <div id="acuerdoModal" class="modal">
+        <div class="modal-content">
+            <h2 id="acuerdoModalTitle">Nuevo Acuerdo</h2>
+            <form id="acuerdoForm">
+                <input type="hidden" id="acuerdoId">
+                <div class="form-group">
+                    <label>Acuerdo *</label>
+                    <textarea id="acuerdoText" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Responsable *</label>
+                    <input type="text" id="responsable" required>
+                </div>
+                <div class="form-group">
+                    <label>Fecha Programada</label>
+                    <input type="date" id="fechaP">
+                </div>
+                <div class="form-group">
+                    <label>Fecha Cumplimiento</label>
+                    <input type="date" id="fechaC">
+                </div>
+                <div class="form-group">
+                    <label>Observaciones</label>
+                    <textarea id="observaciones"></textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Guardar</button>
+                <button type="button" class="btn" onclick="closeAcuerdoModal()">Cancelar</button>
+            </form>
+        </div>
+    </div>
 
-// Función para llamar a la API usando POST (más confiable)
-async function callAPI(action, data = {}) {
-  // Crear FormData para enviar
-  const formData = new URLSearchParams();
-  formData.append('action', action);
-  
-  for (const key in data) {
+    <!-- Modal Actividad -->
+    <div id="actividadModal" class="modal">
+        <div class="modal-content">
+            <h2>Gestionar Actividades</h2>
+            <div id="actividadesList"></div>
+            <hr>
+            <h3>Nueva Actividad</h3>
+            <form id="actividadForm">
+                <input type="hidden" id="actividadId">
+                <input type="hidden" id="acuerdoIdForActividad">
+                <div class="form-group">
+                    <label>Actividad *</label>
+                    <textarea id="actividadDesc" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Resultados</label>
+                    <textarea id="resultados"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Valor Ponderado (%)</label>
+                    <input type="number" id="valorPonderado" value="0">
+                </div>
+                <button type="submit" class="btn btn-success">Agregar</button>
+            </form>
+        </div>
+    </div>
+
+    // ⚠️ URL CORRECTA - SIN parámetros al final
+    const API_URL =
+    'https://script.google.com/macros/s/AKfycbybqetiova5FCh8OX2A84VRYwe-Mlhh6DMXBf9fCZzeQPzPxlJH8BLdgRX6CmVzCzBFDA/exec';
+
+    // Función para llamar a la API usando POST
+    async function callAPI(action, data = {}) {
+    const formData = new URLSearchParams();
+    formData.append('action', action);
+
+    for (const key in data) {
     if (data[key] !== undefined && data[key] !== null && data[key] !== '') {
-      formData.append(key, data[key]);
+    formData.append(key, data[key]);
     }
-  }
-  
-  console.log(`Enviando ${action}:`, Object.fromEntries(formData));
-  
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: formData.toString()
+    }
+
+    console.log(`Enviando ${action}:`, Object.fromEntries(formData));
+
+    try {
+    const response = await fetch(API_URL, { // ✅ Usa API_URL directamente
+    method: 'POST',
+    headers: {
+    'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: formData.toString()
     });
-    
+
     const text = await response.text();
     console.log('Respuesta:', text);
-    
+
     try {
-      return JSON.parse(text);
+    return JSON.parse(text);
     } catch (e) {
-      throw new Error(`Respuesta no es JSON: ${text.substring(0, 200)}`);
+    throw new Error(`Respuesta no es JSON: ${text.substring(0, 200)}`);
     }
-  } catch (error) {
+    } catch (error) {
     console.error('Error en callAPI:', error);
     throw error;
-  }
-}
+    }
+    }
 
-// Función especial para leer datos (usando GET)
-async function readData() {
-  try {
-    const response = await fetch(`${API_URL}?action=read`);
+    // Función para leer datos (usando GET)
+    async function readData() {
+    try {
+    const response = await fetch(`${API_URL}?action=read`); // ✅ Aquí sí va ?action=read
     const text = await response.text();
     console.log('Read response:', text);
-    
+
     try {
-      return JSON.parse(text);
+    return JSON.parse(text);
     } catch (e) {
-      throw new Error(`No se pudieron cargar datos: ${text.substring(0, 200)}`);
+    throw new Error(`No se pudieron cargar datos: ${text.substring(0, 200)}`);
     }
-  } catch (error) {
+    } catch (error) {
     console.error('Error reading data:', error);
     throw error;
-  }
-}
-
-async function loadData() {
-  try {
-    document.getElementById('loading').style.display = 'block';
-    document.getElementById('tableContainer').style.display = 'none';
-    
-    const data = await readData();
-    console.log('Datos cargados:', data);
-    
-    if (data.status === 'error') {
-      throw new Error(data.message);
     }
-    
-    renderTable(data);
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('tableContainer').style.display = 'block';
-  } catch (error) {
-    document.getElementById('loading').innerHTML = `<div class="error">❌ Error: ${error.message}<br><button onclick="loadData()" class="btn btn-primary">Reintentar</button></div>`;
-    console.error('Error:', error);
-  }
-}
-
-function renderTable(data) {
-  const tbody = document.querySelector('#acuerdosTable tbody');
-  tbody.innerHTML = '';
-  
-  if (!data || data.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No hay acuerdos registrados</td></tr>';
-    return;
-  }
-  
-  data.forEach(acuerdo => {
-    let total = 0, completado = 0;
-    if (acuerdo.ACTIVIDADES && acuerdo.ACTIVIDADES.length > 0) {
-      acuerdo.ACTIVIDADES.forEach(act => {
-        const valor = parseFloat(act.VALOR_PONDERADO) || 0;
-        total += valor;
-        if (act.CHECKLIST === '✓') completado += valor;
-      });
     }
-    const porcentaje = total > 0 ? (completado / total) * 100 : 0;
-    
-    const row = tbody.insertRow();
-    row.insertCell(0).textContent = acuerdo.ID_ACUERDO;
-    row.insertCell(1).innerHTML = `<strong>${acuerdo.ACUERDO || ''}</strong><br><small>${acuerdo.RESPONSABLE || ''}</small>`;
-    row.insertCell(2).innerHTML = `${acuerdo.FECHAP || ''} → ${acuerdo.FECHAC || ''}`;
-    row.insertCell(3).innerHTML = `
-      <div class="progress-container">
-        <div class="progress-bar" style="width: ${porcentaje}%"></div>
-      </div>
-      <small>${porcentaje.toFixed(0)}%</small>
-    `;
-    row.insertCell(4).innerHTML = `
-      <div>📋 ${acuerdo.ACTIVIDADES?.length || 0} actividades</div>
-      <button class="btn btn-sm btn-primary" onclick="openActividadModal(${acuerdo.ID_ACUERDO})">Gestionar</button>
-    `;
-    row.insertCell(5).innerHTML = `<button class="btn btn-sm btn-warning" onclick="openAcuerdoModal(${acuerdo.ID_ACUERDO})">Editar</button>`;
-  });
-}
-
-async function openAcuerdoModal(id = null) {
-  document.getElementById('acuerdoForm').reset();
-  document.getElementById('acuerdoId').value = '';
-  
-  if (id) {
-    const data = await readData();
-    const acuerdo = data.find(a => a.ID_ACUERDO == id);
-    if (acuerdo) {
-      document.getElementById('acuerdoId').value = acuerdo.ID_ACUERDO;
-      document.getElementById('acuerdoText').value = acuerdo.ACUERDO || '';
-      document.getElementById('responsable').value = acuerdo.RESPONSABLE || '';
-      document.getElementById('fechaP').value = acuerdo.FECHAP || '';
-      document.getElementById('fechaC').value = acuerdo.FECHAC || '';
-      document.getElementById('observaciones').value = acuerdo.OBSERVACIONES || '';
-      document.getElementById('acuerdoModalTitle').textContent = 'Editar Acuerdo';
-    }
-  } else {
-    document.getElementById('acuerdoModalTitle').textContent = 'Nuevo Acuerdo';
-  }
-  document.getElementById('acuerdoModal').style.display = 'flex';
-}
-
-function closeAcuerdoModal() {
-  document.getElementById('acuerdoModal').style.display = 'none';
-}
-
-document.getElementById('acuerdoForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const id = document.getElementById('acuerdoId').value;
-  
-  const data = {
-    acuerdo: document.getElementById('acuerdoText').value,
-    responsable: document.getElementById('responsable').value,
-    fechap: document.getElementById('fechaP').value,
-    fechac: document.getElementById('fechaC').value,
-    observaciones: document.getElementById('observaciones').value
-  };
-  
-  try {
-    let result;
-    if (id) {
-      data.id = id;
-      result = await callAPI('updateAcuerdo', data);
-    } else {
-      result = await callAPI('createAcuerdo', data);
-    }
-    
-    if (result.status === 'ok') {
-      closeAcuerdoModal();
-      loadData();
-      alert(id ? '✅ Acuerdo actualizado' : '✅ Acuerdo creado');
-    } else {
-      alert('❌ Error: ' + (result.message || 'Desconocido'));
-    }
-  } catch (error) {
-    alert('❌ Error: ' + error.message);
-  }
-});
-
-async function openActividadModal(acuerdoId) {
-  document.getElementById('acuerdoIdForActividad').value = acuerdoId;
-  document.getElementById('actividadForm').reset();
-  document.getElementById('actividadId').value = '';
-  
-  const data = await readData();
-  const acuerdo = data.find(a => a.ID_ACUERDO == acuerdoId);
-  
-  const actividadesList = document.getElementById('actividadesList');
-  if (acuerdo?.ACTIVIDADES?.length) {
-    actividadesList.innerHTML = '<h3>📋 Actividades Existentes</h3>';
-    acuerdo.ACTIVIDADES.forEach(act => {
-      actividadesList.innerHTML += `
-        <div style="border:1px solid #ddd; margin:10px 0; padding:10px; border-radius:5px">
-          <strong>${act.ACTIVIDAD || ''}</strong><br>
-          <small>Resultados: ${act.RESULTADOS || 'N/A'}</small><br>
-          <small>Valor: ${act.VALOR_PONDERADO}% | ${act.CHECKLIST === '✓' ? '✅ Completada' : '⏳ Pendiente'}</small><br>
-          <button class="btn btn-sm btn-warning" onclick='editActividad(${JSON.stringify(act)})'>✏️ Editar</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteActividad(${act.ID_ACTIVIDAD})">🗑️ Eliminar</button>
-          <label style="margin-left: 10px">
-            <input type="checkbox" ${act.CHECKLIST === '✓' ? 'checked' : ''} onchange="toggleChecklist(${act.ID_ACTIVIDAD}, this.checked)"> ✅ Completada
-          </label>
-        </div>
-      `;
-    });
-  } else {
-    actividadesList.innerHTML = '<p>📭 No hay actividades registradas</p>';
-  }
-  
-  document.getElementById('actividadModal').style.display = 'flex';
-}
-
-function closeActividadModal() {
-  document.getElementById('actividadModal').style.display = 'none';
-}
-
-document.getElementById('actividadForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const data = {
-    id_acuerdo: document.getElementById('acuerdoIdForActividad').value,
-    actividad: document.getElementById('actividadDesc').value,
-    resultados: document.getElementById('resultados').value,
-    valorPonderado: document.getElementById('valorPonderado').value
-  };
-  
-  try {
-    const result = await callAPI('createActividad', data);
-    if (result.status === 'ok') {
-      closeActividadModal();
-      loadData();
-      alert('✅ Actividad agregada');
-    } else {
-      alert('❌ Error: ' + (result.message || 'Desconocido'));
-    }
-  } catch (error) {
-    alert('❌ Error: ' + error.message);
-  }
-});
-
-async function toggleChecklist(id, checked) {
-  try {
-    const result = await callAPI('updateActividad', { id, checklist: checked ? '✓' : '' });
-    if (result.status === 'ok') {
-      loadData();
-    }
-  } catch (error) {
-    alert('❌ Error al actualizar: ' + error.message);
-  }
-}
-
-async function editActividad(act) {
-  document.getElementById('actividadId').value = act.ID_ACTIVIDAD;
-  document.getElementById('actividadDesc').value = act.ACTIVIDAD || '';
-  document.getElementById('resultados').value = act.RESULTADOS || '';
-  document.getElementById('valorPonderado').value = act.VALOR_PONDERADO || 0;
-}
-
-async function deleteActividad(id) {
-  if (!confirm('¿Eliminar esta actividad permanentemente?')) return;
-  
-  try {
-    const result = await callAPI('deleteActividad', { id });
-    if (result.status === 'ok') {
-      loadData();
-      alert('✅ Actividad eliminada');
-    }
-  } catch (error) {
-    alert('❌ Error: ' + error.message);
-  }
-}
-
-// Inicializar
-loadData();
-</script>
 </body>
+
 </html>
