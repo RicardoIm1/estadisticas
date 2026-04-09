@@ -1,53 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Prueba COCASEP</title>
+  <title>Diagnóstico COCASEP</title>
 </head>
 <body>
-  <h1>Prueba de conexión</h1>
-  <button onclick="testRead()">Probar Leer</button>
-  <button onclick="testCreate()">Probar Crear</button>
-  <pre id="resultado"></pre>
+  <h1>Diagnóstico</h1>
+  <button onclick="test()">Probar conexión</button>
+  <pre id="output"></pre>
 
   <script>
-    // ⚠️ REEMPLAZA CON TU URL REAL
-    const API_URL = 'https://script.google.com/macros/s/AKfycbybqetiova5FCh8OX2A84VRYwe-Mlhh6DMXBf9fCZzeQPzPxlJH8BLdgRX6CmVzCzBFDA/exec';
+    // ⚠️ REEMPLAZA CON TU URL REAL (la que te dio Google)
+    const API_URL = 'https://script.google.com/macros/s/AKfycbz5hhZ2DDsWr36egYQhPrO8mjY54bxd2a_m0AokwBv20YClsJ-3byDJ8BlH02bYrV33Qg/exec';
     
-    async function testRead() {
-      const resultado = document.getElementById('resultado');
-      resultado.innerText = 'Probando GET...\n';
+    async function test() {
+      const output = document.getElementById('output');
+      output.textContent = 'Conectando...\n';
       
+      // Probar GET con action=read
       try {
-        const response = await fetch(API_URL + '?action=read');
+        output.textContent += `GET ${API_URL}?action=read\n`;
+        const response = await fetch(`${API_URL}?action=read`);
         const text = await response.text();
-        resultado.innerText += 'Respuesta GET:\n' + text;
+        output.textContent += `Respuesta GET: ${text}\n\n`;
       } catch (error) {
-        resultado.innerText += 'Error: ' + error.message;
+        output.textContent += `Error GET: ${error.message}\n\n`;
       }
-    }
-    
-    async function testCreate() {
-      const resultado = document.getElementById('resultado');
-      resultado.innerText = 'Probando POST...\n';
       
+      // Probar POST para crear
       try {
+        output.textContent += `POST ${API_URL}\n`;
         const formData = new URLSearchParams();
         formData.append('action', 'createAcuerdo');
-        formData.append('acuerdo', 'Acuerdo de prueba');
-        formData.append('responsable', 'Usuario Test');
-        formData.append('fechap', '2024-01-01');
-        formData.append('fechac', '2024-12-31');
+        formData.append('acuerdo', 'Prueba desde diagnóstico');
+        formData.append('responsable', 'Admin');
         
         const response = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
           body: formData.toString()
         });
-        
         const text = await response.text();
-        resultado.innerText += 'Respuesta POST:\n' + text;
+        output.textContent += `Respuesta POST: ${text}\n`;
       } catch (error) {
-        resultado.innerText += 'Error: ' + error.message;
+        output.textContent += `Error POST: ${error.message}\n`;
       }
     }
   </script>
