@@ -158,8 +158,8 @@
       <td>${row.ACUERDO}</td>
       <td>${row.ACTIVIDAD}</td>
       <td>${row.RESPONSABLE}</td>
-      <td>${row.FECHAP}</td>
-      <td>${row.FECHAC}</td>
+      <td>${formatDate(row.FECHAP)}</td>
+      <td>${formatDate(row.FECHAC)}</td>
       <td>${row.RESULTADOS}</td>
       <td>${row.OBSERVACIONES}</td>
       <td>${row.VALOR_PONDERADO}</td>
@@ -200,6 +200,16 @@
             formData.append('checklist', checked ? '✓' : '');
             await fetch(API_URL, { method: 'POST', body: formData });
             fetchAcuerdos();
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const d = new Date(dateString);
+            if (isNaN(d)) return dateString; // si no es fecha válida, devuelve tal cual
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const year = d.getFullYear();
+            return `${day}/${month}/${year}`;
         }
 
     </script>
