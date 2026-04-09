@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -27,6 +28,7 @@
     .progress-container { background: #e2e8f0; border-radius: 10px; overflow: hidden; }
     .progress-bar { height: 20px; background: #48bb78; transition: width 0.3s; }
     .loading { text-align: center; padding: 40px; }
+    .error { color: red; text-align: center; padding: 20px; }
   </style>
 </head>
 <body>
@@ -106,33 +108,50 @@
 </div>
 
 <script>
-// ⚠️ REEMPLAZA CON TU URL REAL
+// ⚠️ REEMPLAZA CON TU URL REAL DE GOOGLE APPS SCRIPT
 const API_URL = 'https://script.google.com/macros/s/AKfycbxtVpYPu7MhvP4YSCwYroaYyMsLgIpujRu8FNfrC1mj9ZxIsbjd-7SwaTqe3kl5FJ5FSw/exec';
 
-async function fetchAPI(action, params = {}) {
-  const url = new URL(API_URL);
-  url.searchParams.append('action', action);
-  Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+// Función genérica para llamar a la API
+async function callAPI(action, params = {}) {
+  // Construir URL con todos los parámetros
+  const urlParams = new URLSearchParams();
+  urlParams.append('action', action);
   
-  const response = await fetch(url.toString());
+  for (const key in params) {
+    if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
+      urlParams.append(key, params[key]);
+    }
+  }
+  
+  const url = `${API_URL}?${urlParams.toString()}`;
+  console.log('Llamando a:', url);
+  
+  const response = await fetch(url);
   const text = await response.text();
+  console.log('Respuesta:', text);
   
   try {
     return JSON.parse(text);
   } catch (e) {
-    console.error('Respuesta no JSON:', text);
+    console.error('Error parsing JSON:', text);
     throw new Error(`Error del servidor: ${text.substring(0, 100)}`);
   }
 }
 
 async function loadData() {
   try {
-    const data = await fetchAPI('read');
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('tableContainer').style.display = 'none';
+    
+    const data = await callAPI('read');
+    console.log('Datos cargados:', data);
+    
     renderTable(data);
     document.getElementById('loading').style.display = 'none';
     document.getElementById('tableContainer').style.display = 'block';
   } catch (error) {
-    document.getElementById('loading').innerHTML = `Error: ${error.message}<br><button onclick="loadData()">Reintentar</button>`;
+    document.getElementById('loading').innerHTML = `<div class="error">❌ Error: ${error.message}<br><button onclick="loadData()" class="btn btn-primary">Reintentar</button></div>`;
+    console.error('Error:', error);
   }
 }
 
@@ -140,19 +159,27 @@ function renderTable(data) {
   const tbody = document.querySelector('#acuerdosTable tbody');
   tbody.innerHTML = '';
   
+  if (!data || data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center">No hay acuerdos registrados</td></tr>';
+    return;
+  }
+  
   data.forEach(acuerdo => {
+    // Calcular progreso desde actividades
     let total = 0, completado = 0;
-    (acuerdo.ACTIVIDADES || []).forEach(act => {
-      const valor = parseFloat(act.VALOR_PONDERADO) || 0;
-      total += valor;
-      if (act.CHECKLIST === '✓') completado += valor;
-    });
+    if (acuerdo.ACTIVIDADES && acuerdo.ACTIVIDADES.length > 0) {
+      acuerdo.ACTIVIDADES.forEach(act => {
+        const valor = parseFloat(act.VALOR_PONDERADO) || 0;
+        total += valor;
+        if (act.CHECKLIST === '✓') completado += valor;
+      });
+    }
     const porcentaje = total > 0 ? (completado / total) * 100 : 0;
     
     const row = tbody.insertRow();
     row.insertCell(0).textContent = acuerdo.ID_ACUERDO;
     row.insertCell(1).innerHTML = `<strong>${acuerdo.ACUERDO || ''}</strong><br><small>${acuerdo.RESPONSABLE || ''}</small>`;
-    row.insertCell(2).innerHTML = `${acuerdo.FECH_P || ''} → ${acuerdo.FECH_C || ''}`;
+    row.insertCell(2).innerHTML = `${acuerdo.FECHAP || ''} → ${acuerdo.FECHAC || ''}`;
     row.insertCell(3).innerHTML = `
       <div class="progress-container">
         <div class="progress-bar" style="width: ${porcentaje}%"></div>
@@ -172,14 +199,14 @@ async function openAcuerdoModal(id = null) {
   document.getElementById('acuerdoId').value = '';
   
   if (id) {
-    const data = await fetchAPI('read');
+    const data = await callAPI('read');
     const acuerdo = data.find(a => a.ID_ACUERDO == id);
     if (acuerdo) {
       document.getElementById('acuerdoId').value = acuerdo.ID_ACUERDO;
       document.getElementById('acuerdoText').value = acuerdo.ACUERDO || '';
       document.getElementById('responsable').value = acuerdo.RESPONSABLE || '';
-      document.getElementById('fechaP').value = acuerdo.FECH_P || '';
-      document.getElementById('fechaC').value = acuerdo.FECH_C || '';
+      document.getElementById('fechaP').value = acuerdo.FECHAP || '';
+      document.getElementById('fechaC').value = acuerdo.FECHAC || '';
       document.getElementById('observaciones').value = acuerdo.OBSERVACIONES || '';
       document.getElementById('acuerdoModalTitle').textContent = 'Editar Acuerdo';
     }
@@ -196,6 +223,7 @@ function closeAcuerdoModal() {
 document.getElementById('acuerdoForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('acuerdoId').value;
+  
   const params = {
     acuerdo: document.getElementById('acuerdoText').value,
     responsable: document.getElementById('responsable').value,
@@ -204,41 +232,54 @@ document.getElementById('acuerdoForm').addEventListener('submit', async (e) => {
     observaciones: document.getElementById('observaciones').value
   };
   
-  if (id) {
-    params.id = id;
-    await fetchAPI('updateAcuerdo', params);
-  } else {
-    await fetchAPI('createAcuerdo', params);
+  try {
+    let result;
+    if (id) {
+      params.id = id;
+      result = await callAPI('updateAcuerdo', params);
+    } else {
+      result = await callAPI('createAcuerdo', params);
+    }
+    
+    if (result.status === 'ok') {
+      closeAcuerdoModal();
+      loadData();
+      alert(id ? '✅ Acuerdo actualizado' : '✅ Acuerdo creado');
+    } else {
+      alert('❌ Error: ' + (result.message || 'Desconocido'));
+    }
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
   }
-  
-  closeAcuerdoModal();
-  loadData();
-  alert(id ? 'Acuerdo actualizado' : 'Acuerdo creado');
 });
 
 async function openActividadModal(acuerdoId) {
   document.getElementById('acuerdoIdForActividad').value = acuerdoId;
   document.getElementById('actividadForm').reset();
+  document.getElementById('actividadId').value = '';
   
-  const data = await fetchAPI('read');
+  const data = await callAPI('read');
   const acuerdo = data.find(a => a.ID_ACUERDO == acuerdoId);
   
   const actividadesList = document.getElementById('actividadesList');
   if (acuerdo?.ACTIVIDADES?.length) {
-    actividadesList.innerHTML = '<h3>Actividades</h3>';
+    actividadesList.innerHTML = '<h3>📋 Actividades Existentes</h3>';
     acuerdo.ACTIVIDADES.forEach(act => {
       actividadesList.innerHTML += `
         <div style="border:1px solid #ddd; margin:10px 0; padding:10px; border-radius:5px">
           <strong>${act.ACTIVIDAD || ''}</strong><br>
+          <small>Resultados: ${act.RESULTADOS || 'N/A'}</small><br>
           <small>Valor: ${act.VALOR_PONDERADO}% | ${act.CHECKLIST === '✓' ? '✅ Completada' : '⏳ Pendiente'}</small><br>
-          <button class="btn btn-sm btn-warning" onclick='editActividad(${JSON.stringify(act)})'>Editar</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteActividad(${act.ID_ACTIVIDAD})">Eliminar</button>
-          <label><input type="checkbox" ${act.CHECKLIST === '✓' ? 'checked' : ''} onchange="toggleChecklist(${act.ID_ACTIVIDAD}, this.checked)"> Completada</label>
+          <button class="btn btn-sm btn-warning" onclick='editActividad(${JSON.stringify(act)})'>✏️ Editar</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteActividad(${act.ID_ACTIVIDAD})">🗑️ Eliminar</button>
+          <label style="margin-left: 10px">
+            <input type="checkbox" ${act.CHECKLIST === '✓' ? 'checked' : ''} onchange="toggleChecklist(${act.ID_ACTIVIDAD}, this.checked)"> ✅ Completada
+          </label>
         </div>
       `;
     });
   } else {
-    actividadesList.innerHTML = '<p>Sin actividades</p>';
+    actividadesList.innerHTML = '<p>📭 No hay actividades registradas</p>';
   }
   
   document.getElementById('actividadModal').style.display = 'flex';
@@ -257,15 +298,29 @@ document.getElementById('actividadForm').addEventListener('submit', async (e) =>
     valorPonderado: document.getElementById('valorPonderado').value
   };
   
-  await fetchAPI('createActividad', params);
-  closeActividadModal();
-  loadData();
-  alert('Actividad agregada');
+  try {
+    const result = await callAPI('createActividad', params);
+    if (result.status === 'ok') {
+      closeActividadModal();
+      loadData();
+      alert('✅ Actividad agregada');
+    } else {
+      alert('❌ Error: ' + (result.message || 'Desconocido'));
+    }
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
+  }
 });
 
 async function toggleChecklist(id, checked) {
-  await fetchAPI('updateActividad', { id, checklist: checked ? '✓' : '' });
-  loadData();
+  try {
+    const result = await callAPI('updateActividad', { id, checklist: checked ? '✓' : '' });
+    if (result.status === 'ok') {
+      loadData();
+    }
+  } catch (error) {
+    alert('❌ Error al actualizar: ' + error.message);
+  }
 }
 
 async function editActividad(act) {
@@ -276,13 +331,20 @@ async function editActividad(act) {
 }
 
 async function deleteActividad(id) {
-  if (confirm('¿Eliminar?')) {
-    await fetchAPI('deleteActividad', { id });
-    loadData();
-    alert('Eliminada');
+  if (!confirm('¿Eliminar esta actividad permanentemente?')) return;
+  
+  try {
+    const result = await callAPI('deleteActividad', { id });
+    if (result.status === 'ok') {
+      loadData();
+      alert('✅ Actividad eliminada');
+    }
+  } catch (error) {
+    alert('❌ Error: ' + error.message);
   }
 }
 
+// Inicializar
 loadData();
 </script>
 </body>
