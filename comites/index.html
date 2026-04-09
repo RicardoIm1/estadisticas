@@ -1,218 +1,93 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <title>Seguimiento de Acuerdos</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        th,
-        td {
-            border: 1px solid #ccc;
-            padding: 8px;
-            text-align: left;
-        }
-
-        th {
-            background: #f4f4f4;
-        }
-
-        .progress {
-            height: 20px;
-            background: #eee;
-            border-radius: 5px;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: #4caf50;
-            border-radius: 5px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Acuerdos y Actividades</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 20px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f4f4f4; }
+    .progress { height: 20px; background: #eee; border-radius: 5px; }
+    .progress-bar { height: 100%; background: #4caf50; border-radius: 5px; }
+  </style>
 </head>
-
 <body>
-    <h1>Control de Acuerdos Hospitalarios</h1>
+  <h1>Control de Acuerdos y Actividades</h1>
 
-    <form id="acuerdoForm">
-        <input type="text" name="acuerdo" placeholder="Acuerdo" required>
-        <input type="text" name="actividad" placeholder="Actividad" required>
-        <input type="text" name="responsable" placeholder="Responsable" required>
-        <input type="date" name="fechap" required>
-        <input type="date" name="fechac">
-        <input type="text" name="resultados" placeholder="Resultados">
-        <input type="text" name="observaciones" placeholder="Observaciones">
-        <input type="number" name="valorPonderado" placeholder="Valor Ponderado" required>
-        <button type="submit">Crear Acuerdo</button>
-    </form>
+  <table id="acuerdosTable">
+    <thead>
+      <tr>
+        <th>ID</th><th>Acuerdo</th><th>Responsable</th><th>FechP</th><th>FechC</th>
+        <th>Obs</th><th>PDF</th><th>Progreso</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
 
-    <table id="acuerdosTable">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Acuerdo</th>
-                <th>Actividad</th>
-                <th>Responsable</th>
-                <th>FechP</th>
-                <th>FechC</th>
-                <th>Resultados</th>
-                <th>Obs</th>
-                <th>Valor</th>
-                <th>Checklist</th>
-                <th>PDF</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+  <script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycbyNfAfd9ZYjuzHDNDGxE0Toh1_3iRwZITTk9taiized6pEJOknstQNEe1dPbs2gQVb5DQ/exec';
 
-    <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbylME6n7tDS7uvigHnsK7Bd_T92S2iT7yUbqLbjCGE6wTrP6gmf21nyQaVs2BEx0YLc/exec';
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      const d = new Date(dateString);
+      if (isNaN(d)) return dateString;
+      const day = String(d.getDate()).padStart(2,'0');
+      const month = String(d.getMonth()+1).padStart(2,'0');
+      const year = d.getFullYear();
+      return `${day}/${month}/${year}`;
+    }
 
-        async function fetchAcuerdos() {
-            const res = await fetch(`${API_URL}?action=read`);
-            const data = await res.json();
-            renderTable(data);
-        }
+    async function fetchAcuerdos() {
+      const res = await fetch(`${API_URL}?action=read`);
+      const data = await res.json();
+      renderTable(data);
+    }
 
-        function renderTable(data) {
-            const tbody = document.querySelector('#acuerdosTable tbody');
-            tbody.innerHTML = '';
-            data.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-          <td>${row.ID_ACUERDO}</td>
-          <td>${row.ACUERDO}</td>
-          <td>${row.ACTIVIDAD}</td>
-          <td>${row.RESPONSABLE}</td>
-          <td>${row.FECHAP}</td>
-          <td>${row.FECHAC}</td>
-          <td>${row.RESULTADOS}</td>
-          <td>${row.OBSERVACIONES}</td>
-          <td>${row.VALOR_PONDERADO}</td>
-          <td>${row.CHECKLIST}</td>
-          <td>${row.DOCUMENTO_PDF ? `<a href="${row.DOCUMENTO_PDF}" target="_blank">📎</a>` : ''}</td>
-          <td>
-            <button onclick="deleteAcuerdo(${row.ID_ACUERDO})">Eliminar</button>
-            <input type="file" onchange="uploadPDF(${row.ID_ACUERDO}, this.files[0])">
-          </td>
-        `;
-                tbody.appendChild(tr);
-            });
-        }
-
-        document.getElementById('acuerdoForm').addEventListener('submit', async e => {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            formData.append('action', 'create');
-            const res = await fetch(API_URL, { method: 'POST', body: formData });
-            const result = await res.json();
-            alert('Acuerdo creado con ID ' + result.id);
-            fetchAcuerdos();
+    function renderTable(data) {
+      const tbody = document.querySelector('#acuerdosTable tbody');
+      tbody.innerHTML = '';
+      data.forEach(acuerdo => {
+        // Calcular progreso
+        let total = 0, completado = 0;
+        acuerdo.ACTIVIDADES.forEach(act => {
+          const valor = parseInt(act.VALOR_PONDERADO) || 0;
+          total += valor;
+          if (act.CHECKLIST === '✓') completado += valor;
         });
-
-        async function deleteAcuerdo(id) {
-            const formData = new FormData();
-            formData.append('action', 'delete');
-            formData.append('id', id);
-            await fetch(API_URL, { method: 'POST', body: formData });
-            fetchAcuerdos();
+                const porcentaje = total > 0 ? (completado / total) * 100 : 0;
+        
+        const row = tbody.insertRow();
+        row.insertCell(0).textContent = acuerdo.ID;
+        row.insertCell(1).textContent = acuerdo.ACUERDO;
+        row.insertCell(2).textContent = acuerdo.RESPONSABLE;
+        row.insertCell(3).textContent = formatDate(acuerdo.FECH_P);
+        row.insertCell(4).textContent = formatDate(acuerdo.FECH_C);
+        row.insertCell(5).textContent = acuerdo.OBSERVACION || '';
+        
+        // Celda PDF (enlace)
+        const pdfCell = row.insertCell(6);
+        if (acuerdo.PDF_URL) {
+          const link = document.createElement('a');
+          link.href = acuerdo.PDF_URL;
+          link.textContent = 'Ver PDF';
+          link.target = '_blank';
+          pdfCell.appendChild(link);
         }
+        
+        // Celda Progreso
+        const progressCell = row.insertCell(7);
+        progressCell.innerHTML = `
+          <div class="progress">
+            <div class="progress-bar" style="width: ${porcentaje}%"></div>
+          </div>
+          <span>${porcentaje.toFixed(0)}%</span>
+        `;
+      });
+    }
 
-        async function uploadPDF(id, file) {
-            const formData = new FormData();
-            formData.append('action', 'uploadPDF');
-            formData.append('id', id);
-            formData.append('file', file);
-            const res = await fetch(API_URL, { method: 'POST', body: formData });
-            const result = await res.json();
-            alert('PDF subido: ' + result.url);
-            fetchAcuerdos();
-        }
-
-        fetchAcuerdos();
-    </script>
-
-    <script>
-        function renderTable(data) {
-            const tbody = document.querySelector('#acuerdosTable tbody');
-            tbody.innerHTML = '';
-            data.forEach(row => {
-                const progreso = row.CHECKLIST === '✓' ? parseInt(row.VALOR_PONDERADO) : 0;
-                const total = parseInt(row.VALOR_PONDERADO);
-                const porcentaje = total > 0 ? Math.round((progreso / total) * 100) : 0;
-
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-      <td>${row.ID_ACUERDO}</td>
-      <td>${row.ACUERDO}</td>
-      <td>${row.ACTIVIDAD}</td>
-      <td>${row.RESPONSABLE}</td>
-      <td>${formatDate(row.FECHAP)}</td>
-      <td>${formatDate(row.FECHAC)}</td>
-      <td>${row.RESULTADOS}</td>
-      <td>${row.OBSERVACIONES}</td>
-      <td>${row.VALOR_PONDERADO}</td>
-      <td>
-        <input type="checkbox" ${row.CHECKLIST === '✓' ? 'checked' : ''} 
-          onchange="toggleChecklist(${row.ID_ACUERDO}, this.checked)">
-      </td>
-    <td>
-  ${row.DOCUMENTO_PDF && row.DOCUMENTO_PDF.trim() !== ''
-                        ? `<button onclick="window.open('${row.DOCUMENTO_PDF}', '_blank')">Ver PDF</button>`
-                        : 'Sin documento'}
-</td>
-
-        <button onclick="deleteAcuerdo(${row.ID_ACUERDO})">Eliminar</button>
-        <input type="file" onchange="uploadPDF(${row.ID_ACUERDO}, this.files[0])">
-      </td>
-    `;
-                tbody.appendChild(tr);
-
-                // Barra de progreso
-                const progressRow = document.createElement('tr');
-                progressRow.innerHTML = `
-      <td colspan="12">
-        <div class="progress">
-          <div class="progress-bar" style="width:${porcentaje}%"></div>
-        </div>
-        ${porcentaje}%
-      </td>
-    `;
-                tbody.appendChild(progressRow);
-            });
-        }
-
-        async function toggleChecklist(id, checked) {
-            const formData = new FormData();
-            formData.append('action', 'update');
-            formData.append('id', id);
-            formData.append('checklist', checked ? '✓' : '');
-            await fetch(API_URL, { method: 'POST', body: formData });
-            fetchAcuerdos();
-        }
-
-        function formatDate(dateString) {
-            if (!dateString) return '';
-            const d = new Date(dateString);
-            if (isNaN(d)) return dateString; // si no es fecha válida, devuelve tal cual
-            const day = String(d.getDate()).padStart(2, '0');
-            const month = String(d.getMonth() + 1).padStart(2, '0');
-            const year = d.getFullYear();
-            return `${day}/${month}/${year}`;
-        }
-
-    </script>
+    // Inicializar
+    fetchAcuerdos();
+  </script>
 </body>
-
 </html>
