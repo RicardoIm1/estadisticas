@@ -2,20 +2,36 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Acuerdos y Actividades</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acuerdos y Actividades - COCASEP</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; }
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    .container { max-width: 1400px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { color: #333; margin-top: 0; }
     table { border-collapse: collapse; width: 100%; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-    th { background: #f4f4f4; }
-    .progress { height: 20px; background: #eee; border-radius: 5px; }
-    .progress-bar { height: 100%; background: #4caf50; border-radius: 5px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background: #4caf50; color: white; font-weight: bold; }
+    tr:nth-child(even) { background: #f9f9f9; }
+    .progress { height: 20px; background: #eee; border-radius: 5px; overflow: hidden; }
+    .progress-bar { height: 100%; background: #4caf50; border-radius: 5px; transition: width 0.3s; }
+    .btn-agregar { background: #2196f3; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 10px 0; }
+    .btn-agregar:hover { background: #1976d2; }
+    .loading { text-align: center; padding: 20px; color: #666; }
+    .pdf-link { color: #2196f3; text-decoration: none; }
+    .pdf-link:hover { text-decoration: underline; }
+    @media (max-width: 768px) {
+      .container { padding: 10px; }
+      th, td { padding: 5px; font-size: 12px; }
+    }
   </style>
 </head>
 <body>
-  <h1>Control de Acuerdos y Actividades</h1>
+<div class="container">
+  <h1>📋 Control de Acuerdos y Actividades - COCASEP</h1>
+  <button class="btn-agregar" onclick="window.location.href='?action=add'">+ Nuevo Acuerdo</button>
 
-  <table id="acuerdosTable">
+  <div id="loading" class="loading">Cargando datos...</div>
+  <table id="acuerdosTable" style="display: none;">
     <thead>
       <tr>
         <th>ID</th><th>Acuerdo</th><th>Responsable</th><th>FechP</th><th>FechC</th>
@@ -24,70 +40,91 @@
     </thead>
     <tbody></tbody>
   </table>
+</div>
 
-  <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbyNfAfd9ZYjuzHDNDGxE0Toh1_3iRwZITTk9taiized6pEJOknstQNEe1dPbs2gQVb5DQ/exec';
+<script>
+  // Reemplaza esta URL con la URL de tu Web App de Google Apps Script
+  const API_URL = 'https://script.google.com/macros/s/TU_WEBAPP_ID/exec';
 
-    function formatDate(dateString) {
-      if (!dateString) return '';
-      const d = new Date(dateString);
-      if (isNaN(d)) return dateString;
-      const day = String(d.getDate()).padStart(2,'0');
-      const month = String(d.getMonth()+1).padStart(2,'0');
-      const year = d.getFullYear();
-      return `${day}/${month}/${year}`;
-    }
+  function formatDate(dateString) {
+    if (!dateString) return '';
+    const d = new Date(dateString);
+    if (isNaN(d.getTime())) return dateString;
+    const day = String(d.getDate()).padStart(2,'0');
+    const month = String(d.getMonth()+1).padStart(2,'0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
 
-    async function fetchAcuerdos() {
+  async function fetchAcuerdos() {
+    try {
       const res = await fetch(`${API_URL}?action=read`);
+      if (!res.ok) throw new Error('Error al cargar datos');
       const data = await res.json();
       renderTable(data);
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('acuerdosTable').style.display = 'table';
+    } catch (error) {
+      document.getElementById('loading').innerHTML = `❌ Error: ${error.message}<br><button onclick="location.reload()">Reintentar</button>`;
+      console.error('Error:', error);
+    }
+  }
+
+  function renderTable(data) {
+    const tbody = document.querySelector('#acuerdosTable tbody');
+    tbody.innerHTML = '';
+    
+    if (!data || data.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center">No hay acuerdos registrados</td></tr>';
+      return;
     }
 
-    function renderTable(data) {
-      const tbody = document.querySelector('#acuerdosTable tbody');
-      tbody.innerHTML = '';
-      data.forEach(acuerdo => {
-        // Calcular progreso
-        let total = 0, completado = 0;
+    data.forEach(acuerdo => {
+      // Calcular progreso
+      let total = 0, completado = 0;
+      if (acuerdo.ACTIVIDADES && acuerdo.ACTIVIDADES.length > 0) {
         acuerdo.ACTIVIDADES.forEach(act => {
           const valor = parseInt(act.VALOR_PONDERADO) || 0;
           total += valor;
           if (act.CHECKLIST === '✓') completado += valor;
         });
-                const porcentaje = total > 0 ? (completado / total) * 100 : 0;
-        
-        const row = tbody.insertRow();
-        row.insertCell(0).textContent = acuerdo.ID;
-        row.insertCell(1).textContent = acuerdo.ACUERDO;
-        row.insertCell(2).textContent = acuerdo.RESPONSABLE;
-        row.insertCell(3).textContent = formatDate(acuerdo.FECH_P);
-        row.insertCell(4).textContent = formatDate(acuerdo.FECH_C);
-        row.insertCell(5).textContent = acuerdo.OBSERVACION || '';
-        
-        // Celda PDF (enlace)
-        const pdfCell = row.insertCell(6);
-        if (acuerdo.PDF_URL) {
-          const link = document.createElement('a');
-          link.href = acuerdo.PDF_URL;
-          link.textContent = 'Ver PDF';
-          link.target = '_blank';
-          pdfCell.appendChild(link);
-        }
-        
-        // Celda Progreso
-        const progressCell = row.insertCell(7);
-        progressCell.innerHTML = `
-          <div class="progress">
-            <div class="progress-bar" style="width: ${porcentaje}%"></div>
-          </div>
-          <span>${porcentaje.toFixed(0)}%</span>
-        `;
-      });
-    }
+      }
+      const porcentaje = total > 0 ? (completado / total) * 100 : 0;
+      
+      const row = tbody.insertRow();
+      row.insertCell(0).textContent = acuerdo.ID_ACUERDO || acuerdo.ID;
+      row.insertCell(1).textContent = acuerdo.ACUERDO || '';
+      row.insertCell(2).textContent = acuerdo.RESPONSABLE || '';
+      row.insertCell(3).textContent = formatDate(acuerdo.FECH_P);
+      row.insertCell(4).textContent = formatDate(acuerdo.FECH_C);
+      row.insertCell(5).textContent = acuerdo.OBSERVACIONES || '';
+      
+      // Celda PDF
+      const pdfCell = row.insertCell(6);
+      if (acuerdo.DOCUMENTO_PDF) {
+        const link = document.createElement('a');
+        link.href = acuerdo.DOCUMENTO_PDF;
+        link.textContent = '📄 Ver PDF';
+        link.target = '_blank';
+        link.className = 'pdf-link';
+        pdfCell.appendChild(link);
+      } else {
+        pdfCell.textContent = 'Sin PDF';
+      }
+      
+      // Celda Progreso
+      const progressCell = row.insertCell(7);
+      progressCell.innerHTML = `
+        <div class="progress">
+          <div class="progress-bar" style="width: ${porcentaje}%"></div>
+        </div>
+        <small>${porcentaje.toFixed(0)}% (${completado}/${total})</small>
+      `;
+    });
+  }
 
-    // Inicializar
-    fetchAcuerdos();
-  </script>
+  // Inicializar
+  fetchAcuerdos();
+</script>
 </body>
 </html>
