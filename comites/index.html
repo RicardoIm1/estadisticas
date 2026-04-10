@@ -240,6 +240,7 @@
         opacity: 0;
         transform: translateY(20px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -375,7 +376,7 @@
 
     /* Estado de error - ROJO CRISTALINO */
     .glass.error {
-      background: rgba(240, 50, 60, 0.45) !important;
+      background: rgba(197, 96, 94, 0.12) !important;
       box-shadow: 0 8px 32px rgba(197, 96, 94, 0.06) !important;
       border: 1px solid rgba(197, 96, 94, 0.2) !important;
       backdrop-filter: blur(2px);
@@ -415,13 +416,26 @@
     }
 
     @keyframes spin {
-      to { transform: translate(-50%, -50%) rotate(360deg); }
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
     }
 
     @keyframes gentlePulse {
-      0% { opacity: 0; transform: scale(0.98); }
-      50% { opacity: 0.3; transform: scale(1); }
-      100% { opacity: 0; transform: scale(1.02); }
+      0% {
+        opacity: 0;
+        transform: scale(0.98);
+      }
+
+      50% {
+        opacity: 0.3;
+        transform: scale(1);
+      }
+
+      100% {
+        opacity: 0;
+        transform: scale(1.02);
+      }
     }
 
     /* Notificación tipo toast - mínima, sin alertas */
@@ -441,13 +455,15 @@
       letter-spacing: 0.3px;
     }
 
-    .estado-toast.loading { 
+    .estado-toast.loading {
       background: rgba(91, 123, 195, 0.9);
     }
-    .estado-toast.success { 
+
+    .estado-toast.success {
       background: rgba(45, 140, 110, 0.9);
     }
-    .estado-toast.error { 
+
+    .estado-toast.error {
       background: rgba(197, 96, 94, 0.9);
     }
 
@@ -456,6 +472,7 @@
         transform: translateX(100%);
         opacity: 0;
       }
+
       to {
         transform: translateX(0);
         opacity: 1;
@@ -463,20 +480,32 @@
     }
 
     @keyframes fadeOutToast {
-      from { opacity: 1; transform: translateX(0); }
-      to { opacity: 0; transform: translateX(10px); visibility: hidden; }
+      from {
+        opacity: 1;
+        transform: translateX(0);
+      }
+
+      to {
+        opacity: 0;
+        transform: translateX(10px);
+        visibility: hidden;
+      }
     }
 
     @media (max-width: 680px) {
       .main-content {
         padding: 1rem;
       }
-      th, td {
+
+      th,
+      td {
         padding: 0.8rem;
       }
+
       .btn {
         padding: 0.5rem 1rem;
       }
+
       .estado-toast {
         bottom: 70px;
         right: 15px;
@@ -523,7 +552,8 @@
   </div>
 
   <footer class="app-footer">
-    <p>Hecho con ❤️ por <a href="https://ricardoim1.github.io/jeronimoricardo/" target="_blank">Ricardo</a> · <span id="currentYear"></span></p>
+    <p>Hecho con ❤️ por <a href="https://ricardoim1.github.io/jeronimoricardo/" target="_blank">Ricardo</a> · <span
+        id="currentYear"></span></p>
   </footer>
 
   <!-- MODALES (sin cambios en estructura) -->
@@ -613,17 +643,17 @@
 
       const toast = document.createElement('div');
       toast.className = `estado-toast ${estado}`;
-      
+
       const iconos = { loading: '🔄', success: '✓', error: '⚠' };
       const textos = {
         loading: mensaje || 'Procesando...',
         success: mensaje || 'Completado',
         error: mensaje || 'Error'
       };
-      
+
       toast.innerHTML = `${iconos[estado]} ${textos[estado]}`;
       document.body.appendChild(toast);
-      
+
       setTimeout(() => {
         if (toast.parentNode) toast.remove();
       }, 3000);
@@ -642,12 +672,12 @@
 
       // Remover clases actuales
       dashboard.classList.remove('loading', 'success', 'error');
-      
+
       // Agregar nueva clase
       if (estado) {
         dashboard.classList.add(estado);
       }
-      
+
       // Mostrar toast si hay mensaje
       if (mensaje) {
         mostrarToast(estado, mensaje);
@@ -693,24 +723,37 @@
       }
     }
 
+    // Subir PDF con FormData (multipart) - VERSIÓN CORREGIDA
     async function uploadPDF(idAcuerdo, file) {
+      // Crear FormData correctamente
       const formData = new FormData();
       formData.append('action', 'uploadPDF');
-      formData.append('id_acuerdo', idAcuerdo);
-      formData.append('file', file);
+      formData.append('id_acuerdo', idAcuerdo.toString());
+      formData.append('file', file, file.name); // nombre del archivo explícito
 
-      const resp = await fetch(API_URL, {
-        method: 'POST',
-        body: formData
-      });
-      const text = await resp.text();
+      console.log('Subiendo PDF:', file.name, 'tamaño:', file.size, 'tipo:', file.type);
+
       try {
-        return JSON.parse(text);
-      } catch (e) {
-        throw new Error(`Error al subir PDF: ${text.substring(0, 100)}`);
+        const resp = await fetch(API_URL, {
+          method: 'POST',
+          body: formData
+          // NO poner Content-Type header, el navegador lo establece automáticamente con el boundary
+        });
+
+        const text = await resp.text();
+        console.log('Respuesta uploadPDF:', text);
+
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          console.error('Error parseando respuesta:', text);
+          throw new Error(`Respuesta del servidor: ${text.substring(0, 200)}`);
+        }
+      } catch (error) {
+        console.error('Error en fetch uploadPDF:', error);
+        throw error;
       }
     }
-
     async function readData() {
       const resp = await fetch(`${API_URL}?action=read`);
       const text = await resp.text();
@@ -721,12 +764,12 @@
       const tbody = document.getElementById('acuerdosBody');
       tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando...</td></tr>';
       setEstadoLocal('loading', 'Cargando acuerdos...', true);
-      
+
       try {
         const data = await readData();
         limpiarEstado();
         setEstadoLocal('success', `${data.length} acuerdos cargados`);
-        
+
         if (!data.length) {
           tbody.innerHTML = '<tr><td colspan="7" class="empty-row">✨ No hay acuerdos. Crea el primero ✨</td></tr>';
           return;
