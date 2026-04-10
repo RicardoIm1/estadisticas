@@ -18,42 +18,29 @@
       color: #1e293b;
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      /* Altura fija de la ventana */
-      overflow: hidden;
-      /* Evita scroll en body */
+      min-height: 100vh;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
     }
 
-    /* Header fijo arriba */
-    .main-header {
-      flex-shrink: 0;
-      background: #f0f2f5;
-      padding: 1.5rem 1.5rem 0 1.5rem;
+    .main-content {
+      flex: 1;
+      padding: 2rem 1.5rem;
     }
 
-    /* Footer fijo abajo */
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
     .app-footer {
-      flex-shrink: 0;
       background: white;
       border-top: 1px solid #e2e8f0;
       padding: 1rem;
       text-align: center;
       font-size: 0.75rem;
       color: #5b6e8c;
-    }
-
-    /* Contenedor scrollable solo para la tabla */
-    .scrollable-content {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 1.5rem 1.5rem 1.5rem;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
+      margin-top: auto;
     }
 
     .app-footer a {
@@ -67,7 +54,7 @@
     }
 
     .header {
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
@@ -142,7 +129,6 @@
       border-radius: 20px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
       overflow-x: auto;
-      overflow-y: visible;
       border: 1px solid #edf2f7;
     }
 
@@ -159,10 +145,6 @@
       color: #334155;
       font-weight: 600;
       border-bottom: 1px solid #eef2f6;
-      position: sticky;
-      top: 0;
-      background: #f9fafb;
-      z-index: 10;
     }
 
     td {
@@ -374,6 +356,7 @@
       backdrop-filter: blur(0px);
     }
 
+    /* Estado de carga - AZUL CRISTALINO (muy suave, casi translúcido) */
     .glass.loading {
       background: rgba(0, 123, 255, 0.15) !important;
       box-shadow: 0 8px 32px rgba(91, 123, 195, 0.08) !important;
@@ -382,6 +365,7 @@
       transition: all 1.2s cubic-bezier(0.2, 0.9, 0.4, 1.1) !important;
     }
 
+    /* Estado de éxito - VERDE CRISTALINO */
     .glass.success {
       background: rgba(40, 167, 69, 0.2) !important;
       box-shadow: 0 8px 32px rgba(45, 140, 110, 0.06) !important;
@@ -390,6 +374,7 @@
       transition: all 1.2s cubic-bezier(0.2, 0.9, 0.4, 1.1) !important;
     }
 
+    /* Estado de error - ROJO CRISTALINO */
     .glass.error {
       background: rgba(197, 96, 94, 0.12) !important;
       box-shadow: 0 8px 32px rgba(197, 96, 94, 0.06) !important;
@@ -398,6 +383,7 @@
       transition: all 1.2s cubic-bezier(0.2, 0.9, 0.4, 1.1) !important;
     }
 
+    /* Overlay de estado con pulso suave */
     .glass.loading::after,
     .glass.success::after,
     .glass.error::after {
@@ -411,6 +397,12 @@
       border-radius: 20px;
       pointer-events: none;
       animation: gentlePulse 1.5s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
     }
 
     @keyframes gentlePulse {
@@ -430,7 +422,7 @@
       }
     }
 
-    /* Notificación tipo toast */
+    /* Notificación tipo toast - mínima, sin alertas */
     .estado-toast {
       position: fixed;
       bottom: 80px;
@@ -485,12 +477,8 @@
     }
 
     @media (max-width: 680px) {
-      .main-header {
-        padding: 1rem 1rem 0 1rem;
-      }
-
-      .scrollable-content {
-        padding: 0 1rem 1rem 1rem;
+      .main-content {
+        padding: 1rem;
       }
 
       th,
@@ -514,8 +502,7 @@
 
 <body>
 
-  <!-- HEADER FIJO -->
-  <div class="main-header">
+  <div class="main-content">
     <div class="container">
       <div class="header">
         <div>
@@ -524,12 +511,7 @@
         </div>
         <button class="btn btn-primary" id="newAcuerdoBtn">+ Nuevo acuerdo</button>
       </div>
-    </div>
-  </div>
 
-  <!-- CONTENIDO SCROLLABLE (SOLO TABLA) -->
-  <div class="scrollable-content">
-    <div class="container">
       <div class="table-wrapper glass" id="dashboard">
         <table id="acuerdosTable">
           <thead>
@@ -553,12 +535,12 @@
     </div>
   </div>
 
-  <!-- FOOTER FIJO -->
   <footer class="app-footer">
-    <p>Hecho con ❤️ por <a href="https://ricardoim1.github.io/jeronimoricardo/" target="_blank">Ricardo</a> · <span id="currentYear"></span></p>
+    <p>Hecho con ❤️ por <a href="https://ricardoim1.github.io/jeronimoricardo/" target="_blank">Ricardo</a> · <span
+        id="currentYear"></span></p>
   </footer>
 
-  <!-- MODALES (sin cambios) -->
+  <!-- MODALES (sin cambios en estructura) -->
   <div id="acuerdoModal" class="modal">
     <div class="modal-card">
       <div class="modal-header">
@@ -632,13 +614,13 @@
   </div>
 
   <script>
-    // (El JavaScript se mantiene IDÉNTICO al que tenías)
     document.getElementById('currentYear').textContent = new Date().getFullYear();
 
     const API_URL = 'https://script.google.com/macros/s/AKfycbz_K6o0hZf6mIguLTub9B6dhjO4OD5JYZdb_VN-RETGDU-JRZJIsaa8lEThqxxAvh5m_g/exec';
 
     let estadoTimeout = null;
 
+    // Notificación tipo toast (sutil, sin alert)
     function mostrarToast(estado, mensaje) {
       const toastAnterior = document.querySelector('.estado-toast');
       if (toastAnterior) toastAnterior.remove();
@@ -661,25 +643,31 @@
       }, 3000);
     }
 
+    // Función setEstado - SIN TIMEOUT FIJO, se remueve cuando la operación termina
     function setEstadoLocal(estado, mensaje = null, mantener = false) {
       const dashboard = document.querySelector('.glass');
       if (!dashboard) return;
 
+      // Limpiar timeout anterior si existe
       if (estadoTimeout) {
         clearTimeout(estadoTimeout);
         estadoTimeout = null;
       }
 
+      // Remover clases actuales
       dashboard.classList.remove('loading', 'success', 'error');
 
+      // Agregar nueva clase
       if (estado) {
         dashboard.classList.add(estado);
       }
 
+      // Mostrar toast si hay mensaje
       if (mensaje) {
         mostrarToast(estado, mensaje);
       }
 
+      // Si no se debe mantener, programar limpieza después de 2.5s
       if (!mantener && estado) {
         estadoTimeout = setTimeout(() => {
           dashboard.classList.remove('loading', 'success', 'error');
@@ -688,6 +676,7 @@
       }
     }
 
+    // Limpiar estado manualmente (cuando termina la operación)
     function limpiarEstado() {
       const dashboard = document.querySelector('.glass');
       if (dashboard) {
@@ -718,12 +707,13 @@
       }
     }
 
+    // Subir PDF convirtiendo a base64
     async function uploadPDF(idAcuerdo, file) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
 
         reader.onload = async function (e) {
-          const base64 = e.target.result.split(',')[1];
+          const base64 = e.target.result.split(',')[1]; // Solo los datos base64
 
           const params = new URLSearchParams();
           params.append('action', 'uploadPDF');
@@ -813,6 +803,7 @@
     }
 
     window.uploadPdfForAcuerdo = async (idAcuerdo) => {
+      // Crear input de archivo dinámicamente
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.pdf';
@@ -826,12 +817,14 @@
           return;
         }
 
+        // Validar que sea PDF
         if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
           setEstadoLocal('error', 'Solo se permiten archivos PDF');
           document.body.removeChild(input);
           return;
         }
 
+        // Validar tamaño (máximo 10MB)
         if (file.size > 10 * 1024 * 1024) {
           setEstadoLocal('error', 'El PDF no puede superar los 10MB');
           document.body.removeChild(input);
@@ -846,7 +839,7 @@
 
           if (result.status === 'ok') {
             setEstadoLocal('success', 'PDF subido correctamente');
-            loadAcuerdos();
+            loadAcuerdos(); // Recargar tabla para mostrar el PDF
           } else {
             throw new Error(result.message || 'Error al subir PDF');
           }
