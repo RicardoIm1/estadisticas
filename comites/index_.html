@@ -526,10 +526,10 @@
     function setEstadoLocal(estado) {
       const dashboard = document.querySelector('.glass');
       if (!dashboard) return;
-      
+
       dashboard.classList.remove('loading', 'success', 'error');
       dashboard.classList.add(estado);
-      
+
       setTimeout(() => {
         dashboard.classList.remove('loading', 'success', 'error');
       }, 3000);
@@ -801,9 +801,9 @@
           setEstadoLocal('error');
           alert('Error: ' + (res.message || 'desconocido'));
         }
-      } catch (err) { 
+      } catch (err) {
         setEstadoLocal('error');
-        alert('Error: ' + err.message); 
+        alert('Error: ' + err.message);
       }
     };
 
@@ -822,6 +822,335 @@
     document.querySelector('.container').appendChild(footer);
 
     loadAcuerdos();
+  </script>
+
+  <script>
+    // ========== estadoSistema.js (versión mejorada - con colores correctos) ==========
+
+    // Nivel simbólico de la "respiración"
+    let intensidadUso = 0;
+    let respiracionAnimationId = null;
+    let suspiroTimeout = null;
+
+    // Configuración de respiración
+    const CONFIG = {
+      frecuenciaBase: 0.03,
+      intensidadBase: 0.015,
+      velocidadActualizacion: 16,
+      aceleracionActividad: 0.002,
+      intensidadActividad: 0.003,
+      duracionSuspiro: 2000,
+      intensidadSuspiro: 0.03,
+      minIntervaloSuspiro: 45000,
+      maxIntervaloSuspiro: 120000,
+      primerSuspiro: 15000,
+    };
+
+    // ========== ESTILOS DINÁMICOS PARA ESTADOS ==========
+    function agregarEstilosEstados() {
+      // Verificar si ya existen los estilos
+      if (document.getElementById('estados-estilos')) return;
+
+      const estilos = document.createElement('style');
+      estilos.id = 'estados-estilos';
+      estilos.textContent = `
+        /* Estado de carga - AZUL */
+        .glass.loading {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            box-shadow: 0 0 30px rgba(102, 126, 234, 0.5) !important;
+            border: 1px solid rgba(102, 126, 234, 0.3) !important;
+        }
+        
+        .glass.loading::before {
+            content: "🔄 Cargando...";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+        
+        /* Estado de éxito - VERDE */
+        .glass.success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
+            box-shadow: 0 0 30px rgba(56, 239, 125, 0.5) !important;
+            border: 1px solid rgba(56, 239, 125, 0.3) !important;
+        }
+        
+        .glass.success::before {
+            content: "✅ Éxito";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+        
+        /* Estado de error - ROJO */
+        .glass.error {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%) !important;
+            box-shadow: 0 0 30px rgba(235, 51, 73, 0.5) !important;
+            border: 1px solid rgba(235, 51, 73, 0.3) !important;
+        }
+        
+        .glass.error::before {
+            content: "❌ Error";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 30px;
+            font-size: 14px;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+        
+        /* Animación de desvanecimiento para el mensaje */
+        .estado-mensaje {
+            animation: fadeOut 4s ease forwards;
+        }
+        
+        @keyframes fadeOut {
+            0% { opacity: 1; }
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; }
+        }
+        
+        /* Notificación flotante */
+        .estado-toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 12px 24px;
+            border-radius: 50px;
+            color: white;
+            font-weight: bold;
+            z-index: 10000;
+            animation: slideIn 0.3s ease, fadeOut 3s ease 2s forwards;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        
+        .estado-toast.loading { background: #667eea; }
+        .estado-toast.success { background: #11998e; }
+        .estado-toast.error { background: #eb3349; }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+    `;
+      document.head.appendChild(estilos);
+    }
+
+    // Respiración principal del panel .glass
+    function iniciarRespiracion() {
+      const dashboard = document.querySelector('.glass');
+      if (!dashboard) return;
+
+      if (respiracionAnimationId) {
+        cancelAnimationFrame(respiracionAnimationId);
+      }
+
+      let fase = 0;
+      let ultimoTiempo = 0;
+
+      function animar(tiempoActual) {
+        if (!ultimoTiempo) ultimoTiempo = tiempoActual;
+
+        const deltaTime = Math.min(tiempoActual - ultimoTiempo, 100);
+        ultimoTiempo = tiempoActual;
+
+        const velocidad = CONFIG.frecuenciaBase + (intensidadUso * CONFIG.aceleracionActividad);
+        fase += velocidad * (deltaTime / 16);
+
+        const intensidad = CONFIG.intensidadBase + (intensidadUso * CONFIG.intensidadActividad);
+        const escala = 1 + Math.sin(fase) * intensidad;
+
+        dashboard.style.transform = `scale(${escala})`;
+        dashboard.style.transition = 'transform 0.2s ease-out';
+
+        respiracionAnimationId = requestAnimationFrame(animar);
+      }
+
+      respiracionAnimationId = requestAnimationFrame(animar);
+    }
+
+    // Suspiro espontáneo
+    function iniciarSuspiros() {
+      const dashboard = document.querySelector('.glass');
+      if (!dashboard) return;
+
+      function ejecutarSuspiro() {
+        const keyframes = [
+          { transform: 'scale(1)', easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)' },
+          { transform: `scale(${1 + CONFIG.intensidadSuspiro})`, offset: 0.4, easing: 'cubic-bezier(0.0, 0.0, 0.2, 1)' },
+          { transform: 'scale(1)', easing: 'cubic-bezier(0.4, 0.0, 1, 1)' }
+        ];
+
+        dashboard.animate(keyframes, {
+          duration: CONFIG.duracionSuspiro,
+          fill: 'forwards'
+        });
+
+        programarProximoSuspiro();
+      }
+
+      function programarProximoSuspiro() {
+        if (suspiroTimeout) clearTimeout(suspiroTimeout);
+        const intervalo = Math.random() * (CONFIG.maxIntervaloSuspiro - CONFIG.minIntervaloSuspiro) + CONFIG.minIntervaloSuspiro;
+        suspiroTimeout = setTimeout(ejecutarSuspiro, intervalo);
+      }
+
+      setTimeout(() => ejecutarSuspiro(), CONFIG.primerSuspiro);
+    }
+
+    // ========== FUNCIÓN PRINCIPAL setEstado ==========
+    function setEstado(estado, mensaje = null) {
+      const dashboard = document.querySelector('.glass');
+      if (!dashboard) return;
+
+      // Agregar estilos si no existen
+      agregarEstilosEstados();
+
+      // Incrementar intensidad
+      intensidadUso = Math.min(intensidadUso + 1.5, 5);
+      iniciarRespiracion();
+
+      // Decrementar intensidad gradualmente
+      const decremento = setInterval(() => {
+        intensidadUso = Math.max(intensidadUso - 0.1, 0);
+        if (intensidadUso <= 0) clearInterval(decremento);
+      }, 300);
+
+      // Remover clases anteriores
+      dashboard.classList.remove('loading', 'success', 'error');
+
+      // Agregar clase según estado
+      dashboard.classList.add(estado);
+
+      // Mostrar toast notificación
+      mostrarToast(estado, mensaje);
+
+      // Limpiar estado después de 3 segundos
+      setTimeout(() => {
+        dashboard.classList.remove('loading', 'success', 'error');
+      }, 3000);
+    }
+
+    // Función para mostrar notificación tipo toast
+    function mostrarToast(estado, mensajePersonalizado = null) {
+      // Remover toast anterior si existe
+      const toastAnterior = document.querySelector('.estado-toast');
+      if (toastAnterior) toastAnterior.remove();
+
+      // Crear nuevo toast
+      const toast = document.createElement('div');
+      toast.className = `estado-toast ${estado}`;
+
+      const iconos = {
+        loading: '🔄',
+        success: '✅',
+        error: '❌'
+      };
+
+      const textos = {
+        loading: mensajePersonalizado || 'Procesando...',
+        success: mensajePersonalizado || '¡Operación exitosa!',
+        error: mensajePersonalizado || 'Ocurrió un error'
+      };
+
+      toast.innerHTML = `${iconos[estado]} ${textos[estado]}`;
+      document.body.appendChild(toast);
+
+      // Eliminar después de la animación
+      setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+      }, 5000);
+    }
+
+    // Respiración del fondo
+    function iniciarRespiracionFondo() {
+      const body = document.body;
+      if (!body) return;
+
+      let faseFondo = 0;
+      let ultimoTiempoFondo = 0;
+
+      function animarFondo(tiempoActual) {
+        if (!ultimoTiempoFondo) ultimoTiempoFondo = tiempoActual;
+
+        const deltaTime = tiempoActual - ultimoTiempoFondo;
+        ultimoTiempoFondo = tiempoActual;
+        faseFondo += 0.002 * (deltaTime / 16);
+
+        const intensidadFondo = Math.min(0.1 + intensidadUso / 200, 0.18);
+        const brillo = 1 + Math.sin(faseFondo) * intensidadFondo * 0.08;
+        const saturacion = 1 + Math.sin(faseFondo * 0.7 + Math.PI / 3) * intensidadFondo * 0.12;
+        const hue = Math.sin(faseFondo * 0.3) * intensidadFondo * 2;
+
+        body.style.filter = `brightness(${brillo}) saturate(${saturacion}) hue-rotate(${hue}deg)`;
+        body.style.transition = 'filter 1.2s ease-out';
+
+        requestAnimationFrame(animarFondo);
+      }
+
+      requestAnimationFrame(animarFondo);
+    }
+
+    // Detener animaciones
+    function detenerAnimaciones() {
+      if (respiracionAnimationId) {
+        cancelAnimationFrame(respiracionAnimationId);
+        respiracionAnimationId = null;
+      }
+      if (suspiroTimeout) {
+        clearTimeout(suspiroTimeout);
+        suspiroTimeout = null;
+      }
+      const dashboard = document.querySelector('.glass');
+      if (dashboard) {
+        dashboard.style.transform = 'scale(1)';
+        dashboard.style.transition = 'transform 0.5s ease';
+      }
+      const body = document.body;
+      if (body) body.style.filter = 'none';
+    }
+
+    // ========== Inicialización ==========
+    window.addEventListener('load', () => {
+      console.log('🔥 estadoSistema.js iniciando animaciones...');
+      agregarEstilosEstados();
+
+      setTimeout(() => {
+        iniciarRespiracion();
+        iniciarRespiracionFondo();
+        iniciarSuspiros();
+        console.log('✅ Animaciones iniciadas correctamente');
+      }, 300);
+    });
+
+    window.addEventListener('beforeunload', detenerAnimaciones);
   </script>
 </body>
 
