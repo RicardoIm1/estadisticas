@@ -14,15 +14,43 @@
 
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
-      background: #f5f7fb;
+      background: #f0f2f5;
       color: #1e293b;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Contenedor principal que empuja el footer */
+    .main-content {
+      flex: 1;
       padding: 2rem 1.5rem;
-      line-height: 1.5;
     }
 
     .container {
       max-width: 1400px;
       margin: 0 auto;
+    }
+
+    /* Footer fijo abajo */
+    .app-footer {
+      background: white;
+      border-top: 1px solid #e2e8f0;
+      padding: 1rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #5b6e8c;
+      margin-top: auto;
+    }
+
+    .app-footer a {
+      color: #5b6e8c;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+
+    .app-footer a:hover {
+      color: #1e293b;
     }
 
     .header {
@@ -320,45 +348,115 @@
       color: #7e8aa2;
     }
 
-    /* ========== ESTILOS PARA ESTADOS (AZUL, VERDE, ROJO) ========== */
+    /* ========== ESTILOS PARA ESTADOS (SUAVES Y ELEGANTES) ========== */
     .glass {
-      transition: background 0.5s ease, box-shadow 0.8s ease, border 0.5s ease;
+      transition: background 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                  box-shadow 0.8s cubic-bezier(0.4, 0, 0.2, 1), 
+                  border 0.8s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
+      will-change: background, box-shadow;
     }
 
-    /* Estado de carga - AZUL */
+    /* Estado de carga - AZUL SUAVE */
     .glass.loading {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-      box-shadow: 0 0 30px rgba(102, 126, 234, 0.5) !important;
-      border: 1px solid rgba(102, 126, 234, 0.3) !important;
+      background: linear-gradient(135deg, #5b7bc3 0%, #6b8cce 100%) !important;
+      box-shadow: 0 0 40px rgba(91, 123, 195, 0.25) !important;
+      border: 1px solid rgba(91, 123, 195, 0.2) !important;
     }
 
-    /* Estado de éxito - VERDE */
+    /* Estado de éxito - VERDE SUAVE */
     .glass.success {
-      background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
-      box-shadow: 0 0 30px rgba(56, 239, 125, 0.5) !important;
-      border: 1px solid rgba(56, 239, 125, 0.3) !important;
+      background: linear-gradient(135deg, #2d8c6e 0%, #3a9b7c 100%) !important;
+      box-shadow: 0 0 40px rgba(45, 140, 110, 0.25) !important;
+      border: 1px solid rgba(45, 140, 110, 0.2) !important;
     }
 
-    /* Estado de error - ROJO */
+    /* Estado de error - ROJO SUAVE */
     .glass.error {
-      background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%) !important;
-      box-shadow: 0 0 30px rgba(235, 51, 73, 0.5) !important;
-      border: 1px solid rgba(235, 51, 73, 0.3) !important;
+      background: linear-gradient(135deg, #c5605e 0%, #d4706e 100%) !important;
+      box-shadow: 0 0 40px rgba(197, 96, 94, 0.25) !important;
+      border: 1px solid rgba(197, 96, 94, 0.2) !important;
+    }
+
+    /* Overlay de estado con mensaje */
+    .glass.loading::after,
+    .glass.success::after,
+    .glass.error::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      pointer-events: none;
+      animation: pulseGlow 0.8s ease-in-out;
+    }
+
+    @keyframes pulseGlow {
+      0% { opacity: 0; }
+      50% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Notificación tipo toast - más sutil */
+    .estado-toast {
+      position: fixed;
+      bottom: 80px;
+      right: 30px;
+      padding: 10px 20px;
+      border-radius: 50px;
+      color: white;
+      font-weight: 500;
+      font-size: 0.85rem;
+      z-index: 10000;
+      animation: slideIn 0.4s cubic-bezier(0.4, 0, 0.2, 1), fadeOut 3s ease 2s forwards;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+      backdrop-filter: blur(4px);
+    }
+
+    .estado-toast.loading { 
+      background: rgba(91, 123, 195, 0.95);
+    }
+    .estado-toast.success { 
+      background: rgba(45, 140, 110, 0.95);
+    }
+    .estado-toast.error { 
+      background: rgba(197, 96, 94, 0.95);
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; visibility: hidden; }
     }
 
     @media (max-width: 680px) {
-      body {
+      .main-content {
         padding: 1rem;
       }
-
-      th,
-      td {
+      th, td {
         padding: 0.8rem;
       }
-
       .btn {
         padding: 0.5rem 1rem;
+      }
+      .estado-toast {
+        bottom: 70px;
+        right: 15px;
+        left: 15px;
+        text-align: center;
       }
     }
   </style>
@@ -366,36 +464,43 @@
 
 <body>
 
-  <div class="container">
-    <div class="header">
-      <div>
-        <h1>📄 Acuerdos COCASEP</h1>
-        <p>Seguimiento de compromisos · actividades ponderadas · documentos PDF</p>
+  <div class="main-content">
+    <div class="container">
+      <div class="header">
+        <div>
+          <h1>📄 Acuerdos COCASEP</h1>
+          <p>Seguimiento de compromisos · actividades ponderadas · documentos PDF</p>
+        </div>
+        <button class="btn btn-primary" id="newAcuerdoBtn">+ Nuevo acuerdo</button>
       </div>
-      <button class="btn btn-primary" id="newAcuerdoBtn">+ Nuevo acuerdo</button>
-    </div>
 
-    <div class="table-wrapper glass" id="dashboard">
-      <table id="acuerdosTable">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>Acuerdo / Responsable</th>
-            <th>Fechas</th>
-            <th>PDF</th>
-            <th>Progreso</th>
-            <th>Actividades</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody id="acuerdosBody">
-          <tr>
-            <td colspan="7" class="loading">Cargando acuerdos...</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-wrapper glass" id="dashboard">
+        <table id="acuerdosTable">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Acuerdo / Responsable</th>
+              <th>Fechas</th>
+              <th>PDF</th>
+              <th>Progreso</th>
+              <th>Actividades</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="acuerdosBody">
+            <tr>
+              <td colspan="7" class="loading">Cargando acuerdos...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
+
+  <!-- Footer siempre visible -->
+  <footer class="app-footer">
+    <p>Hecho con ❤️ por <a href="https://ricardoim1.github.io/jeronimoricardo/" target="_blank">Ricardo</a> · <span id="currentYear"></span></p>
+  </footer>
 
   <!-- MODAL ACUERDO -->
   <div id="acuerdoModal" class="modal">
@@ -472,10 +577,50 @@
   </div>
 
   <script>
+    // Año actual para el footer
+    document.getElementById('currentYear').textContent = new Date().getFullYear();
+
     // ============================================================
     // 🔁 REEMPLAZA AQUÍ CON TU URL REAL DE GOOGLE APPS SCRIPT
     const API_URL = 'https://script.google.com/macros/s/AKfycbw_htX9u3euHA4qthrtyFe3kPATplwjpdUMpmb9u9c7DD4ZSNvKCguB_C8bDHLk91nRpw/exec';
     // ============================================================
+
+    // Notificación tipo toast
+    function mostrarToast(estado, mensaje) {
+      const toastAnterior = document.querySelector('.estado-toast');
+      if (toastAnterior) toastAnterior.remove();
+
+      const toast = document.createElement('div');
+      toast.className = `estado-toast ${estado}`;
+      
+      const iconos = { loading: '🔄', success: '✅', error: '❌' };
+      const textos = {
+        loading: mensaje || 'Procesando...',
+        success: mensaje || 'Operación exitosa',
+        error: mensaje || 'Ocurrió un error'
+      };
+      
+      toast.innerHTML = `${iconos[estado]} ${textos[estado]}`;
+      document.body.appendChild(toast);
+      
+      setTimeout(() => {
+        if (toast.parentNode) toast.remove();
+      }, 5000);
+    }
+
+    // Función setEstado (sin respiración del contenedor)
+    function setEstadoLocal(estado, mensaje = null) {
+      const dashboard = document.querySelector('.glass');
+      if (!dashboard) return;
+
+      dashboard.classList.remove('loading', 'success', 'error');
+      dashboard.classList.add(estado);
+      mostrarToast(estado, mensaje);
+
+      setTimeout(() => {
+        dashboard.classList.remove('loading', 'success', 'error');
+      }, 2500);
+    }
 
     // Helper: peticiones POST normales
     async function callAPI(action, data = {}) {
@@ -522,27 +667,14 @@
       return JSON.parse(text);
     }
 
-    // Función setEstado (versión local - NO la reemplaza el script externo)
-    function setEstadoLocal(estado) {
-      const dashboard = document.querySelector('.glass');
-      if (!dashboard) return;
-
-      dashboard.classList.remove('loading', 'success', 'error');
-      dashboard.classList.add(estado);
-
-      setTimeout(() => {
-        dashboard.classList.remove('loading', 'success', 'error');
-      }, 3000);
-    }
-
     // Render tabla principal
     async function loadAcuerdos() {
       const tbody = document.getElementById('acuerdosBody');
       tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando...</td></tr>';
-      setEstadoLocal('loading');
+      setEstadoLocal('loading', 'Cargando acuerdos...');
       try {
         const data = await readData();
-        setEstadoLocal('success');
+        setEstadoLocal('success', 'Datos cargados');
         if (!data.length) {
           tbody.innerHTML = '<tr><td colspan="7" class="empty-row">✨ No hay acuerdos. Crea el primero ✨</td></tr>';
           return;
@@ -580,7 +712,7 @@
           row.insertCell(6).innerHTML = `<button class="btn btn-outline btn-sm" onclick="editAcuerdo(${acuerdo.ID_ACUERDO})">✎ Editar</button>`;
         }
       } catch (err) {
-        setEstadoLocal('error');
+        setEstadoLocal('error', 'Error al cargar datos');
         tbody.innerHTML = `<tr><td colspan="7" class="empty-row">⚠️ Error al cargar: ${err.message}</td></tr>`;
         console.error(err);
       }
@@ -596,20 +728,17 @@
         if (!file) return;
         const confirmar = confirm(`Subir PDF "${file.name}" para el acuerdo #${idAcuerdo}?`);
         if (!confirmar) return;
-        setEstadoLocal('loading');
+        setEstadoLocal('loading', 'Subiendo PDF...');
         try {
           const result = await uploadPDF(idAcuerdo, file);
           if (result.status === 'ok') {
-            setEstadoLocal('success');
-            alert('✅ PDF subido correctamente');
+            setEstadoLocal('success', 'PDF subido');
             loadAcuerdos();
           } else {
-            setEstadoLocal('error');
-            alert('❌ Error: ' + (result.message || 'No se pudo subir'));
+            setEstadoLocal('error', result.message || 'Error al subir');
           }
         } catch (err) {
-          setEstadoLocal('error');
-          alert('❌ Error: ' + err.message);
+          setEstadoLocal('error', err.message);
         }
       };
       input.click();
@@ -664,7 +793,7 @@
         observaciones: document.getElementById('observaciones').value
       };
 
-      setEstadoLocal('loading');
+      setEstadoLocal('loading', 'Guardando acuerdo...');
       try {
         let res;
         if (id) {
@@ -680,29 +809,23 @@
             try {
               const pdfResult = await uploadPDF(acuerdoId, pdfFile);
               if (pdfResult.status !== 'ok') {
-                setEstadoLocal('error');
-                alert('⚠️ Acuerdo guardado pero hubo problema con el PDF: ' + (pdfResult.message || ''));
+                setEstadoLocal('error', 'Acuerdo guardado, error con PDF');
               } else {
-                setEstadoLocal('success');
-                alert('✅ Acuerdo guardado con PDF');
+                setEstadoLocal('success', 'Acuerdo guardado con PDF');
               }
             } catch (pdfErr) {
-              setEstadoLocal('error');
-              alert('⚠️ Acuerdo guardado pero error al subir PDF: ' + pdfErr.message);
+              setEstadoLocal('error', 'Acuerdo guardado, PDF falló');
             }
           } else {
-            setEstadoLocal('success');
-            alert(id ? '✅ Acuerdo actualizado' : '✅ Acuerdo creado');
+            setEstadoLocal('success', id ? 'Acuerdo actualizado' : 'Acuerdo creado');
           }
           document.getElementById('acuerdoModal').style.display = 'none';
           loadAcuerdos();
         } else {
-          setEstadoLocal('error');
-          alert('Error: ' + (res.message || 'desconocido'));
+          setEstadoLocal('error', res.message || 'Error al guardar');
         }
       } catch (err) {
-        setEstadoLocal('error');
-        alert('Error: ' + err.message);
+        setEstadoLocal('error', err.message);
       }
     };
 
@@ -750,17 +873,17 @@
     };
 
     window.toggleChecklist = async (id, checked) => {
-      setEstadoLocal('loading');
+      setEstadoLocal('loading', 'Actualizando...');
       await callAPI('updateActividad', { id, checklist: checked ? '✓' : '' });
-      setEstadoLocal('success');
+      setEstadoLocal('success', 'Estado actualizado');
       loadAcuerdos();
     };
 
     window.deleteActividad = async (id) => {
       if (confirm('¿Eliminar esta actividad?')) {
-        setEstadoLocal('loading');
+        setEstadoLocal('loading', 'Eliminando...');
         await callAPI('deleteActividad', { id });
-        setEstadoLocal('success');
+        setEstadoLocal('success', 'Actividad eliminada');
         loadAcuerdos();
         const modalOpen = document.getElementById('actividadModal').style.display === 'flex';
         if (modalOpen) {
@@ -783,7 +906,7 @@
         resultados: document.getElementById('resultadosAct').value,
         valorPonderado: document.getElementById('valorPonderado').value
       };
-      setEstadoLocal('loading');
+      setEstadoLocal('loading', 'Guardando actividad...');
       try {
         let res;
         if (actividadId) {
@@ -793,17 +916,14 @@
           res = await callAPI('createActividad', payload);
         }
         if (res.status === 'ok') {
-          setEstadoLocal('success');
+          setEstadoLocal('success', actividadId ? 'Actividad actualizada' : 'Actividad agregada');
           document.getElementById('actividadModal').style.display = 'none';
           loadAcuerdos();
-          alert(actividadId ? '✅ Actividad actualizada' : '✅ Actividad agregada');
         } else {
-          setEstadoLocal('error');
-          alert('Error: ' + (res.message || 'desconocido'));
+          setEstadoLocal('error', res.message || 'Error al guardar');
         }
       } catch (err) {
-        setEstadoLocal('error');
-        alert('Error: ' + err.message);
+        setEstadoLocal('error', err.message);
       }
     };
 
@@ -811,346 +931,7 @@
       if (e.target.classList.contains('modal')) e.target.style.display = 'none';
     };
 
-    // Footer dinámico
-    const footer = document.createElement('footer');
-    footer.style.marginTop = '2rem';
-    footer.style.textAlign = 'center';
-    footer.style.fontSize = '0.75rem';
-    footer.style.color = '#5b6e8c';
-    footer.style.padding = '1rem';
-    footer.innerHTML = `Hecho con ❤️ por <a href="https://ricardoim1.github.io/jeronimoricardo/" target="_blank" style="color: inherit; text-decoration: none;">Ricardo</a> · ${new Date().getFullYear()}`;
-    document.querySelector('.container').appendChild(footer);
-
     loadAcuerdos();
-  </script>
-
-  <script>
-    // ========== estadoSistema.js (versión mejorada - con colores correctos) ==========
-
-    // Nivel simbólico de la "respiración"
-    let intensidadUso = 0;
-    let respiracionAnimationId = null;
-    let suspiroTimeout = null;
-
-    // Configuración de respiración
-    const CONFIG = {
-      frecuenciaBase: 0.03,
-      intensidadBase: 0.015,
-      velocidadActualizacion: 16,
-      aceleracionActividad: 0.002,
-      intensidadActividad: 0.003,
-      duracionSuspiro: 2000,
-      intensidadSuspiro: 0.03,
-      minIntervaloSuspiro: 45000,
-      maxIntervaloSuspiro: 120000,
-      primerSuspiro: 15000,
-    };
-
-    // ========== ESTILOS DINÁMICOS PARA ESTADOS ==========
-    function agregarEstilosEstados() {
-      // Verificar si ya existen los estilos
-      if (document.getElementById('estados-estilos')) return;
-
-      const estilos = document.createElement('style');
-      estilos.id = 'estados-estilos';
-      estilos.textContent = `
-        /* Estado de carga - AZUL */
-        .glass.loading {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-            box-shadow: 0 0 30px rgba(102, 126, 234, 0.5) !important;
-            border: 1px solid rgba(102, 126, 234, 0.3) !important;
-        }
-        
-        .glass.loading::before {
-            content: "🔄 Cargando...";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 14px;
-            z-index: 1000;
-            white-space: nowrap;
-        }
-        
-        /* Estado de éxito - VERDE */
-        .glass.success {
-            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important;
-            box-shadow: 0 0 30px rgba(56, 239, 125, 0.5) !important;
-            border: 1px solid rgba(56, 239, 125, 0.3) !important;
-        }
-        
-        .glass.success::before {
-            content: "✅ Éxito";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 14px;
-            z-index: 1000;
-            white-space: nowrap;
-        }
-        
-        /* Estado de error - ROJO */
-        .glass.error {
-            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%) !important;
-            box-shadow: 0 0 30px rgba(235, 51, 73, 0.5) !important;
-            border: 1px solid rgba(235, 51, 73, 0.3) !important;
-        }
-        
-        .glass.error::before {
-            content: "❌ Error";
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-size: 14px;
-            z-index: 1000;
-            white-space: nowrap;
-        }
-        
-        /* Animación de desvanecimiento para el mensaje */
-        .estado-mensaje {
-            animation: fadeOut 4s ease forwards;
-        }
-        
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            70% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-        }
-        
-        /* Notificación flotante */
-        .estado-toast {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            padding: 12px 24px;
-            border-radius: 50px;
-            color: white;
-            font-weight: bold;
-            z-index: 10000;
-            animation: slideIn 0.3s ease, fadeOut 3s ease 2s forwards;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-        }
-        
-        .estado-toast.loading { background: #667eea; }
-        .estado-toast.success { background: #11998e; }
-        .estado-toast.error { background: #eb3349; }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-    `;
-      document.head.appendChild(estilos);
-    }
-
-    // Respiración principal del panel .glass
-    function iniciarRespiracion() {
-      const dashboard = document.querySelector('.glass');
-      if (!dashboard) return;
-
-      if (respiracionAnimationId) {
-        cancelAnimationFrame(respiracionAnimationId);
-      }
-
-      let fase = 0;
-      let ultimoTiempo = 0;
-
-      function animar(tiempoActual) {
-        if (!ultimoTiempo) ultimoTiempo = tiempoActual;
-
-        const deltaTime = Math.min(tiempoActual - ultimoTiempo, 100);
-        ultimoTiempo = tiempoActual;
-
-        const velocidad = CONFIG.frecuenciaBase + (intensidadUso * CONFIG.aceleracionActividad);
-        fase += velocidad * (deltaTime / 16);
-
-        const intensidad = CONFIG.intensidadBase + (intensidadUso * CONFIG.intensidadActividad);
-        const escala = 1 + Math.sin(fase) * intensidad;
-
-        dashboard.style.transform = `scale(${escala})`;
-        dashboard.style.transition = 'transform 0.2s ease-out';
-
-        respiracionAnimationId = requestAnimationFrame(animar);
-      }
-
-      respiracionAnimationId = requestAnimationFrame(animar);
-    }
-
-    // Suspiro espontáneo
-    function iniciarSuspiros() {
-      const dashboard = document.querySelector('.glass');
-      if (!dashboard) return;
-
-      function ejecutarSuspiro() {
-        const keyframes = [
-          { transform: 'scale(1)', easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)' },
-          { transform: `scale(${1 + CONFIG.intensidadSuspiro})`, offset: 0.4, easing: 'cubic-bezier(0.0, 0.0, 0.2, 1)' },
-          { transform: 'scale(1)', easing: 'cubic-bezier(0.4, 0.0, 1, 1)' }
-        ];
-
-        dashboard.animate(keyframes, {
-          duration: CONFIG.duracionSuspiro,
-          fill: 'forwards'
-        });
-
-        programarProximoSuspiro();
-      }
-
-      function programarProximoSuspiro() {
-        if (suspiroTimeout) clearTimeout(suspiroTimeout);
-        const intervalo = Math.random() * (CONFIG.maxIntervaloSuspiro - CONFIG.minIntervaloSuspiro) + CONFIG.minIntervaloSuspiro;
-        suspiroTimeout = setTimeout(ejecutarSuspiro, intervalo);
-      }
-
-      setTimeout(() => ejecutarSuspiro(), CONFIG.primerSuspiro);
-    }
-
-    // ========== FUNCIÓN PRINCIPAL setEstado ==========
-    function setEstado(estado, mensaje = null) {
-      const dashboard = document.querySelector('.glass');
-      if (!dashboard) return;
-
-      // Agregar estilos si no existen
-      agregarEstilosEstados();
-
-      // Incrementar intensidad
-      intensidadUso = Math.min(intensidadUso + 1.5, 5);
-      iniciarRespiracion();
-
-      // Decrementar intensidad gradualmente
-      const decremento = setInterval(() => {
-        intensidadUso = Math.max(intensidadUso - 0.1, 0);
-        if (intensidadUso <= 0) clearInterval(decremento);
-      }, 300);
-
-      // Remover clases anteriores
-      dashboard.classList.remove('loading', 'success', 'error');
-
-      // Agregar clase según estado
-      dashboard.classList.add(estado);
-
-      // Mostrar toast notificación
-      mostrarToast(estado, mensaje);
-
-      // Limpiar estado después de 3 segundos
-      setTimeout(() => {
-        dashboard.classList.remove('loading', 'success', 'error');
-      }, 3000);
-    }
-
-    // Función para mostrar notificación tipo toast
-    function mostrarToast(estado, mensajePersonalizado = null) {
-      // Remover toast anterior si existe
-      const toastAnterior = document.querySelector('.estado-toast');
-      if (toastAnterior) toastAnterior.remove();
-
-      // Crear nuevo toast
-      const toast = document.createElement('div');
-      toast.className = `estado-toast ${estado}`;
-
-      const iconos = {
-        loading: '🔄',
-        success: '✅',
-        error: '❌'
-      };
-
-      const textos = {
-        loading: mensajePersonalizado || 'Procesando...',
-        success: mensajePersonalizado || '¡Operación exitosa!',
-        error: mensajePersonalizado || 'Ocurrió un error'
-      };
-
-      toast.innerHTML = `${iconos[estado]} ${textos[estado]}`;
-      document.body.appendChild(toast);
-
-      // Eliminar después de la animación
-      setTimeout(() => {
-        if (toast.parentNode) toast.remove();
-      }, 5000);
-    }
-
-    // Respiración del fondo
-    function iniciarRespiracionFondo() {
-      const body = document.body;
-      if (!body) return;
-
-      let faseFondo = 0;
-      let ultimoTiempoFondo = 0;
-
-      function animarFondo(tiempoActual) {
-        if (!ultimoTiempoFondo) ultimoTiempoFondo = tiempoActual;
-
-        const deltaTime = tiempoActual - ultimoTiempoFondo;
-        ultimoTiempoFondo = tiempoActual;
-        faseFondo += 0.002 * (deltaTime / 16);
-
-        const intensidadFondo = Math.min(0.1 + intensidadUso / 200, 0.18);
-        const brillo = 1 + Math.sin(faseFondo) * intensidadFondo * 0.08;
-        const saturacion = 1 + Math.sin(faseFondo * 0.7 + Math.PI / 3) * intensidadFondo * 0.12;
-        const hue = Math.sin(faseFondo * 0.3) * intensidadFondo * 2;
-
-        body.style.filter = `brightness(${brillo}) saturate(${saturacion}) hue-rotate(${hue}deg)`;
-        body.style.transition = 'filter 1.2s ease-out';
-
-        requestAnimationFrame(animarFondo);
-      }
-
-      requestAnimationFrame(animarFondo);
-    }
-
-    // Detener animaciones
-    function detenerAnimaciones() {
-      if (respiracionAnimationId) {
-        cancelAnimationFrame(respiracionAnimationId);
-        respiracionAnimationId = null;
-      }
-      if (suspiroTimeout) {
-        clearTimeout(suspiroTimeout);
-        suspiroTimeout = null;
-      }
-      const dashboard = document.querySelector('.glass');
-      if (dashboard) {
-        dashboard.style.transform = 'scale(1)';
-        dashboard.style.transition = 'transform 0.5s ease';
-      }
-      const body = document.body;
-      if (body) body.style.filter = 'none';
-    }
-
-    // ========== Inicialización ==========
-    window.addEventListener('load', () => {
-      console.log('🔥 estadoSistema.js iniciando animaciones...');
-      agregarEstilosEstados();
-
-      setTimeout(() => {
-        iniciarRespiracion();
-        iniciarRespiracionFondo();
-        iniciarSuspiros();
-        console.log('✅ Animaciones iniciadas correctamente');
-      }, 300);
-    });
-
-    window.addEventListener('beforeunload', detenerAnimaciones);
   </script>
 </body>
 
