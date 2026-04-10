@@ -3,1126 +3,543 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-  <title>COCASEP · Acuerdos y Actividades</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadísticas y Archivo Clínico el mero mero inicio</title>
   <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
   <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
+</head>
+<style>
+  body {
+    text-decoration: none;
+  }
 
-    body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
-      background: #f0f2f5;
-      color: #1e293b;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
+  /* === 📊 GRID PRINCIPAL === */
+  .grid-lumia-glass {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    /* auto-fit colapsa columnas vacías, auto-fill no */
+    gap: 14px;
+    padding: 1rem;
+    grid-auto-flow: dense;
+    width: 100%;
+    box-sizing: border-box;
+  }
 
-    /* Header fijo arriba */
-    .main-header {
-      flex-shrink: 0;
-      background: #f0f2f5;
-      padding: 1.5rem 1.5rem 0 1.5rem;
-    }
-
-    /* Footer fijo abajo */
-    .app-footer {
-      flex-shrink: 0;
-      background: white;
-      border-top: 1px solid #e2e8f0;
-      padding: 1rem;
-      text-align: center;
-      font-size: 0.75rem;
-      color: #5b6e8c;
-    }
-
-    /* Contenedor scrollable solo para el cuerpo de la tabla */
-    .scrollable-table {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 1.5rem 1.5rem 1.5rem;
-    }
-
-    .container {
-      max-width: 1400px;
-      margin: 0 auto;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Wrapper de la tabla con scroll SOLO en el cuerpo */
-    .table-wrapper {
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03), 0 1px 2px rgba(0, 0, 0, 0.05);
-      border: 1px solid #edf2f7;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow: hidden;
-    }
-
-    /* Tabla con layout fijo */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-    }
-
-    /* Cabecera fija */
-    thead {
-      background: #f9fafb;
-      flex-shrink: 0;
-    }
-
-    thead tr {
-      display: table;
-      width: 100%;
-      table-layout: fixed;
-    }
-
-    /* Cuerpo scrollable */
-    tbody {
-      display: block;
-      overflow-y: auto;
-      flex: 1;
-    }
-
-    tbody tr {
-      display: table;
-      width: 100%;
-      table-layout: fixed;
-    }
-
-    th,
-    td {
-      padding: 1rem 1rem;
-      text-align: left;
-    }
-
-    th {
-      background: #f9fafb;
-      color: #334155;
-      font-weight: 600;
-      border-bottom: 1px solid #eef2f6;
-    }
-
-    td {
-      border-bottom: 1px solid #f1f5f9;
-    }
-
-    tr:hover td {
-      background: #fafcff;
-      transition: background 0.3s ease;
-    }
-
-    /* Ajustar anchos de columna */
-    th:nth-child(1),
-    td:nth-child(1) {
-      width: 60px;
-    }
-
-    th:nth-child(2),
-    td:nth-child(2) {
-      width: 25%;
-    }
-
-    th:nth-child(3),
-    td:nth-child(3) {
-      width: 15%;
-    }
-
-    th:nth-child(4),
-    td:nth-child(4) {
-      width: 100px;
-    }
-
-    th:nth-child(5),
-    td:nth-child(5) {
-      width: 15%;
-    }
-
-    th:nth-child(6),
-    td:nth-child(6) {
-      width: 18%;
-    }
-
-    th:nth-child(7),
-    td:nth-child(7) {
-      width: 80px;
-    }
-
-    .app-footer a {
-      color: #5b6e8c;
-      text-decoration: none;
-      transition: color 0.3s ease;
-    }
-
-    .app-footer a:hover {
-      color: #1e293b;
-    }
-
-    .header {
-      margin-bottom: 1.5rem;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 1rem;
-      border-bottom: 1px solid #e2e8f0;
-      padding-bottom: 1rem;
-    }
-
-    .header h1 {
-      font-size: 1.8rem;
-      font-weight: 600;
-      background: linear-gradient(135deg, #1e293b, #2d3a4f);
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      letter-spacing: -0.3px;
-    }
-
-    .header p {
-      color: #5b6e8c;
-      font-size: 0.9rem;
-      margin-top: 0.25rem;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.6rem 1.2rem;
-      border-radius: 40px;
-      font-weight: 500;
-      font-size: 0.85rem;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      background: white;
-      color: #1e293b;
-      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-    }
-
-    .btn-primary {
-      background: #1e293b;
-      color: white;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .btn-primary:hover {
-      background: #0f172a;
-      transform: translateY(-2px);
-    }
-
-    .btn-outline {
-      border: 1px solid #cbd5e1;
-      background: white;
-    }
-
-    .btn-outline:hover {
-      background: #f8fafc;
-      border-color: #94a3b8;
-      transform: translateY(-1px);
-    }
-
-    .btn-sm {
-      padding: 0.35rem 0.9rem;
-      font-size: 0.75rem;
-      gap: 0.3rem;
-    }
-
-    .progress-wrapper {
-      min-width: 120px;
-    }
-
-    .progress-bar-bg {
-      background: #e2e8f0;
-      border-radius: 30px;
-      height: 6px;
-      overflow: hidden;
-      margin-bottom: 6px;
-    }
-
-    .progress-fill {
-      background: #2d6a4f;
-      width: 0%;
-      height: 100%;
-      border-radius: 30px;
-      transition: width 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    }
-
-    .progress-text {
-      font-size: 0.7rem;
-      color: #475569;
-    }
-
-    .badge {
-      background: #eef2ff;
-      color: #1e40af;
-      border-radius: 40px;
-      padding: 0.2rem 0.6rem;
-      font-size: 0.7rem;
-      font-weight: 500;
-      display: inline-block;
-    }
-
-    .pdf-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.3rem;
-      text-decoration: none;
-      font-size: 0.75rem;
-      color: #2d6a4f;
-      font-weight: 500;
-      transition: all 0.3s ease;
-    }
-
-    .pdf-link:hover {
-      text-decoration: underline;
-      color: #1f4d38;
-    }
-
-    .modal {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.4);
-      backdrop-filter: blur(3px);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    .modal-card {
-      background: white;
-      border-radius: 28px;
-      max-width: 520px;
-      width: 90%;
-      padding: 1.8rem;
-      box-shadow: 0 25px 40px rgba(0, 0, 0, 0.2);
-      animation: fadeInUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      max-height: 85vh;
-      overflow-y: auto;
-    }
-
-    @keyframes fadeInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1.2rem;
-    }
-
-    .modal-header h3 {
-      font-weight: 600;
-      font-size: 1.3rem;
-    }
-
-    .close-modal {
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: #94a3b8;
-      transition: color 0.2s ease;
-    }
-
-    .close-modal:hover {
-      color: #1e293b;
-    }
-
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    label {
-      font-weight: 500;
-      font-size: 0.8rem;
-      color: #334155;
-      display: block;
-      margin-bottom: 0.3rem;
-    }
-
-    input,
-    textarea,
-    select {
-      width: 100%;
-      padding: 0.7rem 0.9rem;
-      border-radius: 16px;
-      border: 1px solid #cbd5e1;
-      font-family: inherit;
-      font-size: 0.85rem;
-      transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-      background: white;
-    }
-
-    input:focus,
-    textarea:focus,
-    select:focus {
-      outline: none;
-      border-color: #1e293b;
-      box-shadow: 0 0 0 3px rgba(30, 41, 59, 0.1);
-      transform: translateY(-1px);
-    }
-
-    input[type="file"] {
+  /* Para pantallas muy pequeñas */
+  @media screen and (max-width: 500px) {
+    .grid-lumia-glass {
+      grid-template-columns: 1fr;
+      /* Una sola columna en móvil */
+      gap: 10px;
       padding: 0.5rem;
     }
+  }
 
-    hr {
-      margin: 1rem 0;
-      border: none;
-      border-top: 1px solid #ecf3fa;
+  /* === 💠 TILE BASE === */
+  .tile {
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px) saturate(140%);
+    -webkit-backdrop-filter: blur(10px) saturate(140%);
+    background-color: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #fff;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 160px;
+    transition: all 0.25s ease-in-out;
+    cursor: pointer;
+
+    width: 100%;
+    /* Asegura que las tiles ocupen el 100% de su celda */
+    max-width: 100%;
+    /* Evita desbordamiento */
+    word-wrap: break-word;
+    /* Rompe palabras largas */
+    overflow-wrap: break-word;
+    /* Moderno, rompe palabras largas */
+  }
+
+  .tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+  }
+
+  /* === 📏 TAMAÑOS === */
+  .tile-wide {
+    grid-column: span 2;
+  }
+
+  .tile-short {
+    min-height: 100px;
+  }
+
+  /* === 🎨 PALETA GLASS === */
+  .azul {
+    background: rgba(70, 130, 180, 0.25);
+  }
+
+  .verde {
+    background: rgba(34, 139, 34, 0.25);
+  }
+
+  .naranja {
+    background: rgba(218, 112, 48, 0.25);
+  }
+
+  .morado {
+    background: rgba(123, 104, 238, 0.25);
+  }
+
+  .gris {
+    background: rgba(100, 100, 100, 0.25);
+  }
+
+  .amarillo {
+    background: rgba(228, 214, 18, 0.25);
+  }
+
+  /* === 🔠 TIPOGRAFÍA Y DETALLES === */
+  .tile h3 {
+    font-size: 1.8rem;
+    margin: 0;
+    opacity: 0.9;
+  }
+
+  .tile h4 {
+    margin: 0.3rem 0 0.5rem;
+    font-weight: 600;
+    letter-spacing: 0.4px;
+  }
+
+  .tile p,
+  .tile ul,
+  .tile blockquote {
+    font-size: 0.95rem;
+    margin: 0.3rem 0;
+    line-height: 1.4;
+  }
+
+  .tile ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  .tile ul li {
+    margin-bottom: 0.2rem;
+  }
+
+  .tile a {
+    color: #fff;
+    text-decoration: underline;
+    opacity: 0.85;
+  }
+
+  .tile a:hover {
+    opacity: 1;
+  }
+
+  blockquote {
+    font-style: italic;
+    color: #e0e0e0;
+    margin: 0;
+  }
+
+  /* === 📱 RESPONSIVE ADAPTATION === */
+  @media (max-width: 1024px) {
+    .grid-lumia-glass {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    }
+  }
+
+  @media (max-width: 768px) {
+    .grid-lumia-glass {
+      grid-template-columns: 1fr;
     }
 
-    .activity-card {
-      background: #fafcff;
-      border-radius: 20px;
-      padding: 0.9rem;
-      margin-bottom: 0.8rem;
-      border: 1px solid #eef2ff;
-      transition: all 0.3s ease;
+    .tile-wide {
+      grid-column: span 1;
     }
 
-    .activity-card:hover {
-      transform: translateX(4px);
-      border-color: #cbd5e1;
+    .tile {
+      padding: 1rem;
     }
 
-    .flex-between {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
+    .tile h3 {
+      font-size: 1.5rem;
     }
 
-    .loading {
-      text-align: center;
-      padding: 3rem;
-      color: #5b6e8c;
+    .tile h4 {
+      font-size: 1rem;
+    }
+  }
+
+  /* === ✨ ANIMACIÓN DE ENTRADA SUAVE === */
+  @keyframes tileFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
     }
 
-    .empty-row {
-      text-align: center;
-      padding: 2rem;
-      color: #7e8aa2;
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
     }
+  }
 
-    /* ========== ESTILOS PARA ESTADOS - CRISTALINOS Y SUAVES ========== */
-    .glass {
-      transition: all 1.2s cubic-bezier(0.2, 0.9, 0.4, 1.1) !important;
-      position: relative;
-      will-change: background, box-shadow;
-      background: rgba(255, 255, 255, 0.95);
-    }
+  .tile {
+    opacity: 0;
+    animation: tileFadeIn 0.6s ease-out forwards;
+  }
 
-    .glass.loading {
-      background: rgba(0, 123, 255, 0.15) !important;
-      box-shadow: 0 8px 32px rgba(91, 123, 195, 0.08) !important;
-      border: 1px solid rgba(91, 123, 195, 0.2) !important;
-      backdrop-filter: blur(2px);
-      transition: all 1.2s cubic-bezier(0.2, 0.9, 0.4, 1.1) !important;
-    }
+  .tile:nth-child(1) {
+    animation-delay: 0.1s;
+  }
 
-    .glass.success {
-      background: rgba(40, 167, 69, 0.2) !important;
-      box-shadow: 0 8px 32px rgba(45, 140, 110, 0.06) !important;
-      border: 1px solid rgba(45, 140, 110, 0.2) !important;
-      backdrop-filter: blur(2px);
-      transition: all 1.2s cubic-bezier(0.2, 0.9, 0.4, 1.1) !important;
-    }
+  .tile:nth-child(2) {
+    animation-delay: 0.2s;
+  }
 
-    .glass.error {
-      background: rgba(197, 96, 94, 0.12) !important;
-      box-shadow: 0 8px 32px rgba(197, 96, 94, 0.06) !important;
-      border: 1px solid rgba(197, 96, 94, 0.2) !important;
-      backdrop-filter: blur(2px);
-      transition: all 1.2s cubic-bezier(0.2, 0.9, 0.4, 1.1) !important;
-    }
+  .tile:nth-child(3) {
+    animation-delay: 0.3s;
+  }
 
-    .glass.loading::after,
-    .glass.success::after,
-    .glass.error::after {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
-      border-radius: 20px;
-      pointer-events: none;
-      animation: gentlePulse 1.5s ease-in-out infinite;
-    }
+  .tile:nth-child(4) {
+    animation-delay: 0.4s;
+  }
 
-    @keyframes gentlePulse {
-      0% {
-        opacity: 0;
-        transform: scale(0.98);
-      }
+  .tile:nth-child(5) {
+    animation-delay: 0.5s;
+  }
 
-      50% {
-        opacity: 0.3;
-        transform: scale(1);
-      }
+  .tile:nth-child(6) {
+    animation-delay: 0.6s;
+  }
 
-      100% {
-        opacity: 0;
-        transform: scale(1.02);
-      }
-    }
+  .tile:nth-child(7) {
+    animation-delay: 0.7s;
+  }
 
-    /* Notificación tipo toast */
-    .estado-toast {
-      position: fixed;
-      bottom: 80px;
-      right: 30px;
-      padding: 8px 16px;
-      border-radius: 40px;
-      color: white;
-      font-weight: 500;
-      font-size: 0.75rem;
-      z-index: 10000;
-      animation: slideInToast 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), fadeOutToast 0.5s ease 2.5s forwards;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      backdrop-filter: blur(8px);
-      letter-spacing: 0.3px;
-    }
+  .tile:nth-child(8) {
+    animation-delay: 0.8s;
+  }
 
-    .estado-toast.loading {
-      background: rgba(91, 123, 195, 0.9);
-    }
+  .tile:nth-child(9) {
+    animation-delay: 0.9s;
+  }
 
-    .estado-toast.success {
-      background: rgba(45, 140, 110, 0.9);
-    }
+  .tile:nth-child(10) {
+    animation-delay: 1.0s;
+  }
 
-    .estado-toast.error {
-      background: rgba(197, 96, 94, 0.9);
-    }
+  .tile:nth-child(11) {
+    animation-delay: 1.1s;
+  }
 
-    @keyframes slideInToast {
-      from {
-        transform: translateX(100%);
-        opacity: 0;
-      }
-
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    @keyframes fadeOutToast {
-      from {
-        opacity: 1;
-        transform: translateX(0);
-      }
-
-      to {
-        opacity: 0;
-        transform: translateX(10px);
-        visibility: hidden;
-      }
-    }
-
-    @media (max-width: 680px) {
-      .main-header {
-        padding: 1rem 1rem 0 1rem;
-      }
-
-      .scrollable-table {
-        padding: 0 1rem 1rem 1rem;
-      }
-
-      th,
-      td {
-        padding: 0.8rem;
-      }
-
-      .btn {
-        padding: 0.5rem 1rem;
-      }
-
-      .estado-toast {
-        bottom: 70px;
-        right: 15px;
-        left: 15px;
-        text-align: center;
-      }
-    }
-  </style>
-</head>
+  .tile:nth-child(12) {
+    animation-delay: 1.2s;
+  }
+</style>
 
 <body>
+  <div class="glass" id="dashboard">
+    <h5>Departamento de Estadísticas y Archivo Clínico</h5>
+    <!-- <h6>index principal</h6> -->
+    <div id="header"></div>
 
-  <!-- HEADER FIJO -->
-  <div class="main-header">
-    <div class="container">
-      <div class="header">
-        <div>
-          <h1>ACUERDOS COCASEP</h1>
-          <p>Seguimiento y Cumplimiento de compromisos · Actividades ponderadas · Documentos PDF</p>
-        </div>
-        <button class="btn btn-primary" id="newAcuerdoBtn">+ Nuevo acuerdo</button>
+    <div class="grid-lumia-glass">
+
+      <div class="tile tile-short azul" onclick="window.location.href='/estadisticas/comites/cocasep.html'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>COCASEP</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short naranja" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>CODECIAS</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short verde" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>MORBIMORTALIDAD</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short amarillo" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>COFAT</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short morado" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>EXPEDIENTE CLINICO</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short morado" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>LACTANCIA MATERNA</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short morado" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>REFERENCIAS Y CONTRARREFERENCIAS</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short morado" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>ENSEÑANZA</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short morado" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>SANGUINEO</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short morado" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>ANTIMICROBIANOS</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short morado" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>INSUMOS</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
+      </div>
+      <div class="tile tile-short morado" onclick="window.location.href='/estadisticas/comites/'">
+        <h3><i class="fa-solid fa-server"></i></h3>
+        <h4>TRANSPLANTES</h4>
+        <!-- <p>¡Surfeando la curva de aprendizaje!</p> -->
       </div>
     </div>
-  </div>
-
-  <!-- TABLA CON SCROLL SOLO EN EL CUERPO -->
-  <div class="scrollable-table">
-    <div class="container">
-      <div class="table-wrapper glass" id="dashboard">
-        <table id="acuerdosTable">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Acuerdo / Responsable</th>
-              <th>Fechas</th>
-              <th>PDF</th>
-              <th>Progreso</th>
-              <th>Actividades</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="acuerdosBody">
-            <tr>
-              <td colspan="7" class="loading">Cargando acuerdos...</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- FOOTER FIJO -->
-  <footer class="app-footer">
-    <p>Hecho con ❤️ por <a href="https://ricardoim1.github.io/jeronimoricardo/" target="_blank">Ricardo</a> · <span id="currentYear"></span></p>
-  </footer>
-
-  <!-- MODALES -->
-  <div id="acuerdoModal" class="modal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3 id="acuerdoModalTitle">Nuevo acuerdo</h3>
-        <span class="close-modal" id="closeAcuerdoModal">&times;</span>
-      </div>
-      <form id="acuerdoForm" enctype="multipart/form-data">
-        <input type="hidden" id="acuerdoId">
-        <div class="form-group">
-          <label>Acuerdo</label>
-          <textarea id="acuerdoText" rows="2" placeholder="Describe el compromiso..."></textarea>
-        </div>
-        <div class="form-group">
-          <label>Responsable</label>
-          <input type="text" id="responsable" placeholder="Nombre o área">
-        </div>
-        <div class="form-group">
-          <label>Fecha programada</label>
-          <input type="date" id="fechaP">
-        </div>
-        <div class="form-group">
-          <label>Fecha de cumplimiento</label>
-          <input type="date" id="fechaC">
-        </div>
-        <div class="form-group">
-          <label>Observaciones</label>
-          <textarea id="observaciones" rows="2"></textarea>
-        </div>
-        <div class="form-group">
-          <label>📎 Documento PDF (opcional)</label>
-          <input type="file" id="pdfFile" accept=".pdf">
-        </div>
-        <div class="flex-between" style="gap: 0.5rem; margin-top: 0.5rem;">
-          <button type="button" class="btn btn-outline" id="cancelAcuerdoBtn">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Guardar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <div id="actividadModal" class="modal">
-    <div class="modal-card" style="max-width: 580px;">
-      <div class="modal-header">
-        <h3> Actividades</h3>
-        <span class="close-modal" id="closeActividadModal">&times;</span>
-      </div>
-      <div id="actividadesList"></div>
-      <hr>
-      <h4 style="font-weight: 500; margin-bottom: 0.5rem;">➕ Nueva actividad</h4>
-      <form id="actividadForm">
-        <input type="hidden" id="actividadId">
-        <input type="hidden" id="acuerdoIdForActividad">
-        <div class="form-group">
-          <label>Actividad</label>
-          <textarea id="actividadDesc" rows="2" placeholder="Ej: Entregar reporte"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Resultados esperados</label>
-          <textarea id="resultadosAct" rows="2" placeholder="Qué se espera lograr"></textarea>
-        </div>
-        <div class="form-group">
-          <label>Valor ponderado (%)</label>
-          <input type="number" id="valorPonderado" value="0" step="5" min="0" max="100">
-        </div>
-        <div class="flex-between" style="gap: 0.5rem;">
-          <button type="button" class="btn btn-outline" id="cancelActividadBtn">Cancelar</button>
-          <button type="submit" class="btn btn-primary">Agregar actividad</button>
-        </div>
-      </form>
-    </div>
+    <div id="footer"></div>
   </div>
 
   <script>
-    document.getElementById('currentYear').textContent = new Date().getFullYear();
+    // PRIMERO: Cargar scripts base
+    const scriptEstado = document.createElement('script');
+    scriptEstado.src = '/estadisticas/comun/estadoSistema.js';
+    document.body.appendChild(scriptEstado);
 
-    const API_URL = 'https://script.google.com/macros/s/AKfycbz_K6o0hZf6mIguLTub9B6dhjO4OD5JYZdb_VN-RETGDU-JRZJIsaa8lEThqxxAvh5m_g/exec';
+    const scriptSesion = document.createElement('script');
+    scriptSesion.src = '/estadisticas/comun/sesion_bk.js';
 
-    let estadoTimeout = null;
+    scriptSesion.onload = function () {
+      console.log("✅ Scripts base cargados");
 
-    function mostrarToast(estado, mensaje) {
-      const toastAnterior = document.querySelector('.estado-toast');
-      if (toastAnterior) toastAnterior.remove();
+      // SEGUNDO: Cargar header
+      fetch('/estadisticas/comun/header.html')
+        .then(r => r.text())
+        .then(html => {
+          document.getElementById('header').innerHTML = html;
+          console.log("✅ Header insertado");
 
-      const toast = document.createElement('div');
-      toast.className = `estado-toast ${estado}`;
-
-      const iconos = { loading: '🔄', success: '✓', error: '⚠' };
-      const textos = {
-        loading: mensaje || 'Procesando...',
-        success: mensaje || 'Completado',
-        error: mensaje || 'Error'
-      };
-
-      toast.innerHTML = `${iconos[estado]} ${textos[estado]}`;
-      document.body.appendChild(toast);
-
-      setTimeout(() => {
-        if (toast.parentNode) toast.remove();
-      }, 3000);
-    }
-
-    function setEstadoLocal(estado, mensaje = null, mantener = false) {
-      const dashboard = document.querySelector('.glass');
-      if (!dashboard) return;
-
-      if (estadoTimeout) {
-        clearTimeout(estadoTimeout);
-        estadoTimeout = null;
-      }
-
-      dashboard.classList.remove('loading', 'success', 'error');
-
-      if (estado) {
-        dashboard.classList.add(estado);
-      }
-
-      if (mensaje) {
-        mostrarToast(estado, mensaje);
-      }
-
-      if (!mantener && estado) {
-        estadoTimeout = setTimeout(() => {
-          dashboard.classList.remove('loading', 'success', 'error');
-          estadoTimeout = null;
-        }, 2500);
-      }
-    }
-
-    function limpiarEstado() {
-      const dashboard = document.querySelector('.glass');
-      if (dashboard) {
-        dashboard.classList.remove('loading', 'success', 'error');
-      }
-      if (estadoTimeout) {
-        clearTimeout(estadoTimeout);
-        estadoTimeout = null;
-      }
-    }
-
-    async function callAPI(action, data = {}) {
-      const formData = new URLSearchParams();
-      formData.append('action', action);
-      for (const [k, v] of Object.entries(data)) {
-        if (v !== undefined && v !== null && v !== '') formData.append(k, v);
-      }
-      const resp = await fetch(API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString()
-      });
-      const text = await resp.text();
-      try {
-        return JSON.parse(text);
-      } catch (e) {
-        throw new Error(`Error del servidor: ${text.substring(0, 100)}`);
-      }
-    }
-
-    async function uploadPDF(idAcuerdo, file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-
-        reader.onload = async function (e) {
-          const base64 = e.target.result.split(',')[1];
-
-          const params = new URLSearchParams();
-          params.append('action', 'uploadPDF');
-          params.append('id_acuerdo', idAcuerdo);
-          params.append('filename', file.name);
-          params.append('filedata', base64);
-
-          try {
-            const resp = await fetch(API_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-              body: params.toString()
-            });
-            const text = await resp.text();
-            try {
-              resolve(JSON.parse(text));
-            } catch (e) {
-              reject(new Error(`Respuesta inválida: ${text.substring(0, 100)}`));
-            }
-          } catch (err) {
-            reject(err);
-          }
-        };
-
-        reader.onerror = () => reject(new Error('Error al leer el archivo'));
-        reader.readAsDataURL(file);
-      });
-    }
-
-    async function readData() {
-      const resp = await fetch(`${API_URL}?action=read`);
-      const text = await resp.text();
-      return JSON.parse(text);
-    }
-
-    async function loadAcuerdos() {
-      const tbody = document.getElementById('acuerdosBody');
-      tbody.innerHTML = '<tr><td colspan="7" class="loading">Cargando...</td></tr>';
-      setEstadoLocal('loading', 'Cargando acuerdos...', true);
-
-      try {
-        const data = await readData();
-        limpiarEstado();
-        setEstadoLocal('success', `${data.length} acuerdos cargados`);
-
-        if (!data.length) {
-          tbody.innerHTML = '<tr><td colspan="7" class="empty-row">✨ No hay acuerdos. Crea el primero ✨</td></tr>';
-          return;
-        }
-        tbody.innerHTML = '';
-        for (const acuerdo of data) {
-          const actividades = acuerdo.ACTIVIDADES || [];
-          let totalPeso = 0, completadoPeso = 0;
-          actividades.forEach(act => {
-            const peso = Number(act.VALOR_PONDERADO) || 0;
-            totalPeso += peso;
-            if (act.CHECKLIST === '✓') completadoPeso += peso;
-          });
-          const porcentaje = totalPeso > 0 ? (completadoPeso / totalPeso) * 100 : 0;
-          const actCount = actividades.length;
-          const completedActs = actividades.filter(a => a.CHECKLIST === '✓').length;
-
-          const pdfHtml = acuerdo.DOCUMENTO_PDF
-            ? `<a href="${acuerdo.DOCUMENTO_PDF}" target="_blank" class="pdf-link">📄 Ver PDF</a>`
-            : `<button class="btn btn-outline btn-sm" onclick="uploadPdfForAcuerdo(${acuerdo.ID_ACUERDO})">📎 Subir PDF</button>`;
-
-          const row = tbody.insertRow();
-          row.insertCell(0).innerHTML = `<span class="badge">#${acuerdo.ID_ACUERDO}</span>`;
-          row.insertCell(1).innerHTML = `<strong style="font-size:0.9rem;">${escapeHtml(acuerdo.ACUERDO || '—')}</strong><br><span style="font-size:0.7rem; color:#5b6e8c;">${escapeHtml(acuerdo.RESPONSABLE || 'Sin responsable')}</span>`;
-          row.insertCell(2).innerHTML = `<span style="font-size:0.75rem;">${acuerdo.FECHAP?.slice(0, 10) || '—'} → ${acuerdo.FECHAC?.slice(0, 10) || '—'}</span>`;
-          row.insertCell(3).innerHTML = pdfHtml;
-          row.insertCell(4).innerHTML = `
-          <div class="progress-wrapper">
-            <div class="progress-bar-bg"><div class="progress-fill" style="width: ${porcentaje}%;"></div></div>
-            <div class="progress-text">${Math.round(porcentaje)}% · ${completadoPeso}/${totalPeso} pts</div>
-          </div>`;
-          row.insertCell(5).innerHTML = `<span style="font-size:0.75rem;"> ${actCount} act ·  ${completedActs} completas</span>
-          <button class="btn btn-outline btn-sm" style="margin-left: 8px;" onclick="openActividadModal(${acuerdo.ID_ACUERDO})">Gestionar</button>`;
-          row.insertCell(6).innerHTML = `<button class="btn btn-outline btn-sm" onclick="editAcuerdo(${acuerdo.ID_ACUERDO})">✎ Editar</button>`;
-        }
-      } catch (err) {
-        limpiarEstado();
-        setEstadoLocal('error', 'Error al cargar datos');
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">⚠️ Error al cargar: ${err.message}</td></tr>`;
-        console.error(err);
-      }
-    }
-
-    window.uploadPdfForAcuerdo = async (idAcuerdo) => {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.pdf';
-      input.style.display = 'none';
-      document.body.appendChild(input);
-
-      input.onchange = async (e) => {
-        const file = e.target.files[0];
-        if (!file) {
-          document.body.removeChild(input);
-          return;
-        }
-
-        if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
-          setEstadoLocal('error', 'Solo se permiten archivos PDF');
-          document.body.removeChild(input);
-          return;
-        }
-
-        if (file.size > 10 * 1024 * 1024) {
-          setEstadoLocal('error', 'El PDF no puede superar los 10MB');
-          document.body.removeChild(input);
-          return;
-        }
-
-        setEstadoLocal('loading', `Subiendo ${file.name}...`, true);
-
-        try {
-          const result = await uploadPDF(idAcuerdo, file);
-          console.log('Resultado upload:', result);
-
-          if (result.status === 'ok') {
-            setEstadoLocal('success', 'PDF subido correctamente');
-            loadAcuerdos();
+          // TERCERO: Verificar autenticación AHORA que el header existe
+          if (typeof verificarAutenticacion === 'function') {
+            setTimeout(() => {
+              verificarAutenticacion();
+              console.log("✅ Autenticación verificada");
+            }, 100); // Pequeño delay para asegurar que el DOM se actualizó
           } else {
-            throw new Error(result.message || 'Error al subir PDF');
+            console.error("❌ verificarAutenticacion no está definida");
           }
-        } catch (err) {
-          console.error('Error en uploadPdfForAcuerdo:', err);
-          setEstadoLocal('error', err.message);
-        } finally {
-          document.body.removeChild(input);
-        }
-      };
-
-      input.click();
-    };
-
-    function escapeHtml(str) {
-      if (!str) return '';
-      return str.replace(/[&<>]/g, function (m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-      });
-    }
-
-    window.editAcuerdo = async (id) => {
-      const data = await readData();
-      const acuerdo = data.find(a => a.ID_ACUERDO == id);
-      if (acuerdo) {
-        document.getElementById('acuerdoId').value = acuerdo.ID_ACUERDO;
-        document.getElementById('acuerdoText').value = acuerdo.ACUERDO || '';
-        document.getElementById('responsable').value = acuerdo.RESPONSABLE || '';
-        document.getElementById('fechaP').value = acuerdo.FECHAP ? acuerdo.FECHAP.slice(0, 10) : '';
-        document.getElementById('fechaC').value = acuerdo.FECHAC ? acuerdo.FECHAC.slice(0, 10) : '';
-        document.getElementById('observaciones').value = acuerdo.OBSERVACIONES || '';
-        document.getElementById('acuerdoModalTitle').innerText = 'Editar acuerdo';
-      }
-      document.getElementById('acuerdoModal').style.display = 'flex';
-    };
-
-    document.getElementById('newAcuerdoBtn').onclick = () => {
-      document.getElementById('acuerdoForm').reset();
-      document.getElementById('acuerdoId').value = '';
-      document.getElementById('acuerdoModalTitle').innerText = 'Nuevo acuerdo';
-      document.getElementById('acuerdoModal').style.display = 'flex';
-    };
-
-    document.getElementById('closeAcuerdoModal').onclick = () => document.getElementById('acuerdoModal').style.display = 'none';
-    document.getElementById('cancelAcuerdoBtn').onclick = () => document.getElementById('acuerdoModal').style.display = 'none';
-
-    document.getElementById('acuerdoForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const id = document.getElementById('acuerdoId').value;
-      const pdfFile = document.getElementById('pdfFile').files[0];
-
-      const payload = {
-        acuerdo: document.getElementById('acuerdoText').value,
-        responsable: document.getElementById('responsable').value,
-        fechap: document.getElementById('fechaP').value,
-        fechac: document.getElementById('fechaC').value,
-        observaciones: document.getElementById('observaciones').value
-      };
-
-      setEstadoLocal('loading', id ? 'Actualizando acuerdo...' : 'Creando acuerdo...', true);
-      try {
-        let res;
-        if (id) {
-          payload.id = id;
-          res = await callAPI('updateAcuerdo', payload);
-        } else {
-          res = await callAPI('createAcuerdo', payload);
-        }
-
-        if (res.status === 'ok') {
-          const acuerdoId = res.id || id;
-          if (pdfFile) {
-            try {
-              const pdfResult = await uploadPDF(acuerdoId, pdfFile);
-              limpiarEstado();
-              if (pdfResult.status !== 'ok') {
-                setEstadoLocal('error', 'Acuerdo guardado, error con PDF');
-              } else {
-                setEstadoLocal('success', 'Acuerdo guardado con PDF');
-              }
-            } catch (pdfErr) {
-              limpiarEstado();
-              setEstadoLocal('error', 'Acuerdo guardado, PDF falló');
-            }
-          } else {
-            limpiarEstado();
-            setEstadoLocal('success', id ? 'Acuerdo actualizado' : 'Acuerdo creado');
-          }
-          document.getElementById('acuerdoModal').style.display = 'none';
-          loadAcuerdos();
-        } else {
-          limpiarEstado();
-          setEstadoLocal('error', res.message || 'Error al guardar');
-        }
-      } catch (err) {
-        limpiarEstado();
-        setEstadoLocal('error', err.message);
-      }
-    };
-
-    window.openActividadModal = async (acuerdoId) => {
-      document.getElementById('acuerdoIdForActividad').value = acuerdoId;
-      document.getElementById('actividadForm').reset();
-      document.getElementById('actividadId').value = '';
-      const data = await readData();
-      const acuerdo = data.find(a => a.ID_ACUERDO == acuerdoId);
-      const listaDiv = document.getElementById('actividadesList');
-      if (acuerdo && acuerdo.ACTIVIDADES.length) {
-        listaDiv.innerHTML = `<div style="margin-bottom: 0.8rem;"><span class="badge">Actividades (ponderación)</span></div>`;
-        acuerdo.ACTIVIDADES.forEach(act => {
-          listaDiv.innerHTML += `
-          <div class="activity-card">
-            <div class="flex-between">
-              <strong>${escapeHtml(act.ACTIVIDAD || 'Sin título')}</strong>
-              <div>
-                <button class="btn btn-outline btn-sm" onclick='editActividad(${JSON.stringify(act).replace(/'/g, "&#39;")})'>✎</button>
-                <button class="btn btn-outline btn-sm" style="color:#b91c1c;" onclick="deleteActividad(${act.ID_ACTIVIDAD})">🗑</button>
-              </div>
-            </div>
-            <div style="font-size:0.75rem; margin-top: 6px;"> ${escapeHtml(act.RESULTADOS || 'Sin resultados')}</div>
-            <div class="flex-between" style="margin-top: 8px;">
-              <span>⚖️ Valor: ${act.VALOR_PONDERADO}%</span>
-              <label style="display: flex; align-items: center; gap: 5px; font-size:0.75rem;">
-                <input type="checkbox" ${act.CHECKLIST === '✓' ? 'checked' : ''} onchange="toggleChecklist(${act.ID_ACTIVIDAD}, this.checked)"> Completada
-              </label>
-            </div>
-          </div>`;
+        })
+        .catch(error => {
+          console.error("❌ Error cargando header:", error);
         });
+    };
+
+    document.body.appendChild(scriptSesion);
+
+    // Cargar footer (independiente)
+    fetch('/estadisticas/comun/footer.html')
+      .then(r => r.text())
+      .then(html => {
+        document.getElementById('footer').innerHTML = html;
+        const footer = document.getElementById('footerText');
+        if (footer) {
+          footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+        }
+        console.log("✅ Footer insertado");
+      })
+      .catch(error => {
+        console.error("❌ Error cargando footer:", error);
+      });
+  </script>
+  <script>
+    // Base de datos de efemérides de salud
+    const efemeridesSalud = [
+      // Enero
+      { mes: 0, dia: 6, descripcion: "Día de la Enfermera Mexicana", icono: "🩺" },
+      { mes: 0, dia: 27, descripcion: "Día Mundial de la Lucha contra la Lepra", icono: "🦋" },
+
+      // Febrero
+      { mes: 1, dia: 4, descripcion: "Día Mundial contra el Cáncer", icono: "🎗️" },
+      { mes: 1, dia: 11, descripcion: "Día Internacional de la Mujer y la Niña en la Ciencia", icono: "👩‍🔬" },
+      { mes: 1, dia: 14, descripcion: "Día Europeo de la Salud Sexual", icono: "❤️" },
+
+      // Marzo
+      { mes: 2, dia: 8, descripcion: "Día Internacional de la Mujer", icono: "♀️" },
+      { mes: 2, dia: 15, descripcion: "Día Mundial del Sueño", icono: "😴" },
+      { mes: 2, dia: 24, descripcion: "Día Mundial de la Tuberculosis", icono: "🫁" },
+
+      // Abril
+      { mes: 3, dia: 2, descripcion: "Día Mundial de Concienciación sobre el Autismo", icono: "🧩" },
+      { mes: 3, dia: 7, descripcion: "Día Mundial de la Salud", icono: "🌍" },
+      { mes: 3, dia: 25, descripcion: "Día Mundial del Paludismo", icono: "🦟" },
+
+      // Mayo
+      { mes: 4, dia: 1, descripcion: "Día Internacional del Trabajador", icono: "👷" },
+      { mes: 4, dia: 3, descripcion: "Día Mundial del Asma", icono: "🫁" },
+      { mes: 4, dia: 12, descripcion: "Día Internacional de la Enfermería", icono: "👩‍⚕️" },
+      { mes: 4, dia: 17, descripcion: "Día Mundial de la Hipertensión", icono: "❤️" },
+      { mes: 4, dia: 19, descripcion: "Día Mundial del Médico Familiar", icono: "👨‍⚕️" },
+      { mes: 4, dia: 28, descripcion: "Día de la Nutrición", icono: "🥗" },
+      { mes: 4, dia: 31, descripcion: "Día Mundial sin Tabaco", icono: "🚭" },
+
+      // Junio
+      { mes: 5, dia: 14, descripcion: "Día Mundial del Donante de Sangre", icono: "🩸" },
+      { mes: 5, dia: 15, descripcion: "Día Mundial de Toma de Conciencia del Abuso y Maltrato en la Vejez", icono: "👴" },
+      { mes: 5, dia: 26, descripcion: "Día Internacional de la Lucha contra el Uso Indebido y Tráfico Ilícito de Drogas", icono: "🚫" },
+
+      // Julio
+      { mes: 6, dia: 28, descripcion: "Día Mundial contra la Hepatitis", icono: "🩺" },
+
+      // Agosto
+      { mes: 7, dia: 19, descripcion: "Día Mundial de la Asistencia Humanitaria", icono: "🤝" },
+      { mes: 7, dia: 26, descripcion: "Día Internacional de la Dermatitis Atópica", icono: "🧴" },
+
+      // Septiembre
+      { mes: 8, dia: 10, descripcion: "Día Mundial para la Prevención del Suicidio", icono: "💚" },
+      { mes: 8, dia: 21, descripcion: "Día Mundial del Alzheimer", icono: "🧠" },
+      { mes: 8, dia: 26, descripcion: "Día Mundial de la Anticoncepción", icono: "💊" },
+      { mes: 8, dia: 28, descripcion: "Día Mundial contra la Rabia", icono: "🐕" },
+      { mes: 8, dia: 29, descripcion: "Día Mundial del Corazón", icono: "❤️" },
+
+      // Octubre
+      { mes: 9, dia: 1, descripcion: "Día Internacional de las Personas Mayores", icono: "👵" },
+      { mes: 9, dia: 10, descripcion: "Día Mundial de la Salud Mental", icono: "🧠" },
+      { mes: 9, dia: 12, descripcion: "Día Mundial de la Artritis Reumatoide", icono: "🦴" },
+      { mes: 9, dia: 15, descripcion: "Día Mundial del Lavado de Manos", icono: "🧼" },
+      { mes: 9, dia: 16, descripcion: "Día Mundial de la Alimentación", icono: "🍎" },
+      { mes: 9, dia: 19, descripcion: "Día Internacional del Cáncer de Mama", icono: "🎗️" },
+      { mes: 9, dia: 20, descripcion: "Día Mundial de la Osteoporosis", icono: "🦴" },
+      { mes: 9, dia: 29, descripcion: "Día Mundial del Ictus", icono: "🧠" },
+
+      // Noviembre
+      { mes: 10, dia: 14, descripcion: "Día Mundial de la Diabetes", icono: "💉" },
+      { mes: 10, dia: 17, descripcion: "Día Mundial del Niño Prematuro", icono: "👶" },
+      { mes: 10, dia: 19, descripcion: "Día Internacional del Hombre", icono: "👨" },
+      { mes: 10, dia: 20, descripcion: "Día de la Industrialización de África", icono: "🌍" },
+      { mes: 10, dia: 21, descripcion: "Día Mundial de la Pesca", icono: "🎣" },
+      { mes: 10, dia: 25, descripcion: "Día Internacional de la Eliminación de la Violencia contra la Mujer", icono: "♀️" },
+
+      // Diciembre
+      { mes: 11, dia: 1, descripcion: "Día Mundial de la Lucha contra el SIDA", icono: "🔴" },
+      { mes: 11, dia: 3, descripcion: "Día Internacional de las Personas con Discapacidad", icono: "♿" },
+      { mes: 11, dia: 10, descripcion: "Día de los Derechos Humanos", icono: "🤲" },
+    ];
+
+    // Función para obtener efemérides del mes actual
+    function getEfemeridesMesActual() {
+      const fecha = new Date();
+      const mesActual = fecha.getMonth(); // 0-11
+      const diaActual = fecha.getDate();
+
+      // Filtrar efemérides del mes actual
+      const delMes = efemeridesSalud.filter(ef => ef.mes === mesActual);
+
+      // Ordenar por día
+      delMes.sort((a, b) => a.dia - b.dia);
+
+      return delMes;
+    }
+
+    // Función para obtener efemérides próximas (siguientes 30 días)
+    function getEfemeridesProximas() {
+      const fecha = new Date();
+      const mesActual = fecha.getMonth();
+      const diaActual = fecha.getDate();
+
+      const proximas = [];
+
+      // Buscar en los próximos 30 días
+      for (let i = 0; i <= 30; i++) {
+        const fechaCheck = new Date();
+        fechaCheck.setDate(fecha.getDate() + i);
+        const mes = fechaCheck.getMonth();
+        const dia = fechaCheck.getDate();
+
+        const efemeride = efemeridesSalud.find(ef => ef.mes === mes && ef.dia === dia);
+        if (efemeride) {
+          proximas.push({
+            ...efemeride,
+            diasFaltantes: i,
+            esHoy: i === 0
+          });
+        }
+      }
+
+      return proximas.slice(0, 3); // Mostrar solo las 3 más próximas
+    }
+
+    // Función para actualizar el tile
+    function actualizarEfemerides() {
+      const lista = document.getElementById('efemerides-lista');
+      if (!lista) return;
+
+      // Opción A: Mostrar efemérides del mes actual
+      const efemeridesMes = getEfemeridesMesActual();
+
+      // Opción B: Mostrar efemérides próximas (descomenta para usar esta)
+      // const efemeridesProximas = getEfemeridesProximas();
+
+      // Limpiar lista actual
+      lista.innerHTML = '';
+
+      // Mostrar las efemérides (usando opción A)
+      if (efemeridesMes.length > 0) {
+        efemeridesMes.slice(0, 3).forEach(ef => { // Mostrar solo 3
+          const item = document.createElement('li');
+          const diaFormateado = ef.dia.toString().padStart(2, '0');
+          const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+          item.innerHTML = `${ef.icono} ${diaFormateado} ${meses[ef.mes]} — ${ef.descripcion}`;
+          lista.appendChild(item);
+        });
+
+        // Si hay más de 3, mostrar contador
+        if (efemeridesMes.length > 3) {
+          const item = document.createElement('li');
+          item.style.opacity = '0.7';
+          item.style.fontStyle = 'italic';
+          item.innerHTML = `↻ y ${efemeridesMes.length - 3} más este mes`;
+          lista.appendChild(item);
+        }
       } else {
-        listaDiv.innerHTML = '<div class="empty-row" style="padding:1rem;">No hay actividades registradas</div>';
+        // Si no hay efemérides este mes, mostrar las del próximo mes
+        const mesSiguiente = (new Date().getMonth() + 1) % 12;
+        const proxMes = efemeridesSalud.filter(ef => ef.mes === mesSiguiente).slice(0, 3);
+
+        proxMes.forEach(ef => {
+          const item = document.createElement('li');
+          const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+
+          item.innerHTML = `${ef.icono} ${ef.dia} ${meses[ef.mes]} — ${ef.descripcion} (próximo mes)`;
+          lista.appendChild(item);
+        });
       }
-      document.getElementById('actividadModal').style.display = 'flex';
-    };
+    }
 
-    window.editActividad = (act) => {
-      document.getElementById('actividadId').value = act.ID_ACTIVIDAD;
-      document.getElementById('actividadDesc').value = act.ACTIVIDAD || '';
-      document.getElementById('resultadosAct').value = act.RESULTADOS || '';
-      document.getElementById('valorPonderado').value = act.VALOR_PONDERADO || 0;
-    };
+    // Ejecutar al cargar la página
+    document.addEventListener('DOMContentLoaded', actualizarEfemerides);
 
-    window.toggleChecklist = async (id, checked) => {
-      setEstadoLocal('loading', 'Actualizando...', true);
-      await callAPI('updateActividad', { id, checklist: checked ? '✓' : '' });
-      limpiarEstado();
-      setEstadoLocal('success', 'Estado actualizado');
-      loadAcuerdos();
-    };
-
-    window.deleteActividad = async (id) => {
-      if (confirm('¿Eliminar esta actividad?')) {
-        setEstadoLocal('loading', 'Eliminando...', true);
-        await callAPI('deleteActividad', { id });
-        limpiarEstado();
-        setEstadoLocal('success', 'Actividad eliminada');
-        loadAcuerdos();
-        const modalOpen = document.getElementById('actividadModal').style.display === 'flex';
-        if (modalOpen) {
-          const acuerdoId = document.getElementById('acuerdoIdForActividad').value;
-          if (acuerdoId) openActividadModal(acuerdoId);
-        }
-      }
-    };
-
-    document.getElementById('closeActividadModal').onclick = () => document.getElementById('actividadModal').style.display = 'none';
-    document.getElementById('cancelActividadBtn').onclick = () => document.getElementById('actividadModal').style.display = 'none';
-
-    document.getElementById('actividadForm').onsubmit = async (e) => {
-      e.preventDefault();
-      const acuerdoId = document.getElementById('acuerdoIdForActividad').value;
-      const actividadId = document.getElementById('actividadId').value;
-      const payload = {
-        id_acuerdo: acuerdoId,
-        actividad: document.getElementById('actividadDesc').value,
-        resultados: document.getElementById('resultadosAct').value,
-        valorPonderado: document.getElementById('valorPonderado').value
-      };
-      setEstadoLocal('loading', actividadId ? 'Actualizando actividad...' : 'Agregando actividad...', true);
-      try {
-        let res;
-        if (actividadId) {
-          payload.id = actividadId;
-          res = await callAPI('updateActividad', payload);
-        } else {
-          res = await callAPI('createActividad', payload);
-        }
-        if (res.status === 'ok') {
-          limpiarEstado();
-          setEstadoLocal('success', actividadId ? 'Actividad actualizada' : 'Actividad agregada');
-          document.getElementById('actividadModal').style.display = 'none';
-          loadAcuerdos();
-        } else {
-          limpiarEstado();
-          setEstadoLocal('error', res.message || 'Error al guardar');
-        }
-      } catch (err) {
-        limpiarEstado();
-        setEstadoLocal('error', err.message);
-      }
-    };
-
-    window.onclick = (e) => {
-      if (e.target.classList.contains('modal')) e.target.style.display = 'none';
-    };
-
-    loadAcuerdos();
+    // Opcional: Actualizar cada día (si la página permanece abierta)
+    // setInterval(actualizarEfemerides, 86400000); // 24 horas en ms
   </script>
 </body>
 
