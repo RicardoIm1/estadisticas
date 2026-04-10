@@ -724,36 +724,54 @@
     }
 
     // Subir PDF con FormData (multipart) - VERSIÓN CORREGIDA
+    // Función uploadPDF con logs detallados
     async function uploadPDF(idAcuerdo, file) {
-      // Crear FormData correctamente
+      console.group('📤 Subiendo PDF');
+      console.log('ID Acuerdo:', idAcuerdo);
+      console.log('Nombre archivo:', file.name);
+      console.log('Tamaño:', file.size, 'bytes');
+      console.log('Tipo MIME:', file.type);
+
       const formData = new FormData();
       formData.append('action', 'uploadPDF');
       formData.append('id_acuerdo', idAcuerdo.toString());
-      formData.append('file', file, file.name); // nombre del archivo explícito
+      formData.append('file', file, file.name);
 
-      console.log('Subiendo PDF:', file.name, 'tamaño:', file.size, 'tipo:', file.type);
+      // Verificar contenido del FormData
+      for (let pair of formData.entries()) {
+        console.log('FormData entry:', pair[0], pair[1] instanceof File ? `[File: ${pair[1].name}]` : pair[1]);
+      }
 
       try {
         const resp = await fetch(API_URL, {
           method: 'POST',
           body: formData
-          // NO poner Content-Type header, el navegador lo establece automáticamente con el boundary
         });
 
-        const text = await resp.text();
-        console.log('Respuesta uploadPDF:', text);
+        console.log('Response status:', resp.status);
+        console.log('Response headers:', [...resp.headers.entries()]);
 
+        const text = await resp.text();
+        console.log('Response text:', text);
+
+        let json;
         try {
-          return JSON.parse(text);
+          json = JSON.parse(text);
+          console.log('Response JSON:', json);
         } catch (e) {
-          console.error('Error parseando respuesta:', text);
-          throw new Error(`Respuesta del servidor: ${text.substring(0, 200)}`);
+          console.error('No es JSON válido:', text.substring(0, 500));
+          throw new Error(`El servidor respondió: ${text.substring(0, 100)}`);
         }
+
+        console.groupEnd();
+        return json;
       } catch (error) {
-        console.error('Error en fetch uploadPDF:', error);
+        console.error('Fetch error:', error);
+        console.groupEnd();
         throw error;
       }
     }
+    
     async function readData() {
       const resp = await fetch(`${API_URL}?action=read`);
       const text = await resp.text();
@@ -814,27 +832,54 @@
     }
 
     window.uploadPdfForAcuerdo = async (idAcuerdo) => {
+      // Crear input de archivo dinámicamente
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.pdf';
+      input.style.display = 'none';
+      document.body.appendChild(input);
+
       input.onchange = async (e) => {
         const file = e.target.files[0];
-        if (!file) return;
+        if (!file) {
+          document.body.removeChild(input);
+          return;
+        }
+
+        // Validar que sea PDF
+        if (file.type !== 'application/pdf' && !file.name.endsWith('.pdf')) {
+          setEstadoLocal('error', 'Solo se permiten archivos PDF');
+          document.body.removeChild(input);
+          return;
+        }
+
+        // Validar tamaño (máximo 10MB)
+        if (file.size > 10 * 1024 * 1024) {
+          setEstadoLocal('error', 'El PDF no puede superar los 10MB');
+          document.body.removeChild(input);
+          return;
+        }
+
         setEstadoLocal('loading', `Subiendo ${file.name}...`, true);
+
         try {
           const result = await uploadPDF(idAcuerdo, file);
-          limpiarEstado();
+          console.log('Resultado upload:', result);
+
           if (result.status === 'ok') {
-            setEstadoLocal('success', 'PDF subido');
-            loadAcuerdos();
+            setEstadoLocal('success', 'PDF subido correctamente');
+            loadAcuerdos(); // Recargar tabla para mostrar el PDF
           } else {
-            setEstadoLocal('error', result.message || 'Error al subir');
+            throw new Error(result.message || 'Error al subir PDF');
           }
         } catch (err) {
-          limpiarEstado();
+          console.error('Error en uploadPdfForAcuerdo:', err);
           setEstadoLocal('error', err.message);
+        } finally {
+          document.body.removeChild(input);
         }
       };
+
       input.click();
     };
 
