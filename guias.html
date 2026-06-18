@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Guías</title>
+  <style>
+    body {
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      margin: 40px;
+      background: #ffffff;
+      color: #222;
+    }
+    h1 {
+      color: #0066cc; /* color único */
+      font-weight: 400;
+      margin-bottom: 20px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 2px solid #0066cc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    th {
+      color: #0066cc;
+      font-weight: 500;
+    }
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Guías</h1>
+  <input type="text" id="buscador" placeholder="Buscar por clave o nombre...">
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th>Clave</th>
+        <th>Nombre Guía</th>
+        <th>URL Completa</th>
+        <th>URL Rápida</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const scriptURL = "https://script.google.com/macros/s/AKfycbzMG7NjI7kRmXHe1HwH3d05f2Biz6Hqa83G2TU3lpMZtfEDMTGHAIlKTsSe5HNPN8TD/exec"; // pega aquí la URL publicada
+
+    let datos = [];
+
+    fetch(scriptURL)
+      .then(res => res.json())
+      .then(data => {
+        datos = data;
+        renderTabla(datos);
+      })
+      .catch(err => console.error(err));
+
+    function renderTabla(lista) {
+      const tbody = document.querySelector("#tabla tbody");
+      tbody.innerHTML = "";
+      lista.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.CLAVE}</td>
+          <td>${item["NOMBRE GUIA"]}</td>
+          <td><a href="${item.URL_COMPLETA}" target="_blank">Completa</a></td>
+          <td><a href="${item.URL_RAPIDA}" target="_blank">Rápida</a></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    document.getElementById("buscador").addEventListener("input", e => {
+      const q = e.target.value.toLowerCase();
+      const filtrados = datos.filter(item =>
+        item.CLAVE.toString().toLowerCase().includes(q) ||
+        item["NOMBRE GUIA"].toLowerCase().includes(q)
+      );
+      renderTabla(filtrados);
+    });
+  </script>
+</body>
+</html>
