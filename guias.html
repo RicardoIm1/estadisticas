@@ -26,7 +26,6 @@
       font-size: clamp(0.85rem, 0.9vw, 0.85rem);
     }
 
-    /* === ESTRUCTURA FLEXIBLE === */
     body {
       display: flex;
       justify-content: center;
@@ -523,13 +522,6 @@
     }
 
     /* === RESPONSIVIDAD MEJORADA === */
-    @media (max-width: 1024px) {
-      .grid {
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 0.9rem;
-      }
-    }
-
     @media (max-width: 768px) {
       .glass {
         width: 95%;
@@ -592,7 +584,7 @@
       }
 
       .grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         gap: 0.6rem;
       }
 
@@ -656,35 +648,6 @@
       .btn-link {
         max-width: 80%;
         min-width: 80%;
-      }
-    }
-
-    /* === UTILIDADES === */
-    .slide-in-left {
-      animation: slideInLeft 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-    }
-
-    @keyframes slideInLeft {
-      0% {
-        opacity: 0;
-        transform: translateX(-20px) scale(0.95);
-      }
-      100% {
-        opacity: 1;
-        transform: translateX(0) scale(1);
-      }
-    }
-
-    .fade-in {
-      animation: fadeIn 0.3s ease forwards;
-    }
-
-    @keyframes fadeIn {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
       }
     }
   </style>
@@ -765,18 +728,15 @@
       modalIframe.classList.remove('loaded');
       modalIframe.src = '';
       
-      // Pequeño delay para la animación
       setTimeout(() => {
         modalIframe.src = url;
       }, 300);
       
-      // Cuando el iframe cargue
       modalIframe.onload = function() {
         modalLoading.style.display = 'none';
         modalIframe.classList.add('loaded');
       };
       
-      // Timeout por si el iframe tarda demasiado
       setTimeout(() => {
         modalLoading.style.display = 'none';
         modalIframe.classList.add('loaded');
@@ -800,7 +760,6 @@
       }
     });
 
-    // Cerrar modal con ESC
     document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && modalOverlay.classList.contains('active')) {
         closeModal();
@@ -848,7 +807,6 @@
         return;
       }
 
-      // Usar fragment para mejor performance
       const fragment = document.createDocumentFragment();
       
       paginaDatos.forEach((item, index) => {
@@ -864,7 +822,6 @@
           </div>
         `;
         
-        // Añadir event listeners a los botones
         const buttons = card.querySelectorAll('.btn-link');
         buttons.forEach(btn => {
           btn.addEventListener('click', function(e) {
@@ -891,7 +848,6 @@
       const totalRegistros = datosFiltrados.length;
 
       if (totalPaginas <= 1) {
-        // Mostrar información de resultados aunque sea una página
         const infoDiv = document.createElement("div");
         infoDiv.className = "paginador-info";
         infoDiv.innerHTML = `
@@ -901,7 +857,6 @@
         return;
       }
 
-      // Botón Anterior
       const prevBtn = document.createElement("button");
       prevBtn.textContent = "◀ Anterior";
       prevBtn.disabled = paginaActual === 1;
@@ -913,7 +868,6 @@
       };
       paginador.appendChild(prevBtn);
 
-      // Información de página y resultados
       const infoDiv = document.createElement("div");
       infoDiv.className = "paginador-info";
       infoDiv.innerHTML = `
@@ -923,7 +877,6 @@
       `;
       paginador.appendChild(infoDiv);
 
-      // Botón Siguiente
       const nextBtn = document.createElement("button");
       nextBtn.textContent = "Siguiente ▶";
       nextBtn.disabled = paginaActual === totalPaginas;
@@ -936,7 +889,7 @@
       paginador.appendChild(nextBtn);
     }
 
-    // === BUSCADOR CON IGNORAR ACENTOS ===
+    // === BUSCADOR CON IGNORAR ACENTOS Y DEBOUNCE ===
     let timeoutBuscador;
     document.getElementById("buscador").addEventListener("input", function(e) {
       clearTimeout(timeoutBuscador);
@@ -956,7 +909,7 @@
         
         paginaActual = 1;
         renderPagina();
-      }, 200); // Debounce para mejor performance
+      }, 200);
     });
 
     // === ACTUALIZAR AÑO ===
