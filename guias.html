@@ -424,8 +424,7 @@
 
   <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbzMG7NjI7kRmXHe1HwH3d05f2Biz6Hqa83G2TU3lpMZtfEDMTGHAIlKTsSe5HNPN8TD/exec";
-    let datosOriginales = [];
-    let datosFiltrados = [];
+    let datos = [];
     let paginaActual = 1;
     const registrosPorPagina = 18;
 
@@ -434,8 +433,7 @@
     fetch(scriptURL)
       .then(res => res.json())
       .then(data => {
-        datosOriginales = data;
-        datosFiltrados = data;
+        datos = data;
         document.getElementById("loader").style.display = "none";
         renderPagina();
       })
@@ -443,7 +441,7 @@
         console.error(err);
         document.getElementById("loader").style.display = "none";
         document.getElementById("contenedor").innerHTML = `
-          <div style="grid-column:1/-1;text-align:center;padding:2rem;color:rgba(255,255,255,0.7);">
+          <div style="text-align:center;padding:2rem;color:rgba(255,255,255,0.7);">
             <p>⚠️ Error al cargar los datos</p>
             <p style="font-size:0.8rem;">Intenta de nuevo más tarde</p>
           </div>
@@ -455,7 +453,7 @@
       contenedor.innerHTML = "";
       const inicio = (paginaActual - 1) * registrosPorPagina;
       const fin = inicio + registrosPorPagina;
-      const paginaDatos = datosFiltrados.slice(inicio, fin);
+      const paginaDatos = datos.slice(inicio, fin);
 
       if (paginaDatos.length === 0) {
         contenedor.innerHTML = `
@@ -488,11 +486,9 @@
     function renderPaginador() {
       const paginador = document.getElementById("paginador");
       paginador.innerHTML = "";
-      const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina);
+      const totalPaginas = Math.ceil(datos.length / registrosPorPagina);
 
-      if (totalPaginas <= 1) {
-        return;
-      }
+      if (totalPaginas <= 1) return;
 
       const prevBtn = document.createElement("button");
       prevBtn.textContent = "◀ Anterior";
@@ -516,17 +512,14 @@
     document.getElementById("buscador").addEventListener("input", function(e) {
       const q = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       
-      if (q === "") {
-        datosFiltrados = datosOriginales;
-      } else {
-        datosFiltrados = datosOriginales.filter(item => {
-          const clave = item.CLAVE.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          const nombre = item["NOMBRE GUIA"].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          return clave.includes(q) || nombre.includes(q);
-        });
-      }
+      const filtrados = datos.filter(item => {
+        const clave = item.CLAVE.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const nombre = item["NOMBRE GUIA"].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        return clave.includes(q) || nombre.includes(q);
+      });
       
       paginaActual = 1;
+      datos = filtrados;
       renderPagina();
     });
 
