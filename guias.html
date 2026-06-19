@@ -237,19 +237,20 @@
   <div id="paginador"></div>
   <footer>
     <p id="footerText">Hecho con ❤️ por
-        <a href="https://ricardoim1.github.io/jeronimoricardo/" id="footerLink"
-            style="color: inherit; text-decoration: none;" target="_blank">Ricardo</a>,
-        Viri y Alex ·
-        <span id="year"></span>
+      <a href="https://ricardoim1.github.io/jeronimoricardo/" id="footerLink"
+        style="color: inherit; text-decoration: none;" target="_blank">Ricardo</a>,
+      Viri y Alex ·
+      <span id="year"></span>
     </p>
     <p style="font-size: 0.8em; color: #666; margin-top: 5px;">
-        Hospital Regional Puerto Vallarta. Estadísticas y Archivo Clínico & Informática & Asistente de Dirección
+      Hospital Regional Puerto Vallarta. Estadísticas y Archivo Clínico & Informática & Asistente de Dirección
     </p>
-</footer>
+  </footer>
 
   <script>
     const scriptURL = "https://script.google.com/macros/s/AKfycbzMG7NjI7kRmXHe1HwH3d05f2Biz6Hqa83G2TU3lpMZtfEDMTGHAIlKTsSe5HNPN8TD/exec";
-    let datos = [];
+    let datosOriginales = [];
+    let datosFiltrados = [];
     let paginaActual = 1;
     const registrosPorPagina = 18;
 
@@ -258,22 +259,43 @@
     fetch(scriptURL)
       .then(res => res.json())
       .then(data => {
-        datos = data;
+        datosOriginales = data;
+        datosFiltrados = data;
         document.getElementById("loader").style.display = "none";
         renderPagina();
       })
-      .catch(err => console.error(err));
+      .catch(err => {
+        console.error(err);
+        document.getElementById("loader").style.display = "none";
+        document.getElementById("contenedor").innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;padding:2rem;color:rgba(255,255,255,0.7);">
+            <p>⚠️ Error al cargar los datos</p>
+            <p style="font-size:0.8rem;">Intenta de nuevo más tarde</p>
+          </div>
+        `;
+      });
 
     function renderPagina() {
       const contenedor = document.getElementById("contenedor");
       contenedor.innerHTML = "";
       const inicio = (paginaActual - 1) * registrosPorPagina;
       const fin = inicio + registrosPorPagina;
-      const paginaDatos = datos.slice(inicio, fin);
+      const paginaDatos = datosFiltrados.slice(inicio, fin);
+
+      if (paginaDatos.length === 0) {
+        contenedor.innerHTML = `
+          <div style="grid-column:1/-1;text-align:center;padding:3rem;color:rgba(255,255,255,0.6);">
+            <p style="font-size:1.2rem;">🔍 No se encontraron resultados</p>
+            <p style="font-size:0.9rem;">Prueba con otra palabra clave</p>
+          </div>
+        `;
+        document.getElementById("paginador").innerHTML = "";
+        return;
+      }
 
       paginaDatos.forEach(item => {
         const card = document.createElement("div");
-        card.className = "card";
+        card.className = "celda";
         card.innerHTML = `
           <h3>${item.CLAVE}</h3>
           <h2>${item["NOMBRE GUIA"]}</h2>
@@ -291,42 +313,58 @@
     function renderPaginador() {
       const paginador = document.getElementById("paginador");
       paginador.innerHTML = "";
-      const totalPaginas = Math.ceil(datos.length / registrosPorPagina);
+      const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina);
+
+      if (totalPaginas <= 1) {
+        return;
+      }
 
       const prevBtn = document.createElement("button");
-      prevBtn.textContent = "Anterior";
+      prevBtn.textContent = "◀ Anterior";
       prevBtn.disabled = paginaActual === 1;
       prevBtn.onclick = () => { paginaActual--; renderPagina(); };
       paginador.appendChild(prevBtn);
 
+      const infoPag = document.createElement("span");
+      infoPag.textContent = ` ${paginaActual} / ${totalPaginas} `;
+      infoPag.style.cssText = "display:flex;align-items:center;color:rgba(255,255,255,0.7);font-size:0.85rem;";
+      paginador.appendChild(infoPag);
+
       const nextBtn = document.createElement("button");
-      nextBtn.textContent = "Siguiente";
+      nextBtn.textContent = "Siguiente ▶";
       nextBtn.disabled = paginaActual === totalPaginas;
       nextBtn.onclick = () => { paginaActual++; renderPagina(); };
       paginador.appendChild(nextBtn);
     }
 
-    document.getElementById("buscador").addEventListener("input", e => {
-      const q = e.target.value.toLowerCase();
-      const filtrados = datos.filter(item =>
-        item.CLAVE.toString().toLowerCase().includes(q) ||
-        item["NOMBRE GUIA"].toLowerCase().includes(q)
-      );
+    // === BUSCADOR CON IGNORAR ACENTOS ===
+    document.getElementById("buscador").addEventListener("input", function (e) {
+      const q = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      if (q === "") {
+        datosFiltrados = datosOriginales;
+      } else {
+        datosFiltrados = datosOriginales.filter(item => {
+          const clave = item.CLAVE.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          const nombre = item["NOMBRE GUIA"].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+          return clave.includes(q) || nombre.includes(q);
+        });
+      }
+
       paginaActual = 1;
-      datos = filtrados;
       renderPagina();
     });
 
-    // Footer link handler
+    // === ACTUALIZAR AÑO ===
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    // === FOOTER LINK HANDLER ===
     document.addEventListener('click', function (e) {
-      if (e.target.id === 'footerLink' || e.target.closest('#footerLink')) {
+      if (e.target.tagName === 'A' && e.target.href.includes('ricardoim1.github.io')) {
         e.preventDefault();
-        window.open('https://ricardoim1.github.io/jeronimoricardo/', '_blank');
+        window.open(e.target.href, '_blank');
       }
     });
-
-    // Actualizar año automáticamente
-    document.getElementById("year").textContent = new Date().getFullYear();
   </script>
 </body>
 
