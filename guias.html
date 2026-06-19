@@ -89,6 +89,7 @@
     }
 
     /* === LOADER === */
+    /* === LOADER === */
     #loader {
       display: none;
       position: fixed;
@@ -98,14 +99,21 @@
       height: 100%;
       background: rgba(255, 255, 255, 0.85);
       backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
       z-index: 9999;
     }
 
-    /* Cuando el loader está activo */
     #loader.active {
-      display: flex;
+      display: flex !important;
       justify-content: center;
       align-items: center;
+    }
+
+    #loader .loader-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
     }
 
     .spinner {
@@ -115,6 +123,12 @@
       width: 50px;
       height: 50px;
       animation: spin 0.8s linear infinite;
+    }
+
+    #loader p {
+      color: #666;
+      font-size: 14px;
+      font-weight: 500;
     }
 
     @keyframes spin {
@@ -698,7 +712,10 @@
   <header>Catálogo Maestro de Guías de Práctica Clínica</header>
   <input type="text" id="buscador" placeholder="🔍 Buscar por clave o nombre..." autofocus>
   <div id="loader">
-    <div class="spinner"></div>
+    <div class="loader-content">
+      <div class="spinner"></div>
+      <p>Cargando guías...</p>
+    </div>
   </div>
   <main id="contenedor"></main>
   <div id="paginador"></div>
@@ -832,7 +849,7 @@
       }
 
       // === CARGA DE DATOS ===
-      loader.style.display = "block";
+      loader.classList.add('active');
 
       fetch(scriptURL)
         .then(res => {
@@ -842,7 +859,7 @@
         .then(data => {
           datosOriginales = data;
           datosFiltrados = data;
-          loader.style.display = "none";
+          loader.classList.remove('active');
           renderPagina();
         })
         .catch(err => {
