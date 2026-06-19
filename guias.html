@@ -338,7 +338,7 @@
       margin-top: 4px;
     }
 
-    /* === MODAL - CON TRANSICIONES SUAVES === */
+    /* === MODAL - Solo visible en desktop/tablet === */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -477,7 +477,7 @@
       }
     }
 
-    /* === RESPONSIVIDAD MEJORADA === */
+    /* === RESPONSIVIDAD === */
     @media (max-width: 768px) {
       header {
         font-size: 17px;
@@ -539,7 +539,20 @@
       }
     }
 
-    @media (max-width: 480px) {
+    /* === PANTALLAS PEQUEÑAS (móviles) - MODAL OCULTO, ABRIR EN NUEVA PESTAÑA === */
+    @media (max-width: 640px) {
+
+      /* Ocultamos el modal en móviles */
+      .modal-overlay {
+        display: none !important;
+      }
+
+      /* Los botones se comportan como enlaces normales */
+      .btn-link {
+        cursor: pointer;
+      }
+
+      /* Ajustes adicionales para móvil */
       header {
         font-size: 15px;
         padding: 12px 10px;
@@ -581,10 +594,11 @@
       }
 
       .btn-link {
-        padding: 7px 10px;
-        font-size: 11px;
+        padding: 8px 10px;
+        font-size: 12px;
         min-width: auto;
         width: 100%;
+        justify-content: center;
       }
 
       #paginador {
@@ -607,34 +621,6 @@
         gap: 5px;
       }
 
-      .modal-content {
-        padding: 14px 10px;
-        max-width: 99%;
-        width: 98%;
-        max-height: 97vh;
-        border-radius: 14px;
-      }
-
-      .modal-header {
-        margin-bottom: 10px;
-        padding-bottom: 8px;
-      }
-
-      .modal-header h3 {
-        font-size: 14px;
-      }
-
-      .modal-close {
-        font-size: 24px;
-        padding: 0 4px;
-      }
-
-      .modal-body iframe {
-        height: 55vh;
-        min-height: 250px;
-        border-radius: 8px;
-      }
-
       footer {
         font-size: 11px;
         padding: 10px 6px;
@@ -645,30 +631,27 @@
       }
     }
 
-    /* === PANTALLAS MUY PEQUEÑAS (iPhone 8, SE, etc) === */
-    @media (max-width: 375px) {
-      header {
-        font-size: 14px;
-        padding: 10px 8px;
-        margin-top: 50px;
+    @media (max-width: 480px) {
+      #contenedor {
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
       }
 
-      #buscador {
+      .card h2 {
         font-size: 12px;
-        padding: 7px 10px;
-        width: 95%;
-        top: 0.3rem;
-        border-radius: 20px;
+        min-height: 32px;
       }
 
+      .btn-link {
+        font-size: 11px;
+        padding: 7px 8px;
+      }
+    }
+
+    @media (max-width: 375px) {
       #contenedor {
         grid-template-columns: 1fr;
         gap: 10px;
-        padding: 2px 0;
-      }
-
-      .card {
-        padding: 12px 10px;
       }
 
       .card h2 {
@@ -680,63 +663,12 @@
         font-size: 12px;
         padding: 8px 12px;
       }
-
-      #paginador button {
-        font-size: 11px;
-        padding: 7px 10px;
-        min-width: 50px;
-        max-width: 140px;
-      }
-
-      .paginador-info {
-        font-size: 11px;
-        padding: 4px 8px;
-      }
-
-      .modal-content {
-        padding: 12px 8px;
-        border-radius: 12px;
-      }
-
-      .modal-header h3 {
-        font-size: 13px;
-      }
-
-      .modal-close {
-        font-size: 22px;
-      }
-
-      .modal-body iframe {
-        height: 45vh;
-        min-height: 200px;
-      }
-
-      footer {
-        font-size: 10px;
-        padding: 8px 4px;
-      }
-    }
-
-    @media (max-width: 320px) {
-      .modal-body iframe {
-        height: 40vh;
-        min-height: 180px;
-      }
-    }
-
-    /* Ajuste especial para el scroll en el modal en iOS */
-    .modal-body {
-      -webkit-overflow-scrolling: touch;
-    }
-
-    .modal-body iframe {
-      -webkit-overflow-scrolling: touch;
     }
   </style>
 </head>
 
 <body>
-  <header>Catálogo Alumno de Guías de Práctica Clínica</header>
+  <header>Catálogo Maestro de Guías de Práctica Clínica</header>
   <input type="text" id="buscador" placeholder="🔍 Buscar por clave o nombre..." autofocus>
   <div id="loader">
     <div class="spinner"></div>
@@ -744,7 +676,7 @@
   <main id="contenedor"></main>
   <div id="paginador"></div>
 
-  <!-- MODAL -->
+  <!-- MODAL (solo visible en desktop/tablet) -->
   <div class="modal-overlay" id="modalOverlay">
     <div class="modal-content">
       <div class="modal-header">
@@ -782,6 +714,10 @@
       let paginaActual = 1;
       const registrosPorPagina = 18;
 
+      // === DETECCIÓN DE DISPOSITIVO MÓVIL ===
+      const isMobile = window.innerWidth <= 640;
+      console.log(`📱 Modo móvil: ${isMobile ? 'ACTIVADO' : 'DESACTIVADO'} (ancho: ${window.innerWidth}px)`);
+
       // === DOM REFS ===
       const contenedor = document.getElementById("contenedor");
       const paginador = document.getElementById("paginador");
@@ -794,12 +730,17 @@
       const modalTitle = document.getElementById('modalTitle');
       const yearSpan = document.getElementById('year');
 
-      // === FUNCIONES DEL MODAL ===
+      // === FUNCIONES DEL MODAL (SOLO PARA DESKTOP) ===
       function openModal(url, title) {
-        // Si la URL es de Google Drive, forzamos la vista completa con #view=fitH
+        if (isMobile) {
+          // En móvil: abrir en nueva pestaña
+          window.open(url, '_blank');
+          return;
+        }
+
+        // Desktop: usar modal
         let finalUrl = url;
         if (url.includes('drive.google.com') && !url.includes('view=fitH')) {
-          // Si ya tiene un fragmento, lo reemplazamos; si no, lo añadimos
           const urlObj = new URL(url);
           urlObj.hash = 'view=fitH';
           finalUrl = urlObj.toString();
@@ -817,7 +758,6 @@
 
         modalOverlay.classList.add('active');
 
-        // Cargar el iframe después de la animación de entrada
         setTimeout(() => {
           modalIframe.src = finalUrl;
           modalIframe.onload = function () {
@@ -838,6 +778,7 @@
       }
 
       function closeModal() {
+        if (isMobile) return;
         modalOverlay.classList.remove('active');
         document.body.style.overflow = '';
 
@@ -852,14 +793,16 @@
         }, 350);
       }
 
-      // Eventos del modal
-      modalClose.addEventListener('click', closeModal);
-      modalOverlay.addEventListener('click', function (e) {
-        if (e.target === modalOverlay) closeModal();
-      });
-      document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape') closeModal();
-      });
+      // Eventos del modal (solo si no es móvil)
+      if (!isMobile) {
+        modalClose.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', function (e) {
+          if (e.target === modalOverlay) closeModal();
+        });
+        document.addEventListener('keydown', function (e) {
+          if (e.key === 'Escape') closeModal();
+        });
+      }
 
       // === CARGA DE DATOS ===
       loader.style.display = "block";
@@ -939,7 +882,7 @@
 
         contenedor.appendChild(fragment);
 
-        // Delegación de eventos para los botones (mejor performance)
+        // Delegación de eventos para los botones
         contenedor.querySelectorAll('.btn-link').forEach(btn => {
           btn.addEventListener('click', function (e) {
             e.preventDefault();
@@ -975,7 +918,6 @@
         const wrapper = document.createElement("div");
         wrapper.style.cssText = "display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;width:100%;";
 
-        // Botón Anterior
         const prevBtn = document.createElement("button");
         prevBtn.textContent = "◀ Anterior";
         prevBtn.disabled = paginaActual === 1;
@@ -988,7 +930,6 @@
         });
         wrapper.appendChild(prevBtn);
 
-        // Info
         const infoDiv = document.createElement("div");
         infoDiv.className = "paginador-info";
         infoDiv.innerHTML = `
@@ -998,7 +939,6 @@
         `;
         wrapper.appendChild(infoDiv);
 
-        // Botón Siguiente
         const nextBtn = document.createElement("button");
         nextBtn.textContent = "Siguiente ▶";
         nextBtn.disabled = paginaActual === totalPaginas;
@@ -1046,7 +986,7 @@
         }, 180);
       });
 
-      // === UTILITY: ESCAPE HTML (previene XSS) ===
+      // === UTILITY: ESCAPE HTML ===
       function escapeHtml(str) {
         if (!str) return '';
         const div = document.createElement('div');
@@ -1057,27 +997,17 @@
       // === ACTUALIZAR AÑO ===
       yearSpan.textContent = new Date().getFullYear();
 
-      // === CERRAR MODAL CON BOTÓN ATRÁS DEL NAVEGADOR ===
-      window.addEventListener('popstate', function (e) {
-        if (modalOverlay.classList.contains('active')) {
-          closeModal();
-        }
-      });
-
-      // Prevenir que el modal se cierre al hacer scroll en el iframe en iOS
-      document.addEventListener('touchmove', function (e) {
-        if (modalOverlay.classList.contains('active')) {
-          const target = e.target;
-          if (target.closest('.modal-body') || target.closest('.modal-content')) {
-            // Permitir scroll dentro del modal
-            return;
+      // === CERRAR MODAL CON BOTÓN ATRÁS (solo desktop) ===
+      if (!isMobile) {
+        window.addEventListener('popstate', function (e) {
+          if (modalOverlay.classList.contains('active')) {
+            closeModal();
           }
-          // Si el touch es fuera del modal, no prevenir por defecto
-        }
-      }, { passive: true });
+        });
+      }
 
       console.log('✅ App inicializada correctamente');
-      console.log(`📱 Dispositivo: ${window.innerWidth}x${window.innerHeight}`);
+      console.log(`📱 Dispositivo: ${window.innerWidth}x${window.innerHeight} - Móvil: ${isMobile}`);
     })();
   </script>
 </body>
