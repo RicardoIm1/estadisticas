@@ -106,6 +106,7 @@
       0% {
         transform: rotate(0deg);
       }
+
       100% {
         transform: rotate(360deg);
       }
@@ -341,7 +342,7 @@
       margin-top: 8px;
     }
 
-    /* === MODAL === */
+    /* === MODAL - VERSIÓN GENEROSA === */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -365,9 +366,9 @@
       background: white;
       border-radius: 20px;
       padding: 30px;
-      max-width: 90%;
-      width: 600px;
-      max-height: 85vh;
+      max-width: 95%;
+      width: 90%;
+      max-height: 92vh;
       position: relative;
       animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
@@ -383,22 +384,24 @@
       margin-bottom: 20px;
       padding-bottom: 15px;
       border-bottom: 2px solid #f0f0f0;
+      flex-shrink: 0;
     }
 
     .modal-header h3 {
       margin: 0;
       color: var(--main-color);
       font-size: 18px;
+      word-break: break-word;
     }
 
     .modal-close {
       background: none;
       border: none;
-      font-size: 28px;
+      font-size: 32px;
       cursor: pointer;
       color: #999;
       transition: all 0.3s ease;
-      padding: 0 8px;
+      padding: 0 10px;
       line-height: 1;
     }
 
@@ -411,11 +414,13 @@
       flex: 1;
       overflow-y: auto;
       padding-right: 5px;
+      min-height: 0;
     }
 
     .modal-body iframe {
       width: 100%;
-      height: 500px;
+      height: 70vh;
+      min-height: 500px;
       border: none;
       border-radius: 12px;
       background: #f5f5f5;
@@ -437,6 +442,35 @@
       margin: 0 auto 15px;
     }
 
+    /* === RESPONSIVIDAD === */
+    @media (max-width: 768px) {
+      .modal-content {
+        padding: 20px;
+        max-width: 98%;
+        width: 95%;
+        max-height: 95vh;
+      }
+
+      .modal-body iframe {
+        height: 60vh;
+        min-height: 400px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .modal-content {
+        padding: 16px;
+        max-width: 99%;
+        width: 98%;
+        max-height: 97vh;
+      }
+
+      .modal-body iframe {
+        height: 50vh;
+        min-height: 300px;
+      }
+    }
+
     /* === ANIMACIONES === */
     @keyframes fadeInUp {
       to {
@@ -449,6 +483,7 @@
       from {
         opacity: 0;
       }
+
       to {
         opacity: 1;
       }
@@ -459,6 +494,7 @@
         transform: translateY(40px) scale(0.95);
         opacity: 0;
       }
+
       to {
         transform: translateY(0) scale(1);
         opacity: 1;
@@ -661,11 +697,11 @@
       // Cargar el iframe con delay para animación
       setTimeout(() => {
         modalIframe.src = url;
-        modalIframe.onload = function() {
+        modalIframe.onload = function () {
           modalLoading.style.display = 'none';
           modalIframe.style.display = 'block';
         };
-        modalIframe.onerror = function() {
+        modalIframe.onerror = function () {
           modalLoading.innerHTML = `
             <p style="color: #e74c3c;">⚠️ Error al cargar el contenido</p>
             <p style="font-size: 0.9rem; color: #666;">Intenta abrir el enlace directamente</p>
@@ -689,10 +725,10 @@
     }
 
     modalClose.addEventListener('click', closeModal);
-    modalOverlay.addEventListener('click', function(e) {
+    modalOverlay.addEventListener('click', function (e) {
       if (e.target === modalOverlay) closeModal();
     });
-    document.addEventListener('keydown', function(e) {
+    document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') closeModal();
     });
 
@@ -745,7 +781,7 @@
         const card = document.createElement("div");
         card.className = "card";
         card.style.animationDelay = `${index * 0.05}s`;
-        
+
         // Sanitizar datos por seguridad
         const clave = item.CLAVE || '';
         const nombre = item["NOMBRE GUIA"] || '';
@@ -767,7 +803,7 @@
 
       // Event listeners para botones de las cards
       contenedor.querySelectorAll('.btn-link').forEach(btn => {
-        btn.addEventListener('click', function(e) {
+        btn.addEventListener('click', function (e) {
           e.preventDefault();
           const url = this.getAttribute('data-url');
           const title = this.getAttribute('data-title');
@@ -833,7 +869,7 @@
 
     // === BUSCADOR CON IGNORAR ACENTOS ===
     let searchTimeout;
-    document.getElementById("buscador").addEventListener("input", function(e) {
+    document.getElementById("buscador").addEventListener("input", function (e) {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(() => {
         const q = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -857,7 +893,7 @@
     document.getElementById("year").textContent = new Date().getFullYear();
 
     // === FOOTER LINK HANDLER ===
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
       if (e.target.tagName === 'A' && e.target.href && e.target.href.includes('ricardoim1.github.io')) {
         e.preventDefault();
         window.open(e.target.href, '_blank');
