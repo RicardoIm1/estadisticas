@@ -342,7 +342,7 @@
       margin-top: 8px;
     }
 
-    /* === MODAL - VERSIÓN GENEROSA === */
+    /* === MODAL - CON TRANSICIONES SUAVES === */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -355,11 +355,13 @@
       z-index: 9999;
       justify-content: center;
       align-items: center;
-      animation: fadeIn 0.3s ease;
+      opacity: 0;
+      transition: opacity 0.4s ease;
     }
 
     .modal-overlay.active {
       display: flex;
+      opacity: 1;
     }
 
     .modal-content {
@@ -370,11 +372,18 @@
       width: 90%;
       max-height: 92vh;
       position: relative;
-      animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      transform: scale(0.95) translateY(20px);
+      opacity: 0;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       overflow: hidden;
       display: flex;
       flex-direction: column;
+    }
+
+    .modal-overlay.active .modal-content {
+      transform: scale(1) translateY(0);
+      opacity: 1;
     }
 
     .modal-header {
@@ -686,15 +695,18 @@
     const modalLoading = document.getElementById('modalLoading');
     const modalTitle = document.getElementById('modalTitle');
 
+    // === FUNCIONES DEL MODAL CON TRANSICIÓN ===
     function openModal(url, title) {
       modalTitle.textContent = title || 'Cargando...';
       modalLoading.style.display = 'block';
       modalIframe.style.display = 'none';
       modalIframe.src = '';
-      modalOverlay.classList.add('active');
       document.body.style.overflow = 'hidden';
 
-      // Cargar el iframe con delay para animación
+      // Activar overlay
+      modalOverlay.classList.add('active');
+
+      // Cargar el iframe después de la animación de entrada
       setTimeout(() => {
         modalIframe.src = url;
         modalIframe.onload = function () {
@@ -703,25 +715,30 @@
         };
         modalIframe.onerror = function () {
           modalLoading.innerHTML = `
-            <p style="color: #e74c3c;">⚠️ Error al cargar el contenido</p>
-            <p style="font-size: 0.9rem; color: #666;">Intenta abrir el enlace directamente</p>
-            <a href="${url}" target="_blank" style="display:inline-block;margin-top:10px;padding:8px 20px;background:var(--main-color);color:#fff;border-radius:25px;text-decoration:none;">Abrir en nueva pestaña</a>
-          `;
+        <p style="color: #e74c3c;">⚠️ Error al cargar el contenido</p>
+        <p style="font-size: 0.9rem; color: #666;">Intenta abrir el enlace directamente</p>
+        <a href="${url}" target="_blank" style="display:inline-block;margin-top:10px;padding:8px 20px;background:var(--main-color);color:#fff;border-radius:25px;text-decoration:none;">Abrir en nueva pestaña</a>
+      `;
           modalIframe.style.display = 'none';
         };
-      }, 300);
+      }, 400); // Esperar a que termine la animación de entrada
     }
 
     function closeModal() {
+      // Remover la clase active para iniciar la animación de salida
       modalOverlay.classList.remove('active');
       document.body.style.overflow = '';
-      modalIframe.src = '';
-      modalIframe.style.display = 'none';
-      modalLoading.style.display = 'block';
-      modalLoading.innerHTML = `
-        <div class="spinner-small"></div>
-        <p>Cargando contenido...</p>
-      `;
+
+      // Limpiar el iframe después de la animación
+      setTimeout(() => {
+        modalIframe.src = '';
+        modalIframe.style.display = 'none';
+        modalLoading.style.display = 'block';
+        modalLoading.innerHTML = `
+      <div class="spinner-small"></div>
+      <p>Cargando contenido...</p>
+    `;
+      }, 400); // Esperar a que termine la animación de salida
     }
 
     modalClose.addEventListener('click', closeModal);
