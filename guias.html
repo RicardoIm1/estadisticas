@@ -9,241 +9,630 @@
     :root {
       --main-color: #0066cc;
       --secondary-color: #00aa66;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+      --transition-speed: 0.3s;
     }
 
-    /* Estructura base */
+    /* === BASE === */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: "Helvetica Neue", Arial, sans-serif;
-      margin: 0;
-      background: #fff;
-      color: #222;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      min-height: 100vh;
     }
 
-    /* Header */
+    /* === HEADER === */
     header {
-      background: var(--main-color);
+      background: linear-gradient(135deg, var(--main-color), #004c99);
       color: #fff;
-      padding: 15px;
+      padding: 20px;
       text-align: center;
-      font-size: 20px;
-      font-weight: 500;
+      font-size: 22px;
+      font-weight: 600;
       position: sticky;
       top: 0;
       z-index: 1000;
       margin-top: 70px;
-      /* espacio para el buscador fijo */
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      letter-spacing: 0.5px;
     }
 
-    /* Buscador fijo, centrado y semitransparente */
+    /* === BUSCADOR === */
     #buscador {
       position: fixed;
-      top: .8rem;
+      top: 0.8rem;
       left: 50%;
       transform: translateX(-50%);
-      padding: 12px;
+      padding: 14px 20px;
       border: 2px solid var(--main-color);
-      border-radius: 25px;
+      border-radius: 30px;
       font-size: 16px;
-      background: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(4px);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
       z-index: 2000;
-      width: 80%;
-      /* móviles */
-      max-width: 400px;
+      width: 85%;
+      max-width: 450px;
       text-align: center;
-      /* cursor y texto centrados */
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s ease;
     }
 
-    @media (min-width: 768px) {
-      #buscador {
-        width: 30%;
-        /* pantallas medianas y grandes */
-      }
+    #buscador:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+      box-shadow: 0 4px 30px rgba(0, 170, 102, 0.15);
+      transform: translateX(-50%) scale(1.02);
     }
 
     #buscador::placeholder {
-      color: #666;
+      color: #999;
       font-style: italic;
-      text-align: center;
     }
 
-    /* Área principal */
+    /* === MAIN === */
     main {
       flex: 1;
-      overflow-y: auto;
       padding: 20px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
     }
 
-    /* Loader */
+    /* === LOADER === */
     #loader {
       display: none;
       text-align: center;
-      margin: 20px;
+      padding: 40px 0;
     }
 
     .spinner {
       border: 4px solid #f3f3f3;
       border-top: 4px solid var(--main-color);
       border-radius: 50%;
-      width: 40px;
-      height: 40px;
-      animation: spin 1s linear infinite;
-      margin: auto;
+      width: 50px;
+      height: 50px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
     }
 
     @keyframes spin {
       0% {
         transform: rotate(0deg);
       }
-
       100% {
         transform: rotate(360deg);
       }
     }
 
-    /* Grid responsivo para cards */
+    /* === CONTENEDOR GRID === */
     #contenedor {
       display: grid;
-      justify-content: center;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 20px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      padding: 10px 0;
     }
 
-    /* Cards */
+    /* === CARDS MEJORADAS === */
     .card {
-      border: 1px solid #eee;
-      border-radius: 8px;
-      padding: 15px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      background: #fff;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(10px);
       display: flex;
       flex-direction: column;
       align-items: center;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      animation: fadeInUp 0.5s ease forwards;
+      opacity: 0;
+      transform: translateY(20px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--main-color), var(--secondary-color));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+      border-color: rgba(0, 102, 204, 0.2);
     }
 
     .card h3 {
       margin: 0;
-      font-size: 15px;
-      color: #555;
+      font-size: 14px;
+      color: #888;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: rgba(0, 102, 204, 0.08);
+      padding: 4px 12px;
+      border-radius: 20px;
+      display: inline-block;
     }
 
     .card h2 {
-      margin: 6px 0 12px;
+      margin: 12px 0 16px;
       font-size: 18px;
       color: var(--main-color);
       text-align: center;
+      font-weight: 600;
+      line-height: 1.4;
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
-    /* Botones dentro de las cards */
+    /* === BOTONES EN CARDS === */
     .btn-group {
       display: flex;
-      gap: 8px;
+      gap: 10px;
       justify-content: center;
+      width: 100%;
+      margin-top: 4px;
     }
 
     .btn-link {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 16px;
+      border-radius: 25px;
       font-size: 13px;
+      font-weight: 600;
       text-decoration: none;
-      font-weight: 500;
-      transition: background 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      border: none;
+      flex: 1;
+      min-width: 80px;
+      letter-spacing: 0.3px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-link::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      transition: width 0.6s ease, height 0.6s ease, top 0.6s ease, left 0.6s ease;
+    }
+
+    .btn-link:active::after {
+      width: 300px;
+      height: 300px;
+      top: -100px;
+      left: -100px;
     }
 
     .btn-completa {
-      background: var(--main-color);
+      background: linear-gradient(135deg, var(--main-color), #004c99);
       color: #fff !important;
+      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3);
     }
 
     .btn-completa:hover {
-      background: #004c99;
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
     }
 
     .btn-rapida {
-      background: var(--secondary-color);
+      background: linear-gradient(135deg, var(--secondary-color), #008855);
       color: #fff !important;
+      box-shadow: 0 4px 12px rgba(0, 170, 102, 0.3);
     }
 
     .btn-rapida:hover {
-      background: #008855;
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 170, 102, 0.4);
     }
 
-    /* Paginador */
+    /* === PAGINADOR MEJORADO === */
     #paginador {
       display: flex;
       justify-content: center;
-      gap: 10px;
-      margin: 20px 0;
+      align-items: center;
+      gap: 12px;
+      margin: 30px 0 20px;
+      flex-wrap: wrap;
+      padding: 10px;
     }
 
     #paginador button {
-      padding: 6px 12px;
+      padding: 10px 18px;
       border: none;
-      border-radius: 4px;
-      background: var(--main-color);
+      border-radius: 25px;
+      background: linear-gradient(135deg, var(--main-color), #004c99);
       color: #fff;
       cursor: pointer;
       font-size: 14px;
+      font-weight: 600;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 4px 12px rgba(0, 102, 204, 0.2);
+      min-width: 80px;
+    }
+
+    #paginador button:hover:not(:disabled) {
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(0, 102, 204, 0.3);
+    }
+
+    #paginador button:active:not(:disabled) {
+      transform: scale(0.95);
     }
 
     #paginador button:disabled {
       background: #ccc;
       cursor: not-allowed;
+      box-shadow: none;
+      transform: none !important;
     }
 
-    /* Footer */
+    .paginador-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 15px;
+      color: #555;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 8px 16px;
+      border-radius: 25px;
+      font-weight: 500;
+    }
+
+    .paginador-info .resultados {
+      color: var(--main-color);
+      font-weight: 600;
+    }
+
+    /* === FOOTER === */
     footer {
-      background: #f9f9f9;
+      background: rgba(255, 255, 255, 0.9);
       text-align: center;
-      padding: 15px;
+      padding: 20px;
       font-size: 14px;
-      border-top: 1px solid #eee;
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(10px);
+      margin-top: auto;
     }
 
-    /* Ajustes móviles */
-    @media (max-width: 600px) {
+    footer a {
+      color: var(--main-color) !important;
+      text-decoration: none !important;
+      font-weight: 600;
+      transition: color 0.3s ease;
+    }
+
+    footer a:hover {
+      color: var(--secondary-color) !important;
+    }
+
+    footer .ref-institucional {
+      font-size: 0.8em;
+      color: #888;
+      margin-top: 8px;
+    }
+
+    /* === MODAL === */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(8px);
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 90%;
+      width: 600px;
+      max-height: 85vh;
+      position: relative;
+      animation: slideUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .modal-header h3 {
+      margin: 0;
+      color: var(--main-color);
+      font-size: 18px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 28px;
+      cursor: pointer;
+      color: #999;
+      transition: all 0.3s ease;
+      padding: 0 8px;
+      line-height: 1;
+    }
+
+    .modal-close:hover {
+      color: #333;
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .modal-body iframe {
+      width: 100%;
+      height: 500px;
+      border: none;
+      border-radius: 12px;
+      background: #f5f5f5;
+    }
+
+    .modal-body .modal-loading {
+      text-align: center;
+      padding: 40px 0;
+      color: #666;
+    }
+
+    .modal-body .modal-loading .spinner-small {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid var(--main-color);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    /* === ANIMACIONES === */
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(40px) scale(0.95);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+      }
+    }
+
+    /* === RESPONSIVIDAD === */
+    @media (max-width: 768px) {
       header {
         font-size: 18px;
+        padding: 15px;
+        margin-top: 65px;
+      }
+
+      #buscador {
+        font-size: 15px;
+        padding: 12px 16px;
+        width: 90%;
+        top: 0.5rem;
+      }
+
+      #contenedor {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 16px;
       }
 
       .card {
-        padding: 12px;
+        padding: 16px;
       }
 
       .card h2 {
         font-size: 16px;
       }
 
+      .btn-link {
+        font-size: 12px;
+        padding: 6px 12px;
+        min-width: 60px;
+      }
+
+      #paginador {
+        gap: 8px;
+      }
+
+      #paginador button {
+        padding: 8px 14px;
+        font-size: 13px;
+        min-width: 60px;
+      }
+
+      .paginador-info {
+        font-size: 13px;
+        padding: 6px 12px;
+      }
+
+      .modal-content {
+        padding: 20px;
+        max-width: 95%;
+      }
+
+      .modal-body iframe {
+        height: 350px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      header {
+        font-size: 16px;
+        padding: 12px;
+        margin-top: 60px;
+      }
+
       #buscador {
         font-size: 14px;
+        padding: 10px 14px;
+        width: 92%;
+        top: 0.4rem;
+      }
+
+      #contenedor {
+        grid-template-columns: 1fr;
+        gap: 14px;
+        padding: 5px 0;
+      }
+
+      .card {
+        padding: 14px;
+      }
+
+      .card h2 {
+        font-size: 15px;
+        margin: 8px 0 12px;
+      }
+
+      .btn-group {
+        flex-direction: column;
+        gap: 6px;
+      }
+
+      .btn-link {
+        padding: 8px 12px;
+        font-size: 13px;
+        min-width: auto;
+        width: 100%;
+      }
+
+      #paginador {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+      }
+
+      #paginador button {
+        width: 100%;
+        max-width: 200px;
+      }
+
+      .paginador-info {
+        font-size: 12px;
+        padding: 6px 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+      }
+
+      .modal-content {
+        padding: 16px;
+        max-width: 98%;
+      }
+
+      .modal-header h3 {
+        font-size: 16px;
+      }
+
+      .modal-body iframe {
+        height: 280px;
       }
     }
   </style>
-
-
 </head>
 
 <body>
   <header>Catálogo Maestro de Guías de Práctica Clínica</header>
-  <input type="text" id="buscador" placeholder="🔍 Buscar...">
+  <input type="text" id="buscador" placeholder="🔍 Buscar por clave o nombre..." autofocus>
   <div id="loader">
     <div class="spinner"></div>
   </div>
   <main id="contenedor"></main>
   <div id="paginador"></div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTitle">Cargando...</h3>
+        <button class="modal-close" id="modalClose">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-loading" id="modalLoading">
+          <div class="spinner-small"></div>
+          <p>Cargando contenido...</p>
+        </div>
+        <iframe id="modalIframe" style="display:none;"></iframe>
+      </div>
+    </div>
+  </div>
+
   <footer>
-    <p id="footerText">Hecho con ❤️ por
-      <a href="https://ricardoim1.github.io/jeronimoricardo/" id="footerLink"
-        style="color: inherit; text-decoration: none;" target="_blank">Ricardo</a>,
+    <p>Hecho con ❤️ por
+      <a href="https://ricardoim1.github.io/jeronimoricardo/" target="_blank">Ricardo</a>,
       Viri y Alex ·
       <span id="year"></span>
     </p>
-    <p style="font-size: 0.8em; color: #666; margin-top: 5px;">
-      Hospital Regional Puerto Vallarta. Estadísticas y Archivo Clínico & Informática & Asistente de Dirección
+    <p class="ref-institucional">
+      Hospital Regional Puerto Vallarta. Estadísticas y Archivo Clínico &amp; Informática &amp; Asistente de Dirección
     </p>
   </footer>
 
@@ -254,6 +643,60 @@
     let paginaActual = 1;
     const registrosPorPagina = 18;
 
+    // === MODAL ===
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalClose = document.getElementById('modalClose');
+    const modalIframe = document.getElementById('modalIframe');
+    const modalLoading = document.getElementById('modalLoading');
+    const modalTitle = document.getElementById('modalTitle');
+
+    function openModal(url, title) {
+      modalTitle.textContent = title || 'Cargando...';
+      modalLoading.style.display = 'block';
+      modalIframe.style.display = 'none';
+      modalIframe.src = '';
+      modalOverlay.classList.add('active');
+      document.body.style.overflow = 'hidden';
+
+      // Cargar el iframe con delay para animación
+      setTimeout(() => {
+        modalIframe.src = url;
+        modalIframe.onload = function() {
+          modalLoading.style.display = 'none';
+          modalIframe.style.display = 'block';
+        };
+        modalIframe.onerror = function() {
+          modalLoading.innerHTML = `
+            <p style="color: #e74c3c;">⚠️ Error al cargar el contenido</p>
+            <p style="font-size: 0.9rem; color: #666;">Intenta abrir el enlace directamente</p>
+            <a href="${url}" target="_blank" style="display:inline-block;margin-top:10px;padding:8px 20px;background:var(--main-color);color:#fff;border-radius:25px;text-decoration:none;">Abrir en nueva pestaña</a>
+          `;
+          modalIframe.style.display = 'none';
+        };
+      }, 300);
+    }
+
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+      document.body.style.overflow = '';
+      modalIframe.src = '';
+      modalIframe.style.display = 'none';
+      modalLoading.style.display = 'block';
+      modalLoading.innerHTML = `
+        <div class="spinner-small"></div>
+        <p>Cargando contenido...</p>
+      `;
+    }
+
+    modalClose.addEventListener('click', closeModal);
+    modalOverlay.addEventListener('click', function(e) {
+      if (e.target === modalOverlay) closeModal();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeModal();
+    });
+
+    // === CARGA DE DATOS ===
     document.getElementById("loader").style.display = "block";
 
     fetch(scriptURL)
@@ -268,13 +711,15 @@
         console.error(err);
         document.getElementById("loader").style.display = "none";
         document.getElementById("contenedor").innerHTML = `
-          <div style="grid-column:1/-1;text-align:center;padding:2rem;color:rgba(255,255,255,0.7);">
-            <p>⚠️ Error al cargar los datos</p>
-            <p style="font-size:0.8rem;">Intenta de nuevo más tarde</p>
+          <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#666;">
+            <p style="font-size:1.5rem;">⚠️ Error al cargar los datos</p>
+            <p style="font-size:0.9rem;">Intenta de nuevo más tarde</p>
+            <button onclick="location.reload()" style="margin-top:15px;padding:10px 25px;background:var(--main-color);color:#fff;border:none;border-radius:25px;cursor:pointer;font-size:14px;">Recargar</button>
           </div>
         `;
       });
 
+    // === RENDERIZADO CON TRANSICIONES ===
     function renderPagina() {
       const contenedor = document.getElementById("contenedor");
       contenedor.innerHTML = "";
@@ -284,8 +729,8 @@
 
       if (paginaDatos.length === 0) {
         contenedor.innerHTML = `
-          <div style="grid-column:1/-1;text-align:center;padding:3rem;color:rgba(255,255,255,0.6);">
-            <p style="font-size:1.2rem;">🔍 No se encontraron resultados</p>
+          <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#666;">
+            <p style="font-size:1.5rem;">🔍 No se encontraron resultados</p>
             <p style="font-size:0.9rem;">Prueba con otra palabra clave</p>
           </div>
         `;
@@ -293,74 +738,127 @@
         return;
       }
 
-      paginaDatos.forEach(item => {
+      // Crear fragmento para mejor performance
+      const fragment = document.createDocumentFragment();
+
+      paginaDatos.forEach((item, index) => {
         const card = document.createElement("div");
-        card.className = "celda";
+        card.className = "card";
+        card.style.animationDelay = `${index * 0.05}s`;
+        
+        // Sanitizar datos por seguridad
+        const clave = item.CLAVE || '';
+        const nombre = item["NOMBRE GUIA"] || '';
+        const urlCompleta = item.URL_COMPLETA || '#';
+        const urlRapida = item.URL_RAPIDA || '#';
+
         card.innerHTML = `
-          <h3>${item.CLAVE}</h3>
-          <h2>${item["NOMBRE GUIA"]}</h2>
+          <h3>${clave}</h3>
+          <h2>${nombre}</h2>
           <div class="btn-group">
-            <a href="${item.URL_COMPLETA}" target="_blank" class="btn-link btn-completa">Completa</a>
-            <a href="${item.URL_RAPIDA}" target="_blank" class="btn-link btn-rapida">Rápida</a>
+            <button class="btn-link btn-completa" data-url="${urlCompleta}" data-title="${nombre}">📄 Completa</button>
+            <button class="btn-link btn-rapida" data-url="${urlRapida}" data-title="${nombre}">⚡ Rápida</button>
           </div>
         `;
-        contenedor.appendChild(card);
+        fragment.appendChild(card);
+      });
+
+      contenedor.appendChild(fragment);
+
+      // Event listeners para botones de las cards
+      contenedor.querySelectorAll('.btn-link').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          const url = this.getAttribute('data-url');
+          const title = this.getAttribute('data-title');
+          if (url && url !== '#') {
+            openModal(url, title);
+          } else {
+            alert('URL no disponible');
+          }
+        });
       });
 
       renderPaginador();
     }
 
+    // === PAGINADOR MEJORADO ===
     function renderPaginador() {
       const paginador = document.getElementById("paginador");
       paginador.innerHTML = "";
       const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina);
+      const totalResultados = datosFiltrados.length;
 
-      if (totalPaginas <= 1) {
+      if (totalPaginas <= 1 && totalResultados <= registrosPorPagina) {
+        // Mostrar solo el contador de resultados
+        const infoDiv = document.createElement("div");
+        infoDiv.className = "paginador-info";
+        infoDiv.innerHTML = `
+          <span>📊 <span class="resultados">${totalResultados}</span> resultados encontrados</span>
+        `;
+        paginador.appendChild(infoDiv);
         return;
       }
 
+      // Contenedor para toda la info
+      const wrapper = document.createElement("div");
+      wrapper.style.cssText = "display:flex;align-items:center;gap:15px;flex-wrap:wrap;justify-content:center;";
+
+      // Botón anterior
       const prevBtn = document.createElement("button");
       prevBtn.textContent = "◀ Anterior";
       prevBtn.disabled = paginaActual === 1;
       prevBtn.onclick = () => { paginaActual--; renderPagina(); };
-      paginador.appendChild(prevBtn);
+      wrapper.appendChild(prevBtn);
 
-      const infoPag = document.createElement("span");
-      infoPag.textContent = ` ${paginaActual} / ${totalPaginas} `;
-      infoPag.style.cssText = "display:flex;align-items:center;color:rgba(255,255,255,0.7);font-size:0.85rem;";
-      paginador.appendChild(infoPag);
+      // Información de página y resultados
+      const infoDiv = document.createElement("div");
+      infoDiv.className = "paginador-info";
+      infoDiv.innerHTML = `
+        <span>📄 Página <strong>${paginaActual}</strong> de <strong>${totalPaginas}</strong></span>
+        <span>•</span>
+        <span>📊 <span class="resultados">${totalResultados}</span> resultados</span>
+      `;
+      wrapper.appendChild(infoDiv);
 
+      // Botón siguiente
       const nextBtn = document.createElement("button");
       nextBtn.textContent = "Siguiente ▶";
       nextBtn.disabled = paginaActual === totalPaginas;
       nextBtn.onclick = () => { paginaActual++; renderPagina(); };
-      paginador.appendChild(nextBtn);
+      wrapper.appendChild(nextBtn);
+
+      paginador.appendChild(wrapper);
     }
 
     // === BUSCADOR CON IGNORAR ACENTOS ===
-    document.getElementById("buscador").addEventListener("input", function (e) {
-      const q = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    let searchTimeout;
+    document.getElementById("buscador").addEventListener("input", function(e) {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(() => {
+        const q = this.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 
-      if (q === "") {
-        datosFiltrados = datosOriginales;
-      } else {
-        datosFiltrados = datosOriginales.filter(item => {
-          const clave = item.CLAVE.toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          const nombre = item["NOMBRE GUIA"].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-          return clave.includes(q) || nombre.includes(q);
-        });
-      }
+        if (q === "") {
+          datosFiltrados = datosOriginales;
+        } else {
+          datosFiltrados = datosOriginales.filter(item => {
+            const clave = (item.CLAVE || '').toString().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const nombre = (item["NOMBRE GUIA"] || '').toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return clave.includes(q) || nombre.includes(q);
+          });
+        }
 
-      paginaActual = 1;
-      renderPagina();
+        paginaActual = 1;
+        renderPagina();
+      }, 150); // Debounce de 150ms para mejor performance
     });
 
     // === ACTUALIZAR AÑO ===
     document.getElementById("year").textContent = new Date().getFullYear();
 
     // === FOOTER LINK HANDLER ===
-    document.addEventListener('click', function (e) {
-      if (e.target.tagName === 'A' && e.target.href.includes('ricardoim1.github.io')) {
+    document.addEventListener('click', function(e) {
+      if (e.target.tagName === 'A' && e.target.href && e.target.href.includes('ricardoim1.github.io')) {
         e.preventDefault();
         window.open(e.target.href, '_blank');
       }
