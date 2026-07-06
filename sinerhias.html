@@ -768,6 +768,10 @@
     // 🔧 ACTUALIZA ESTA URL CON LA DE TU GAS
     const API_URL = 'https://script.google.com/macros/s/AKfycbx9BZJYxeHrXi8V84PNsu-MvjBCshLl5mgiGlu6dDir9n9XxgmqugVErY6hAv7WjLxD/exec';
 
+    // ============================================
+    // CONFIGURACIÓN
+    // ============================================
+
     // Definición de pestañas (ordenadas según tu lista)
     const TABS = [
       { id: 'ORDEN 1', label: '📊 Datos Generales' },
@@ -811,55 +815,64 @@
     const modalClose = document.getElementById('modalClose');
 
     // ============================================
-    // FUNCIÓN API
+    // FUNCIONES DE API (usando google.script.run)
     // ============================================
-    async function apiRequest(action, sheet, data = null, rowIndex = null) {
-      try {
-        let url = `${API_URL}?action=${action}&sheet=${encodeURIComponent(sheet)}`;
-        if (rowIndex !== null && rowIndex !== undefined) {
-          url += `&rowIndex=${rowIndex}`;
-        }
 
-        console.log(`📡 ${action} → ${sheet}`);
+    function apiRequest(action, sheet, data = null, rowIndex = null) {
+      return new Promise((resolve, reject) => {
+        // Mostrar estado de carga
+        document.getElementById('statusText').textContent = '⏳ Cargando...';
 
-        const options = {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json'
+        // Función para manejar éxito
+        const handleSuccess = (result) => {
+          document.getElementById('statusText').textContent = '✅ Conectado';
+          if (result.success === false || result.error) {
+            reject(new Error(result.error || 'Error en la operación'));
+          } else {
+            resolve(result);
           }
         };
 
-        if (data) {
-          options.method = 'POST';
-          options.headers['Content-Type'] = 'application/json';
-          options.body = JSON.stringify({ rowData: data });
+        // Función para manejar error
+        const handleFailure = (error) => {
+          document.getElementById('statusText').textContent = '❌ Error';
+          reject(new Error(error.message || 'Error de comunicación'));
+        };
+
+        // Ejecutar según la acción
+        switch (action) {
+          case 'read':
+            google.script.run
+              .withSuccessHandler(handleSuccess)
+              .withFailureHandler(handleFailure)
+              .readData(sheet);
+            break;
+
+          case 'create':
+            google.script.run
+              .withSuccessHandler(handleSuccess)
+              .withFailureHandler(handleFailure)
+              .createData(sheet, data);
+            break;
+
+          case 'update':
+            google.script.run
+              .withSuccessHandler(handleSuccess)
+              .withFailureHandler(handleFailure)
+              .updateData(sheet, data, rowIndex);
+            break;
+
+          case 'delete':
+            google.script.run
+              .withSuccessHandler(handleSuccess)
+              .withFailureHandler(handleFailure)
+              .deleteData(sheet, rowIndex);
+            break;
+
+          default:
+            reject(new Error('Acción no válida'));
         }
-
-        const response = await fetch(url, options);
-
-        const contentType = response.headers.get('content-type');
-        if (!contentType || !contentType.includes('application/json')) {
-          const text = await response.text();
-          if (text.includes('<!DOCTYPE') || text.includes('<html')) {
-            throw new Error('La URL del script no es correcta o no está publicada.');
-          }
-          throw new Error(`Respuesta no JSON: ${text.substring(0, 100)}`);
-        }
-
-        const result = await response.json();
-
-        if (result.success === false || result.error) {
-          throw new Error(result.error || 'Error desconocido en la API');
-        }
-
-        return result;
-      } catch (error) {
-        console.error('❌ Error en API:', error);
-        if (error.message.includes('Failed to fetch')) {
-          throw new Error('No se pudo conectar con el servidor. Verifica tu conexión.');
-        }
-        throw error;
-      }
+      });
     }
 
     // ============================================
@@ -886,17 +899,17 @@
 
       } catch (error) {
         tableContainer.innerHTML = `
-              <div class="empty-state">
-                  <span class="icon">⚠️</span>
-                  <strong>Error al cargar datos</strong>
-                  <br><br>
-                  <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
-                      ${error.message}
-                  </div>
-                  <br>
-                  <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
+          <div class="empty-state">
+              <span class="icon">⚠️</span>
+              <strong>Error al cargar datos</strong>
+              <br><br>
+              <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
+                  ${error.message}
               </div>
-          `;
+              <br>
+              <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
+          </div>
+      `;
       } finally {
         state.isLoading = false;
       }
@@ -908,15 +921,15 @@
     function renderTable() {
       if (state.data.length === 0) {
         tableContainer.innerHTML = `
-              <div class="empty-state">
-                  <span class="icon">📭</span>
-                  No hay registros en esta hoja
-                  <br><br>
-                  <button class="btn-neo primary" onclick="openCreateModal()">
-                      ➕ Agregar primer registro
-                  </button>
-              </div>
-          `;
+          <div class="empty-state">
+              <span class="icon">📭</span>
+              No hay registros en esta hoja
+              <br><br>
+              <button class="btn-neo primary" onclick="openCreateModal()">
+                  ➕ Agregar primer registro
+              </button>
+          </div>
+      `;
         return;
       }
 
@@ -937,13 +950,13 @@
           html += `<td title="${value}">${value}</td>`;
         });
         html += `
-              <td>
-                  <div class="action-btns">
-                      <button class="btn-neo-sm edit" onclick="openEditModal(${index})">✏️</button>
-                      <button class="btn-neo-sm delete" onclick="deleteRow(${index})">🗑️</button>
-                  </div>
-              </td>
-          `;
+          <td>
+              <div class="action-btns">
+                  <button class="btn-neo-sm edit" onclick="openEditModal(${index})">✏️</button>
+                  <button class="btn-neo-sm delete" onclick="deleteRow(${index})">🗑️</button>
+              </div>
+          </td>
+      `;
         html += '</tr>';
       });
 
@@ -989,7 +1002,6 @@
       modalTitle.textContent = '📝 Agregar Registro';
       renderFormFields({});
       modalOverlay.classList.add('active');
-      // Scroll al inicio
       formScroll.scrollTop = 0;
     }
 
@@ -1013,19 +1025,19 @@
         const isBoolean = typeof value === 'string' && (value.toUpperCase() === 'SI' || value.toUpperCase() === 'NO' || value === '');
 
         html += `
-              <div class="form-group">
-                  <label for="field_${header.replace(/\s+/g, '_')}">${header}</label>
-                  ${isBoolean ? `
-                      <select id="field_${header.replace(/\s+/g, '_')}" name="${header}">
-                          <option value="">Seleccionar</option>
-                          <option value="SI" ${value.toUpperCase() === 'SI' ? 'selected' : ''}>SI</option>
-                          <option value="NO" ${value.toUpperCase() === 'NO' ? 'selected' : ''}>NO</option>
-                      </select>
-                  ` : `
-                      <input type="text" id="field_${header.replace(/\s+/g, '_')}" name="${header}" value="${value}" />
-                  `}
-              </div>
-          `;
+          <div class="form-group">
+              <label for="field_${header.replace(/\s+/g, '_')}">${header}</label>
+              ${isBoolean ? `
+                  <select id="field_${header.replace(/\s+/g, '_')}" name="${header}">
+                      <option value="">Seleccionar</option>
+                      <option value="SI" ${value.toUpperCase() === 'SI' ? 'selected' : ''}>SI</option>
+                      <option value="NO" ${value.toUpperCase() === 'NO' ? 'selected' : ''}>NO</option>
+                  </select>
+              ` : `
+                  <input type="text" id="field_${header.replace(/\s+/g, '_')}" name="${header}" value="${value}" />
+              `}
+          </div>
+      `;
       });
 
       formFields.innerHTML = html;
@@ -1091,15 +1103,17 @@
     // ============================================
     // INICIALIZACIÓN
     // ============================================
-    async function init() {
+    function init() {
       try {
-        console.log('🔍 Inicializando...');
-        // Probar conexión
-        await apiRequest('read', 'ORDEN 1');
-        console.log('✅ Conexión exitosa');
+        console.log('🔍 Inicializando con google.script.run...');
+
+        // Verificar que google.script.run existe
+        if (typeof google === 'undefined' || !google.script) {
+          throw new Error('google.script.run no disponible. Asegúrate de ejecutar esto dentro de Apps Script.');
+        }
 
         renderSidebar();
-        await loadData('ORDEN 1');
+        loadData('ORDEN 1');
 
         // Event listeners
         btnAdd.addEventListener('click', openCreateModal);
@@ -1117,24 +1131,17 @@
         console.error('❌ Error de inicialización:', error);
         document.getElementById('statusText').textContent = '❌ Error';
         tableContainer.innerHTML = `
-            <div class="empty-state">
-                <span class="icon">🚨</span>
-                <strong>Error de conexión inicial</strong>
-                <br><br>
-                <div style="color: #666; font-size: 0.9rem;">
-                    ${error.message}
-                </div>
-                <br>
-                <button class="btn-neo" onclick="init()">🔄 Reintentar</button>
-                <br><br>
-                <details style="font-size: 0.8rem; color: #999;">
-                    <summary>🔍 Ver detalles</summary>
-                    <pre style="text-align: left; background: #f5f5f5; padding: 10px; border-radius: 8px; overflow: auto; max-height: 200px; font-size: 0.7rem;">
-URL: ${API_URL}
-                    </pre>
-                </details>
+        <div class="empty-state">
+            <span class="icon">🚨</span>
+            <strong>Error de inicialización</strong>
+            <br><br>
+            <div style="color: #666; font-size: 0.9rem;">
+                ${error.message}
             </div>
-        `;
+            <br>
+            <button class="btn-neo" onclick="init()">🔄 Reintentar</button>
+        </div>
+    `;
       }
     }
 
