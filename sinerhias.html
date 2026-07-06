@@ -697,7 +697,7 @@
   <div class="container">
     <!-- HEADER -->
     <header class="header">
-      <h1>🏥 Hospital Regional PV - SINERHIAS men</h1>
+      <h1>🏥 Hospital Regional PV - SINERHIAS menem</h1>
       <div class="badge">
         🟢 <span id="statusText">Conectado</span>
       </div>
@@ -761,13 +761,13 @@
     JAVASCRIPT - LÓGICA COMPLETA
     ============================================ -->
   <script>
+    
+    // ============================================
+    // CONFIGURACIÓN - PARA GITHUB PAGES (GET)
+    // ============================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbwz_tW-ED44lW7PKgq2pINblSYOe8IjO-eW7W7e8NP7YS9d99SvG5Na17gPv5Ge_1i_/exec';
 
-    // ============================================
-    // CONFIGURACIÓN - VERSIÓN PARA google.script.run
-    // ============================================
-
-    // Definición de pestañas (ordenadas según tu lista)
+    // Definición de pestañas
     const TABS = [
       { id: 'ORDEN 1', label: '📊 Datos Generales' },
       { id: 'ORDEN 11-1', label: '👨‍⚕️ RH - Plazas' },
@@ -810,57 +810,52 @@
     const modalClose = document.getElementById('modalClose');
 
     // ============================================
-    // FUNCIONES DE API (usando google.script.run)
+    // FUNCIÓN API - SOLO GET (más compatible)
     // ============================================
+    async function apiRequest(action, sheet, data = null, rowIndex = null) {
+      try {
+        // Construir URL con parámetros
+        let url = `${API_URL}?action=${action}&sheet=${encodeURIComponent(sheet)}`;
 
-    function apiRequest(action, sheet, data = null, rowIndex = null) {
-      return new Promise((resolve, reject) => {
-        document.getElementById('statusText').textContent = '⏳ Cargando...';
-
-        const handleSuccess = (result) => {
-          document.getElementById('statusText').textContent = '✅ Conectado';
-          if (result.success === false || result.error) {
-            reject(new Error(result.error || 'Error en la operación'));
-          } else {
-            resolve(result);
-          }
-        };
-
-        const handleFailure = (error) => {
-          document.getElementById('statusText').textContent = '❌ Error';
-          reject(new Error(error.message || 'Error de comunicación'));
-        };
-
-        // Llamar a la función correspondiente en el backend
-        switch (action) {
-          case 'read':
-            google.script.run
-              .withSuccessHandler(handleSuccess)
-              .withFailureHandler(handleFailure)
-              .readData(sheet);
-            break;
-          case 'create':
-            google.script.run
-              .withSuccessHandler(handleSuccess)
-              .withFailureHandler(handleFailure)
-              .createData(sheet, data);
-            break;
-          case 'update':
-            google.script.run
-              .withSuccessHandler(handleSuccess)
-              .withFailureHandler(handleFailure)
-              .updateData(sheet, data, rowIndex);
-            break;
-          case 'delete':
-            google.script.run
-              .withSuccessHandler(handleSuccess)
-              .withFailureHandler(handleFailure)
-              .deleteData(sheet, rowIndex);
-            break;
-          default:
-            reject(new Error('Acción no válida'));
+        if (rowIndex !== null && rowIndex !== undefined) {
+          url += `&rowIndex=${rowIndex}`;
         }
-      });
+
+        // Si hay datos, convertirlos a parámetros URL
+        if (data) {
+          Object.keys(data).forEach(key => {
+            url += `&${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`;
+          });
+        }
+
+        console.log(`📡 GET: ${url}`);
+
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success === false || result.error) {
+          throw new Error(result.error || 'Error en la API');
+        }
+
+        return result;
+      } catch (error) {
+        console.error('❌ Error en API:', error);
+
+        if (error.message.includes('Failed to fetch')) {
+          throw new Error('No se pudo conectar con el servidor. Verifica la URL del GAS.');
+        }
+        throw error;
+      }
     }
 
     // ============================================
@@ -887,37 +882,45 @@
 
       } catch (error) {
         tableContainer.innerHTML = `
-          <div class="empty-state">
-              <span class="icon">⚠️</span>
-              <strong>Error al cargar datos</strong>
-              <br><br>
-              <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
-                  ${error.message}
-              </div>
-              <br>
-              <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
+      <div class="empty-state">
+          <span class="icon">⚠️</span>
+          <strong>Error al cargar datos</strong>
+          <br><br>
+          <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
+              ${error.message}
           </div>
-      `;
+          <br>
+          <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
+          <br><br>
+          <details style="font-size: 0.8rem; color: #999;">
+              <summary>🔍 Ver detalles</summary>
+              <pre style="text-align: left; background: #f5f5f5; padding: 10px; border-radius: 8px; overflow: auto; max-height: 200px; font-size: 0.7rem;">
+URL: ${API_URL}
+Sheet: ${sheetName}
+              </pre>
+          </details>
+      </div>
+    `;
       } finally {
         state.isLoading = false;
       }
     }
 
     // ============================================
-    // RENDER TABLA - TODAS LAS COLUMNAS
+    // RENDER TABLA
     // ============================================
     function renderTable() {
       if (state.data.length === 0) {
         tableContainer.innerHTML = `
-          <div class="empty-state">
-              <span class="icon">📭</span>
-              No hay registros en esta hoja
-              <br><br>
-              <button class="btn-neo primary" onclick="openCreateModal()">
-                  ➕ Agregar primer registro
-              </button>
-          </div>
-      `;
+      <div class="empty-state">
+          <span class="icon">📭</span>
+          No hay registros en esta hoja
+          <br><br>
+          <button class="btn-neo primary" onclick="openCreateModal()">
+              ➕ Agregar primer registro
+          </button>
+      </div>
+    `;
         return;
       }
 
@@ -937,13 +940,13 @@
           html += `<td title="${value}">${value}</td>`;
         });
         html += `
-          <td>
-              <div class="action-btns">
-                  <button class="btn-neo-sm edit" onclick="openEditModal(${index})">✏️</button>
-                  <button class="btn-neo-sm delete" onclick="deleteRow(${index})">🗑️</button>
-              </div>
-          </td>
-      `;
+      <td>
+          <div class="action-btns">
+              <button class="btn-neo-sm edit" onclick="openEditModal(${index})">✏️</button>
+              <button class="btn-neo-sm delete" onclick="deleteRow(${index})">🗑️</button>
+          </div>
+      </td>
+    `;
         html += '</tr>';
       });
 
@@ -952,7 +955,7 @@
     }
 
     // ============================================
-    // SIDEBAR - PESTAÑAS LATERALES
+    // SIDEBAR
     // ============================================
     function renderSidebar() {
       const title = sidebarContainer.querySelector('.sidebar-title');
@@ -980,7 +983,7 @@
     }
 
     // ============================================
-    // MODAL - TODOS LOS CAMPOS (CON SCROLL)
+    // MODAL
     // ============================================
     function openCreateModal() {
       state.isEditing = false;
@@ -1010,19 +1013,19 @@
         const isBoolean = typeof value === 'string' && (value.toUpperCase() === 'SI' || value.toUpperCase() === 'NO' || value === '');
 
         html += `
-          <div class="form-group">
-              <label for="field_${header.replace(/\s+/g, '_')}">${header}</label>
-              ${isBoolean ? `
-                  <select id="field_${header.replace(/\s+/g, '_')}" name="${header}">
-                      <option value="">Seleccionar</option>
-                      <option value="SI" ${value.toUpperCase() === 'SI' ? 'selected' : ''}>SI</option>
-                      <option value="NO" ${value.toUpperCase() === 'NO' ? 'selected' : ''}>NO</option>
-                  </select>
-              ` : `
-                  <input type="text" id="field_${header.replace(/\s+/g, '_')}" name="${header}" value="${value}" />
-              `}
-          </div>
-      `;
+      <div class="form-group">
+          <label for="field_${header.replace(/\s+/g, '_')}">${header}</label>
+          ${isBoolean ? `
+              <select id="field_${header.replace(/\s+/g, '_')}" name="${header}">
+                  <option value="">Seleccionar</option>
+                  <option value="SI" ${value.toUpperCase() === 'SI' ? 'selected' : ''}>SI</option>
+                  <option value="NO" ${value.toUpperCase() === 'NO' ? 'selected' : ''}>NO</option>
+              </select>
+          ` : `
+              <input type="text" id="field_${header.replace(/\s+/g, '_')}" name="${header}" value="${value}" />
+          `}
+      </div>
+    `;
       });
 
       formFields.innerHTML = html;
@@ -1038,7 +1041,7 @@
     }
 
     // ============================================
-    // GUARDAR (CREAR / ACTUALIZAR)
+    // GUARDAR
     // ============================================
     async function handleSave(event) {
       event.preventDefault();
@@ -1090,12 +1093,8 @@
     // ============================================
     function init() {
       try {
-        console.log('🔍 Inicializando con google.script.run...');
-
-        // Verificar que google.script.run existe
-        if (typeof google === 'undefined' || !google.script) {
-          throw new Error('google.script.run no disponible. Asegúrate de ejecutar esto dentro de Apps Script.');
-        }
+        console.log('🔍 Inicializando con GET...');
+        console.log(`📍 API URL: ${API_URL}`);
 
         renderSidebar();
         loadData('ORDEN 1');
@@ -1115,21 +1114,21 @@
         console.error('❌ Error de inicialización:', error);
         document.getElementById('statusText').textContent = '❌ Error';
         tableContainer.innerHTML = `
-        <div class="empty-state">
-            <span class="icon">🚨</span>
-            <strong>Error de inicialización</strong>
-            <br><br>
-            <div style="color: #666; font-size: 0.9rem;">
-                ${error.message}
-            </div>
-            <br>
-            <button class="btn-neo" onclick="init()">🔄 Reintentar</button>
+    <div class="empty-state">
+        <span class="icon">🚨</span>
+        <strong>Error de inicialización</strong>
+        <br><br>
+        <div style="color: #666; font-size: 0.9rem;">
+            ${error.message}
         </div>
+        <br>
+        <button class="btn-neo" onclick="init()">🔄 Reintentar</button>
+    </div>
     `;
       }
     }
 
-    // Iniciar cuando el DOM esté listo
+    // Iniciar
     document.addEventListener('DOMContentLoaded', init);
 
     // Exponer funciones globales
