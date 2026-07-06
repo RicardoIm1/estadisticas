@@ -798,6 +798,9 @@
     // ============================================
     // FUNCIONES PRINCIPALES
     // ============================================
+    // ============================================
+    // CARGAR DATOS - CON MANEJO DE ERRORES
+    // ============================================
     async function loadData(sheetName) {
       if (state.isLoading) return;
       state.isLoading = true;
@@ -805,28 +808,48 @@
 
       try {
         const result = await apiRequest('read', sheetName);
+
         state.data = result.data || [];
         state.headers = result.headers || [];
         state.currentTab = sheetName;
 
-        sheetNameDisplay.textContent = sheetName;
+        const tabLabel = TABS.find(t => t.id === sheetName)?.label || sheetName;
+        sheetNameDisplay.textContent = tabLabel;
         rowCountDisplay.textContent = state.data.length;
 
         renderTable();
+
+        // Actualizar pestaña activa
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.sheet === sheetName);
+        });
+
       } catch (error) {
         tableContainer.innerHTML = `
-                    <div class="empty-state">
-                        <span class="icon">⚠️</span>
-                        Error al cargar datos: ${error.message}
-                        <br><br>
-                        <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
-                    </div>
-                `;
+            <div class="empty-state">
+                <span class="icon">⚠️</span>
+                <strong>Error al cargar datos</strong>
+                <br><br>
+                <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
+                    ${error.message}
+                </div>
+                <br>
+                <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
+                <br><br>
+                <details style="font-size: 0.8rem; color: #999;">
+                    <summary>🔍 Ver detalles</summary>
+                    <pre style="text-align: left; background: #f5f5f5; padding: 10px; border-radius: 8px; overflow: auto; max-height: 200px; font-size: 0.7rem;">
+URL: ${API_URL}
+Sheet: ${sheetName}
+                    </pre>
+                </details>
+            </div>
+        `;
       } finally {
         state.isLoading = false;
       }
     }
-
+    
     function renderTable() {
       if (state.data.length === 0) {
         tableContainer.innerHTML = `
