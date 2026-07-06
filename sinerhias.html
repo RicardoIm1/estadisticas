@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏥 Hospital Regional PV - Gestión de Datos</title>
+
+  <style>
+    /* ============================================
+           RESET Y ESTILOS BASE
+           ============================================ */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: #e0e5ec;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* ============================================
+           CONTENEDOR PRINCIPAL
+           ============================================ */
+    .container {
+      width: 100%;
+      max-width: 1440px;
+      background: #e0e5ec;
+      border-radius: 40px;
+      padding: 30px;
+      box-shadow:
+        9px 9px 16px rgba(163, 177, 198, 0.6),
+        -9px -9px 16px rgba(255, 255, 255, 0.8);
+    }
+
+    /* ============================================
+           HEADER
+           ============================================ */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding: 20px 30px;
+      border-radius: 30px;
+      background: #e0e5ec;
+      box-shadow:
+        inset 2px 2px 5px rgba(163, 177, 198, 0.6),
+        inset -5px -5px 10px rgba(255, 255, 255, 0.7);
+    }
+
+    .header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #2c3e50;
+      letter-spacing: -0.5px;
+    }
+
+    .header .badge {
+      padding: 8px 20px;
+      border-radius: 50px;
+      background: #e0e5ec;
+      box-shadow:
+        3px 3px 6px rgba(163, 177, 198, 0.6),
+        -3px -3px 6px rgba(255, 255, 255, 0.7);
+      font-size: 0.9rem;
+      color: #2c3e50;
+      font-weight: 600;
+    }
+
+    /* ============================================
+           PESTAÑAS (TABS) - NEOMORFISMO
+           ============================================ */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 30px;
+      padding: 15px;
+      border-radius: 30px;
+      background: #e0e5ec;
+      box-shadow:
+        inset 2px 2px 5px rgba(163, 177, 198, 0.5),
+        inset -5px -5px 10px rgba(255, 255, 255, 0.7);
+    }
+
+    .tab-btn {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #2c3e50;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #e0e5ec;
+      box-shadow:
+        3px 3px 6px rgba(163, 177, 198, 0.6),
+        -3px -3px 6px rgba(255, 255, 255, 0.7);
+      white-space: nowrap;
+    }
+
+    .tab-btn:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        5px 5px 10px rgba(163, 177, 198, 0.7),
+        -5px -5px 10px rgba(255, 255, 255, 0.8);
+    }
+
+    .tab-btn.active {
+      background: #e0e5ec;
+      box-shadow:
+        inset 3px 3px 6px rgba(163, 177, 198, 0.6),
+        inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+      color: #1a73e8;
+    }
+
+    .tab-btn .tab-number {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      line-height: 22px;
+      text-align: center;
+      border-radius: 50%;
+      font-size: 0.7rem;
+      font-weight: 700;
+      margin-right: 6px;
+      background: #e0e5ec;
+      box-shadow:
+        inset 1px 1px 3px rgba(163, 177, 198, 0.5),
+        inset -1px -1px 3px rgba(255, 255, 255, 0.7);
+    }
+
+    .tab-btn.active .tab-number {
+      background: #1a73e8;
+      color: white;
+      box-shadow: none;
+    }
+
+    /* ============================================
+           CONTENIDO DE LA TABLA
+           ============================================ */
+    .content-area {
+      background: #e0e5ec;
+      border-radius: 30px;
+      padding: 20px;
+      box-shadow:
+        inset 3px 3px 8px rgba(163, 177, 198, 0.5),
+        inset -3px -3px 8px rgba(255, 255, 255, 0.7);
+      min-height: 400px;
+    }
+
+    /* TOOLBAR (botones encima de la tabla) */
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .toolbar .info {
+      font-size: 0.9rem;
+      color: #34495e;
+      font-weight: 500;
+    }
+
+    .toolbar .info span {
+      font-weight: 700;
+      color: #1a73e8;
+    }
+
+    .btn-neo {
+      padding: 10px 24px;
+      border: none;
+      border-radius: 50px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #2c3e50;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: #e0e5ec;
+      box-shadow:
+        3px 3px 6px rgba(163, 177, 198, 0.6),
+        -3px -3px 6px rgba(255, 255, 255, 0.7);
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-neo:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        5px 5px 12px rgba(163, 177, 198, 0.7),
+        -5px -5px 12px rgba(255, 255, 255, 0.8);
+    }
+
+    .btn-neo:active {
+      transform: translateY(0);
+      box-shadow:
+        inset 3px 3px 6px rgba(163, 177, 198, 0.6),
+        inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+    }
+
+    .btn-neo.primary {
+      color: #1a73e8;
+    }
+
+    .btn-neo.danger {
+      color: #e74c3c;
+    }
+
+    .btn-neo.success {
+      color: #27ae60;
+    }
+
+    /* ============================================
+           TABLA NEOMÓRFICA
+           ============================================ */
+    .table-wrapper {
+      overflow-x: auto;
+      border-radius: 20px;
+      background: #e0e5ec;
+      padding: 5px;
+      box-shadow:
+        inset 2px 2px 5px rgba(163, 177, 198, 0.5),
+        inset -2px -2px 5px rgba(255, 255, 255, 0.7);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      background: #e0e5ec;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    thead {
+      background: #e0e5ec;
+    }
+
+    thead th {
+      padding: 12px 15px;
+      text-align: left;
+      font-weight: 700;
+      color: #2c3e50;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid rgba(163, 177, 198, 0.3);
+      position: sticky;
+      top: 0;
+      background: #e0e5ec;
+    }
+
+    tbody tr {
+      transition: all 0.2s ease;
+      border-bottom: 1px solid rgba(163, 177, 198, 0.15);
+    }
+
+    tbody tr:hover {
+      background: rgba(26, 115, 232, 0.05);
+    }
+
+    tbody td {
+      padding: 10px 15px;
+      color: #34495e;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Botones de acción dentro de la tabla */
+    .action-btns {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .action-btns .btn-neo-sm {
+      padding: 4px 12px;
+      border: none;
+      border-radius: 30px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #e0e5ec;
+      box-shadow:
+        2px 2px 4px rgba(163, 177, 198, 0.5),
+        -2px -2px 4px rgba(255, 255, 255, 0.7);
+    }
+
+    .action-btns .btn-neo-sm:hover {
+      transform: scale(1.05);
+    }
+
+    .action-btns .btn-neo-sm.edit {
+      color: #1a73e8;
+    }
+
+    .action-btns .btn-neo-sm.delete {
+      color: #e74c3c;
+    }
+
+    /* ============================================
+           MODAL NEOMÓRFICO
+           ============================================ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal {
+      background: #e0e5ec;
+      border-radius: 40px;
+      padding: 35px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow:
+        15px 15px 30px rgba(163, 177, 198, 0.7),
+        -15px -15px 30px rgba(255, 255, 255, 0.8);
+      animation: modalIn 0.3s ease;
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(0.95) translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid rgba(163, 177, 198, 0.2);
+    }
+
+    .modal-header h2 {
+      font-size: 1.4rem;
+      color: #2c3e50;
+    }
+
+    .modal-close {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      font-size: 1.2rem;
+      cursor: pointer;
+      background: #e0e5ec;
+      box-shadow:
+        3px 3px 6px rgba(163, 177, 198, 0.6),
+        -3px -3px 6px rgba(255, 255, 255, 0.7);
+      color: #2c3e50;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-close:hover {
+      transform: rotate(90deg);
+    }
+
+    /* Formulario dentro del modal */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .form-group.full-width {
+      grid-column: 1 / -1;
+    }
+
+    .form-group label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #34495e;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      background: #e0e5ec;
+      box-shadow:
+        inset 2px 2px 6px rgba(163, 177, 198, 0.5),
+        inset -2px -2px 6px rgba(255, 255, 255, 0.7);
+      color: #2c3e50;
+      transition: all 0.3s ease;
+      outline: none;
+      width: 100%;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      box-shadow:
+        inset 3px 3px 8px rgba(26, 115, 232, 0.2),
+        inset -3px -3px 8px rgba(255, 255, 255, 0.8),
+        0 0 0 2px rgba(26, 115, 232, 0.2);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 60px;
+    }
+
+    .modal-footer {
+      margin-top: 25px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      padding-top: 20px;
+      border-top: 2px solid rgba(163, 177, 198, 0.2);
+    }
+
+    /* ============================================
+           ESTADO DE CARGA Y VACÍO
+           ============================================ */
+    .loading {
+      text-align: center;
+      padding: 50px 20px;
+      color: #34495e;
+      font-size: 1.1rem;
+    }
+
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s steps(4) infinite;
+    }
+
+    @keyframes dots {
+
+      0%,
+      20% {
+        content: '.';
+      }
+
+      40% {
+        content: '..';
+      }
+
+      60% {
+        content: '...';
+      }
+
+      80%,
+      100% {
+        content: '';
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #95a5a6;
+      font-size: 1.1rem;
+    }
+
+    .empty-state .icon {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      display: block;
+    }
+
+    /* ============================================
+           RESPONSIVE
+           ============================================ */
+    @media (max-width: 768px) {
+      .container {
+        padding: 15px;
+      }
+
+      .header {
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+        padding: 15px;
+      }
+
+      .header h1 {
+        font-size: 1.3rem;
+      }
+
+      .tabs {
+        gap: 6px;
+        padding: 10px;
+        justify-content: center;
+      }
+
+      .tab-btn {
+        padding: 6px 14px;
+        font-size: 0.75rem;
+      }
+
+      .tab-btn .tab-number {
+        width: 18px;
+        height: 18px;
+        line-height: 18px;
+        font-size: 0.6rem;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .modal {
+        padding: 20px;
+        margin: 10px;
+      }
+
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-neo {
+        justify-content: center;
+        padding: 8px 16px;
+        font-size: 0.8rem;
+      }
+
+      table {
+        font-size: 0.7rem;
+      }
+
+      thead th,
+      tbody td {
+        padding: 6px 8px;
+      }
+
+      .action-btns .btn-neo-sm {
+        padding: 2px 8px;
+        font-size: 0.65rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 10px;
+        border-radius: 25px;
+      }
+
+      .tab-btn {
+        padding: 4px 10px;
+        font-size: 0.65rem;
+      }
+
+      .tab-btn .tab-number {
+        display: none;
+      }
+    }
+
+    /* Scroll personalizado */
+    .modal::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .modal::-webkit-scrollbar-track {
+      background: #e0e5ec;
+      border-radius: 10px;
+    }
+
+    .modal::-webkit-scrollbar-thumb {
+      background: #b0b8c8;
+      border-radius: 10px;
+    }
+
+    .modal::-webkit-scrollbar-thumb:hover {
+      background: #9aa3b5;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="container">
+    <!-- HEADER -->
+    <header class="header">
+      <h1>🏥 Hospital Regional PV</h1>
+      <div class="badge">
+        🟢 <span id="statusText">Conectado</span>
+      </div>
+    </header>
+
+    <!-- PESTAÑAS -->
+    <nav class="tabs" id="tabsContainer">
+      <!-- Las pestañas se generan con JavaScript -->
+    </nav>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="content-area">
+      <div class="toolbar">
+        <div class="info">
+          📋 <span id="sheetNameDisplay">Datos Generales</span> ·
+          <span id="rowCountDisplay">0</span> registros
+        </div>
+        <button class="btn-neo primary" id="btnAdd">
+                    ➕ Agregar
+                </button>
+      </div>
+
+      <div class="table-wrapper" id="tableWrapper">
+        <div id="tableContainer">
+          <!-- La tabla se genera con JavaScript -->
+          <div class="loading">Cargando datos</div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============================================
+    MODAL (para Crear/Editar)
+    ============================================ -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitle">📝 Agregar Registro</h2>
+        <button class="modal-close" id="modalClose">✕</button>
+      </div>
+      <form id="modalForm">
+        <div class="form-grid" id="formFields">
+          <!-- Los campos se generan dinámicamente -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-neo" id="btnCancel">Cancelar</button>
+          <button type="submit" class="btn-neo primary" id="btnSave">💾 Guardar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================
+    JAVASCRIPT - LÓGICA COMPLETA
+    ============================================ -->
+  <script>
+    // ============================================
+        // CONFIGURACIÓN
+        // ============================================
+        const API_URL = 'https://script.google.com/macros/s/AKfycbx7D_xQ9mnTrUcwNcafXs51DkydYIOlDr-ko6YIxYANEBgEABwdPp7jbWkInBk_B1Io/exec';
+
+        // Definición de pestañas (11 hojas)
+        const TABS = [
+            { id: 'ORDEN 1', label: '📊 Datos Generales' },
+            { id: 'ORDEN 11-1', label: '👨‍⚕️ RH - Plazas' },
+            { id: 'ORDEN 11-2', label: '👩‍⚕️ RH - Ocupadas' },
+            { id: 'ORDEN 11-3', label: '📉 RH - Desocupadas' },
+            { id: 'ORDEN 2-2', label: '🏥 Serv. Médicos 1' },
+            { id: 'ORDEN 2-3', label: '🏥 Serv. Médicos 2' },
+            { id: 'ORDEN 3', label: '🚑 Serv. Apoyo' },
+            { id: 'ORDEN 4', label: '🔧 Serv. Generales' }, // ⚠️ ATENCIÓN: DOS ESPACIOS
+            { id: 'ORDEN 5', label: '📋 Administrativas' },
+            { id: 'ORDEN 6', label: '📚 Enseñanza' },
+            { id: 'ORDEN 7', label: '🔬 Investigación' }
+        ];
+
+        // Estado global
+        let state = {
+            currentTab: 'Datos Generales',
+            data: [],
+            headers: [],
+            isEditing: false,
+            editRowIndex: null,
+            isLoading: false
+        };
+
+        // ============================================
+        // DOM REFERENCIAS
+        // ============================================
+        const tabsContainer = document.getElementById('tabsContainer');
+        const tableContainer = document.getElementById('tableContainer');
+        const sheetNameDisplay = document.getElementById('sheetNameDisplay');
+        const rowCountDisplay = document.getElementById('rowCountDisplay');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalForm = document.getElementById('modalForm');
+        const formFields = document.getElementById('formFields');
+        const btnAdd = document.getElementById('btnAdd');
+        const btnCancel = document.getElementById('btnCancel');
+        const btnSave = document.getElementById('btnSave');
+        const modalClose = document.getElementById('modalClose');
+
+        // ============================================
+        // FUNCIONES DE API
+        // ============================================
+        // Dentro de la función apiRequest en index.html
+async function apiRequest(action, sheet, data = null, rowIndex = null) {
+    try {
+        let url = `${API_URL}?action=${action}&sheet=${encodeURIComponent(sheet)}`;
+        if (rowIndex !== null) {
+            url += `&rowIndex=${rowIndex}`;
+        }
+
+        const options = {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+
+        if (data) {
+            options.method = 'POST';
+            options.body = JSON.stringify({ rowData: data });
+        }
+
+        const response = await fetch(url, options);
+        const result = await response.json();
+
+        // ✅ Verificar si la respuesta tiene éxito
+        if (result.success === false || result.error) {
+            throw new Error(result.error || 'Error desconocido en la API');
+        }
+
+        return result;
+    } catch (error) {
+        console.error('❌ Error en API:', error);
+        throw error;
+    }
+}
+
+        // ============================================
+        // FUNCIONES PRINCIPALES
+        // ============================================
+        async function loadData(sheetName) {
+            if (state.isLoading) return;
+            state.isLoading = true;
+            tableContainer.innerHTML = '<div class="loading">Cargando datos</div>';
+
+            try {
+                const result = await apiRequest('read', sheetName);
+                state.data = result.data || [];
+                state.headers = result.headers || [];
+                state.currentTab = sheetName;
+
+                sheetNameDisplay.textContent = sheetName;
+                rowCountDisplay.textContent = state.data.length;
+
+                renderTable();
+            } catch (error) {
+                tableContainer.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">⚠️</span>
+                        Error al cargar datos: ${error.message}
+                        <br><br>
+                        <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
+                    </div>
+                `;
+            } finally {
+                state.isLoading = false;
+            }
+        }
+
+        function renderTable() {
+            if (state.data.length === 0) {
+                tableContainer.innerHTML = `
+                    <div class="empty-state">
+                        <span class="icon">📭</span>
+                        No hay registros en esta hoja
+                        <br><br>
+                        <button class="btn-neo primary" onclick="openCreateModal()">
+                            ➕ Agregar primer registro
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Mostrar primeras 10 columnas para no saturar
+            const displayHeaders = state.headers.slice(0, 10);
+            const extraColumns = state.headers.length - 10;
+
+            let html = '<table><thead><tr>';
+            // Cabeceras
+            displayHeaders.forEach(h => {
+                html += `<th>${h}</th>`;
+            });
+            if (extraColumns > 0) {
+                html += `<th>+${extraColumns} más</th>`;
+            }
+            html += `<th>Acciones</th>`;
+            html += '</tr></thead><tbody>';
+
+            // Filas
+            state.data.forEach((row, index) => {
+                html += '<tr>';
+                displayHeaders.forEach(h => {
+                    const value = row[h] || '';
+                    html += `<td title="${value}">${value}</td>`;
+                });
+                if (extraColumns > 0) {
+                    html += `<td>...</td>`;
+                }
+                html += `
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-neo-sm edit" onclick="openEditModal(${index})">✏️</button>
+                            <button class="btn-neo-sm delete" onclick="deleteRow(${index})">🗑️</button>
+                        </div>
+                    </td>
+                `;
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            tableContainer.innerHTML = html;
+        }
+
+        // ============================================
+        // PESTAÑAS
+        // ============================================
+        function renderTabs() {
+            tabsContainer.innerHTML = '';
+            TABS.forEach((tab, index) => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${tab.id === state.currentTab ? 'active' : ''}`;
+                btn.innerHTML = `<span class="tab-number">${index + 1}</span> ${tab.label}`;
+                btn.dataset.sheet = tab.id;
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    loadData(tab.id);
+                });
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        // ============================================
+        // MODAL - CREAR / EDITAR
+        // ============================================
+        function openCreateModal() {
+            state.isEditing = false;
+            state.editRowIndex = null;
+            modalTitle.textContent = '📝 Agregar Registro';
+            renderFormFields({});
+            modalOverlay.classList.add('active');
+        }
+
+        function openEditModal(index) {
+            state.isEditing = true;
+            state.editRowIndex = index;
+            modalTitle.textContent = '✏️ Editar Registro';
+            const rowData = state.data[index] || {};
+            renderFormFields(rowData);
+            modalOverlay.classList.add('active');
+        }
+
+        function renderFormFields(rowData) {
+            // Mostrar solo los primeros 10 campos para no saturar
+            const fieldsToShow = state.headers.slice(0, 15);
+            let html = '';
+            fieldsToShow.forEach(header => {
+                const value = rowData[header] || '';
+                // Detectar tipo de campo (sí/no)
+                const isBoolean = typeof value === 'string' && (value.toUpperCase() === 'SI' || value.toUpperCase() === 'NO' || value === '');
+
+                html += `
+                    <div class="form-group">
+                        <label for="field_${header}">${header}</label>
+                        ${isBoolean ? `
+                            <select id="field_${header}" name="${header}">
+                                <option value="">Seleccionar</option>
+                                <option value="SI" ${value.toUpperCase() === 'SI' ? 'selected' : ''}>SI</option>
+                                <option value="NO" ${value.toUpperCase() === 'NO' ? 'selected' : ''}>NO</option>
+                            </select>
+                        ` : `
+                            <input type="text" id="field_${header}" name="${header}" value="${value}" />
+                        `}
+                    </div>
+                `;
+            });
+
+            // Campo oculto para saber que hay más campos
+            if (state.headers.length > 15) {
+                html += `
+                    <div class="form-group full-width" style="text-align:center;color:#95a5a6;font-size:0.8rem;">
+                        ⚡ Hay ${state.headers.length - 15} campos adicionales que no se muestran
+                    </div>
+                `;
+            }
+
+            formFields.innerHTML = html;
+        }
+
+        function collectFormData() {
+            const formData = {};
+            const inputs = formFields.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                formData[input.name] = input.value;
+            });
+            return formData;
+        }
+
+        // ============================================
+        // GUARDAR (CREAR / ACTUALIZAR)
+        // ============================================
+        async function handleSave(event) {
+            event.preventDefault();
+            const formData = collectFormData();
+
+            // Validar que haya al menos un campo con valor
+            const hasValue = Object.values(formData).some(v => v && v.trim() !== '');
+            if (!hasValue) {
+                alert('⚠️ Por favor, ingresa al menos un valor.');
+                return;
+            }
+
+            try {
+                if (state.isEditing && state.editRowIndex !== null) {
+                    // UPDATE
+                    await apiRequest('update', state.currentTab, formData, state.editRowIndex);
+                } else {
+                    // CREATE
+                    await apiRequest('create', state.currentTab, formData);
+                }
+
+                closeModal();
+                await loadData(state.currentTab);
+            } catch (error) {
+                alert(`❌ Error al guardar: ${error.message}`);
+            }
+        }
+
+        // ============================================
+        // ELIMINAR
+        // ============================================
+        async function deleteRow(index) {
+            if (!confirm('⚠️ ¿Estás seguro de eliminar este registro?')) return;
+
+            try {
+                await apiRequest('delete', state.currentTab, null, index);
+                await loadData(state.currentTab);
+            } catch (error) {
+                alert(`❌ Error al eliminar: ${error.message}`);
+            }
+        }
+
+        // ============================================
+        // MODAL CONTROLS
+        // ============================================
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+        }
+
+        // ============================================
+        // INICIALIZACIÓN
+        // ============================================
+        async function init() {
+            renderTabs();
+            await loadData('Datos Generales');
+
+            // Event listeners
+            btnAdd.addEventListener('click', openCreateModal);
+            btnCancel.addEventListener('click', closeModal);
+            modalClose.addEventListener('click', closeModal);
+            modalForm.addEventListener('submit', handleSave);
+
+            // Cerrar modal al hacer clic en el overlay
+            modalOverlay.addEventListener('click', (e) => {
+                if (e.target === modalOverlay) closeModal();
+            });
+
+            // Actualizar estado de conexión
+            document.getElementById('statusText').textContent = '✅ Conectado';
+        }
+
+        // Iniciar cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Exponer funciones globales para los botones inline
+        window.openCreateModal = openCreateModal;
+        window.openEditModal = openEditModal;
+        window.deleteRow = deleteRow;
+        window.loadData = loadData;
+        window.closeModal = closeModal;
+  </script>
+</body>
+
+</html>
