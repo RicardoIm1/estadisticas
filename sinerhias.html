@@ -648,8 +648,8 @@
           <span id="rowCountDisplay">0</span> registros
         </div>
         <button class="btn-neo primary" id="btnAdd">
-                    ➕ Agregar
-                </button>
+          ➕ Agregar
+        </button>
       </div>
 
       <div class="table-wrapper" id="tableWrapper">
@@ -687,109 +687,132 @@
     ============================================ -->
   <script>
     // ============================================
-        // CONFIGURACIÓN
-        // ============================================
-        const API_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://script.google.com/macros/s/AKfycbyatdWPhpfyLgx8arzCnPurKrFiV9JIukUd6VNCSHG_weHEfbUFdgRLa9c-BKAajhzu/exec');
+    // CONFIGURACIÓN
+    // ============================================
+    const API_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://script.google.com/macros/s/AKfycbz8NX3iUnklLE9HpB_a4rRtKiA41PgK5zPC4VxL8HHMFD32wwDzKHSA8pj19RuogOur/exec');
 
-        // Definición de pestañas (11 hojas)
-        const TABS = [
-            { id: 'ORDEN 1', label: '📊 Datos Generales' },
-            { id: 'ORDEN 11-1', label: '👨‍⚕️ RH - Plazas' },
-            { id: 'ORDEN 11-2', label: '👩‍⚕️ RH - Ocupadas' },
-            { id: 'ORDEN 11-3', label: '📉 RH - Desocupadas' },
-            { id: 'ORDEN 2-2', label: '🏥 Serv. Médicos 1' },
-            { id: 'ORDEN 2-3', label: '🏥 Serv. Médicos 2' },
-            { id: 'ORDEN 3', label: '🚑 Serv. Apoyo' },
-            { id: 'ORDEN 4', label: '🔧 Serv. Generales' },
-            { id: 'ORDEN 5', label: '📋 Administrativas' },
-            { id: 'ORDEN 6', label: '📚 Enseñanza' },
-            { id: 'ORDEN 7', label: '🔬 Investigación' }
-        ];
+    // Definición de pestañas (11 hojas)
+    const TABS = [
+      { id: 'ORDEN 1', label: '📊 Datos Generales' },
+      { id: 'ORDEN 11-1', label: '👨‍⚕️ RH - Plazas' },
+      { id: 'ORDEN 11-2', label: '👩‍⚕️ RH - Ocupadas' },
+      { id: 'ORDEN 11-3', label: '📉 RH - Desocupadas' },
+      { id: 'ORDEN 2-2', label: '🏥 Serv. Médicos 1' },
+      { id: 'ORDEN 2-3', label: '🏥 Serv. Médicos 2' },
+      { id: 'ORDEN 3', label: '🚑 Serv. Apoyo' },
+      { id: 'ORDEN 4', label: '🔧 Serv. Generales' },
+      { id: 'ORDEN 5', label: '📋 Administrativas' },
+      { id: 'ORDEN 6', label: '📚 Enseñanza' },
+      { id: 'ORDEN 7', label: '🔬 Investigación' }
+    ];
 
-        // Estado global
-        let state = {
-            currentTab: 'ORDEN 1', // ← CAMBIADO
-            data: [],
-            headers: [],
-            isEditing: false,
-            editRowIndex: null,
-            isLoading: false
-        };
+    // Estado global
+    let state = {
+      currentTab: 'ORDEN 1', // ← CAMBIADO
+      data: [],
+      headers: [],
+      isEditing: false,
+      editRowIndex: null,
+      isLoading: false
+    };
 
-        // ============================================
-        // DOM REFERENCIAS
-        // ============================================
-        const tabsContainer = document.getElementById('tabsContainer');
-        const tableContainer = document.getElementById('tableContainer');
-        const sheetNameDisplay = document.getElementById('sheetNameDisplay');
-        const rowCountDisplay = document.getElementById('rowCountDisplay');
-        const modalOverlay = document.getElementById('modalOverlay');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalForm = document.getElementById('modalForm');
-        const formFields = document.getElementById('formFields');
-        const btnAdd = document.getElementById('btnAdd');
-        const btnCancel = document.getElementById('btnCancel');
-        const btnSave = document.getElementById('btnSave');
-        const modalClose = document.getElementById('modalClose');
+    // ============================================
+    // DOM REFERENCIAS
+    // ============================================
+    const tabsContainer = document.getElementById('tabsContainer');
+    const tableContainer = document.getElementById('tableContainer');
+    const sheetNameDisplay = document.getElementById('sheetNameDisplay');
+    const rowCountDisplay = document.getElementById('rowCountDisplay');
+    const modalOverlay = document.getElementById('modalOverlay');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalForm = document.getElementById('modalForm');
+    const formFields = document.getElementById('formFields');
+    const btnAdd = document.getElementById('btnAdd');
+    const btnCancel = document.getElementById('btnCancel');
+    const btnSave = document.getElementById('btnSave');
+    const modalClose = document.getElementById('modalClose');
 
-        // ============================================
-        // FUNCIONES DE API
-        // ============================================
-        // Dentro de la función apiRequest en index.html
-async function apiRequest(action, sheet, data = null, rowIndex = null) {
-    try {
+    // ============================================
+    // FUNCIONES DE API
+    // ============================================
+    // Dentro de la función apiRequest en index.html
+    // ============================================
+    // FUNCIÓN API - CON MANEJO DE ERRORES MEJORADO
+    // ============================================
+    async function apiRequest(action, sheet, data = null, rowIndex = null) {
+      try {
+        // Construir URL
         let url = `${API_URL}?action=${action}&sheet=${encodeURIComponent(sheet)}`;
-        if (rowIndex !== null) {
-            url += `&rowIndex=${rowIndex}`;
+        if (rowIndex !== null && rowIndex !== undefined) {
+          url += `&rowIndex=${rowIndex}`;
         }
 
+        console.log(`📡 Enviando petición: ${action} a ${sheet}`);
+
         const options = {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
+          method: 'GET',
+          headers: {
+            'Accept': 'application/json'
+          }
         };
 
         if (data) {
-            options.method = 'POST';
-            options.body = JSON.stringify({ rowData: data });
+          options.method = 'POST';
+          options.headers['Content-Type'] = 'application/json';
+          options.body = JSON.stringify({ rowData: data });
         }
 
         const response = await fetch(url, options);
-        const result = await response.json();
 
-        // ✅ Verificar si la respuesta tiene éxito
+        // Verificar si es JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          const text = await response.text();
+          console.error('❌ Respuesta no JSON:', text.substring(0, 200));
+
+          if (text.includes('<!DOCTYPE') || text.includes('<html')) {
+            throw new Error('La URL del script no es correcta o el script no está publicado. Verifica la URL.');
+          }
+          throw new Error(`Respuesta no JSON: ${text.substring(0, 100)}`);
+        }
+
+        const result = await response.json();
+        console.log('✅ Respuesta recibida:', result);
+
         if (result.success === false || result.error) {
-            throw new Error(result.error || 'Error desconocido en la API');
+          throw new Error(result.error || 'Error desconocido en la API');
         }
 
         return result;
-    } catch (error) {
+      } catch (error) {
         console.error('❌ Error en API:', error);
+
+        if (error.message.includes('Failed to fetch')) {
+          throw new Error('No se pudo conectar con el servidor. Verifica tu conexión a internet.');
+        }
         throw error;
+      }
     }
-}
+    // ============================================
+    // FUNCIONES PRINCIPALES
+    // ============================================
+    async function loadData(sheetName) {
+      if (state.isLoading) return;
+      state.isLoading = true;
+      tableContainer.innerHTML = '<div class="loading">Cargando datos</div>';
 
-        // ============================================
-        // FUNCIONES PRINCIPALES
-        // ============================================
-        async function loadData(sheetName) {
-            if (state.isLoading) return;
-            state.isLoading = true;
-            tableContainer.innerHTML = '<div class="loading">Cargando datos</div>';
+      try {
+        const result = await apiRequest('read', sheetName);
+        state.data = result.data || [];
+        state.headers = result.headers || [];
+        state.currentTab = sheetName;
 
-            try {
-                const result = await apiRequest('read', sheetName);
-                state.data = result.data || [];
-                state.headers = result.headers || [];
-                state.currentTab = sheetName;
+        sheetNameDisplay.textContent = sheetName;
+        rowCountDisplay.textContent = state.data.length;
 
-                sheetNameDisplay.textContent = sheetName;
-                rowCountDisplay.textContent = state.data.length;
-
-                renderTable();
-            } catch (error) {
-                tableContainer.innerHTML = `
+        renderTable();
+      } catch (error) {
+        tableContainer.innerHTML = `
                     <div class="empty-state">
                         <span class="icon">⚠️</span>
                         Error al cargar datos: ${error.message}
@@ -797,14 +820,14 @@ async function apiRequest(action, sheet, data = null, rowIndex = null) {
                         <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
                     </div>
                 `;
-            } finally {
-                state.isLoading = false;
-            }
-        }
+      } finally {
+        state.isLoading = false;
+      }
+    }
 
-        function renderTable() {
-            if (state.data.length === 0) {
-                tableContainer.innerHTML = `
+    function renderTable() {
+      if (state.data.length === 0) {
+        tableContainer.innerHTML = `
                     <div class="empty-state">
                         <span class="icon">📭</span>
                         No hay registros en esta hoja
@@ -814,35 +837,35 @@ async function apiRequest(action, sheet, data = null, rowIndex = null) {
                         </button>
                     </div>
                 `;
-                return;
-            }
+        return;
+      }
 
-            // Mostrar primeras 10 columnas para no saturar
-            const displayHeaders = state.headers.slice(0, 10);
-            const extraColumns = state.headers.length - 10;
+      // Mostrar primeras 10 columnas para no saturar
+      const displayHeaders = state.headers.slice(0, 10);
+      const extraColumns = state.headers.length - 10;
 
-            let html = '<table><thead><tr>';
-            // Cabeceras
-            displayHeaders.forEach(h => {
-                html += `<th>${h}</th>`;
-            });
-            if (extraColumns > 0) {
-                html += `<th>+${extraColumns} más</th>`;
-            }
-            html += `<th>Acciones</th>`;
-            html += '</tr></thead><tbody>';
+      let html = '<table><thead><tr>';
+      // Cabeceras
+      displayHeaders.forEach(h => {
+        html += `<th>${h}</th>`;
+      });
+      if (extraColumns > 0) {
+        html += `<th>+${extraColumns} más</th>`;
+      }
+      html += `<th>Acciones</th>`;
+      html += '</tr></thead><tbody>';
 
-            // Filas
-            state.data.forEach((row, index) => {
-                html += '<tr>';
-                displayHeaders.forEach(h => {
-                    const value = row[h] || '';
-                    html += `<td title="${value}">${value}</td>`;
-                });
-                if (extraColumns > 0) {
-                    html += `<td>...</td>`;
-                }
-                html += `
+      // Filas
+      state.data.forEach((row, index) => {
+        html += '<tr>';
+        displayHeaders.forEach(h => {
+          const value = row[h] || '';
+          html += `<td title="${value}">${value}</td>`;
+        });
+        if (extraColumns > 0) {
+          html += `<td>...</td>`;
+        }
+        html += `
                     <td>
                         <div class="action-btns">
                             <button class="btn-neo-sm edit" onclick="openEditModal(${index})">✏️</button>
@@ -850,62 +873,62 @@ async function apiRequest(action, sheet, data = null, rowIndex = null) {
                         </div>
                     </td>
                 `;
-                html += '</tr>';
-            });
+        html += '</tr>';
+      });
 
-            html += '</tbody></table>';
-            tableContainer.innerHTML = html;
-        }
+      html += '</tbody></table>';
+      tableContainer.innerHTML = html;
+    }
 
-        // ============================================
-        // PESTAÑAS
-        // ============================================
-        function renderTabs() {
-            tabsContainer.innerHTML = '';
-            TABS.forEach((tab, index) => {
-                const btn = document.createElement('button');
-                btn.className = `tab-btn ${tab.id === state.currentTab ? 'active' : ''}`;
-                btn.innerHTML = `<span class="tab-number">${index + 1}</span> ${tab.label}`;
-                btn.dataset.sheet = tab.id;
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    loadData(tab.id);
-                });
-                tabsContainer.appendChild(btn);
-            });
-        }
+    // ============================================
+    // PESTAÑAS
+    // ============================================
+    function renderTabs() {
+      tabsContainer.innerHTML = '';
+      TABS.forEach((tab, index) => {
+        const btn = document.createElement('button');
+        btn.className = `tab-btn ${tab.id === state.currentTab ? 'active' : ''}`;
+        btn.innerHTML = `<span class="tab-number">${index + 1}</span> ${tab.label}`;
+        btn.dataset.sheet = tab.id;
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          loadData(tab.id);
+        });
+        tabsContainer.appendChild(btn);
+      });
+    }
 
-        // ============================================
-        // MODAL - CREAR / EDITAR
-        // ============================================
-        function openCreateModal() {
-            state.isEditing = false;
-            state.editRowIndex = null;
-            modalTitle.textContent = '📝 Agregar Registro';
-            renderFormFields({});
-            modalOverlay.classList.add('active');
-        }
+    // ============================================
+    // MODAL - CREAR / EDITAR
+    // ============================================
+    function openCreateModal() {
+      state.isEditing = false;
+      state.editRowIndex = null;
+      modalTitle.textContent = '📝 Agregar Registro';
+      renderFormFields({});
+      modalOverlay.classList.add('active');
+    }
 
-        function openEditModal(index) {
-            state.isEditing = true;
-            state.editRowIndex = index;
-            modalTitle.textContent = '✏️ Editar Registro';
-            const rowData = state.data[index] || {};
-            renderFormFields(rowData);
-            modalOverlay.classList.add('active');
-        }
+    function openEditModal(index) {
+      state.isEditing = true;
+      state.editRowIndex = index;
+      modalTitle.textContent = '✏️ Editar Registro';
+      const rowData = state.data[index] || {};
+      renderFormFields(rowData);
+      modalOverlay.classList.add('active');
+    }
 
-        function renderFormFields(rowData) {
-            // Mostrar solo los primeros 10 campos para no saturar
-            const fieldsToShow = state.headers.slice(0, 15);
-            let html = '';
-            fieldsToShow.forEach(header => {
-                const value = rowData[header] || '';
-                // Detectar tipo de campo (sí/no)
-                const isBoolean = typeof value === 'string' && (value.toUpperCase() === 'SI' || value.toUpperCase() === 'NO' || value === '');
+    function renderFormFields(rowData) {
+      // Mostrar solo los primeros 10 campos para no saturar
+      const fieldsToShow = state.headers.slice(0, 15);
+      let html = '';
+      fieldsToShow.forEach(header => {
+        const value = rowData[header] || '';
+        // Detectar tipo de campo (sí/no)
+        const isBoolean = typeof value === 'string' && (value.toUpperCase() === 'SI' || value.toUpperCase() === 'NO' || value === '');
 
-                html += `
+        html += `
                     <div class="form-group">
                         <label for="field_${header}">${header}</label>
                         ${isBoolean ? `
@@ -919,111 +942,111 @@ async function apiRequest(action, sheet, data = null, rowIndex = null) {
                         `}
                     </div>
                 `;
-            });
+      });
 
-            // Campo oculto para saber que hay más campos
-            if (state.headers.length > 15) {
-                html += `
+      // Campo oculto para saber que hay más campos
+      if (state.headers.length > 15) {
+        html += `
                     <div class="form-group full-width" style="text-align:center;color:#95a5a6;font-size:0.8rem;">
                         ⚡ Hay ${state.headers.length - 15} campos adicionales que no se muestran
                     </div>
                 `;
-            }
+      }
 
-            formFields.innerHTML = html;
+      formFields.innerHTML = html;
+    }
+
+    function collectFormData() {
+      const formData = {};
+      const inputs = formFields.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        formData[input.name] = input.value;
+      });
+      return formData;
+    }
+
+    // ============================================
+    // GUARDAR (CREAR / ACTUALIZAR)
+    // ============================================
+    async function handleSave(event) {
+      event.preventDefault();
+      const formData = collectFormData();
+
+      // Validar que haya al menos un campo con valor
+      const hasValue = Object.values(formData).some(v => v && v.trim() !== '');
+      if (!hasValue) {
+        alert('⚠️ Por favor, ingresa al menos un valor.');
+        return;
+      }
+
+      try {
+        if (state.isEditing && state.editRowIndex !== null) {
+          // UPDATE
+          await apiRequest('update', state.currentTab, formData, state.editRowIndex);
+        } else {
+          // CREATE
+          await apiRequest('create', state.currentTab, formData);
         }
 
-        function collectFormData() {
-            const formData = {};
-            const inputs = formFields.querySelectorAll('input, select, textarea');
-            inputs.forEach(input => {
-                formData[input.name] = input.value;
-            });
-            return formData;
-        }
+        closeModal();
+        await loadData(state.currentTab);
+      } catch (error) {
+        alert(`❌ Error al guardar: ${error.message}`);
+      }
+    }
 
-        // ============================================
-        // GUARDAR (CREAR / ACTUALIZAR)
-        // ============================================
-        async function handleSave(event) {
-            event.preventDefault();
-            const formData = collectFormData();
+    // ============================================
+    // ELIMINAR
+    // ============================================
+    async function deleteRow(index) {
+      if (!confirm('⚠️ ¿Estás seguro de eliminar este registro?')) return;
 
-            // Validar que haya al menos un campo con valor
-            const hasValue = Object.values(formData).some(v => v && v.trim() !== '');
-            if (!hasValue) {
-                alert('⚠️ Por favor, ingresa al menos un valor.');
-                return;
-            }
+      try {
+        await apiRequest('delete', state.currentTab, null, index);
+        await loadData(state.currentTab);
+      } catch (error) {
+        alert(`❌ Error al eliminar: ${error.message}`);
+      }
+    }
 
-            try {
-                if (state.isEditing && state.editRowIndex !== null) {
-                    // UPDATE
-                    await apiRequest('update', state.currentTab, formData, state.editRowIndex);
-                } else {
-                    // CREATE
-                    await apiRequest('create', state.currentTab, formData);
-                }
+    // ============================================
+    // MODAL CONTROLS
+    // ============================================
+    function closeModal() {
+      modalOverlay.classList.remove('active');
+    }
 
-                closeModal();
-                await loadData(state.currentTab);
-            } catch (error) {
-                alert(`❌ Error al guardar: ${error.message}`);
-            }
-        }
+    // ============================================
+    // INICIALIZACIÓN
+    // ============================================
+    async function init() {
+      renderTabs();
+      await loadData('Datos Generales');
 
-        // ============================================
-        // ELIMINAR
-        // ============================================
-        async function deleteRow(index) {
-            if (!confirm('⚠️ ¿Estás seguro de eliminar este registro?')) return;
+      // Event listeners
+      btnAdd.addEventListener('click', openCreateModal);
+      btnCancel.addEventListener('click', closeModal);
+      modalClose.addEventListener('click', closeModal);
+      modalForm.addEventListener('submit', handleSave);
 
-            try {
-                await apiRequest('delete', state.currentTab, null, index);
-                await loadData(state.currentTab);
-            } catch (error) {
-                alert(`❌ Error al eliminar: ${error.message}`);
-            }
-        }
+      // Cerrar modal al hacer clic en el overlay
+      modalOverlay.addEventListener('click', (e) => {
+        if (e.target === modalOverlay) closeModal();
+      });
 
-        // ============================================
-        // MODAL CONTROLS
-        // ============================================
-        function closeModal() {
-            modalOverlay.classList.remove('active');
-        }
+      // Actualizar estado de conexión
+      document.getElementById('statusText').textContent = '✅ Conectado';
+    }
 
-        // ============================================
-        // INICIALIZACIÓN
-        // ============================================
-        async function init() {
-            renderTabs();
-            await loadData('Datos Generales');
+    // Iniciar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', init);
 
-            // Event listeners
-            btnAdd.addEventListener('click', openCreateModal);
-            btnCancel.addEventListener('click', closeModal);
-            modalClose.addEventListener('click', closeModal);
-            modalForm.addEventListener('submit', handleSave);
-
-            // Cerrar modal al hacer clic en el overlay
-            modalOverlay.addEventListener('click', (e) => {
-                if (e.target === modalOverlay) closeModal();
-            });
-
-            // Actualizar estado de conexión
-            document.getElementById('statusText').textContent = '✅ Conectado';
-        }
-
-        // Iniciar cuando el DOM esté listo
-        document.addEventListener('DOMContentLoaded', init);
-
-        // Exponer funciones globales para los botones inline
-        window.openCreateModal = openCreateModal;
-        window.openEditModal = openEditModal;
-        window.deleteRow = deleteRow;
-        window.loadData = loadData;
-        window.closeModal = closeModal;
+    // Exponer funciones globales para los botones inline
+    window.openCreateModal = openCreateModal;
+    window.openEditModal = openEditModal;
+    window.deleteRow = deleteRow;
+    window.loadData = loadData;
+    window.closeModal = closeModal;
   </script>
 </body>
 
