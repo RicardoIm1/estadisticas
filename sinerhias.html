@@ -761,11 +761,15 @@
     JAVASCRIPT - LÓGICA COMPLETA
     ============================================ -->
   <script>
-    
+
     // ============================================
     // CONFIGURACIÓN - PARA GITHUB PAGES (GET)
     // ============================================
     const API_URL = 'https://script.google.com/macros/s/AKfycbwz_tW-ED44lW7PKgq2pINblSYOe8IjO-eW7W7e8NP7YS9d99SvG5Na17gPv5Ge_1i_/exec';
+
+    // ============================================
+    // CONFIGURACIÓN
+    // ============================================
 
     // Definición de pestañas
     const TABS = [
@@ -810,52 +814,56 @@
     const modalClose = document.getElementById('modalClose');
 
     // ============================================
-    // FUNCIÓN API - SOLO GET (más compatible)
+    // FUNCIONES DE API (google.script.run)
     // ============================================
-    async function apiRequest(action, sheet, data = null, rowIndex = null) {
-      try {
-        // Construir URL con parámetros
-        let url = `${API_URL}?action=${action}&sheet=${encodeURIComponent(sheet)}`;
 
-        if (rowIndex !== null && rowIndex !== undefined) {
-          url += `&rowIndex=${rowIndex}`;
-        }
+    function apiRequest(action, sheet, data = null, rowIndex = null) {
+      return new Promise((resolve, reject) => {
+        document.getElementById('statusText').textContent = '⏳ Cargando...';
 
-        // Si hay datos, convertirlos a parámetros URL
-        if (data) {
-          Object.keys(data).forEach(key => {
-            url += `&${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`;
-          });
-        }
-
-        console.log(`📡 GET: ${url}`);
-
-        const response = await fetch(url, {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json'
+        const handleSuccess = (result) => {
+          document.getElementById('statusText').textContent = '✅ Conectado';
+          if (result.success === false || result.error) {
+            reject(new Error(result.error || 'Error en la operación'));
+          } else {
+            resolve(result);
           }
-        });
+        };
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        const handleFailure = (error) => {
+          document.getElementById('statusText').textContent = '❌ Error';
+          reject(new Error(error.message || 'Error de comunicación'));
+        };
+
+        switch (action) {
+          case 'read':
+            google.script.run
+              .withSuccessHandler(handleSuccess)
+              .withFailureHandler(handleFailure)
+              .readData(sheet);
+            break;
+          case 'create':
+            google.script.run
+              .withSuccessHandler(handleSuccess)
+              .withFailureHandler(handleFailure)
+              .createData(sheet, data);
+            break;
+          case 'update':
+            google.script.run
+              .withSuccessHandler(handleSuccess)
+              .withFailureHandler(handleFailure)
+              .updateData(sheet, data, rowIndex);
+            break;
+          case 'delete':
+            google.script.run
+              .withSuccessHandler(handleSuccess)
+              .withFailureHandler(handleFailure)
+              .deleteData(sheet, rowIndex);
+            break;
+          default:
+            reject(new Error('Acción no válida'));
         }
-
-        const result = await response.json();
-
-        if (result.success === false || result.error) {
-          throw new Error(result.error || 'Error en la API');
-        }
-
-        return result;
-      } catch (error) {
-        console.error('❌ Error en API:', error);
-
-        if (error.message.includes('Failed to fetch')) {
-          throw new Error('No se pudo conectar con el servidor. Verifica la URL del GAS.');
-        }
-        throw error;
-      }
+      });
     }
 
     // ============================================
@@ -891,14 +899,6 @@
           </div>
           <br>
           <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
-          <br><br>
-          <details style="font-size: 0.8rem; color: #999;">
-              <summary>🔍 Ver detalles</summary>
-              <pre style="text-align: left; background: #f5f5f5; padding: 10px; border-radius: 8px; overflow: auto; max-height: 200px; font-size: 0.7rem;">
-URL: ${API_URL}
-Sheet: ${sheetName}
-              </pre>
-          </details>
       </div>
     `;
       } finally {
@@ -1093,8 +1093,11 @@ Sheet: ${sheetName}
     // ============================================
     function init() {
       try {
-        console.log('🔍 Inicializando con GET...');
-        console.log(`📍 API URL: ${API_URL}`);
+        console.log('🔍 Inicializando con google.script.run...');
+
+        if (typeof google === 'undefined' || !google.script) {
+          throw new Error('google.script.run no disponible. Asegúrate de ejecutar esto dentro de Apps Script.');
+        }
 
         renderSidebar();
         loadData('ORDEN 1');
@@ -1114,16 +1117,16 @@ Sheet: ${sheetName}
         console.error('❌ Error de inicialización:', error);
         document.getElementById('statusText').textContent = '❌ Error';
         tableContainer.innerHTML = `
-    <div class="empty-state">
-        <span class="icon">🚨</span>
-        <strong>Error de inicialización</strong>
-        <br><br>
-        <div style="color: #666; font-size: 0.9rem;">
-            ${error.message}
-        </div>
-        <br>
-        <button class="btn-neo" onclick="init()">🔄 Reintentar</button>
-    </div>
+      <div class="empty-state">
+          <span class="icon">🚨</span>
+          <strong>Error de inicialización</strong>
+          <br><br>
+          <div style="color: #666; font-size: 0.9rem;">
+              ${error.message}
+          </div>
+          <br>
+          <button class="btn-neo" onclick="init()">🔄 Reintentar</button>
+      </div>
     `;
       }
     }
