@@ -761,11 +761,7 @@
     JAVASCRIPT - LÓGICA COMPLETA
     ============================================ -->
   <script>
-    // ============================================
-    // CONFIGURACIÓN
-    // ============================================
-
-    const API_URL = 'https://script.google.com/macros/s/AKfycbydKNRWnZtPvdh4F64H0SOWbCg2BbvTrhCmIIz1h5T9iIrT4SVl9pftTatjPJ2b7tpP/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxn8HZucNK8G1ky8ySTosjtY6gKrEBcUAAJzZy5W_bCYDOv-bdHoOgfz7dHSJvDtyc/exec';
 
     // Definición de pestañas
     const TABS = [
@@ -810,33 +806,35 @@
     const modalClose = document.getElementById('modalClose');
 
     // ============================================
-    // FUNCIÓN API CON CORS
+    // FUNCIÓN API - TODAS LAS PETICIONES CON POST
     // ============================================
     async function apiRequest(action, sheet, data = null, rowIndex = null) {
       try {
-        let url = `${API_URL}?action=${action}&sheet=${encodeURIComponent(sheet)}`;
-        if (rowIndex !== null && rowIndex !== undefined) {
-          url += `&rowIndex=${rowIndex}`;
-        }
-
-        console.log(`📡 ${action} → ${sheet}`);
-
-        const options = {
-          method: 'GET',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          mode: 'cors', // Importante: modo CORS
-          cache: 'no-cache'
+        // Construir el payload
+        const payload = {
+          action: action,
+          sheet: sheet
         };
 
-        if (data) {
-          options.method = 'POST';
-          options.body = JSON.stringify({ rowData: data });
+        if (rowIndex !== null && rowIndex !== undefined) {
+          payload.rowIndex = rowIndex;
         }
 
-        const response = await fetch(url, options);
+        if (data) {
+          payload.rowData = data;
+        }
+
+        console.log(`📡 Enviando:`, payload);
+
+        const response = await fetch(API_URL, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
 
         // Verificar si la respuesta es OK
         if (!response.ok) {
@@ -856,9 +854,6 @@
 
         if (error.message.includes('Failed to fetch')) {
           throw new Error('No se pudo conectar con el servidor. Verifica la URL del GAS.');
-        }
-        if (error.message.includes('CORS')) {
-          throw new Error('Error de CORS. Asegúrate de que el GAS esté configurado con CORS y publicado correctamente.');
         }
         throw error;
       }
@@ -899,7 +894,7 @@
               <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
               <br><br>
               <details style="font-size: 0.8rem; color: #999;">
-                  <summary>🔍 Ver detalles técnicos</summary>
+                  <summary>🔍 Ver detalles</summary>
                   <pre style="text-align: left; background: #f5f5f5; padding: 10px; border-radius: 8px; overflow: auto; max-height: 200px; font-size: 0.7rem;">
 URL: ${API_URL}
 Sheet: ${sheetName}
@@ -913,7 +908,7 @@ Sheet: ${sheetName}
     }
 
     // ============================================
-    // RENDER TABLA
+    // RENDER TABLA - TODAS LAS COLUMNAS
     // ============================================
     function renderTable() {
       if (state.data.length === 0) {
@@ -961,7 +956,7 @@ Sheet: ${sheetName}
     }
 
     // ============================================
-    // SIDEBAR
+    // SIDEBAR - PESTAÑAS LATERALES
     // ============================================
     function renderSidebar() {
       const title = sidebarContainer.querySelector('.sidebar-title');
@@ -989,7 +984,7 @@ Sheet: ${sheetName}
     }
 
     // ============================================
-    // MODAL - TODOS LOS CAMPOS
+    // MODAL - TODOS LOS CAMPOS (CON SCROLL)
     // ============================================
     function openCreateModal() {
       state.isEditing = false;
@@ -1047,7 +1042,7 @@ Sheet: ${sheetName}
     }
 
     // ============================================
-    // GUARDAR
+    // GUARDAR (CREAR / ACTUALIZAR)
     // ============================================
     async function handleSave(event) {
       event.preventDefault();
@@ -1099,7 +1094,7 @@ Sheet: ${sheetName}
     // ============================================
     function init() {
       try {
-        console.log('🔍 Inicializando con API REST...');
+        console.log('🔍 Inicializando con POST...');
         console.log(`📍 API URL: ${API_URL}`);
 
         renderSidebar();
@@ -1134,7 +1129,7 @@ Sheet: ${sheetName}
       }
     }
 
-    // Iniciar
+    // Iniciar cuando el DOM esté listo
     document.addEventListener('DOMContentLoaded', init);
 
     // Exponer funciones globales
