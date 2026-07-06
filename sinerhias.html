@@ -849,7 +849,7 @@ Sheet: ${sheetName}
         state.isLoading = false;
       }
     }
-    
+
     function renderTable() {
       if (state.data.length === 0) {
         tableContainer.innerHTML = `
@@ -1044,25 +1044,56 @@ Sheet: ${sheetName}
     // ============================================
     // INICIALIZACIÓN
     // ============================================
+    // ============================================
+    // INICIALIZACIÓN
+    // ============================================
     async function init() {
-      renderTabs();
-      await loadData('Datos Generales');
+      try {
+        // Probar conexión primero
+        console.log('🔍 Probando conexión a la API...');
+        const testResult = await apiRequest('read', 'ORDEN 1');
+        console.log('✅ Conexión exitosa');
 
-      // Event listeners
-      btnAdd.addEventListener('click', openCreateModal);
-      btnCancel.addEventListener('click', closeModal);
-      modalClose.addEventListener('click', closeModal);
-      modalForm.addEventListener('submit', handleSave);
+        renderTabs();
+        await loadData('ORDEN 1');
 
-      // Cerrar modal al hacer clic en el overlay
-      modalOverlay.addEventListener('click', (e) => {
-        if (e.target === modalOverlay) closeModal();
-      });
+        // Event listeners
+        btnAdd.addEventListener('click', openCreateModal);
+        btnCancel.addEventListener('click', closeModal);
+        modalClose.addEventListener('click', closeModal);
+        modalForm.addEventListener('submit', handleSave);
 
-      // Actualizar estado de conexión
-      document.getElementById('statusText').textContent = '✅ Conectado';
+        modalOverlay.addEventListener('click', (e) => {
+          if (e.target === modalOverlay) closeModal();
+        });
+
+        document.getElementById('statusText').textContent = '✅ Conectado';
+
+      } catch (error) {
+        console.error('❌ Error de inicialización:', error);
+        document.getElementById('statusText').textContent = '❌ Error';
+        tableContainer.innerHTML = `
+            <div class="empty-state">
+                <span class="icon">🚨</span>
+                <strong>Error de conexión inicial</strong>
+                <br><br>
+                <div style="color: #666; font-size: 0.9rem;">
+                    ${error.message}
+                </div>
+                <br>
+                <button class="btn-neo" onclick="init()">🔄 Reintentar</button>
+                <br><br>
+                <details style="font-size: 0.8rem; color: #999;">
+                    <summary>🔍 Ver detalles</summary>
+                    <pre style="text-align: left; background: #f5f5f5; padding: 10px; border-radius: 8px; overflow: auto; max-height: 200px; font-size: 0.7rem;">
+URL: ${API_URL}
+                    </pre>
+                </details>
+            </div>
+        `;
+      }
     }
-
+    
     // Iniciar cuando el DOM esté listo
     document.addEventListener('DOMContentLoaded', init);
 
