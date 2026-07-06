@@ -231,7 +231,7 @@
            ============================================ */
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
             gap: 20px;
             padding: 5px;
         }
@@ -248,6 +248,8 @@
             flex-direction: column;
             gap: 8px;
             position: relative;
+            max-height: 500px;
+            overflow-y: auto;
         }
 
         .card:hover {
@@ -257,6 +259,20 @@
                 -12px -12px 20px rgba(255, 255, 255, 0.8);
         }
 
+        .card::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .card::-webkit-scrollbar-track {
+            background: #e0e5ec;
+            border-radius: 10px;
+        }
+
+        .card::-webkit-scrollbar-thumb {
+            background: #b0b8c8;
+            border-radius: 10px;
+        }
+
         .card-header {
             display: flex;
             justify-content: space-between;
@@ -264,19 +280,22 @@
             margin-bottom: 10px;
             padding-bottom: 10px;
             border-bottom: 2px solid rgba(163, 177, 198, 0.2);
+            flex-shrink: 0;
         }
 
         .card-title {
             font-weight: 700;
             color: #2c3e50;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             flex: 1;
+            word-break: break-word;
         }
 
         .card-actions {
             display: flex;
             gap: 6px;
             flex-shrink: 0;
+            margin-left: 10px;
         }
 
         .card-actions .btn-neo-sm {
@@ -315,9 +334,10 @@
             display: flex;
             justify-content: space-between;
             padding: 4px 0;
-            border-bottom: 1px solid rgba(163, 177, 198, 0.1);
+            border-bottom: 1px solid rgba(163, 177, 198, 0.08);
             font-size: 0.8rem;
             gap: 10px;
+            align-items: baseline;
         }
 
         .card-field-label {
@@ -326,6 +346,7 @@
             flex-shrink: 0;
             max-width: 45%;
             word-break: break-word;
+            font-size: 0.75rem;
         }
 
         .card-field-value {
@@ -333,6 +354,7 @@
             text-align: right;
             word-break: break-word;
             flex: 1;
+            font-size: 0.75rem;
         }
 
         .card-field-value.si {
@@ -351,7 +373,7 @@
         }
 
         /* ============================================
-           MODAL NEOMÓRFICO (sin cambios)
+           MODAL NEOMÓRFICO
            ============================================ */
         .modal-overlay {
             display: none;
@@ -376,7 +398,7 @@
             background: #e0e5ec;
             border-radius: 40px;
             padding: 35px;
-            max-width: 700px;
+            max-width: 800px;
             width: 100%;
             max-height: 85vh;
             overflow-y: auto;
@@ -550,7 +572,7 @@
            ============================================ */
         @media (max-width: 1024px) {
             .cards-grid {
-                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             }
         }
 
@@ -595,6 +617,7 @@
 
             .card {
                 padding: 16px;
+                max-height: 400px;
             }
 
             .form-grid {
@@ -618,7 +641,16 @@
             }
 
             .card-field {
-                font-size: 0.75rem;
+                font-size: 0.7rem;
+            }
+
+            .card-field-label {
+                font-size: 0.7rem;
+                max-width: 40%;
+            }
+
+            .card-field-value {
+                font-size: 0.7rem;
             }
         }
 
@@ -639,6 +671,11 @@
 
             .tab-btn .tab-number {
                 display: none;
+            }
+
+            .card {
+                max-height: 350px;
+                padding: 12px;
             }
         }
 
@@ -726,7 +763,8 @@
         // ============================================
         // CONFIGURACIÓN
         // ============================================
-        const API_URL = 'https://corsproxy.io/?' + encodeURIComponent('https://script.google.com/macros/s/AKfycbzaHV-NUmT4plq1EuTcImjQF1P5yke5aDZMZrtXTkBC6xiJOI7D0mSaotXDwBTjcfq9/exec');
+        // ✅ IMPORTANTE: Reemplaza con tu URL real de GAS
+        const API_URL = 'https://script.google.com/macros/s/TU_ID_AQUI/exec';
 
         // ✅ NOMBRES CORRECTOS DE TUS HOJAS
         const TABS = [
@@ -774,7 +812,6 @@
         // ============================================
         async function apiRequest(action, sheet, data = null, rowIndex = null) {
             try {
-                // ✅ CONSTRUIR URL CORRECTAMENTE
                 let url = `${API_URL}?action=${action}&sheet=${encodeURIComponent(sheet)}`;
                 if (rowIndex !== null) {
                     url += `&rowIndex=${rowIndex}`;
@@ -793,9 +830,8 @@
                 }
 
                 const response = await fetch(url, options);
-
-                // ✅ VERIFICAR QUE LA RESPUESTA SEA JSON
                 const text = await response.text();
+
                 try {
                     const result = JSON.parse(text);
                     if (result.success === false || result.error) {
@@ -811,6 +847,7 @@
                 throw error;
             }
         }
+
         // ============================================
         // FUNCIONES PRINCIPALES
         // ============================================
@@ -908,8 +945,8 @@
                     }
 
                     // Truncar valores muy largos para la card
-                    if (displayValue.length > 60) {
-                        displayValue = displayValue.substring(0, 60) + '…';
+                    if (displayValue.length > 80) {
+                        displayValue = displayValue.substring(0, 80) + '…';
                     }
 
                     html += `
