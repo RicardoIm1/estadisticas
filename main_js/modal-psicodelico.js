@@ -245,7 +245,7 @@
         "La vida es una oportunidad de brillar."
     ];
 
-    const colores = ['#FF6B6B','#FF8E53','#FECA57','#48DBFB','#0ABDE3','#10AC84','#EE5A24','#5F27CD','#FF9FF3','#54A0FF','#01A3A4','#F368E0','#FF9F43','#00D2D3'];
+    const colores = ['#FF6B6B','#FF8E53','#FECA57','#48DBFB','#0ABDE3','#10AC84','#EE5A24','#895ae6','#FF9FF3','#54A0FF','#01A3A4','#F368E0','#FF9F43','#00D2D3'];
 
     // ===== ESTADO =====
     let state = {
