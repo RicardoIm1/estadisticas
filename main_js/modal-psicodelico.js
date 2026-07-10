@@ -362,10 +362,19 @@
     }
 
     // ===== CAMBIAR COLOR DE FONDO =====
+    // En la función cambiarColorFondo()
     function cambiarColorFondo(elemento) {
         const color = getColorAleatorio();
-        elemento.style.background = `radial-gradient(circle at 50% 50%, ${color}20, transparent 70%)`;
-        elemento.style.boxShadow = `0 0 80px ${color}15, 0 0 150px ${color}10`;
+        elemento.style.background = `
+        radial-gradient(circle at 30% 40%, ${color}30, ${color}10 60%, transparent 80%),
+        rgba(255, 255, 255, 0.08)
+    `;
+        elemento.style.boxShadow = `
+        0 0 80px ${color}20,
+        0 0 150px ${color}10,
+        inset 0 0 100px ${color}05
+    `;
+        elemento.style.border = `1px solid ${color}25`;
     }
 
     // ===== MOSTRAR SIGUIENTE MENSAJE =====
