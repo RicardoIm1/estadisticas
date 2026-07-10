@@ -1,6 +1,7 @@
 /**
  * Modal Psicodélico de Mensajes Positivos
  * Con funcionalidad de ocultar al hacer clic y reaparecer si no hay login
+ * Mejoras: Efecto cristal intenso, overlay oscuro, borde brillante, partículas mejoradas
  */
 
 (function () {
@@ -10,12 +11,12 @@
     const CONFIG = {
         interval: 6000,           // Tiempo entre mensajes (ms)
         transitionDuration: 1500,  // Duración de la transición (ms)
-        tiempoVisible: 3000,      // Tiempo visible del mensaje
-        fontSize: '2.2rem',
+        tiempoVisible: 3500,      // Tiempo visible del mensaje
+        fontSize: '2.4rem',       // Tamaño de fuente aumentado
         maxMessages: 1,
         zIndex: 9999,
-        tiempoReaparicion: 30000,  // ⭐ 30 segundos para que reaparezca si no hay login
-        ocultoPorClick: false     // Estado interno
+        tiempoReaparicion: 30000,  // 30 segundos para que reaparezca si no hay login
+        ocultoPorClick: false
     };
 
     // ===== MENSAJES =====
@@ -67,6 +68,26 @@
     function crearModal() {
         if (document.getElementById('modal-psicodelico')) return;
 
+        // ⭐ 1. CREAR OVERLAY OSCURO CON BLUR
+        const overlay = document.createElement('div');
+        overlay.id = 'overlay-psicodelico';
+        overlay.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: ${CONFIG.zIndex - 1};
+            background: radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            pointer-events: none;
+            transition: opacity 0.8s ease;
+            opacity: 1;
+        `;
+        document.body.appendChild(overlay);
+
+        // ⭐ 2. CREAR MODAL
         const modal = document.createElement('div');
         modal.id = 'modal-psicodelico';
         modal.style.cssText = `
@@ -87,7 +108,7 @@
             transform: scale(1);
         `;
 
-        // Contenedor de mensaje (sin fondo)
+        // ⭐ 3. CONTENEDOR DE MENSAJE CON EFECTO CRISTAL INTENSO
         const messageContainer = document.createElement('div');
         messageContainer.id = 'mensaje-psicodelico';
         messageContainer.style.cssText = `
@@ -97,21 +118,61 @@
             align-items: center;
             justify-content: center;
             text-align: center;
-            padding: 40px 60px;
-            max-width: 80vw;
-            min-height: 200px;
+            padding: 60px 80px;
+            max-width: 85vw;
+            min-height: 280px;
             border-radius: 30px;
-            /* ⭐ AUMENTAR EL EFECTO CRISTAL */
-            background: rgba(255, 255, 255, 0.12);        /* Más opaco */
-            backdrop-filter: blur(12px) saturate(1.4);    /* Más blur y saturación */
-            -webkit-backdrop-filter: blur(12px) saturate(1.4);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px) saturate(1.8);
+            -webkit-backdrop-filter: blur(20px) saturate(1.8);
             box-shadow: 
-                0 0 60px rgba(255, 255, 255, 0.1),
-                inset 0 0 80px rgba(255, 255, 255, 0.05);  /* Brillo interior */
-            border: 1px solid rgba(255, 255, 255, 0.15);   /* Borde sutil */
+                0 0 60px rgba(255, 255, 255, 0.08),
+                0 0 120px rgba(255, 255, 255, 0.04),
+                inset 0 0 80px rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             transition: all 0.5s ease;
             pointer-events: none;
         `;
+
+        // ⭐ 4. BORDE BRILLANTE GIRATORIO
+        const bordeBrillante = document.createElement('div');
+        bordeBrillante.style.cssText = `
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            border-radius: 32px;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0%,
+                rgba(255,255,255,0.15) 20%,
+                rgba(255,255,255,0.05) 40%,
+                transparent 60%,
+                rgba(255,255,255,0.12) 80%,
+                transparent 100%
+            );
+            pointer-events: none;
+            z-index: -1;
+            animation: girarBorde 8s linear infinite;
+        `;
+        messageContainer.appendChild(bordeBrillante);
+
+        // ⭐ 5. SEGUNDO BORDE INTERIOR PARA MÁS BRILLO
+        const bordeInterior = document.createElement('div');
+        bordeInterior.style.cssText = `
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            right: 3px;
+            bottom: 3px;
+            border-radius: 28px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+            z-index: -1;
+        `;
+        messageContainer.appendChild(bordeInterior);
 
         // Texto del mensaje
         const texto = document.createElement('div');
@@ -121,19 +182,20 @@
             font-size: ${CONFIG.fontSize};
             font-weight: 700;
             text-shadow: 
-                0 0 20px rgba(0,0,0,0.5),
-                0 0 40px rgba(0,0,0,0.3),
-                0 0 80px rgba(0,0,0,0.2);
-            line-height: 1.4;
-            letter-spacing: 1px;
+                0 0 30px rgba(0,0,0,0.6),
+                0 0 60px rgba(0,0,0,0.4),
+                0 0 100px rgba(0,0,0,0.3);
+            line-height: 1.5;
+            letter-spacing: 2px;
             transition: all ${CONFIG.transitionDuration}ms ease;
             opacity: 0;
             transform: scale(0.8) rotate(-2deg);
-            padding: 10px 20px;
+            padding: 15px 25px;
             pointer-events: none;
+            z-index: 1;
         `;
 
-        // Partículas de fondo
+        // ⭐ 6. PARTÍCULAS MÁS GRANDES Y NUMEROSAS
         const particles = document.createElement('div');
         particles.id = 'particulas-psicodelicas';
         particles.style.cssText = `
@@ -147,16 +209,16 @@
             border-radius: 30px;
         `;
 
-        // Crear partículas
-        for (let i = 0; i < 20; i++) {
+        // Crear partículas mejoradas (más grandes y con más color)
+        for (let i = 0; i < 30; i++) {
             const particle = document.createElement('div');
-            const size = Math.random() * 30 + 10;
+            const size = Math.random() * 45 + 15;
             const x = Math.random() * 100;
             const y = Math.random() * 100;
-            const delay = Math.random() * 3;
-            const duration = Math.random() * 4 + 3;
+            const delay = Math.random() * 4;
+            const duration = Math.random() * 6 + 3;
             const color = colores[Math.floor(Math.random() * colores.length)];
-
+            
             particle.style.cssText = `
                 position: absolute;
                 left: ${x}%;
@@ -165,13 +227,28 @@
                 height: ${size}px;
                 border-radius: 50%;
                 background: ${color};
-                opacity: ${Math.random() * 0.15 + 0.05};
+                opacity: ${Math.random() * 0.12 + 0.03};
                 animation: flotarParticula ${duration}s ease-in-out infinite alternate;
                 animation-delay: ${delay}s;
-                filter: blur(${Math.random() * 4 + 2}px);
+                filter: blur(${Math.random() * 6 + 3}px);
             `;
             particles.appendChild(particle);
         }
+
+        // ⭐ 7. EFECTO DE REFLEJO (brillo en la parte superior)
+        const reflejo = document.createElement('div');
+        reflejo.style.cssText = `
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.08) 0%, transparent 60%);
+            pointer-events: none;
+            border-radius: 50%;
+            z-index: 0;
+        `;
+        messageContainer.appendChild(reflejo);
 
         // Ensamblar
         messageContainer.appendChild(texto);
@@ -179,45 +256,48 @@
         modal.appendChild(messageContainer);
         document.body.appendChild(modal);
 
-        // Añadir estilos de animación
+        // ⭐ 8. ESTILOS Y ANIMACIONES MEJORADOS
         const style = document.createElement('style');
         style.id = 'estilos-psicodelicos';
         style.textContent = `
             @keyframes flotarParticula {
-                0% {
-                    transform: translate(0, 0) scale(1);
+                0% { 
+                    transform: translate(0, 0) scale(1) rotate(0deg); 
                 }
-                100% {
-                    transform: translate(${Math.random() * 60 - 30}px, ${Math.random() * 60 - 30}px) scale(${Math.random() * 0.8 + 0.6});
+                100% { 
+                    transform: translate(${Math.random() * 80 - 40}px, ${Math.random() * 80 - 40}px) scale(${Math.random() * 0.8 + 0.6}) rotate(${Math.random() * 360}deg); 
                 }
             }
+            @keyframes girarBorde {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
             @keyframes destelloColor {
-                0% {
-                    text-shadow: 0 0 30px rgba(255,107,107,0.3), 0 0 60px rgba(255,107,107,0.1);
+                0% { 
+                    text-shadow: 0 0 30px rgba(255,107,107,0.4), 0 0 60px rgba(255,107,107,0.2), 0 0 100px rgba(255,107,107,0.1); 
                 }
-                25% {
-                    text-shadow: 0 0 30px rgba(254,202,87,0.3), 0 0 60px rgba(254,202,87,0.1);
+                25% { 
+                    text-shadow: 0 0 30px rgba(254,202,87,0.4), 0 0 60px rgba(254,202,87,0.2), 0 0 100px rgba(254,202,87,0.1); 
                 }
-                50% {
-                    text-shadow: 0 0 30px rgba(72,219,251,0.3), 0 0 60px rgba(72,219,251,0.1);
+                50% { 
+                    text-shadow: 0 0 30px rgba(72,219,251,0.4), 0 0 60px rgba(72,219,251,0.2), 0 0 100px rgba(72,219,251,0.1); 
                 }
-                75% {
-                    text-shadow: 0 0 30px rgba(245,104,224,0.3), 0 0 60px rgba(245,104,224,0.1);
+                75% { 
+                    text-shadow: 0 0 30px rgba(245,104,224,0.4), 0 0 60px rgba(245,104,224,0.2), 0 0 100px rgba(245,104,224,0.1); 
                 }
-                100% {
-                    text-shadow: 0 0 30px rgba(255,107,107,0.3), 0 0 60px rgba(255,107,107,0.1);
+                100% { 
+                    text-shadow: 0 0 30px rgba(255,107,107,0.4), 0 0 60px rgba(255,107,107,0.2), 0 0 100px rgba(255,107,107,0.1); 
                 }
             }
             @keyframes pulsoSuave {
-                0% {
-                    transform: scale(1);
-                }
-                50% {
-                    transform: scale(1.02);
-                }
-                100% {
-                    transform: scale(1);
-                }
+                0% { transform: scale(1); }
+                50% { transform: scale(1.03); }
+                100% { transform: scale(1); }
+            }
+            @keyframes brilloReflejo {
+                0% { opacity: 0.3; transform: translateX(-10px); }
+                50% { opacity: 0.8; transform: translateX(10px); }
+                100% { opacity: 0.3; transform: translateX(-10px); }
             }
         `;
         document.head.appendChild(style);
@@ -225,6 +305,7 @@
         // Guardar referencias
         window._modalPsicodelico = {
             container: modal,
+            overlay: overlay,
             messageContainer: messageContainer,
             texto: texto,
             particles: particles,
@@ -236,7 +317,6 @@
 
         // ⭐ EVENTO: Clic en cualquier parte para ocultar el modal
         document.addEventListener('click', function ocultarModal(e) {
-            // Si el modal está visible y no está oculto
             const ref = window._modalPsicodelico;
             if (ref && !ref.oculto && !loginRealizado) {
                 ocultarModalTemporalmente();
@@ -244,7 +324,6 @@
         });
 
         // ⭐ EVENTO: Detectar login exitoso
-        // Escuchar el evento personalizado que lanzaremos desde el login
         document.addEventListener('loginExitoso', function () {
             loginRealizado = true;
             ocultarModalPermanente();
@@ -254,7 +333,6 @@
         const inputs = document.querySelectorAll('#formularioLogin input');
         inputs.forEach(input => {
             input.addEventListener('focus', function () {
-                // Si el modal está visible, ocultarlo temporalmente
                 const ref = window._modalPsicodelico;
                 if (ref && !ref.oculto && !loginRealizado) {
                     ocultarModalTemporalmente();
@@ -268,26 +346,25 @@
         const ref = window._modalPsicodelico;
         if (!ref || ref.oculto) return;
 
-        // Limpiar temporizador anterior
         if (temporizadorReaparicion) {
             clearTimeout(temporizadorReaparicion);
             temporizadorReaparicion = null;
         }
 
-        // Ocultar con animación
+        // Ocultar modal y overlay con animación
         ref.container.style.opacity = '0';
         ref.container.style.transform = 'scale(0.95)';
+        if (ref.overlay) {
+            ref.overlay.style.opacity = '0';
+        }
         ref.oculto = true;
 
-        // Pausar el ciclo de mensajes
         if (ref.intervalId) {
             clearInterval(ref.intervalId);
             ref.intervalId = null;
         }
 
-        // ⭐ Programar reaparición después de 30 segundos (si no hay login)
         temporizadorReaparicion = setTimeout(() => {
-            // Solo reaparece si NO se ha hecho login
             if (!loginRealizado) {
                 mostrarModal();
             }
@@ -299,7 +376,6 @@
         const ref = window._modalPsicodelico;
         if (!ref) return;
 
-        // Limpiar temporizador
         if (temporizadorReaparicion) {
             clearTimeout(temporizadorReaparicion);
             temporizadorReaparicion = null;
@@ -308,15 +384,16 @@
         // Ocultar con animación
         ref.container.style.opacity = '0';
         ref.container.style.transform = 'scale(0.95)';
+        if (ref.overlay) {
+            ref.overlay.style.opacity = '0';
+        }
         ref.oculto = true;
 
-        // Detener el ciclo
         if (ref.intervalId) {
             clearInterval(ref.intervalId);
             ref.intervalId = null;
         }
 
-        // Liberar recursos
         loginRealizado = true;
     }
 
@@ -328,20 +405,20 @@
         // Mostrar con animación
         ref.container.style.opacity = '1';
         ref.container.style.transform = 'scale(1)';
+        if (ref.overlay) {
+            ref.overlay.style.opacity = '1';
+        }
         ref.oculto = false;
 
-        // Reiniciar el ciclo de mensajes
         if (ref.intervalId) {
             clearInterval(ref.intervalId);
             ref.intervalId = null;
         }
 
-        // Mostrar mensaje inmediato
         setTimeout(() => {
             mostrarSiguienteMensaje();
         }, 300);
 
-        // Iniciar ciclo
         ref.intervalId = setInterval(mostrarSiguienteMensaje, CONFIG.interval);
     }
 
@@ -361,20 +438,22 @@
         return coloresFuente[Math.floor(Math.random() * coloresFuente.length)];
     }
 
-    // ===== CAMBIAR COLOR DE FONDO =====
-    // En la función cambiarColorFondo()
+    // ===== CAMBIAR COLOR DE FONDO MEJORADO =====
     function cambiarColorFondo(elemento) {
         const color = getColorAleatorio();
+        const color2 = getColorAleatorio();
         elemento.style.background = `
-        radial-gradient(circle at 30% 40%, ${color}30, ${color}10 60%, transparent 80%),
-        rgba(255, 255, 255, 0.08)
-    `;
+            radial-gradient(circle at 30% 40%, ${color}35, ${color}10 60%, transparent 80%),
+            radial-gradient(circle at 70% 60%, ${color2}25, transparent 60%),
+            rgba(255, 255, 255, 0.06)
+        `;
         elemento.style.boxShadow = `
-        0 0 80px ${color}20,
-        0 0 150px ${color}10,
-        inset 0 0 100px ${color}05
-    `;
-        elemento.style.border = `1px solid ${color}25`;
+            0 0 80px ${color}25,
+            0 0 150px ${color}15,
+            inset 0 0 100px ${color}08,
+            inset 0 0 200px ${color2}05
+        `;
+        elemento.style.border = `1px solid ${color}30`;
     }
 
     // ===== MOSTRAR SIGUIENTE MENSAJE =====
@@ -403,9 +482,10 @@
             texto.style.transform = 'scale(1) rotate(0deg)';
             texto.style.color = colorFuente;
             texto.style.textShadow = `
-                0 0 30px ${colorSombra}40,
-                0 0 60px ${colorSombra}20,
-                0 0 100px ${colorSombra}10
+                0 0 30px ${colorSombra}50,
+                0 0 60px ${colorSombra}30,
+                0 0 100px ${colorSombra}15,
+                0 0 150px ${colorSombra}10
             `;
             texto.style.animation = 'destelloColor 4s ease-in-out infinite';
             messageContainer.style.animation = 'pulsoSuave 4s ease-in-out infinite';
@@ -435,6 +515,9 @@
         ref.oculto = false;
         ref.container.style.opacity = '1';
         ref.container.style.transform = 'scale(1)';
+        if (ref.overlay) {
+            ref.overlay.style.opacity = '1';
+        }
 
         if (ref.intervalId) {
             clearInterval(ref.intervalId);
@@ -477,6 +560,9 @@
             }
             if (ref.container) {
                 ref.container.remove();
+            }
+            if (ref.overlay) {
+                ref.overlay.remove();
             }
             delete window._modalPsicodelico;
         }
