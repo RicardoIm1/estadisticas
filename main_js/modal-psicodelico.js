@@ -1,6 +1,6 @@
 /**
  * Modal Psicodélico de Mensajes Positivos
- * Con transición cruzada (fade cross) entre mensajes
+ * Con transición cruzada (fade cross) - Versión LENTA
  */
 
 (function () {
@@ -8,9 +8,9 @@
 
     // ===== CONFIGURACIÓN =====
     const CONFIG = {
-        interval: 6000,
-        transitionDuration: 2000,  // Aumentado para transición más suave
-        tiempoVisible: 3000,
+        interval: 9000,              // ⭐ 9 segundos entre mensajes (más lento)
+        transitionDuration: 3000,    // ⭐ 3 segundos de transición cruzada
+        tiempoVisible: 5000,         // ⭐ 5 segundos visible después de la transición
         fontSize: '2.8rem',
         maxMessages: 1,
         zIndex: 9999,
@@ -62,6 +62,7 @@
     // ===== VARIABLES DE CONTROL =====
     let temporizadorReaparicion = null;
     let loginRealizado = false;
+    let cicloActivo = false;
 
     // ===== CREAR ESTRUCTURA DEL MODAL =====
     function crearModal() {
@@ -107,7 +108,7 @@
             transform: scale(1);
         `;
 
-        // ⭐ CONTENEDOR PARA LOS DOS TEXTOS (superpuestos)
+        // CONTENEDOR PARA LOS DOS TEXTOS
         const textoContainer = document.createElement('div');
         textoContainer.id = 'texto-container';
         textoContainer.style.cssText = `
@@ -120,7 +121,7 @@
             pointer-events: none;
         `;
 
-        // ⭐ TEXTO 1 (Mensaje actual - sale)
+        // TEXTO 1 (Mensaje actual - sale)
         const texto1 = document.createElement('div');
         texto1.id = 'texto-psicodelico-1';
         texto1.style.cssText = `
@@ -145,7 +146,7 @@
             z-index: 2;
         `;
 
-        // ⭐ TEXTO 2 (Mensaje entrante)
+        // TEXTO 2 (Mensaje entrante)
         const texto2 = document.createElement('div');
         texto2.id = 'texto-psicodelico-2';
         texto2.style.cssText = `
@@ -273,6 +274,10 @@
                     text-shadow: 0 0 40px rgba(255,107,107,0.4), 0 0 80px rgba(255,107,107,0.2), 0 0 120px rgba(255,107,107,0.1), 0 0 200px rgba(255,107,107,0.05); 
                 }
             }
+            @keyframes respiracionSuave {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.02); }
+            }
         `;
         document.head.appendChild(style);
 
@@ -288,7 +293,8 @@
             intervalId: null,
             isPaused: false,
             oculto: false,
-            textoActivo: 1  // 1 = texto1 visible, 2 = texto2 visible
+            textoActivo: 1,
+            enTransicion: false
         };
 
         // EVENTOS
@@ -386,10 +392,12 @@
             ref.intervalId = null;
         }
 
+        // Mostrar mensaje inicial después de un breve retraso
         setTimeout(() => {
             mostrarSiguienteMensaje();
-        }, 300);
+        }, 500);
 
+        // Iniciar el ciclo
         ref.intervalId = setInterval(mostrarSiguienteMensaje, CONFIG.interval);
     }
 
@@ -409,17 +417,20 @@
         return coloresFuente[Math.floor(Math.random() * coloresFuente.length)];
     }
 
-    // ===== MOSTRAR SIGUIENTE MENSAJE CON TRANSICIÓN CRUZADA =====
+    // ===== MOSTRAR SIGUIENTE MENSAJE CON TRANSICIÓN CRUZADA LENTA =====
     function mostrarSiguienteMensaje() {
         const ref = window._modalPsicodelico;
-        if (!ref || ref.oculto || loginRealizado) return;
+        if (!ref || ref.oculto || loginRealizado || ref.enTransicion) return;
+
+        ref.enTransicion = true;
+        cicloActivo = true;
 
         const { texto1, texto2 } = ref;
         const mensaje = mensajes[Math.floor(Math.random() * mensajes.length)];
         const colorFuente = getColorFuenteAleatorio();
         const colorSombra = getColorAleatorio();
 
-        // Determinar qué texto está activo y cuál está inactivo
+        // Determinar qué texto está activo
         let textoSalida, textoEntrada;
         if (ref.textoActivo === 1) {
             textoSalida = texto1;
@@ -431,7 +442,7 @@
             ref.textoActivo = 1;
         }
 
-        // Preparar el texto entrante (invisible pero listo)
+        // ⭐ 1. PREPARAR EL TEXTO ENTRANTE (invisible)
         textoEntrada.textContent = mensaje;
         textoEntrada.style.color = colorFuente;
         textoEntrada.style.textShadow = `
@@ -442,30 +453,26 @@
             0 0 300px ${colorSombra}05
         `;
         textoEntrada.style.animation = 'destelloColor 5s ease-in-out infinite';
-        
-        // Posicionar el texto entrante ligeramente más grande y con rotación
-        textoEntrada.style.transform = 'scale(0.7) rotate(2deg)';
+        textoEntrada.style.transform = 'scale(0.6) rotate(3deg)';
         textoEntrada.style.opacity = '0';
 
-        // Forzar un reflow para asegurar la transición
+        // Forzar reflow
         void textoEntrada.offsetWidth;
 
-        // INICIAR TRANSICIÓN CRUZADA
-        // El texto que sale se desvanece y escala
+        // ⭐ 2. INICIAR TRANSICIÓN CRUZADA LENTA
+        // El texto que sale se desvanece lentamente
         textoSalida.style.opacity = '0';
-        textoSalida.style.transform = 'scale(0.7) rotate(3deg)';
+        textoSalida.style.transform = 'scale(0.6) rotate(4deg)';
         
-        // El texto que entra aparece y escala
+        // El texto que entra aparece lentamente
         textoEntrada.style.opacity = '1';
         textoEntrada.style.transform = 'scale(1) rotate(0deg)';
 
-        // Programar la limpieza del texto que salió (opcional, para mantener limpio el DOM)
+        // ⭐ 3. ESPERAR A QUE TERMINE LA TRANSICIÓN
         setTimeout(() => {
-            if (!ref.oculto && !loginRealizado) {
-                // Ocultar completamente el texto que salió (por si acaso)
-                textoSalida.style.opacity = '0';
-                textoSalida.style.transform = 'scale(0.7) rotate(3deg)';
-            }
+            ref.enTransicion = false;
+            // Limpiar el texto que salió (opcional)
+            textoSalida.style.opacity = '0';
         }, CONFIG.transitionDuration + 100);
     }
 
@@ -503,24 +510,32 @@
         ref.texto1.style.animation = 'destelloColor 5s ease-in-out infinite';
         ref.texto1.style.opacity = '1';
         ref.texto1.style.transform = 'scale(1) rotate(0deg)';
+        ref.texto1.style.animation = 'respiracionSuave 4s ease-in-out infinite';
         
         // Ocultar texto2 inicialmente
         ref.texto2.style.opacity = '0';
-        ref.texto2.style.transform = 'scale(0.7) rotate(2deg)';
+        ref.texto2.style.transform = 'scale(0.6) rotate(3deg)';
         ref.textoActivo = 1;
+        ref.enTransicion = false;
 
         if (ref.intervalId) {
             clearInterval(ref.intervalId);
             ref.intervalId = null;
         }
 
-        // Programar el primer cambio después del tiempo visible
+        // ⭐ ESPERAR MÁS ANTES DEL PRIMER CAMBIO
         setTimeout(() => {
-            mostrarSiguienteMensaje();
-        }, CONFIG.tiempoVisible + 500);
+            if (!ref.oculto && !loginRealizado) {
+                mostrarSiguienteMensaje();
+            }
+        }, CONFIG.tiempoVisible + 1000);
 
-        // Iniciar el ciclo
-        ref.intervalId = setInterval(mostrarSiguienteMensaje, CONFIG.interval);
+        // Iniciar el ciclo con el intervalo más largo
+        ref.intervalId = setInterval(() => {
+            if (!ref.oculto && !loginRealizado) {
+                mostrarSiguienteMensaje();
+            }
+        }, CONFIG.interval);
     }
 
     // ===== PAUSAR/REANUDAR =====
@@ -534,7 +549,11 @@
             clearInterval(ref.intervalId);
             ref.intervalId = null;
         } else {
-            ref.intervalId = setInterval(mostrarSiguienteMensaje, CONFIG.interval);
+            ref.intervalId = setInterval(() => {
+                if (!ref.oculto && !loginRealizado) {
+                    mostrarSiguienteMensaje();
+                }
+            }, CONFIG.interval);
             mostrarSiguienteMensaje();
         }
     }
