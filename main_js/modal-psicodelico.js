@@ -253,40 +253,42 @@
         if (!ref) return;
 
         const { texto, messageContainer } = ref;
-
-        // Elegir mensaje aleatorio
         const mensaje = mensajes[Math.floor(Math.random() * mensajes.length)];
-
-        // Elegir color para el texto
         const colorFuente = getColorFuenteAleatorio();
         const colorSombra = getColorAleatorio();
 
-        // Cambiar color de fondo sutil
         cambiarColorFondo(messageContainer);
 
-        // Aplicar transición de salida
+        // SALIDA - desaparece
         texto.style.opacity = '0';
         texto.style.transform = 'scale(0.9) rotate(3deg)';
         texto.style.color = colorFuente;
 
         setTimeout(() => {
-            // Cambiar mensaje
+            // CAMBIO - nuevo mensaje
             texto.textContent = mensaje;
 
-            // Aplicar efectos de entrada
+            // ENTRADA - aparece
             texto.style.opacity = '1';
             texto.style.transform = 'scale(1) rotate(0deg)';
             texto.style.color = colorFuente;
             texto.style.textShadow = `
-                0 0 30px ${colorSombra}40,
-                0 0 60px ${colorSombra}20,
-                0 0 100px ${colorSombra}10
-            `;
+            0 0 30px ${colorSombra}40,
+            0 0 60px ${colorSombra}20,
+            0 0 100px ${colorSombra}10
+        `;
             texto.style.animation = 'destelloColor 4s ease-in-out infinite';
-
-            // Efecto de pulso en el contenedor
             messageContainer.style.animation = 'pulsoSuave 4s ease-in-out infinite';
-        }, 300);
+
+            // 👇 AQUÍ: tiempo que permanece visible antes de desaparecer
+            // Por defecto: 2500ms (2.5 segundos)
+            setTimeout(() => {
+                // Inicia la salida del mensaje actual
+                texto.style.opacity = '0';
+                texto.style.transform = 'scale(0.9) rotate(-2deg)';
+            }, 3000); // ← Cambia este valor (3000 = 3 segundos visibles)
+
+        }, CONFIG.transitionDuration);
     }
 
     // ===== INICIAR MODAL =====
