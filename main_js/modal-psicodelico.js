@@ -1,6 +1,6 @@
 /**
  * Modal Psicodélico de Mensajes Positivos
- * Con transición cruzada (fade cross) - Versión LENTA
+ * Con transición cruzada (fade cross) - Versión LENTA y ALEATORIA
  */
 
 (function () {
@@ -8,9 +8,9 @@
 
     // ===== CONFIGURACIÓN =====
     const CONFIG = {
-        interval: 9000,              // ⭐ 9 segundos entre mensajes (más lento)
-        transitionDuration: 3000,    // ⭐ 3 segundos de transición cruzada
-        tiempoVisible: 5000,         // ⭐ 5 segundos visible después de la transición
+        interval: 9000,              // 9 segundos entre mensajes
+        transitionDuration: 3000,    // 3 segundos de transición cruzada
+        tiempoVisible: 5000,         // 5 segundos visible después de la transición
         fontSize: '2.8rem',
         maxMessages: 1,
         zIndex: 9999,
@@ -63,6 +63,44 @@
     let temporizadorReaparicion = null;
     let loginRealizado = false;
     let cicloActivo = false;
+    let ultimoIndice = -1; // ⭐ Para evitar repetir mensajes consecutivos
+
+    // ===== FUNCIÓN PARA OBTENER MENSAJE ALEATORIO (sin repetir consecutivamente) =====
+    function getMensajeAleatorio() {
+        let nuevoIndice;
+        do {
+            nuevoIndice = Math.floor(Math.random() * mensajes.length);
+        } while (nuevoIndice === ultimoIndice && mensajes.length > 1);
+        
+        ultimoIndice = nuevoIndice;
+        return mensajes[nuevoIndice];
+    }
+
+    // ===== FUNCIÓN PARA OBTENER COLOR ALEATORIO =====
+    function getColorAleatorio() {
+        return colores[Math.floor(Math.random() * colores.length)];
+    }
+
+    // ===== FUNCIÓN PARA OBTENER COLOR DE FUENTE ALEATORIO =====
+    function getColorFuenteAleatorio() {
+        const coloresFuente = [
+            '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB',
+            '#FF9FF3', '#54A0FF', '#F368E0', '#FF9F43',
+            '#00D2D3', '#FF6B6B', '#A29BFE', '#FD79A8',
+            '#00B894', '#FDCB6E', '#E17055', '#74B9FF'
+        ];
+        return coloresFuente[Math.floor(Math.random() * coloresFuente.length)];
+    }
+
+    // ===== FUNCIÓN PARA MEZCLAR ARRAY (Fisher-Yates) =====
+    function mezclarArray(array) {
+        const copia = [...array];
+        for (let i = copia.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [copia[i], copia[j]] = [copia[j], copia[i]];
+        }
+        return copia;
+    }
 
     // ===== CREAR ESTRUCTURA DEL MODAL =====
     function crearModal() {
@@ -392,29 +430,11 @@
             ref.intervalId = null;
         }
 
-        // Mostrar mensaje inicial después de un breve retraso
         setTimeout(() => {
             mostrarSiguienteMensaje();
         }, 500);
 
-        // Iniciar el ciclo
         ref.intervalId = setInterval(mostrarSiguienteMensaje, CONFIG.interval);
-    }
-
-    // ===== OBTENER COLOR ALEATORIO =====
-    function getColorAleatorio() {
-        return colores[Math.floor(Math.random() * colores.length)];
-    }
-
-    // ===== OBTENER COLOR DE FUENTE ALEATORIO =====
-    function getColorFuenteAleatorio() {
-        const coloresFuente = [
-            '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB',
-            '#FF9FF3', '#54A0FF', '#F368E0', '#FF9F43',
-            '#00D2D3', '#FF6B6B', '#A29BFE', '#FD79A8',
-            '#00B894', '#FDCB6E', '#E17055', '#74B9FF'
-        ];
-        return coloresFuente[Math.floor(Math.random() * coloresFuente.length)];
     }
 
     // ===== MOSTRAR SIGUIENTE MENSAJE CON TRANSICIÓN CRUZADA LENTA =====
@@ -426,7 +446,9 @@
         cicloActivo = true;
 
         const { texto1, texto2 } = ref;
-        const mensaje = mensajes[Math.floor(Math.random() * mensajes.length)];
+        
+        // ⭐ OBTENER MENSAJE ALEATORIO (sin repetir consecutivamente)
+        const mensaje = getMensajeAleatorio();
         const colorFuente = getColorFuenteAleatorio();
         const colorSombra = getColorAleatorio();
 
@@ -442,7 +464,7 @@
             ref.textoActivo = 1;
         }
 
-        // ⭐ 1. PREPARAR EL TEXTO ENTRANTE (invisible)
+        // 1. PREPARAR EL TEXTO ENTRANTE (invisible)
         textoEntrada.textContent = mensaje;
         textoEntrada.style.color = colorFuente;
         textoEntrada.style.textShadow = `
@@ -459,19 +481,16 @@
         // Forzar reflow
         void textoEntrada.offsetWidth;
 
-        // ⭐ 2. INICIAR TRANSICIÓN CRUZADA LENTA
-        // El texto que sale se desvanece lentamente
+        // 2. INICIAR TRANSICIÓN CRUZADA LENTA
         textoSalida.style.opacity = '0';
         textoSalida.style.transform = 'scale(0.6) rotate(4deg)';
         
-        // El texto que entra aparece lentamente
         textoEntrada.style.opacity = '1';
         textoEntrada.style.transform = 'scale(1) rotate(0deg)';
 
-        // ⭐ 3. ESPERAR A QUE TERMINE LA TRANSICIÓN
+        // 3. ESPERAR A QUE TERMINE LA TRANSICIÓN
         setTimeout(() => {
             ref.enTransicion = false;
-            // Limpiar el texto que salió (opcional)
             textoSalida.style.opacity = '0';
         }, CONFIG.transitionDuration + 100);
     }
@@ -493,8 +512,8 @@
             ref.overlay.style.opacity = '1';
         }
 
-        // Inicializar con un mensaje en texto1
-        const mensajeInicial = mensajes[Math.floor(Math.random() * mensajes.length)];
+        // ⭐ INICIALIZAR CON MENSAJE ALEATORIO
+        const mensajeInicial = getMensajeAleatorio();
         const colorInicial = getColorFuenteAleatorio();
         const colorSombraInicial = getColorAleatorio();
         
@@ -523,14 +542,12 @@
             ref.intervalId = null;
         }
 
-        // ⭐ ESPERAR MÁS ANTES DEL PRIMER CAMBIO
         setTimeout(() => {
             if (!ref.oculto && !loginRealizado) {
                 mostrarSiguienteMensaje();
             }
         }, CONFIG.tiempoVisible + 1000);
 
-        // Iniciar el ciclo con el intervalo más largo
         ref.intervalId = setInterval(() => {
             if (!ref.oculto && !loginRealizado) {
                 mostrarSiguienteMensaje();
