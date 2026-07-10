@@ -1,19 +1,21 @@
 /**
  * Modal Psicodélico de Mensajes Positivos
- * Muestra mensajes de optimismo y creatividad con transiciones coloridas
- * Inserción: <script src="ruta/modal-psicodelico.js"></script>
+ * Con funcionalidad de ocultar al hacer clic y reaparecer si no hay login
  */
 
-(function () {
+(function() {
     'use strict';
 
     // ===== CONFIGURACIÓN =====
     const CONFIG = {
-        interval: 8000,           // 8 segundos total
-        transitionDuration: 1500,  // 1.5 segundos de animación
+        interval: 6000,           // Tiempo entre mensajes (ms)
+        transitionDuration: 1500,  // Duración de la transición (ms)
+        tiempoVisible: 3000,      // Tiempo visible del mensaje
         fontSize: '2.2rem',
         maxMessages: 1,
-        zIndex: 9999
+        zIndex: 9999,
+        tiempoReaparicion: 30000,  // ⭐ 30 segundos para que reaparezca si no hay login
+        ocultoPorClick: false     // Estado interno
     };
 
     // ===== MENSAJES =====
@@ -46,24 +48,25 @@
         "🎯 El éxito es la suma de pequeños esfuerzos repetidos",
         "💪 Eres más fuerte de lo que crees",
         "🌞 La alegría es el sol que ilumina la vida",
-        "🎨 La creatividad es la inteligencia divirtiéndose",
         "🌺 Florece donde estés plantado"
     ];
 
     // ===== COLORES PSICODÉLICOS =====
     const colores = [
-        '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB',
+        '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB', 
         '#0ABDE3', '#10AC84', '#EE5A24', '#5F27CD',
         '#FF9FF3', '#54A0FF', '#5F27CD', '#01A3A4',
         '#F368E0', '#FF9F43', '#00D2D3', '#FF6B6B'
     ];
 
+    // ===== VARIABLES DE CONTROL =====
+    let temporizadorReaparicion = null;
+    let loginRealizado = false;
+
     // ===== CREAR ESTRUCTURA DEL MODAL =====
     function crearModal() {
-        // Verificar si ya existe
         if (document.getElementById('modal-psicodelico')) return;
 
-        // Contenedor principal
         const modal = document.createElement('div');
         modal.id = 'modal-psicodelico';
         modal.style.cssText = `
@@ -79,6 +82,9 @@
             align-items: center;
             font-family: 'Arial', 'Helvetica', sans-serif;
             overflow: hidden;
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            opacity: 1;
+            transform: scale(1);
         `;
 
         // Contenedor de mensaje (sin fondo)
@@ -100,6 +106,7 @@
             -webkit-backdrop-filter: blur(2px);
             box-shadow: 0 0 60px rgba(255, 255, 255, 0.05);
             transition: all 0.5s ease;
+            pointer-events: none;
         `;
 
         // Texto del mensaje
@@ -119,9 +126,10 @@
             opacity: 0;
             transform: scale(0.8) rotate(-2deg);
             padding: 10px 20px;
+            pointer-events: none;
         `;
 
-        // Partículas de fondo (efecto psicodélico)
+        // Partículas de fondo
         const particles = document.createElement('div');
         particles.id = 'particulas-psicodelicas';
         particles.style.cssText = `
@@ -136,8 +144,7 @@
         `;
 
         // Crear partículas
-        const numParticles = 20;
-        for (let i = 0; i < numParticles; i++) {
+        for (let i = 0; i < 20; i++) {
             const particle = document.createElement('div');
             const size = Math.random() * 30 + 10;
             const x = Math.random() * 100;
@@ -145,7 +152,7 @@
             const delay = Math.random() * 3;
             const duration = Math.random() * 4 + 3;
             const color = colores[Math.floor(Math.random() * colores.length)];
-
+            
             particle.style.cssText = `
                 position: absolute;
                 left: ${x}%;
@@ -219,95 +226,113 @@
             particles: particles,
             currentIndex: -1,
             intervalId: null,
-            isPaused: false
+            isPaused: false,
+            oculto: false
         };
+
+        // ⭐ EVENTO: Clic en cualquier parte para ocultar el modal
+        document.addEventListener('click', function ocultarModal(e) {
+            // Si el modal está visible y no está oculto
+            const ref = window._modalPsicodelico;
+            if (ref && !ref.oculto && !loginRealizado) {
+                ocultarModalTemporalmente();
+            }
+        });
+
+        // ⭐ EVENTO: Detectar login exitoso
+        // Escuchar el evento personalizado que lanzaremos desde el login
+        document.addEventListener('loginExitoso', function() {
+            loginRealizado = true;
+            ocultarModalPermanente();
+        });
+
+        // ⭐ EVENTO: Detectar si el usuario está escribiendo en el formulario
+        const inputs = document.querySelectorAll('#formularioLogin input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                // Si el modal está visible, ocultarlo temporalmente
+                const ref = window._modalPsicodelico;
+                if (ref && !ref.oculto && !loginRealizado) {
+                    ocultarModalTemporalmente();
+                }
+            });
+        });
     }
 
-    // ===== OBTENER COLOR ALEATORIO =====
-    function getColorAleatorio() {
-        return colores[Math.floor(Math.random() * colores.length)];
-    }
-
-    // ===== OBTENER COLOR DE FUENTE ALEATORIO (brillante) =====
-    function getColorFuenteAleatorio() {
-        const coloresFuente = [
-            '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB',
-            '#FF9FF3', '#54A0FF', '#F368E0', '#FF9F43',
-            '#00D2D3', '#FF6B6B', '#A29BFE', '#FD79A8',
-            '#00B894', '#FDCB6E', '#E17055', '#74B9FF'
-        ];
-        return coloresFuente[Math.floor(Math.random() * coloresFuente.length)];
-    }
-
-    // ===== CAMBIAR COLOR DE FONDO DEL MODAL (sutil) =====
-    function cambiarColorFondo(elemento) {
-        const color = getColorAleatorio();
-        const colorOscuro = `${color}15`; // Muy transparente
-        elemento.style.background = `radial-gradient(circle at 50% 50%, ${color}20, transparent 70%)`;
-        elemento.style.boxShadow = `0 0 80px ${color}15, 0 0 150px ${color}10`;
-    }
-
-    // ===== MOSTRAR SIGUIENTE MENSAJE =====
-    function mostrarSiguienteMensaje() {
+    // ===== OCULTAR MODAL TEMPORALMENTE =====
+    function ocultarModalTemporalmente() {
         const ref = window._modalPsicodelico;
-        if (!ref) return;
+        if (!ref || ref.oculto) return;
 
-        const { texto, messageContainer } = ref;
-        const mensaje = mensajes[Math.floor(Math.random() * mensajes.length)];
-        const colorFuente = getColorFuenteAleatorio();
-        const colorSombra = getColorAleatorio();
-
-        cambiarColorFondo(messageContainer);
-
-        // SALIDA - desaparece
-        texto.style.opacity = '0';
-        texto.style.transform = 'scale(0.9) rotate(3deg)';
-        texto.style.color = colorFuente;
-
-        setTimeout(() => {
-            // CAMBIO - nuevo mensaje
-            texto.textContent = mensaje;
-
-            // ENTRADA - aparece
-            texto.style.opacity = '1';
-            texto.style.transform = 'scale(1) rotate(0deg)';
-            texto.style.color = colorFuente;
-            texto.style.textShadow = `
-            0 0 30px ${colorSombra}40,
-            0 0 60px ${colorSombra}20,
-            0 0 100px ${colorSombra}10
-        `;
-            texto.style.animation = 'destelloColor 4s ease-in-out infinite';
-            messageContainer.style.animation = 'pulsoSuave 4s ease-in-out infinite';
-
-            // 👇 AQUÍ: tiempo que permanece visible antes de desaparecer
-            // Por defecto: 2500ms (2.5 segundos)
-            setTimeout(() => {
-                // Inicia la salida del mensaje actual
-                texto.style.opacity = '0';
-                texto.style.transform = 'scale(0.9) rotate(-2deg)';
-            }, 3000); // ← Cambia este valor (3000 = 3 segundos visibles)
-
-        }, CONFIG.transitionDuration);
-    }
-
-    // ===== INICIAR MODAL =====
-    function iniciarModal() {
-        // Crear estructura si no existe
-        if (!document.getElementById('modal-psicodelico')) {
-            crearModal();
+        // Limpiar temporizador anterior
+        if (temporizadorReaparicion) {
+            clearTimeout(temporizadorReaparicion);
+            temporizadorReaparicion = null;
         }
 
-        const ref = window._modalPsicodelico;
-        if (!ref) return;
+        // Ocultar con animación
+        ref.container.style.opacity = '0';
+        ref.container.style.transform = 'scale(0.95)';
+        ref.oculto = true;
 
-        // Limpiar intervalo anterior
+        // Pausar el ciclo de mensajes
         if (ref.intervalId) {
             clearInterval(ref.intervalId);
             ref.intervalId = null;
         }
 
-        // Mostrar primer mensaje inmediatamente
+        // ⭐ Programar reaparición después de 30 segundos (si no hay login)
+        temporizadorReaparicion = setTimeout(() => {
+            // Solo reaparece si NO se ha hecho login
+            if (!loginRealizado) {
+                mostrarModal();
+            }
+        }, CONFIG.tiempoReaparicion);
+    }
+
+    // ===== OCULTAR MODAL PERMANENTEMENTE =====
+    function ocultarModalPermanente() {
+        const ref = window._modalPsicodelico;
+        if (!ref) return;
+
+        // Limpiar temporizador
+        if (temporizadorReaparicion) {
+            clearTimeout(temporizadorReaparicion);
+            temporizadorReaparicion = null;
+        }
+
+        // Ocultar con animación
+        ref.container.style.opacity = '0';
+        ref.container.style.transform = 'scale(0.95)';
+        ref.oculto = true;
+
+        // Detener el ciclo
+        if (ref.intervalId) {
+            clearInterval(ref.intervalId);
+            ref.intervalId = null;
+        }
+
+        // Liberar recursos
+        loginRealizado = true;
+    }
+
+    // ===== MOSTRAR MODAL =====
+    function mostrarModal() {
+        const ref = window._modalPsicodelico;
+        if (!ref || loginRealizado) return;
+
+        // Mostrar con animación
+        ref.container.style.opacity = '1';
+        ref.container.style.transform = 'scale(1)';
+        ref.oculto = false;
+
+        // Reiniciar el ciclo de mensajes
+        if (ref.intervalId) {
+            clearInterval(ref.intervalId);
+            ref.intervalId = null;
+        }
+
+        // Mostrar mensaje inmediato
         setTimeout(() => {
             mostrarSiguienteMensaje();
         }, 300);
@@ -316,19 +341,113 @@
         ref.intervalId = setInterval(mostrarSiguienteMensaje, CONFIG.interval);
     }
 
-    // ===== PAUSAR/REANUDAR =====
-    function togglePausa() {
+    // ===== OBTENER COLOR ALEATORIO =====
+    function getColorAleatorio() {
+        return colores[Math.floor(Math.random() * colores.length)];
+    }
+
+    // ===== OBTENER COLOR DE FUENTE ALEATORIO =====
+    function getColorFuenteAleatorio() {
+        const coloresFuente = [
+            '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB', 
+            '#FF9FF3', '#54A0FF', '#F368E0', '#FF9F43',
+            '#00D2D3', '#FF6B6B', '#A29BFE', '#FD79A8',
+            '#00B894', '#FDCB6E', '#E17055', '#74B9FF'
+        ];
+        return coloresFuente[Math.floor(Math.random() * coloresFuente.length)];
+    }
+
+    // ===== CAMBIAR COLOR DE FONDO =====
+    function cambiarColorFondo(elemento) {
+        const color = getColorAleatorio();
+        elemento.style.background = `radial-gradient(circle at 50% 50%, ${color}20, transparent 70%)`;
+        elemento.style.boxShadow = `0 0 80px ${color}15, 0 0 150px ${color}10`;
+    }
+
+    // ===== MOSTRAR SIGUIENTE MENSAJE =====
+    function mostrarSiguienteMensaje() {
+        const ref = window._modalPsicodelico;
+        if (!ref || ref.oculto || loginRealizado) return;
+
+        const { texto, messageContainer } = ref;
+        const mensaje = mensajes[Math.floor(Math.random() * mensajes.length)];
+        const colorFuente = getColorFuenteAleatorio();
+        const colorSombra = getColorAleatorio();
+
+        cambiarColorFondo(messageContainer);
+
+        // Salida
+        texto.style.opacity = '0';
+        texto.style.transform = 'scale(0.9) rotate(3deg)';
+        texto.style.color = colorFuente;
+
+        setTimeout(() => {
+            // Cambio
+            texto.textContent = mensaje;
+            
+            // Entrada
+            texto.style.opacity = '1';
+            texto.style.transform = 'scale(1) rotate(0deg)';
+            texto.style.color = colorFuente;
+            texto.style.textShadow = `
+                0 0 30px ${colorSombra}40,
+                0 0 60px ${colorSombra}20,
+                0 0 100px ${colorSombra}10
+            `;
+            texto.style.animation = 'destelloColor 4s ease-in-out infinite';
+            messageContainer.style.animation = 'pulsoSuave 4s ease-in-out infinite';
+            
+            // Programar salida después del tiempo visible
+            setTimeout(() => {
+                if (!ref.oculto && !loginRealizado) {
+                    texto.style.opacity = '0';
+                    texto.style.transform = 'scale(0.9) rotate(-2deg)';
+                }
+            }, CONFIG.tiempoVisible);
+            
+        }, CONFIG.transitionDuration);
+    }
+
+    // ===== INICIAR MODAL =====
+    function iniciarModal() {
+        if (!document.getElementById('modal-psicodelico')) {
+            crearModal();
+        }
+
         const ref = window._modalPsicodelico;
         if (!ref) return;
 
-        ref.isPaused = !ref.isPaused;
+        // Limpiar estado
+        loginRealizado = false;
+        ref.oculto = false;
+        ref.container.style.opacity = '1';
+        ref.container.style.transform = 'scale(1)';
 
+        if (ref.intervalId) {
+            clearInterval(ref.intervalId);
+            ref.intervalId = null;
+        }
+
+        setTimeout(() => {
+            mostrarSiguienteMensaje();
+        }, 300);
+
+        ref.intervalId = setInterval(mostrarSiguienteMensaje, CONFIG.interval);
+    }
+
+    // ===== PAUSAR/REANUDAR =====
+    function togglePausa() {
+        const ref = window._modalPsicodelico;
+        if (!ref || loginRealizado) return;
+
+        ref.isPaused = !ref.isPaused;
+        
         if (ref.isPaused) {
             clearInterval(ref.intervalId);
             ref.intervalId = null;
         } else {
             ref.intervalId = setInterval(mostrarSiguienteMensaje, CONFIG.interval);
-            mostrarSiguienteMensaje(); // Mostrar uno nuevo al reanudar
+            mostrarSiguienteMensaje();
         }
     }
 
@@ -338,6 +457,10 @@
         if (ref) {
             if (ref.intervalId) {
                 clearInterval(ref.intervalId);
+            }
+            if (temporizadorReaparicion) {
+                clearTimeout(temporizadorReaparicion);
+                temporizadorReaparicion = null;
             }
             if (ref.container) {
                 ref.container.remove();
@@ -350,7 +473,6 @@
 
     // ===== INICIALIZAR =====
     function inicializar() {
-        // Esperar a que el DOM esté listo
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', iniciarModal);
         } else {
@@ -364,10 +486,15 @@
         pausar: togglePausa,
         reanudar: togglePausa,
         destruir: destruirModal,
-        configurar: function (opciones) {
+        ocultarTemporal: ocultarModalTemporalmente,
+        mostrar: mostrarModal,
+        loginExitoso: function() {
+            loginRealizado = true;
+            ocultarModalPermanente();
+        },
+        configurar: function(opciones) {
             Object.assign(CONFIG, opciones);
             if (window._modalPsicodelico) {
-                // Reiniciar con nueva configuración
                 destruirModal();
                 iniciarModal();
             }
