@@ -1,7 +1,3 @@
-/**
- * Modal Psicodélico - Versión Ultra Ligera
- */
-
 (function () {
     'use strict';
 
@@ -12,7 +8,7 @@
         fontSize: '2.8rem',
         zIndex: 9999,
         tiempoReaparicion: 30000,
-        particleCount: 12  // ⭐ Reducido a 12 para máximo rendimiento
+        particleCount: 12
     };
 
     const mensajes = [
@@ -245,7 +241,7 @@
         "La vida es una oportunidad de brillar."
     ];
 
-    const colores = ['#FF6B6B','#FF8E53','#FECA57','#48DBFB','#0ABDE3','#10AC84','#EE5A24','#895ae6','#FF9FF3','#54A0FF','#01A3A4','#F368E0','#FF9F43','#00D2D3'];
+    const colores = ['#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB', '#0ABDE3', '#10AC84', '#EE5A24', '#895ae6', '#FF9FF3', '#54A0FF', '#01A3A4', '#F368E0', '#FF9F43', '#00D2D3'];
 
     // ===== ESTADO =====
     let state = {
@@ -253,19 +249,51 @@
         intervalId: null,
         timerId: null,
         loginRealizado: false,
-        ultimoIndice: -1
+        historial: [], // Array circular para evitar repeticiones
+        maxHistorial: 15 // Número de mensajes a recordar para evitar repeticiones
     };
 
     // ===== HELPERS =====
-    function random(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function random(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+    }
 
+    // Algoritmo de selección mejorado con historial circular
     function getMensaje() {
+        // Si el historial está lleno, eliminar el más antiguo
+        if (state.historial.length >= state.maxHistorial) {
+            state.historial.shift();
+        }
+
+        // Intentar encontrar un mensaje no repetido (máximo 100 intentos)
+        let intentos = 0;
         let idx;
+        let mensaje;
+        let esRepetido;
+
         do {
             idx = Math.floor(Math.random() * mensajes.length);
-        } while (idx === state.ultimoIndice && mensajes.length > 1);
-        state.ultimoIndice = idx;
-        return mensajes[idx];
+            mensaje = mensajes[idx];
+
+            // Verificar si el mensaje está en el historial
+            esRepetido = state.historial.some(item => item === mensaje);
+
+            intentos++;
+
+            // Si hemos intentado demasiadas veces o todos los mensajes están en el historial
+            if (intentos > 100 || state.historial.length >= mensajes.length) {
+                // Limpiar historial si está lleno para evitar bucles infinitos
+                if (state.historial.length >= mensajes.length) {
+                    state.historial = [];
+                }
+                break;
+            }
+        } while (esRepetido);
+
+        // Agregar al historial
+        state.historial.push(mensaje);
+
+        return mensaje;
     }
 
     // ===== CREAR MODAL =====
@@ -326,36 +354,63 @@
             pointerEvents: 'none', overflow: 'hidden', zIndex: CONFIG.zIndex - 0.5
         });
 
+        // Usar requestAnimationFrame para partículas más eficientes
+        let particlePositions = [];
         for (let i = 0; i < CONFIG.particleCount; i++) {
             const size = Math.random() * 35 + 10;
             const p = document.createElement('div');
             const color = random(colores);
-            const dur = Math.random() * 5 + 3;
             Object.assign(p.style, {
                 position: 'absolute',
-                left: Math.random() * 100 + '%',
-                top: Math.random() * 100 + '%',
+                left: (Math.random() * 100) + '%',
+                top: (Math.random() * 100) + '%',
                 width: size + 'px',
                 height: size + 'px',
                 borderRadius: '50%',
                 background: color,
                 opacity: Math.random() * 0.15 + 0.03,
                 filter: `blur(${Math.random() * 6 + 2}px)`,
-                animation: `flotar ${dur}s ease-in-out infinite alternate`,
-                animationDelay: Math.random() * 4 + 's',
                 willChange: 'transform'
             });
             particles.appendChild(p);
+
+            // Guardar posición inicial para animación optimizada
+            particlePositions.push({
+                element: p,
+                x: Math.random() * 50 - 25,
+                y: Math.random() * 50 - 25,
+                scale: Math.random() * 0.5 + 0.5,
+                speed: Math.random() * 0.02 + 0.005,
+                phase: Math.random() * Math.PI * 2
+            });
         }
+
+        // Animación optimizada con requestAnimationFrame
+        let animationId = null;
+        let startTime = Date.now();
+
+        function animateParticles() {
+            const elapsed = (Date.now() - startTime) / 1000;
+
+            particlePositions.forEach((pos, i) => {
+                const phase = pos.phase + elapsed * pos.speed;
+                const x = Math.sin(phase) * pos.x;
+                const y = Math.cos(phase * 0.7) * pos.y;
+                const scale = 1 + Math.sin(phase * 0.5) * (pos.scale - 0.5);
+
+                pos.element.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+            });
+
+            animationId = requestAnimationFrame(animateParticles);
+        }
+
+        // Iniciar animación
+        animateParticles();
 
         // CSS
         const style = document.createElement('style');
         style.id = 'psico-styles';
         style.textContent = `
-            @keyframes flotar {
-                0% { transform: translate(0,0) scale(1) rotate(0deg); }
-                100% { transform: translate(${Math.random()*50-25}px,${Math.random()*50-25}px) scale(${Math.random()*0.5+0.5}) rotate(${Math.random()*360}deg); }
-            }
             @keyframes destello {
                 0%,100% { text-shadow: 0 0 40px rgba(255,107,107,0.3), 0 0 80px rgba(255,107,107,0.15); }
                 25% { text-shadow: 0 0 40px rgba(254,202,87,0.3), 0 0 80px rgba(254,202,87,0.15); }
@@ -380,7 +435,9 @@
             modal, overlay, t1, t2, particles,
             activo: 1,
             enTransicion: false,
-            oculto: false
+            oculto: false,
+            animationId: animationId,
+            particlePositions: particlePositions
         };
 
         // Eventos
@@ -406,7 +463,12 @@
         if (!r || r.oculto) return;
 
         clearTimeout(state.timerId);
-        if (r.particles) r.particles.style.animationPlayState = 'paused';
+
+        // Pausar animación de partículas
+        if (r.animationId) {
+            cancelAnimationFrame(r.animationId);
+            r.animationId = null;
+        }
 
         r.modal.style.opacity = '0';
         r.modal.style.transform = 'scale(0.95)';
@@ -426,7 +488,12 @@
         if (!r) return;
 
         clearTimeout(state.timerId);
-        if (r.particles) r.particles.style.animationPlayState = 'paused';
+
+        // Detener animación de partículas
+        if (r.animationId) {
+            cancelAnimationFrame(r.animationId);
+            r.animationId = null;
+        }
 
         r.modal.style.opacity = '0';
         r.modal.style.transform = 'scale(0.95)';
@@ -442,7 +509,28 @@
         const r = state.ref;
         if (!r || state.loginRealizado) return;
 
-        if (r.particles) r.particles.style.animationPlayState = 'running';
+        // Reiniciar animación de partículas
+        if (!r.animationId) {
+            let startTime = Date.now();
+            const particlePositions = r.particlePositions;
+
+            function animateParticles() {
+                const elapsed = (Date.now() - startTime) / 1000;
+
+                particlePositions.forEach((pos) => {
+                    const phase = pos.phase + elapsed * pos.speed;
+                    const x = Math.sin(phase) * pos.x;
+                    const y = Math.cos(phase * 0.7) * pos.y;
+                    const scale = 1 + Math.sin(phase * 0.5) * (pos.scale - 0.5);
+
+                    pos.element.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+                });
+
+                r.animationId = requestAnimationFrame(animateParticles);
+            }
+
+            animateParticles();
+        }
 
         r.modal.style.opacity = '1';
         r.modal.style.transform = 'scale(1)';
@@ -497,11 +585,35 @@
         if (!r) return;
 
         state.loginRealizado = false;
+        state.historial = []; // Resetear historial al iniciar
+
         r.oculto = false;
         r.modal.style.opacity = '1';
         r.modal.style.transform = 'scale(1)';
         r.overlay.style.opacity = '1';
-        if (r.particles) r.particles.style.animationPlayState = 'running';
+
+        // Iniciar animación de partículas
+        if (!r.animationId) {
+            let startTime = Date.now();
+            const particlePositions = r.particlePositions;
+
+            function animateParticles() {
+                const elapsed = (Date.now() - startTime) / 1000;
+
+                particlePositions.forEach((pos) => {
+                    const phase = pos.phase + elapsed * pos.speed;
+                    const x = Math.sin(phase) * pos.x;
+                    const y = Math.cos(phase * 0.7) * pos.y;
+                    const scale = 1 + Math.sin(phase * 0.5) * (pos.scale - 0.5);
+
+                    pos.element.style.transform = `translate(${x}px, ${y}px) scale(${scale})`;
+                });
+
+                r.animationId = requestAnimationFrame(animateParticles);
+            }
+
+            animateParticles();
+        }
 
         const msg = getMensaje();
         const color = random(colores);
@@ -529,13 +641,21 @@
     function destruir() {
         clearInterval(state.intervalId);
         clearTimeout(state.timerId);
+
         if (state.ref) {
+            // Detener animación
+            if (state.ref.animationId) {
+                cancelAnimationFrame(state.ref.animationId);
+            }
             if (state.ref.modal) state.ref.modal.remove();
             if (state.ref.overlay) state.ref.overlay.remove();
         }
+
         const s = document.getElementById('psico-styles');
         if (s) s.remove();
+
         state.ref = null;
+        state.historial = [];
         delete window._modalPsicodelico;
     }
 
