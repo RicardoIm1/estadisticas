@@ -9,7 +9,7 @@
 
     // ===== CONFIGURACIÓN =====
     const CONFIG = {
-        interval: 8000,           // 8 segundos entre mensajes
+        interval: 10000,           // 8 segundos entre mensajes
         transitionDuration: 3000,  // 3 segundos de transición
         fontSize: '2.2rem',
         maxMessages: 1,
