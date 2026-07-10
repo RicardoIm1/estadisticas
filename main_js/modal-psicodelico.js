@@ -1,6 +1,6 @@
 /**
  * Modal Psicodélico de Mensajes Positivos
- * Sin contenedores rectangulares - Mensaje flotante
+ * Con transición cruzada (fade cross) entre mensajes
  */
 
 (function () {
@@ -9,8 +9,8 @@
     // ===== CONFIGURACIÓN =====
     const CONFIG = {
         interval: 6000,
-        transitionDuration: 1500,
-        tiempoVisible: 3500,
+        transitionDuration: 2000,  // Aumentado para transición más suave
+        tiempoVisible: 3000,
         fontSize: '2.8rem',
         maxMessages: 1,
         zIndex: 9999,
@@ -67,7 +67,7 @@
     function crearModal() {
         if (document.getElementById('modal-psicodelico')) return;
 
-        // ⭐ OVERLAY OSCURO CON BLUR
+        // OVERLAY OSCURO CON BLUR
         const overlay = document.createElement('div');
         overlay.id = 'overlay-psicodelico';
         overlay.style.cssText = `
@@ -86,7 +86,7 @@
         `;
         document.body.appendChild(overlay);
 
-        // ⭐ MODAL (SIN CONTENEDOR RECTANGULAR)
+        // MODAL
         const modal = document.createElement('div');
         modal.id = 'modal-psicodelico';
         modal.style.cssText = `
@@ -107,11 +107,24 @@
             transform: scale(1);
         `;
 
-        // ⭐ TEXTO FLOTANTE (SIN CONTENEDOR)
-        const texto = document.createElement('div');
-        texto.id = 'texto-psicodelico';
-        texto.style.cssText = `
+        // ⭐ CONTENEDOR PARA LOS DOS TEXTOS (superpuestos)
+        const textoContainer = document.createElement('div');
+        textoContainer.id = 'texto-container';
+        textoContainer.style.cssText = `
             position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        `;
+
+        // ⭐ TEXTO 1 (Mensaje actual - sale)
+        const texto1 = document.createElement('div');
+        texto1.id = 'texto-psicodelico-1';
+        texto1.style.cssText = `
+            position: absolute;
             color: white;
             font-size: ${CONFIG.fontSize};
             font-weight: 700;
@@ -122,17 +135,42 @@
                 0 0 200px rgba(0,0,0,0.2);
             line-height: 1.5;
             letter-spacing: 3px;
-            transition: all ${CONFIG.transitionDuration}ms ease;
+            transition: all ${CONFIG.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1);
             opacity: 0;
             transform: scale(0.8) rotate(-2deg);
             padding: 30px 40px;
             pointer-events: none;
-            z-index: 1;
             text-align: center;
             max-width: 85vw;
+            z-index: 2;
         `;
 
-        // ⭐ PARTÍCULAS FLOTANTES (DIRECTAMENTE EN EL MODAL)
+        // ⭐ TEXTO 2 (Mensaje entrante)
+        const texto2 = document.createElement('div');
+        texto2.id = 'texto-psicodelico-2';
+        texto2.style.cssText = `
+            position: absolute;
+            color: white;
+            font-size: ${CONFIG.fontSize};
+            font-weight: 700;
+            text-shadow: 
+                0 0 40px rgba(0,0,0,0.6),
+                0 0 80px rgba(0,0,0,0.4),
+                0 0 120px rgba(0,0,0,0.3),
+                0 0 200px rgba(0,0,0,0.2);
+            line-height: 1.5;
+            letter-spacing: 3px;
+            transition: all ${CONFIG.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1);
+            opacity: 0;
+            transform: scale(0.8) rotate(-2deg);
+            padding: 30px 40px;
+            pointer-events: none;
+            text-align: center;
+            max-width: 85vw;
+            z-index: 1;
+        `;
+
+        // PARTÍCULAS FLOTANTES
         const particles = document.createElement('div');
         particles.id = 'particulas-psicodelicas';
         particles.style.cssText = `
@@ -146,7 +184,7 @@
             z-index: ${CONFIG.zIndex - 0.5};
         `;
 
-        // Crear partículas flotando por toda la pantalla
+        // Crear partículas grandes
         for (let i = 0; i < 40; i++) {
             const particle = document.createElement('div');
             const size = Math.random() * 60 + 20;
@@ -172,7 +210,7 @@
             particles.appendChild(particle);
         }
 
-        // ⭐ PARTÍCULAS PEQUEÑAS ADICIONALES (más brillantes)
+        // Crear partículas pequeñas brillantes
         for (let i = 0; i < 30; i++) {
             const particle = document.createElement('div');
             const size = Math.random() * 8 + 3;
@@ -200,11 +238,13 @@
         }
 
         // Ensamblar
+        textoContainer.appendChild(texto1);
+        textoContainer.appendChild(texto2);
         modal.appendChild(particles);
-        modal.appendChild(texto);
+        modal.appendChild(textoContainer);
         document.body.appendChild(modal);
 
-        // ⭐ ESTILOS Y ANIMACIONES
+        // ESTILOS Y ANIMACIONES
         const style = document.createElement('style');
         style.id = 'estilos-psicodelicos';
         style.textContent = `
@@ -240,15 +280,18 @@
         window._modalPsicodelico = {
             container: modal,
             overlay: overlay,
-            texto: texto,
+            texto1: texto1,
+            texto2: texto2,
+            textoContainer: textoContainer,
             particles: particles,
             currentIndex: -1,
             intervalId: null,
             isPaused: false,
-            oculto: false
+            oculto: false,
+            textoActivo: 1  // 1 = texto1 visible, 2 = texto2 visible
         };
 
-        // ⭐ EVENTO: Clic en cualquier parte para ocultar el modal
+        // EVENTOS
         document.addEventListener('click', function ocultarModal(e) {
             const ref = window._modalPsicodelico;
             if (ref && !ref.oculto && !loginRealizado) {
@@ -256,13 +299,11 @@
             }
         });
 
-        // ⭐ EVENTO: Detectar login exitoso
         document.addEventListener('loginExitoso', function () {
             loginRealizado = true;
             ocultarModalPermanente();
         });
 
-        // ⭐ EVENTO: Detectar si el usuario está escribiendo en el formulario
         const inputs = document.querySelectorAll('#formularioLogin input');
         inputs.forEach(input => {
             input.addEventListener('focus', function () {
@@ -368,47 +409,64 @@
         return coloresFuente[Math.floor(Math.random() * coloresFuente.length)];
     }
 
-    // ===== MOSTRAR SIGUIENTE MENSAJE =====
+    // ===== MOSTRAR SIGUIENTE MENSAJE CON TRANSICIÓN CRUZADA =====
     function mostrarSiguienteMensaje() {
         const ref = window._modalPsicodelico;
         if (!ref || ref.oculto || loginRealizado) return;
 
-        const { texto } = ref;
+        const { texto1, texto2 } = ref;
         const mensaje = mensajes[Math.floor(Math.random() * mensajes.length)];
         const colorFuente = getColorFuenteAleatorio();
         const colorSombra = getColorAleatorio();
 
-        // Salida
-        texto.style.opacity = '0';
-        texto.style.transform = 'scale(0.85) rotate(-3deg)';
-        texto.style.color = colorFuente;
+        // Determinar qué texto está activo y cuál está inactivo
+        let textoSalida, textoEntrada;
+        if (ref.textoActivo === 1) {
+            textoSalida = texto1;
+            textoEntrada = texto2;
+            ref.textoActivo = 2;
+        } else {
+            textoSalida = texto2;
+            textoEntrada = texto1;
+            ref.textoActivo = 1;
+        }
 
+        // Preparar el texto entrante (invisible pero listo)
+        textoEntrada.textContent = mensaje;
+        textoEntrada.style.color = colorFuente;
+        textoEntrada.style.textShadow = `
+            0 0 40px ${colorSombra}50,
+            0 0 80px ${colorSombra}30,
+            0 0 120px ${colorSombra}15,
+            0 0 200px ${colorSombra}10,
+            0 0 300px ${colorSombra}05
+        `;
+        textoEntrada.style.animation = 'destelloColor 5s ease-in-out infinite';
+        
+        // Posicionar el texto entrante ligeramente más grande y con rotación
+        textoEntrada.style.transform = 'scale(0.7) rotate(2deg)';
+        textoEntrada.style.opacity = '0';
+
+        // Forzar un reflow para asegurar la transición
+        void textoEntrada.offsetWidth;
+
+        // INICIAR TRANSICIÓN CRUZADA
+        // El texto que sale se desvanece y escala
+        textoSalida.style.opacity = '0';
+        textoSalida.style.transform = 'scale(0.7) rotate(3deg)';
+        
+        // El texto que entra aparece y escala
+        textoEntrada.style.opacity = '1';
+        textoEntrada.style.transform = 'scale(1) rotate(0deg)';
+
+        // Programar la limpieza del texto que salió (opcional, para mantener limpio el DOM)
         setTimeout(() => {
-            // Cambio
-            texto.textContent = mensaje;
-
-            // Entrada
-            texto.style.opacity = '1';
-            texto.style.transform = 'scale(1) rotate(0deg)';
-            texto.style.color = colorFuente;
-            texto.style.textShadow = `
-                0 0 40px ${colorSombra}50,
-                0 0 80px ${colorSombra}30,
-                0 0 120px ${colorSombra}15,
-                0 0 200px ${colorSombra}10,
-                0 0 300px ${colorSombra}05
-            `;
-            texto.style.animation = 'destelloColor 5s ease-in-out infinite';
-
-            // Programar salida después del tiempo visible
-            setTimeout(() => {
-                if (!ref.oculto && !loginRealizado) {
-                    texto.style.opacity = '0';
-                    texto.style.transform = 'scale(0.85) rotate(3deg)';
-                }
-            }, CONFIG.tiempoVisible);
-
-        }, CONFIG.transitionDuration);
+            if (!ref.oculto && !loginRealizado) {
+                // Ocultar completamente el texto que salió (por si acaso)
+                textoSalida.style.opacity = '0';
+                textoSalida.style.transform = 'scale(0.7) rotate(3deg)';
+            }
+        }, CONFIG.transitionDuration + 100);
     }
 
     // ===== INICIAR MODAL =====
@@ -428,15 +486,40 @@
             ref.overlay.style.opacity = '1';
         }
 
+        // Inicializar con un mensaje en texto1
+        const mensajeInicial = mensajes[Math.floor(Math.random() * mensajes.length)];
+        const colorInicial = getColorFuenteAleatorio();
+        const colorSombraInicial = getColorAleatorio();
+        
+        ref.texto1.textContent = mensajeInicial;
+        ref.texto1.style.color = colorInicial;
+        ref.texto1.style.textShadow = `
+            0 0 40px ${colorSombraInicial}50,
+            0 0 80px ${colorSombraInicial}30,
+            0 0 120px ${colorSombraInicial}15,
+            0 0 200px ${colorSombraInicial}10,
+            0 0 300px ${colorSombraInicial}05
+        `;
+        ref.texto1.style.animation = 'destelloColor 5s ease-in-out infinite';
+        ref.texto1.style.opacity = '1';
+        ref.texto1.style.transform = 'scale(1) rotate(0deg)';
+        
+        // Ocultar texto2 inicialmente
+        ref.texto2.style.opacity = '0';
+        ref.texto2.style.transform = 'scale(0.7) rotate(2deg)';
+        ref.textoActivo = 1;
+
         if (ref.intervalId) {
             clearInterval(ref.intervalId);
             ref.intervalId = null;
         }
 
+        // Programar el primer cambio después del tiempo visible
         setTimeout(() => {
             mostrarSiguienteMensaje();
-        }, 300);
+        }, CONFIG.tiempoVisible + 500);
 
+        // Iniciar el ciclo
         ref.intervalId = setInterval(mostrarSiguienteMensaje, CONFIG.interval);
     }
 
