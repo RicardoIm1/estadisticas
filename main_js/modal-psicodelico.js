@@ -3,7 +3,7 @@
  * Con funcionalidad de ocultar al hacer clic y reaparecer si no hay login
  */
 
-(function() {
+(function () {
     'use strict';
 
     // ===== CONFIGURACIÓN =====
@@ -53,7 +53,7 @@
 
     // ===== COLORES PSICODÉLICOS =====
     const colores = [
-        '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB', 
+        '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB',
         '#0ABDE3', '#10AC84', '#EE5A24', '#5F27CD',
         '#FF9FF3', '#54A0FF', '#5F27CD', '#01A3A4',
         '#F368E0', '#FF9F43', '#00D2D3', '#FF6B6B'
@@ -101,10 +101,14 @@
             max-width: 80vw;
             min-height: 200px;
             border-radius: 30px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(2px);
-            -webkit-backdrop-filter: blur(2px);
-            box-shadow: 0 0 60px rgba(255, 255, 255, 0.05);
+            /* ⭐ AUMENTAR EL EFECTO CRISTAL */
+            background: rgba(255, 255, 255, 0.12);        /* Más opaco */
+            backdrop-filter: blur(12px) saturate(1.4);    /* Más blur y saturación */
+            -webkit-backdrop-filter: blur(12px) saturate(1.4);
+            box-shadow: 
+                0 0 60px rgba(255, 255, 255, 0.1),
+                inset 0 0 80px rgba(255, 255, 255, 0.05);  /* Brillo interior */
+            border: 1px solid rgba(255, 255, 255, 0.15);   /* Borde sutil */
             transition: all 0.5s ease;
             pointer-events: none;
         `;
@@ -152,7 +156,7 @@
             const delay = Math.random() * 3;
             const duration = Math.random() * 4 + 3;
             const color = colores[Math.floor(Math.random() * colores.length)];
-            
+
             particle.style.cssText = `
                 position: absolute;
                 left: ${x}%;
@@ -241,7 +245,7 @@
 
         // ⭐ EVENTO: Detectar login exitoso
         // Escuchar el evento personalizado que lanzaremos desde el login
-        document.addEventListener('loginExitoso', function() {
+        document.addEventListener('loginExitoso', function () {
             loginRealizado = true;
             ocultarModalPermanente();
         });
@@ -249,7 +253,7 @@
         // ⭐ EVENTO: Detectar si el usuario está escribiendo en el formulario
         const inputs = document.querySelectorAll('#formularioLogin input');
         inputs.forEach(input => {
-            input.addEventListener('focus', function() {
+            input.addEventListener('focus', function () {
                 // Si el modal está visible, ocultarlo temporalmente
                 const ref = window._modalPsicodelico;
                 if (ref && !ref.oculto && !loginRealizado) {
@@ -349,7 +353,7 @@
     // ===== OBTENER COLOR DE FUENTE ALEATORIO =====
     function getColorFuenteAleatorio() {
         const coloresFuente = [
-            '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB', 
+            '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB',
             '#FF9FF3', '#54A0FF', '#F368E0', '#FF9F43',
             '#00D2D3', '#FF6B6B', '#A29BFE', '#FD79A8',
             '#00B894', '#FDCB6E', '#E17055', '#74B9FF'
@@ -384,7 +388,7 @@
         setTimeout(() => {
             // Cambio
             texto.textContent = mensaje;
-            
+
             // Entrada
             texto.style.opacity = '1';
             texto.style.transform = 'scale(1) rotate(0deg)';
@@ -396,7 +400,7 @@
             `;
             texto.style.animation = 'destelloColor 4s ease-in-out infinite';
             messageContainer.style.animation = 'pulsoSuave 4s ease-in-out infinite';
-            
+
             // Programar salida después del tiempo visible
             setTimeout(() => {
                 if (!ref.oculto && !loginRealizado) {
@@ -404,7 +408,7 @@
                     texto.style.transform = 'scale(0.9) rotate(-2deg)';
                 }
             }, CONFIG.tiempoVisible);
-            
+
         }, CONFIG.transitionDuration);
     }
 
@@ -441,7 +445,7 @@
         if (!ref || loginRealizado) return;
 
         ref.isPaused = !ref.isPaused;
-        
+
         if (ref.isPaused) {
             clearInterval(ref.intervalId);
             ref.intervalId = null;
@@ -488,11 +492,11 @@
         destruir: destruirModal,
         ocultarTemporal: ocultarModalTemporalmente,
         mostrar: mostrarModal,
-        loginExitoso: function() {
+        loginExitoso: function () {
             loginRealizado = true;
             ocultarModalPermanente();
         },
-        configurar: function(opciones) {
+        configurar: function (opciones) {
             Object.assign(CONFIG, opciones);
             if (window._modalPsicodelico) {
                 destruirModal();
