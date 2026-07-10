@@ -4,16 +4,16 @@
  * Inserción: <script src="ruta/modal-psicodelico.js"></script>
  */
 
-(function() {
+(function () {
     'use strict';
 
     // ===== CONFIGURACIÓN =====
     const CONFIG = {
-        interval: 4000,           // Tiempo entre mensajes (ms)
-        transitionDuration: 1500,  // Duración de la transición (ms)
-        fontSize: '2.2rem',       // Tamaño de fuente
-        maxMessages: 1,           // Mostrar 1 mensaje a la vez
-        zIndex: 9999              // Z-index del modal
+        interval: 8000,           // 8 segundos entre mensajes
+        transitionDuration: 3000,  // 3 segundos de transición
+        fontSize: '2.2rem',
+        maxMessages: 1,
+        zIndex: 9999
     };
 
     // ===== MENSAJES =====
@@ -52,7 +52,7 @@
 
     // ===== COLORES PSICODÉLICOS =====
     const colores = [
-        '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB', 
+        '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB',
         '#0ABDE3', '#10AC84', '#EE5A24', '#5F27CD',
         '#FF9FF3', '#54A0FF', '#5F27CD', '#01A3A4',
         '#F368E0', '#FF9F43', '#00D2D3', '#FF6B6B'
@@ -145,7 +145,7 @@
             const delay = Math.random() * 3;
             const duration = Math.random() * 4 + 3;
             const color = colores[Math.floor(Math.random() * colores.length)];
-            
+
             particle.style.cssText = `
                 position: absolute;
                 left: ${x}%;
@@ -231,7 +231,7 @@
     // ===== OBTENER COLOR DE FUENTE ALEATORIO (brillante) =====
     function getColorFuenteAleatorio() {
         const coloresFuente = [
-            '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB', 
+            '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB',
             '#FF9FF3', '#54A0FF', '#F368E0', '#FF9F43',
             '#00D2D3', '#FF6B6B', '#A29BFE', '#FD79A8',
             '#00B894', '#FDCB6E', '#E17055', '#74B9FF'
@@ -256,7 +256,7 @@
 
         // Elegir mensaje aleatorio
         const mensaje = mensajes[Math.floor(Math.random() * mensajes.length)];
-        
+
         // Elegir color para el texto
         const colorFuente = getColorFuenteAleatorio();
         const colorSombra = getColorAleatorio();
@@ -272,7 +272,7 @@
         setTimeout(() => {
             // Cambiar mensaje
             texto.textContent = mensaje;
-            
+
             // Aplicar efectos de entrada
             texto.style.opacity = '1';
             texto.style.transform = 'scale(1) rotate(0deg)';
@@ -283,7 +283,7 @@
                 0 0 100px ${colorSombra}10
             `;
             texto.style.animation = 'destelloColor 4s ease-in-out infinite';
-            
+
             // Efecto de pulso en el contenedor
             messageContainer.style.animation = 'pulsoSuave 4s ease-in-out infinite';
         }, 300);
@@ -320,7 +320,7 @@
         if (!ref) return;
 
         ref.isPaused = !ref.isPaused;
-        
+
         if (ref.isPaused) {
             clearInterval(ref.intervalId);
             ref.intervalId = null;
@@ -362,7 +362,7 @@
         pausar: togglePausa,
         reanudar: togglePausa,
         destruir: destruirModal,
-        configurar: function(opciones) {
+        configurar: function (opciones) {
             Object.assign(CONFIG, opciones);
             if (window._modalPsicodelico) {
                 // Reiniciar con nueva configuración
