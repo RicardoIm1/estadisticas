@@ -20,35 +20,233 @@
 
     // ===== MENSAJES =====
     const mensajes = [
-        "✨ Cada día es una nueva oportunidad para brillar",
-        "🌈 La creatividad es la inteligencia divirtiéndose",
-        "🌻 La felicidad no es una meta, es una forma de viajar",
-        "🌟 Tú eres el arquitecto de tu propia realidad",
-        "🎨 La vida es un lienzo, píntala con tus colores favoritos",
-        "💫 La mejor manera de predecir el futuro es crearlo",
-        "🌸 La gratitud convierte lo que tenemos en suficiente",
-        "🚀 El único límite es el que tú mismo te pones",
-        "🌺 La belleza está en los ojos de quien sabe mirar",
-        "⚡ La energía positiva atrae cosas maravillosas",
-        "🍀 La suerte es cuando la preparación encuentra la oportunidad",
-        "🌿 La paz comienza con una sonrisa",
-        "🎭 La vida es una obra de teatro, ¡disfruta el show!",
-        "💎 Eres más valioso de lo que imaginas",
-        "🌊 La vida es como el mar, hay que saber surfear las olas",
-        "🔥 Tu luz interior ilumina el camino de otros",
-        "🌠 Los sueños se cumplen cuando te atreves a perseguirlos",
-        "🍃 La serenidad está en aceptar lo que no podemos cambiar",
-        "🎵 La música del alma es la que creas tú mismo",
-        "💝 El amor y la creatividad son la misma energía",
-        "🌟 Hoy es un buen día para ser feliz",
-        "🌀 La vida es cambio, fluye con ella",
-        "🌅 Cada amanecer trae nuevas posibilidades",
-        "🎪 La vida es un circo, ¡sé el payaso o el equilibrista!",
-        "🧠 La mente creativa no tiene límites",
-        "🎯 El éxito es la suma de pequeños esfuerzos repetidos",
-        "💪 Eres más fuerte de lo que crees",
-        "🌞 La alegría es el sol que ilumina la vida",
-        "🌺 Florece donde estés plantado"
+        "La disciplina supera al talento cuando el talento no trabaja.",
+        "Cada mañana decides si eres víctima del día o dueño de tu tiempo.",
+        "La productividad no es hacer más, es hacer lo que importa.",
+        "Deja de esperar el momento perfecto, el momento es ahora.",
+        "Tu mente es tu taller, cuida lo que fabricas en ella.",
+        "El cambio no duele, lo que duele es seguir igual.",
+        "La acción constante vence al miedo persistente.",
+        "No confundas movimiento con avance.",
+        "La excelencia no es un acto, es un hábito.",
+        "El fracaso es datos, no destino.",
+        "Tu única competencia es la persona que fuiste ayer.",
+        "El enfoque es el arte de decir no a lo que no importa.",
+        "La energía sigue a la atención, ponla donde creces.",
+        "El dolor del esfuerzo es temporal, el dolor del arrepentimiento es eterno.",
+        "No construyas una vida para impresionar, constrúyela para vivir.",
+        "La claridad precede al éxito.",
+        "El que domina su mente domina su mundo.",
+        "Cada pequeño paso es una victoria invisible.",
+        "No esperes la motivación, cultiva la disciplina.",
+        "Tu entorno te moldea, elige bien tus compañeros.",
+        "El pasado es un profesor, no una prisión.",
+        "El miedo a empezar es más caro que cualquier error.",
+        "Los sistemas superan a las metas.",
+        "La paciencia no es esperar, es mantener el rumbo.",
+        "Deja de sobrepensar, empieza a sobrehacer.",
+        "El crecimiento requiere incomodidad.",
+        "La gratitud no es ingenua, es estratégica.",
+        "El éxito es la práctica diaria de pequeños hábitos.",
+        "No te ahogas cayendo, te ahogas quedándote abajo.",
+        "El mejor momento para plantar un árbol fue hace 20 años, el segundo es ahora.",
+        "La resiliencia no es aguantar, es adaptarse.",
+        "Tu diálogo interno es el guion de tu vida, escríbelo bien.",
+        "La pereza es el disfraz del miedo.",
+        "Cada día es un borrador, edítalo bien.",
+        "El valor no es no tener miedo, es actuar a pesar de él.",
+        "La simplicidad es la máxima sofisticación.",
+        "No busques excusas, busca soluciones.",
+        "El conocimiento es poder, la acción es resultado.",
+        "La vida mejora cuando mejoras tú.",
+        "El equilibrio no es estático, es dinámico.",
+        "La crítica constructiva es un regalo, no un ataque.",
+        "El éxito es un viaje, no un destino.",
+        "La constancia convierte lo ordinario en extraordinario.",
+        "El que no arriesga, no gana.",
+        "La inteligencia se demuestra adaptándose, no sabiéndolo todo.",
+        "La felicidad es un subproducto del esfuerzo significativo.",
+        "No te compares con otros, compárate con tu potencial.",
+        "El hoy es el ayer del mañana, hazlo valer.",
+        "La pereza es el lujo que no puedes permitirte.",
+        "El propósito da sentido al sufrimiento.",
+        "La responsabilidad es libertad.",
+        "El cambio empieza cuando el dolor de quedarse supera al de irse.",
+        "La eficiencia es hacer bien las cosas, la eficacia es hacer las cosas correctas.",
+        "No dejes para mañana lo que puedes hacer hoy mal, hazlo bien ahora.",
+        "La autocompasión es un callejón sin salida.",
+        "El aprendizaje es el oxígeno del crecimiento.",
+        "La adversidad te muestra quién eres realmente.",
+        "El control es una ilusión, la adaptación es poder.",
+        "La grandeza está en los pequeños detalles.",
+        "No busques resultados inmediatos, busca progreso constante.",
+        "La vida es una serie de decisiones, elige bien.",
+        "El esfuerzo sostenido es la clave del dominio.",
+        "La negatividad es un imán, la positividad es un motor.",
+        "La incertidumbre es el espacio del crecimiento.",
+        "El hábito es el ladrillo de la construcción.",
+        "No te centres en el problema, enfócate en la solución.",
+        "El descanso no es debilidad, es estrategia.",
+        "La honestidad contigo mismo es el primer paso.",
+        "El éxito es la suma de decisiones correctas.",
+        "La creatividad es la inteligencia en acción.",
+        "El tiempo es el único recurso no renovable, úsalo bien.",
+        "La visión sin acción es un sueño, la acción sin visión es caos.",
+        "El poder está en la elección, no en la circunstancia.",
+        "La vida es un espejo, devuelve lo que das.",
+        "El propósito no se encuentra, se construye.",
+        "La humildad es la base del aprendizaje.",
+        "No tengas miedo de empezar de nuevo, es una oportunidad.",
+        "La calidad de tu vida es la calidad de tus pensamientos.",
+        "El progreso es más importante que la perfección.",
+        "La disciplina es el puente entre metas y logros.",
+        "El cambio es incómodo, pero necesario.",
+        "La paciencia no es pasiva, es activa y persistente.",
+        "No te aferres a lo que te limita.",
+        "La fuerza no viene de la capacidad física, viene de la voluntad.",
+        "El éxito es una decisión diaria.",
+        "La vida es corta, no la desperdicies en mediocridad.",
+        "El optimismo no es ignorar los problemas, es enfrentarlos con fe.",
+        "La acción es el antídoto del miedo.",
+        "La integridad es hacer lo correcto, aunque nadie mire.",
+        "El aprendizaje es un viaje sin destino.",
+        "La vida te da lo que te atreves a pedir.",
+        "El esfuerzo es el precio de la grandeza.",
+        "La claridad es poder, confunde la mente y pierdes el rumbo.",
+        "No dejes que el ruido externo apague tu voz interna.",
+        "La resiliencia se forja en la adversidad.",
+        "El éxito es hacer lo que dices que harás.",
+        "La vida es un juego, aprende las reglas y juega bien.",
+        "La honestidad es la mejor política para la mente.",
+        "El enfoque es la clave del dominio.",
+        "No te detengas, el mundo no espera.",
+        "La creatividad es la manera de resolver problemas.",
+        "El valor es hacer lo correcto cuando es difícil.",
+        "La vida es un eco, lo que das vuelve.",
+        "El progreso es el resultado de la constancia.",
+        "La mentalidad de crecimiento es la única que vale.",
+        "No te conformes con lo que sabes, busca más.",
+        "La acción es la respuesta a la duda.",
+        "El éxito es una consecuencia, no un objetivo.",
+        "La vida es un viaje, disfruta el trayecto.",
+        "La perseverancia es el camino al éxito.",
+        "El cambio es la única constante, acéptalo.",
+        "La pasión es el combustible del alma.",
+        "No te rindas, el esfuerzo siempre rinde frutos.",
+        "La vida es una oportunidad, aprovechala.",
+        "La autenticidad es la clave de la conexión.",
+        "El aprendizaje es un acto de humildad.",
+        "La acción es la que transforma el pensamiento en realidad.",
+        "El éxito es la práctica del día a día.",
+        "La vida es un lienzo, píntalo con tus acciones.",
+        "El esfuerzo es la moneda del éxito.",
+        "La claridad mental es el primer paso.",
+        "El cambio empieza en ti.",
+        "La vida es un regalo, no lo desaproveches.",
+        "La perseverancia es la madre del logro.",
+        "El éxito es un proceso, no un evento.",
+        "La vida es una aventura, vívela.",
+        "La acción es la que define al héroe.",
+        "El aprendizaje es el camino al poder.",
+        "La vida es un desafío, afróntalo.",
+        "El éxito es la suma de pequeñas victorias.",
+        "La vida es una oportunidad, no la dejes pasar.",
+        "La perseverancia es la clave del triunfo.",
+        "El cambio es una oportunidad, no una amenaza.",
+        "La vida es un viaje de autodescubrimiento.",
+        "El éxito es un hábito, no un destino.",
+        "La acción es la que genera resultados.",
+        "La vida es un juego de estrategia, juega bien.",
+        "El esfuerzo es la base del logro.",
+        "La claridad es el principio del éxito.",
+        "El cambio es el camino al crecimiento.",
+        "La vida es una oportunidad para crecer.",
+        "La perseverancia es la fuerza del alma.",
+        "El éxito es la recompensa del esfuerzo.",
+        "La vida es un reflejo de tus pensamientos.",
+        "La acción es la que materializa los sueños.",
+        "El aprendizaje es la llave del progreso.",
+        "La vida es un lienzo de posibilidades.",
+        "El esfuerzo es el motor del cambio.",
+        "La claridad es la guía del camino.",
+        "El éxito es el fruto de la constancia.",
+        "La vida es una oportunidad para ser mejor.",
+        "La perseverancia es la aliada del éxito.",
+        "El cambio es la esencia del progreso.",
+        "La acción es la semilla del resultado.",
+        "El éxito es la práctica de la excelencia.",
+        "La vida es un viaje de mejora continua.",
+        "El esfuerzo es la clave del dominio.",
+        "La claridad es el faro en la tormenta.",
+        "El cambio es la oportunidad de reinventarse.",
+        "La vida es una escuela, aprende bien.",
+        "La perseverancia es el puente al éxito.",
+        "El éxito es el resultado de la disciplina.",
+        "La acción es la que vence al miedo.",
+        "La vida es un regalo, úsalo bien.",
+        "El aprendizaje es el camino a la sabiduría.",
+        "El esfuerzo es el precio del progreso.",
+        "La claridad es el mapa del éxito.",
+        "El cambio es la chispa del crecimiento.",
+        "La vida es una oportunidad de ser grande.",
+        "La perseverancia es la virtud de los fuertes.",
+        "El éxito es la consecuencia de la constancia.",
+        "La acción es la que mueve el mundo.",
+        "La vida es un desafío, acéptalo.",
+        "El aprendizaje es el motor de la vida.",
+        "El esfuerzo es el secreto del éxito.",
+        "La claridad es el norte del camino.",
+        "El cambio es el aliento de la vida.",
+        "La vida es una oportunidad de brillar.",
+        "La perseverancia es la clave del triunfo.",
+        "El éxito es la recompensa del trabajo.",
+        "La acción es la que construye el futuro.",
+        "La vida es un viaje de autosuperación.",
+        "El aprendizaje es el pilar del crecimiento.",
+        "El esfuerzo es el combustible del logro.",
+        "La claridad es la brújula del éxito.",
+        "El cambio es el arte de adaptarse.",
+        "La vida es una oportunidad de mejorar.",
+        "La perseverancia es la fuerza del carácter.",
+        "El éxito es la meta del esfuerzo.",
+        "La acción es el primer paso al éxito.",
+        "La vida es un proceso de evolución.",
+        "El aprendizaje es la fuente del poder.",
+        "El esfuerzo es la base del progreso.",
+        "La claridad es el camino al logro.",
+        "El cambio es la esencia de la vida.",
+        "La vida es una oportunidad de crecer.",
+        "La perseverancia es el camino al éxito.",
+        "El éxito es la culminación del esfuerzo.",
+        "La acción es la que marca la diferencia.",
+        "La vida es un viaje de transformación.",
+        "El aprendizaje es la herramienta del éxito.",
+        "El esfuerzo es la clave del progreso.",
+        "La claridad es el inicio del cambio.",
+        "El cambio es la oportunidad de ser mejor.",
+        "La vida es una oportunidad de reinventarse.",
+        "La perseverancia es la llave del éxito.",
+        "El éxito es el resultado de la acción.",
+        "La acción es la que lleva al logro.",
+        "La vida es un lienzo de oportunidades.",
+        "El aprendizaje es el camino al éxito.",
+        "El esfuerzo es el motor del cambio.",
+        "La claridad es el primer paso al éxito.",
+        "El cambio es la oportunidad de crecer.",
+        "La vida es un viaje de autodescubrimiento.",
+        "La perseverancia es el aliado del éxito.",
+        "El éxito es la recompensa del esfuerzo.",
+        "La acción es la que construye el sueño.",
+        "La vida es una oportunidad de ser feliz.",
+        "El aprendizaje es la base del progreso.",
+        "El esfuerzo es el secreto del cambio.",
+        "La claridad es el camino al crecimiento.",
+        "El cambio es la oportunidad de avanzar.",
+        "La vida es un regalo de posibilidades.",
+        "La perseverancia es la virtud del éxito.",
+        "El éxito es la meta de la constancia.",
+        "La acción es la que transforma la vida.",
+        "La vida es una oportunidad de brillar."
     ];
 
     // ===== COLORES PSICODÉLICOS =====
@@ -71,7 +269,7 @@
         do {
             nuevoIndice = Math.floor(Math.random() * mensajes.length);
         } while (nuevoIndice === ultimoIndice && mensajes.length > 1);
-        
+
         ultimoIndice = nuevoIndice;
         return mensajes[nuevoIndice];
     }
@@ -232,7 +430,7 @@
             const delay = Math.random() * 5;
             const duration = Math.random() * 8 + 4;
             const color = colores[Math.floor(Math.random() * colores.length)];
-            
+
             particle.style.cssText = `
                 position: absolute;
                 left: ${x}%;
@@ -258,7 +456,7 @@
             const delay = Math.random() * 4;
             const duration = Math.random() * 6 + 3;
             const color = colores[Math.floor(Math.random() * colores.length)];
-            
+
             particle.style.cssText = `
                 position: absolute;
                 left: ${x}%;
@@ -446,7 +644,7 @@
         cicloActivo = true;
 
         const { texto1, texto2 } = ref;
-        
+
         // ⭐ OBTENER MENSAJE ALEATORIO (sin repetir consecutivamente)
         const mensaje = getMensajeAleatorio();
         const colorFuente = getColorFuenteAleatorio();
@@ -484,7 +682,7 @@
         // 2. INICIAR TRANSICIÓN CRUZADA LENTA
         textoSalida.style.opacity = '0';
         textoSalida.style.transform = 'scale(0.6) rotate(4deg)';
-        
+
         textoEntrada.style.opacity = '1';
         textoEntrada.style.transform = 'scale(1) rotate(0deg)';
 
@@ -516,7 +714,7 @@
         const mensajeInicial = getMensajeAleatorio();
         const colorInicial = getColorFuenteAleatorio();
         const colorSombraInicial = getColorAleatorio();
-        
+
         ref.texto1.textContent = mensajeInicial;
         ref.texto1.style.color = colorInicial;
         ref.texto1.style.textShadow = `
@@ -530,7 +728,7 @@
         ref.texto1.style.opacity = '1';
         ref.texto1.style.transform = 'scale(1) rotate(0deg)';
         ref.texto1.style.animation = 'respiracionSuave 4s ease-in-out infinite';
-        
+
         // Ocultar texto2 inicialmente
         ref.texto2.style.opacity = '0';
         ref.texto2.style.transform = 'scale(0.6) rotate(3deg)';
