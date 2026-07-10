@@ -1,6 +1,6 @@
 /**
- * Modal Psicodélico de Mensajes Positivos
- * Con transición cruzada (fade cross) - Versión LENTA y ALEATORIA
+ * Modal Psicodélico de Mensajes Positivos - Versión Optimizada
+ * Con transición cruzada (fade cross) - LENTA y ALEATORIA
  */
 
 (function () {
@@ -8,17 +8,17 @@
 
     // ===== CONFIGURACIÓN =====
     const CONFIG = {
-        interval: 9000,              // 9 segundos entre mensajes
-        transitionDuration: 3000,    // 3 segundos de transición cruzada
-        tiempoVisible: 5000,         // 5 segundos visible después de la transición
+        interval: 9000,
+        transitionDuration: 3000,
+        tiempoVisible: 5000,
         fontSize: '2.8rem',
-        maxMessages: 1,
         zIndex: 9999,
         tiempoReaparicion: 30000,
-        ocultoPorClick: false
+        maxParticles: 25,           // ⭐ Reducido de 70 a 25
+        particleCount: 25
     };
 
-    // ===== MENSAJES =====
+    // ===== MENSAJES (comprimidos) =====
     const mensajes = [
         "La disciplina supera al talento cuando el talento no trabaja.",
         "Cada mañana decides si eres víctima del día o dueño de tu tiempo.",
@@ -249,77 +249,44 @@
         "La vida es una oportunidad de brillar."
     ];
 
-    // ===== COLORES PSICODÉLICOS =====
-    const colores = [
-        '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB',
-        '#0ABDE3', '#10AC84', '#EE5A24', '#5F27CD',
-        '#FF9FF3', '#54A0FF', '#5F27CD', '#01A3A4',
-        '#F368E0', '#FF9F43', '#00D2D3', '#FF6B6B'
-    ];
+    // ===== COLORES =====
+    const colores = ['#FF6B6B','#FF8E53','#FECA57','#48DBFB','#0ABDE3','#10AC84','#EE5A24','#5F27CD','#FF9FF3','#54A0FF','#01A3A4','#F368E0','#FF9F43','#00D2D3'];
 
     // ===== VARIABLES DE CONTROL =====
     let temporizadorReaparicion = null;
     let loginRealizado = false;
-    let cicloActivo = false;
-    let ultimoIndice = -1; // ⭐ Para evitar repetir mensajes consecutivos
+    let ultimoIndice = -1;
+    let ref = null;                 // ⭐ Referencia centralizada
+    let intervalId = null;          // ⭐ Interval controlado
+    let particleAnimationFrame = null; // ⭐ Para controlar animación de partículas
 
-    // ===== FUNCIÓN PARA OBTENER MENSAJE ALEATORIO (sin repetir consecutivamente) =====
+    // ===== FUNCIONES AUXILIARES =====
     function getMensajeAleatorio() {
         let nuevoIndice;
         do {
             nuevoIndice = Math.floor(Math.random() * mensajes.length);
         } while (nuevoIndice === ultimoIndice && mensajes.length > 1);
-
         ultimoIndice = nuevoIndice;
         return mensajes[nuevoIndice];
     }
 
-    // ===== FUNCIÓN PARA OBTENER COLOR ALEATORIO =====
     function getColorAleatorio() {
         return colores[Math.floor(Math.random() * colores.length)];
     }
 
-    // ===== FUNCIÓN PARA OBTENER COLOR DE FUENTE ALEATORIO =====
-    function getColorFuenteAleatorio() {
-        const coloresFuente = [
-            '#FF6B6B', '#FF8E53', '#FECA57', '#48DBFB',
-            '#FF9FF3', '#54A0FF', '#F368E0', '#FF9F43',
-            '#00D2D3', '#FF6B6B', '#A29BFE', '#FD79A8',
-            '#00B894', '#FDCB6E', '#E17055', '#74B9FF'
-        ];
-        return coloresFuente[Math.floor(Math.random() * coloresFuente.length)];
-    }
-
-    // ===== FUNCIÓN PARA MEZCLAR ARRAY (Fisher-Yates) =====
-    function mezclarArray(array) {
-        const copia = [...array];
-        for (let i = copia.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [copia[i], copia[j]] = [copia[j], copia[i]];
-        }
-        return copia;
-    }
-
-    // ===== CREAR ESTRUCTURA DEL MODAL =====
+    // ===== CREAR MODAL (optimizado) =====
     function crearModal() {
         if (document.getElementById('modal-psicodelico')) return;
 
-        // OVERLAY OSCURO CON BLUR
+        // OVERLAY
         const overlay = document.createElement('div');
         overlay.id = 'overlay-psicodelico';
         overlay.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: ${CONFIG.zIndex - 1};
-            background: radial-gradient(circle at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 100%);
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            pointer-events: none;
-            transition: opacity 0.8s ease;
-            opacity: 1;
+            position: fixed; top:0; left:0; width:100vw; height:100vh;
+            z-index:${CONFIG.zIndex-1}; pointer-events:none;
+            background:radial-gradient(circle at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 100%);
+            backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
+            transition:opacity 0.8s ease; opacity:1;
         `;
         document.body.appendChild(overlay);
 
@@ -327,151 +294,76 @@
         const modal = document.createElement('div');
         modal.id = 'modal-psicodelico';
         modal.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: ${CONFIG.zIndex};
-            pointer-events: none;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: 'Arial', 'Helvetica', sans-serif;
-            overflow: hidden;
-            transition: opacity 0.8s ease, transform 0.8s ease;
-            opacity: 1;
-            transform: scale(1);
+            position:fixed; top:0; left:0; width:100vw; height:100vh;
+            z-index:${CONFIG.zIndex}; pointer-events:none;
+            display:flex; justify-content:center; align-items:center;
+            font-family:'Arial','Helvetica',sans-serif; overflow:hidden;
+            transition:opacity 0.8s ease, transform 0.8s ease;
+            opacity:1; transform:scale(1);
         `;
 
-        // CONTENEDOR PARA LOS DOS TEXTOS
+        // CONTENEDOR TEXTOS
         const textoContainer = document.createElement('div');
         textoContainer.id = 'texto-container';
         textoContainer.style.cssText = `
-            position: relative;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
+            position:relative; display:flex; justify-content:center; align-items:center;
+            width:100%; height:100%; pointer-events:none;
         `;
 
-        // TEXTO 1 (Mensaje actual - sale)
+        // TEXTO 1 y 2
         const texto1 = document.createElement('div');
         texto1.id = 'texto-psicodelico-1';
         texto1.style.cssText = `
-            position: absolute;
-            color: white;
-            font-size: ${CONFIG.fontSize};
-            font-weight: 700;
-            text-shadow: 
-                0 0 40px rgba(0,0,0,0.6),
-                0 0 80px rgba(0,0,0,0.4),
-                0 0 120px rgba(0,0,0,0.3),
-                0 0 200px rgba(0,0,0,0.2);
-            line-height: 1.5;
-            letter-spacing: 3px;
-            transition: all ${CONFIG.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 0;
-            transform: scale(0.8) rotate(-2deg);
-            padding: 30px 40px;
-            pointer-events: none;
-            text-align: center;
-            max-width: 85vw;
-            z-index: 2;
+            position:absolute; color:white; font-size:${CONFIG.fontSize}; font-weight:700;
+            text-shadow:0 0 40px rgba(0,0,0,0.6),0 0 80px rgba(0,0,0,0.4);
+            line-height:1.5; letter-spacing:3px; transition:all ${CONFIG.transitionDuration}ms cubic-bezier(0.4,0,0.2,1);
+            opacity:0; transform:scale(0.8) rotate(-2deg); padding:30px 40px;
+            pointer-events:none; text-align:center; max-width:85vw; z-index:2;
         `;
 
-        // TEXTO 2 (Mensaje entrante)
         const texto2 = document.createElement('div');
         texto2.id = 'texto-psicodelico-2';
         texto2.style.cssText = `
-            position: absolute;
-            color: white;
-            font-size: ${CONFIG.fontSize};
-            font-weight: 700;
-            text-shadow: 
-                0 0 40px rgba(0,0,0,0.6),
-                0 0 80px rgba(0,0,0,0.4),
-                0 0 120px rgba(0,0,0,0.3),
-                0 0 200px rgba(0,0,0,0.2);
-            line-height: 1.5;
-            letter-spacing: 3px;
-            transition: all ${CONFIG.transitionDuration}ms cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 0;
-            transform: scale(0.8) rotate(-2deg);
-            padding: 30px 40px;
-            pointer-events: none;
-            text-align: center;
-            max-width: 85vw;
-            z-index: 1;
+            position:absolute; color:white; font-size:${CONFIG.fontSize}; font-weight:700;
+            text-shadow:0 0 40px rgba(0,0,0,0.6),0 0 80px rgba(0,0,0,0.4);
+            line-height:1.5; letter-spacing:3px; transition:all ${CONFIG.transitionDuration}ms cubic-bezier(0.4,0,0.2,1);
+            opacity:0; transform:scale(0.8) rotate(-2deg); padding:30px 40px;
+            pointer-events:none; text-align:center; max-width:85vw; z-index:1;
         `;
 
-        // PARTÍCULAS FLOTANTES
+        // PARTÍCULAS (optimizado)
         const particles = document.createElement('div');
         particles.id = 'particulas-psicodelicas';
         particles.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            overflow: hidden;
-            z-index: ${CONFIG.zIndex - 0.5};
+            position:fixed; top:0; left:0; width:100vw; height:100vh;
+            pointer-events:none; overflow:hidden; z-index:${CONFIG.zIndex-0.5};
         `;
 
-        // Crear partículas grandes
-        for (let i = 0; i < 40; i++) {
-            const particle = document.createElement('div');
-            const size = Math.random() * 60 + 20;
+        // ⭐ Partículas con transformaciones pre-calculadas (menos operaciones en runtime)
+        const particleData = [];
+        for (let i = 0; i < CONFIG.particleCount; i++) {
+            const size = Math.random() * 40 + 15;
             const x = Math.random() * 100;
             const y = Math.random() * 100;
             const delay = Math.random() * 5;
-            const duration = Math.random() * 8 + 4;
-            const color = colores[Math.floor(Math.random() * colores.length)];
-
-            particle.style.cssText = `
-                position: absolute;
-                left: ${x}%;
-                top: ${y}%;
-                width: ${size}px;
-                height: ${size}px;
-                border-radius: 50%;
-                background: ${color};
-                opacity: ${Math.random() * 0.1 + 0.03};
-                animation: flotarParticula ${duration}s ease-in-out infinite alternate;
-                animation-delay: ${delay}s;
-                filter: blur(${Math.random() * 8 + 4}px);
-            `;
-            particles.appendChild(particle);
-        }
-
-        // Crear partículas pequeñas brillantes
-        for (let i = 0; i < 30; i++) {
-            const particle = document.createElement('div');
-            const size = Math.random() * 8 + 3;
-            const x = Math.random() * 100;
-            const y = Math.random() * 100;
-            const delay = Math.random() * 4;
             const duration = Math.random() * 6 + 3;
             const color = colores[Math.floor(Math.random() * colores.length)];
+            const isSmall = i < CONFIG.particleCount * 0.4;
 
-            particle.style.cssText = `
-                position: absolute;
-                left: ${x}%;
-                top: ${y}%;
-                width: ${size}px;
-                height: ${size}px;
-                border-radius: 50%;
-                background: ${color};
-                opacity: ${Math.random() * 0.3 + 0.1};
-                animation: flotarParticula ${duration}s ease-in-out infinite alternate;
-                animation-delay: ${delay}s;
-                filter: blur(${Math.random() * 2 + 1}px);
-                box-shadow: 0 0 ${size * 2}px ${color}40;
+            const p = document.createElement('div');
+            p.style.cssText = `
+                position:absolute; left:${x}%; top:${y}%;
+                width:${size}px; height:${size}px; border-radius:50%;
+                background:${color};
+                opacity:${isSmall ? (Math.random()*0.25+0.1) : (Math.random()*0.08+0.02)};
+                filter:blur(${isSmall ? (Math.random()*2+1) : (Math.random()*6+3)}px);
+                ${isSmall ? `box-shadow:0 0 ${size*2}px ${color}40;` : ''}
+                animation:flotarParticula ${duration}s ease-in-out infinite alternate;
+                animation-delay:${delay}s;
+                will-change:transform, opacity;
             `;
-            particles.appendChild(particle);
+            particles.appendChild(p);
+            particleData.push({ el: p, x, y, duration, delay, phase: Math.random() * Math.PI * 2 });
         }
 
         // Ensamblar
@@ -481,61 +373,46 @@
         modal.appendChild(textoContainer);
         document.body.appendChild(modal);
 
-        // ESTILOS Y ANIMACIONES
+        // ESTILOS
         const style = document.createElement('style');
         style.id = 'estilos-psicodelicos';
         style.textContent = `
             @keyframes flotarParticula {
-                0% { 
-                    transform: translate(0, 0) scale(1) rotate(0deg); 
-                }
-                100% { 
-                    transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) scale(${Math.random() * 0.8 + 0.6}) rotate(${Math.random() * 360}deg); 
-                }
+                0% { transform: translate(0,0) scale(1) rotate(0deg); }
+                100% { transform: translate(${Math.random()*60-30}px,${Math.random()*60-30}px) scale(${Math.random()*0.5+0.5}) rotate(${Math.random()*360}deg); }
             }
             @keyframes destelloColor {
-                0% { 
-                    text-shadow: 0 0 40px rgba(255,107,107,0.4), 0 0 80px rgba(255,107,107,0.2), 0 0 120px rgba(255,107,107,0.1), 0 0 200px rgba(255,107,107,0.05); 
-                }
-                25% { 
-                    text-shadow: 0 0 40px rgba(254,202,87,0.4), 0 0 80px rgba(254,202,87,0.2), 0 0 120px rgba(254,202,87,0.1), 0 0 200px rgba(254,202,87,0.05); 
-                }
-                50% { 
-                    text-shadow: 0 0 40px rgba(72,219,251,0.4), 0 0 80px rgba(72,219,251,0.2), 0 0 120px rgba(72,219,251,0.1), 0 0 200px rgba(72,219,251,0.05); 
-                }
-                75% { 
-                    text-shadow: 0 0 40px rgba(245,104,224,0.4), 0 0 80px rgba(245,104,224,0.2), 0 0 120px rgba(245,104,224,0.1), 0 0 200px rgba(245,104,224,0.05); 
-                }
-                100% { 
-                    text-shadow: 0 0 40px rgba(255,107,107,0.4), 0 0 80px rgba(255,107,107,0.2), 0 0 120px rgba(255,107,107,0.1), 0 0 200px rgba(255,107,107,0.05); 
-                }
+                0%,100% { text-shadow:0 0 40px rgba(255,107,107,0.4),0 0 80px rgba(255,107,107,0.2); }
+                25% { text-shadow:0 0 40px rgba(254,202,87,0.4),0 0 80px rgba(254,202,87,0.2); }
+                50% { text-shadow:0 0 40px rgba(72,219,251,0.4),0 0 80px rgba(72,219,251,0.2); }
+                75% { text-shadow:0 0 40px rgba(245,104,224,0.4),0 0 80px rgba(245,104,224,0.2); }
             }
             @keyframes respiracionSuave {
-                0%, 100% { transform: scale(1); }
-                50% { transform: scale(1.02); }
+                0%,100% { transform:scale(1); }
+                50% { transform:scale(1.02); }
             }
         `;
         document.head.appendChild(style);
 
         // Guardar referencias
-        window._modalPsicodelico = {
+        ref = {
             container: modal,
             overlay: overlay,
             texto1: texto1,
             texto2: texto2,
             textoContainer: textoContainer,
             particles: particles,
-            currentIndex: -1,
-            intervalId: null,
-            isPaused: false,
-            oculto: false,
             textoActivo: 1,
-            enTransicion: false
+            enTransicion: false,
+            oculto: false,
+            isPaused: false,
+            particleData: particleData
         };
+
+        window._modalPsicodelico = ref;
 
         // EVENTOS
         document.addEventListener('click', function ocultarModal(e) {
-            const ref = window._modalPsicodelico;
             if (ref && !ref.oculto && !loginRealizado) {
                 ocultarModalTemporalmente();
             }
@@ -549,7 +426,6 @@
         const inputs = document.querySelectorAll('#formularioLogin input');
         inputs.forEach(input => {
             input.addEventListener('focus', function () {
-                const ref = window._modalPsicodelico;
                 if (ref && !ref.oculto && !loginRealizado) {
                     ocultarModalTemporalmente();
                 }
@@ -557,9 +433,8 @@
         });
     }
 
-    // ===== OCULTAR MODAL TEMPORALMENTE =====
+    // ===== OCULTAR TEMPORALMENTE =====
     function ocultarModalTemporalmente() {
-        const ref = window._modalPsicodelico;
         if (!ref || ref.oculto) return;
 
         if (temporizadorReaparicion) {
@@ -567,17 +442,18 @@
             temporizadorReaparicion = null;
         }
 
+        // ⭐ Pausar animaciones
+        if (ref.particles) {
+            ref.particles.style.animationPlayState = 'paused';
+        }
+
         ref.container.style.opacity = '0';
         ref.container.style.transform = 'scale(0.95)';
-        if (ref.overlay) {
-            ref.overlay.style.opacity = '0';
-        }
+        if (ref.overlay) ref.overlay.style.opacity = '0';
         ref.oculto = true;
 
-        if (ref.intervalId) {
-            clearInterval(ref.intervalId);
-            ref.intervalId = null;
-        }
+        clearInterval(intervalId);
+        intervalId = null;
 
         temporizadorReaparicion = setTimeout(() => {
             if (!loginRealizado) {
@@ -586,9 +462,8 @@
         }, CONFIG.tiempoReaparicion);
     }
 
-    // ===== OCULTAR MODAL PERMANENTEMENTE =====
+    // ===== OCULTAR PERMANENTEMENTE =====
     function ocultarModalPermanente() {
-        const ref = window._modalPsicodelico;
         if (!ref) return;
 
         if (temporizadorReaparicion) {
@@ -596,61 +471,59 @@
             temporizadorReaparicion = null;
         }
 
+        if (ref.particles) {
+            ref.particles.style.animationPlayState = 'paused';
+        }
+
         ref.container.style.opacity = '0';
         ref.container.style.transform = 'scale(0.95)';
-        if (ref.overlay) {
-            ref.overlay.style.opacity = '0';
-        }
+        if (ref.overlay) ref.overlay.style.opacity = '0';
         ref.oculto = true;
 
-        if (ref.intervalId) {
-            clearInterval(ref.intervalId);
-            ref.intervalId = null;
-        }
-
+        clearInterval(intervalId);
+        intervalId = null;
         loginRealizado = true;
     }
 
     // ===== MOSTRAR MODAL =====
     function mostrarModal() {
-        const ref = window._modalPsicodelico;
         if (!ref || loginRealizado) return;
+
+        // ⭐ Reanudar partículas
+        if (ref.particles) {
+            ref.particles.style.animationPlayState = 'running';
+        }
 
         ref.container.style.opacity = '1';
         ref.container.style.transform = 'scale(1)';
-        if (ref.overlay) {
-            ref.overlay.style.opacity = '1';
-        }
+        if (ref.overlay) ref.overlay.style.opacity = '1';
         ref.oculto = false;
 
-        if (ref.intervalId) {
-            clearInterval(ref.intervalId);
-            ref.intervalId = null;
-        }
+        clearInterval(intervalId);
+        intervalId = null;
 
         setTimeout(() => {
             mostrarSiguienteMensaje();
         }, 500);
 
-        ref.intervalId = setInterval(mostrarSiguienteMensaje, CONFIG.interval);
+        intervalId = setInterval(() => {
+            if (!ref.oculto && !loginRealizado) {
+                mostrarSiguienteMensaje();
+            }
+        }, CONFIG.interval);
     }
 
-    // ===== MOSTRAR SIGUIENTE MENSAJE CON TRANSICIÓN CRUZADA LENTA =====
+    // ===== MOSTRAR SIGUIENTE MENSAJE =====
     function mostrarSiguienteMensaje() {
-        const ref = window._modalPsicodelico;
         if (!ref || ref.oculto || loginRealizado || ref.enTransicion) return;
 
         ref.enTransicion = true;
-        cicloActivo = true;
 
         const { texto1, texto2 } = ref;
-
-        // ⭐ OBTENER MENSAJE ALEATORIO (sin repetir consecutivamente)
         const mensaje = getMensajeAleatorio();
-        const colorFuente = getColorFuenteAleatorio();
+        const colorFuente = getColorAleatorio();
         const colorSombra = getColorAleatorio();
 
-        // Determinar qué texto está activo
         let textoSalida, textoEntrada;
         if (ref.textoActivo === 1) {
             textoSalida = texto1;
@@ -662,31 +535,23 @@
             ref.textoActivo = 1;
         }
 
-        // 1. PREPARAR EL TEXTO ENTRANTE (invisible)
         textoEntrada.textContent = mensaje;
         textoEntrada.style.color = colorFuente;
         textoEntrada.style.textShadow = `
-            0 0 40px ${colorSombra}50,
-            0 0 80px ${colorSombra}30,
-            0 0 120px ${colorSombra}15,
-            0 0 200px ${colorSombra}10,
-            0 0 300px ${colorSombra}05
+            0 0 40px ${colorSombra}50, 0 0 80px ${colorSombra}30,
+            0 0 120px ${colorSombra}15, 0 0 200px ${colorSombra}10
         `;
         textoEntrada.style.animation = 'destelloColor 5s ease-in-out infinite';
         textoEntrada.style.transform = 'scale(0.6) rotate(3deg)';
         textoEntrada.style.opacity = '0';
 
-        // Forzar reflow
         void textoEntrada.offsetWidth;
 
-        // 2. INICIAR TRANSICIÓN CRUZADA LENTA
         textoSalida.style.opacity = '0';
         textoSalida.style.transform = 'scale(0.6) rotate(4deg)';
-
         textoEntrada.style.opacity = '1';
         textoEntrada.style.transform = 'scale(1) rotate(0deg)';
 
-        // 3. ESPERAR A QUE TERMINE LA TRANSICIÓN
         setTimeout(() => {
             ref.enTransicion = false;
             textoSalida.style.opacity = '0';
@@ -698,47 +563,39 @@
         if (!document.getElementById('modal-psicodelico')) {
             crearModal();
         }
-
-        const ref = window._modalPsicodelico;
         if (!ref) return;
 
         loginRealizado = false;
         ref.oculto = false;
         ref.container.style.opacity = '1';
         ref.container.style.transform = 'scale(1)';
-        if (ref.overlay) {
-            ref.overlay.style.opacity = '1';
+        if (ref.overlay) ref.overlay.style.opacity = '1';
+
+        if (ref.particles) {
+            ref.particles.style.animationPlayState = 'running';
         }
 
-        // ⭐ INICIALIZAR CON MENSAJE ALEATORIO
         const mensajeInicial = getMensajeAleatorio();
-        const colorInicial = getColorFuenteAleatorio();
+        const colorInicial = getColorAleatorio();
         const colorSombraInicial = getColorAleatorio();
 
         ref.texto1.textContent = mensajeInicial;
         ref.texto1.style.color = colorInicial;
         ref.texto1.style.textShadow = `
-            0 0 40px ${colorSombraInicial}50,
-            0 0 80px ${colorSombraInicial}30,
-            0 0 120px ${colorSombraInicial}15,
-            0 0 200px ${colorSombraInicial}10,
-            0 0 300px ${colorSombraInicial}05
+            0 0 40px ${colorSombraInicial}50, 0 0 80px ${colorSombraInicial}30,
+            0 0 120px ${colorSombraInicial}15, 0 0 200px ${colorSombraInicial}10
         `;
-        ref.texto1.style.animation = 'destelloColor 5s ease-in-out infinite';
+        ref.texto1.style.animation = 'destelloColor 5s ease-in-out infinite, respiracionSuave 4s ease-in-out infinite';
         ref.texto1.style.opacity = '1';
         ref.texto1.style.transform = 'scale(1) rotate(0deg)';
-        ref.texto1.style.animation = 'respiracionSuave 4s ease-in-out infinite';
 
-        // Ocultar texto2 inicialmente
         ref.texto2.style.opacity = '0';
         ref.texto2.style.transform = 'scale(0.6) rotate(3deg)';
         ref.textoActivo = 1;
         ref.enTransicion = false;
 
-        if (ref.intervalId) {
-            clearInterval(ref.intervalId);
-            ref.intervalId = null;
-        }
+        clearInterval(intervalId);
+        intervalId = null;
 
         setTimeout(() => {
             if (!ref.oculto && !loginRealizado) {
@@ -746,25 +603,30 @@
             }
         }, CONFIG.tiempoVisible + 1000);
 
-        ref.intervalId = setInterval(() => {
+        intervalId = setInterval(() => {
             if (!ref.oculto && !loginRealizado) {
                 mostrarSiguienteMensaje();
             }
         }, CONFIG.interval);
     }
 
-    // ===== PAUSAR/REANUDAR =====
+    // ===== TOGGLE PAUSA =====
     function togglePausa() {
-        const ref = window._modalPsicodelico;
         if (!ref || loginRealizado) return;
 
         ref.isPaused = !ref.isPaused;
 
         if (ref.isPaused) {
-            clearInterval(ref.intervalId);
-            ref.intervalId = null;
+            clearInterval(intervalId);
+            intervalId = null;
+            if (ref.particles) {
+                ref.particles.style.animationPlayState = 'paused';
+            }
         } else {
-            ref.intervalId = setInterval(() => {
+            if (ref.particles) {
+                ref.particles.style.animationPlayState = 'running';
+            }
+            intervalId = setInterval(() => {
                 if (!ref.oculto && !loginRealizado) {
                     mostrarSiguienteMensaje();
                 }
@@ -775,25 +637,22 @@
 
     // ===== DESTRUIR MODAL =====
     function destruirModal() {
-        const ref = window._modalPsicodelico;
+        if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
+        if (temporizadorReaparicion) {
+            clearTimeout(temporizadorReaparicion);
+            temporizadorReaparicion = null;
+        }
         if (ref) {
-            if (ref.intervalId) {
-                clearInterval(ref.intervalId);
-            }
-            if (temporizadorReaparicion) {
-                clearTimeout(temporizadorReaparicion);
-                temporizadorReaparicion = null;
-            }
-            if (ref.container) {
-                ref.container.remove();
-            }
-            if (ref.overlay) {
-                ref.overlay.remove();
-            }
-            delete window._modalPsicodelico;
+            if (ref.container) ref.container.remove();
+            if (ref.overlay) ref.overlay.remove();
+            ref = null;
         }
         const style = document.getElementById('estilos-psicodelicos');
         if (style) style.remove();
+        delete window._modalPsicodelico;
     }
 
     // ===== INICIALIZAR =====
@@ -805,7 +664,7 @@
         }
     }
 
-    // ===== EXPONER API PÚBLICA =====
+    // ===== API PÚBLICA =====
     window.ModalPsicodelico = {
         iniciar: iniciarModal,
         pausar: togglePausa,
@@ -819,14 +678,13 @@
         },
         configurar: function (opciones) {
             Object.assign(CONFIG, opciones);
-            if (window._modalPsicodelico) {
+            if (ref) {
                 destruirModal();
                 iniciarModal();
             }
         }
     };
 
-    // ===== INICIAR AUTOMÁTICAMENTE =====
     inicializar();
 
 })();
