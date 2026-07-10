@@ -1,7 +1,6 @@
 /**
  * Modal Psicodélico de Mensajes Positivos
- * Con funcionalidad de ocultar al hacer clic y reaparecer si no hay login
- * Mejoras: Efecto cristal intenso, overlay oscuro, borde brillante, partículas mejoradas
+ * Sin contenedores rectangulares - Mensaje flotante
  */
 
 (function () {
@@ -9,13 +8,13 @@
 
     // ===== CONFIGURACIÓN =====
     const CONFIG = {
-        interval: 6000,           // Tiempo entre mensajes (ms)
-        transitionDuration: 1500,  // Duración de la transición (ms)
-        tiempoVisible: 3500,      // Tiempo visible del mensaje
-        fontSize: '2.4rem',       // Tamaño de fuente aumentado
+        interval: 6000,
+        transitionDuration: 1500,
+        tiempoVisible: 3500,
+        fontSize: '2.8rem',
         maxMessages: 1,
         zIndex: 9999,
-        tiempoReaparicion: 30000,  // 30 segundos para que reaparezca si no hay login
+        tiempoReaparicion: 30000,
         ocultoPorClick: false
     };
 
@@ -68,7 +67,7 @@
     function crearModal() {
         if (document.getElementById('modal-psicodelico')) return;
 
-        // ⭐ 1. CREAR OVERLAY OSCURO CON BLUR
+        // ⭐ OVERLAY OSCURO CON BLUR
         const overlay = document.createElement('div');
         overlay.id = 'overlay-psicodelico';
         overlay.style.cssText = `
@@ -78,16 +77,16 @@
             width: 100vw;
             height: 100vh;
             z-index: ${CONFIG.zIndex - 1};
-            background: radial-gradient(circle at center, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            background: radial-gradient(circle at center, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.6) 100%);
+            backdrop-filter: blur(4px);
+            -webkit-backdrop-filter: blur(4px);
             pointer-events: none;
             transition: opacity 0.8s ease;
             opacity: 1;
         `;
         document.body.appendChild(overlay);
 
-        // ⭐ 2. CREAR MODAL
+        // ⭐ MODAL (SIN CONTENEDOR RECTANGULAR)
         const modal = document.createElement('div');
         modal.id = 'modal-psicodelico';
         modal.style.cssText = `
@@ -108,111 +107,75 @@
             transform: scale(1);
         `;
 
-        // ⭐ 3. CONTENEDOR DE MENSAJE CON EFECTO CRISTAL INTENSO
-        const messageContainer = document.createElement('div');
-        messageContainer.id = 'mensaje-psicodelico';
-        messageContainer.style.cssText = `
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            padding: 60px 80px;
-            max-width: 85vw;
-            min-height: 280px;
-            border-radius: 30px;
-            background: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(20px) saturate(1.8);
-            -webkit-backdrop-filter: blur(20px) saturate(1.8);
-            box-shadow: 
-                0 0 60px rgba(255, 255, 255, 0.08),
-                0 0 120px rgba(255, 255, 255, 0.04),
-                inset 0 0 80px rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            transition: all 0.5s ease;
-            pointer-events: none;
-        `;
-
-        // ⭐ 4. BORDE BRILLANTE GIRATORIO
-        const bordeBrillante = document.createElement('div');
-        bordeBrillante.style.cssText = `
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            border-radius: 32px;
-            background: conic-gradient(
-                from 0deg,
-                transparent 0%,
-                rgba(255,255,255,0.15) 20%,
-                rgba(255,255,255,0.05) 40%,
-                transparent 60%,
-                rgba(255,255,255,0.12) 80%,
-                transparent 100%
-            );
-            pointer-events: none;
-            z-index: -1;
-            animation: girarBorde 8s linear infinite;
-        `;
-        messageContainer.appendChild(bordeBrillante);
-
-        // ⭐ 5. SEGUNDO BORDE INTERIOR PARA MÁS BRILLO
-        const bordeInterior = document.createElement('div');
-        bordeInterior.style.cssText = `
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            right: 3px;
-            bottom: 3px;
-            border-radius: 28px;
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            pointer-events: none;
-            z-index: -1;
-        `;
-        messageContainer.appendChild(bordeInterior);
-
-        // Texto del mensaje
+        // ⭐ TEXTO FLOTANTE (SIN CONTENEDOR)
         const texto = document.createElement('div');
         texto.id = 'texto-psicodelico';
         texto.style.cssText = `
+            position: relative;
             color: white;
             font-size: ${CONFIG.fontSize};
             font-weight: 700;
             text-shadow: 
-                0 0 30px rgba(0,0,0,0.6),
-                0 0 60px rgba(0,0,0,0.4),
-                0 0 100px rgba(0,0,0,0.3);
+                0 0 40px rgba(0,0,0,0.6),
+                0 0 80px rgba(0,0,0,0.4),
+                0 0 120px rgba(0,0,0,0.3),
+                0 0 200px rgba(0,0,0,0.2);
             line-height: 1.5;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             transition: all ${CONFIG.transitionDuration}ms ease;
             opacity: 0;
             transform: scale(0.8) rotate(-2deg);
-            padding: 15px 25px;
+            padding: 30px 40px;
             pointer-events: none;
             z-index: 1;
+            text-align: center;
+            max-width: 85vw;
         `;
 
-        // ⭐ 6. PARTÍCULAS MÁS GRANDES Y NUMEROSAS
+        // ⭐ PARTÍCULAS FLOTANTES (DIRECTAMENTE EN EL MODAL)
         const particles = document.createElement('div');
         particles.id = 'particulas-psicodelicas';
         particles.style.cssText = `
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             pointer-events: none;
             overflow: hidden;
-            border-radius: 30px;
+            z-index: ${CONFIG.zIndex - 0.5};
         `;
 
-        // Crear partículas mejoradas (más grandes y con más color)
+        // Crear partículas flotando por toda la pantalla
+        for (let i = 0; i < 40; i++) {
+            const particle = document.createElement('div');
+            const size = Math.random() * 60 + 20;
+            const x = Math.random() * 100;
+            const y = Math.random() * 100;
+            const delay = Math.random() * 5;
+            const duration = Math.random() * 8 + 4;
+            const color = colores[Math.floor(Math.random() * colores.length)];
+            
+            particle.style.cssText = `
+                position: absolute;
+                left: ${x}%;
+                top: ${y}%;
+                width: ${size}px;
+                height: ${size}px;
+                border-radius: 50%;
+                background: ${color};
+                opacity: ${Math.random() * 0.1 + 0.03};
+                animation: flotarParticula ${duration}s ease-in-out infinite alternate;
+                animation-delay: ${delay}s;
+                filter: blur(${Math.random() * 8 + 4}px);
+            `;
+            particles.appendChild(particle);
+        }
+
+        // ⭐ PARTÍCULAS PEQUEÑAS ADICIONALES (más brillantes)
         for (let i = 0; i < 30; i++) {
             const particle = document.createElement('div');
-            const size = Math.random() * 45 + 15;
+            const size = Math.random() * 8 + 3;
             const x = Math.random() * 100;
             const y = Math.random() * 100;
             const delay = Math.random() * 4;
@@ -227,36 +190,21 @@
                 height: ${size}px;
                 border-radius: 50%;
                 background: ${color};
-                opacity: ${Math.random() * 0.12 + 0.03};
+                opacity: ${Math.random() * 0.3 + 0.1};
                 animation: flotarParticula ${duration}s ease-in-out infinite alternate;
                 animation-delay: ${delay}s;
-                filter: blur(${Math.random() * 6 + 3}px);
+                filter: blur(${Math.random() * 2 + 1}px);
+                box-shadow: 0 0 ${size * 2}px ${color}40;
             `;
             particles.appendChild(particle);
         }
 
-        // ⭐ 7. EFECTO DE REFLEJO (brillo en la parte superior)
-        const reflejo = document.createElement('div');
-        reflejo.style.cssText = `
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.08) 0%, transparent 60%);
-            pointer-events: none;
-            border-radius: 50%;
-            z-index: 0;
-        `;
-        messageContainer.appendChild(reflejo);
-
         // Ensamblar
-        messageContainer.appendChild(texto);
-        messageContainer.appendChild(particles);
-        modal.appendChild(messageContainer);
+        modal.appendChild(particles);
+        modal.appendChild(texto);
         document.body.appendChild(modal);
 
-        // ⭐ 8. ESTILOS Y ANIMACIONES MEJORADOS
+        // ⭐ ESTILOS Y ANIMACIONES
         const style = document.createElement('style');
         style.id = 'estilos-psicodelicos';
         style.textContent = `
@@ -265,39 +213,25 @@
                     transform: translate(0, 0) scale(1) rotate(0deg); 
                 }
                 100% { 
-                    transform: translate(${Math.random() * 80 - 40}px, ${Math.random() * 80 - 40}px) scale(${Math.random() * 0.8 + 0.6}) rotate(${Math.random() * 360}deg); 
+                    transform: translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px) scale(${Math.random() * 0.8 + 0.6}) rotate(${Math.random() * 360}deg); 
                 }
-            }
-            @keyframes girarBorde {
-                0% { transform: rotate(0deg); }
-                100% { transform: rotate(360deg); }
             }
             @keyframes destelloColor {
                 0% { 
-                    text-shadow: 0 0 30px rgba(255,107,107,0.4), 0 0 60px rgba(255,107,107,0.2), 0 0 100px rgba(255,107,107,0.1); 
+                    text-shadow: 0 0 40px rgba(255,107,107,0.4), 0 0 80px rgba(255,107,107,0.2), 0 0 120px rgba(255,107,107,0.1), 0 0 200px rgba(255,107,107,0.05); 
                 }
                 25% { 
-                    text-shadow: 0 0 30px rgba(254,202,87,0.4), 0 0 60px rgba(254,202,87,0.2), 0 0 100px rgba(254,202,87,0.1); 
+                    text-shadow: 0 0 40px rgba(254,202,87,0.4), 0 0 80px rgba(254,202,87,0.2), 0 0 120px rgba(254,202,87,0.1), 0 0 200px rgba(254,202,87,0.05); 
                 }
                 50% { 
-                    text-shadow: 0 0 30px rgba(72,219,251,0.4), 0 0 60px rgba(72,219,251,0.2), 0 0 100px rgba(72,219,251,0.1); 
+                    text-shadow: 0 0 40px rgba(72,219,251,0.4), 0 0 80px rgba(72,219,251,0.2), 0 0 120px rgba(72,219,251,0.1), 0 0 200px rgba(72,219,251,0.05); 
                 }
                 75% { 
-                    text-shadow: 0 0 30px rgba(245,104,224,0.4), 0 0 60px rgba(245,104,224,0.2), 0 0 100px rgba(245,104,224,0.1); 
+                    text-shadow: 0 0 40px rgba(245,104,224,0.4), 0 0 80px rgba(245,104,224,0.2), 0 0 120px rgba(245,104,224,0.1), 0 0 200px rgba(245,104,224,0.05); 
                 }
                 100% { 
-                    text-shadow: 0 0 30px rgba(255,107,107,0.4), 0 0 60px rgba(255,107,107,0.2), 0 0 100px rgba(255,107,107,0.1); 
+                    text-shadow: 0 0 40px rgba(255,107,107,0.4), 0 0 80px rgba(255,107,107,0.2), 0 0 120px rgba(255,107,107,0.1), 0 0 200px rgba(255,107,107,0.05); 
                 }
-            }
-            @keyframes pulsoSuave {
-                0% { transform: scale(1); }
-                50% { transform: scale(1.03); }
-                100% { transform: scale(1); }
-            }
-            @keyframes brilloReflejo {
-                0% { opacity: 0.3; transform: translateX(-10px); }
-                50% { opacity: 0.8; transform: translateX(10px); }
-                100% { opacity: 0.3; transform: translateX(-10px); }
             }
         `;
         document.head.appendChild(style);
@@ -306,7 +240,6 @@
         window._modalPsicodelico = {
             container: modal,
             overlay: overlay,
-            messageContainer: messageContainer,
             texto: texto,
             particles: particles,
             currentIndex: -1,
@@ -351,7 +284,6 @@
             temporizadorReaparicion = null;
         }
 
-        // Ocultar modal y overlay con animación
         ref.container.style.opacity = '0';
         ref.container.style.transform = 'scale(0.95)';
         if (ref.overlay) {
@@ -381,7 +313,6 @@
             temporizadorReaparicion = null;
         }
 
-        // Ocultar con animación
         ref.container.style.opacity = '0';
         ref.container.style.transform = 'scale(0.95)';
         if (ref.overlay) {
@@ -402,7 +333,6 @@
         const ref = window._modalPsicodelico;
         if (!ref || loginRealizado) return;
 
-        // Mostrar con animación
         ref.container.style.opacity = '1';
         ref.container.style.transform = 'scale(1)';
         if (ref.overlay) {
@@ -438,39 +368,19 @@
         return coloresFuente[Math.floor(Math.random() * coloresFuente.length)];
     }
 
-    // ===== CAMBIAR COLOR DE FONDO MEJORADO =====
-    function cambiarColorFondo(elemento) {
-        const color = getColorAleatorio();
-        const color2 = getColorAleatorio();
-        elemento.style.background = `
-            radial-gradient(circle at 30% 40%, ${color}35, ${color}10 60%, transparent 80%),
-            radial-gradient(circle at 70% 60%, ${color2}25, transparent 60%),
-            rgba(255, 255, 255, 0.06)
-        `;
-        elemento.style.boxShadow = `
-            0 0 80px ${color}25,
-            0 0 150px ${color}15,
-            inset 0 0 100px ${color}08,
-            inset 0 0 200px ${color2}05
-        `;
-        elemento.style.border = `1px solid ${color}30`;
-    }
-
     // ===== MOSTRAR SIGUIENTE MENSAJE =====
     function mostrarSiguienteMensaje() {
         const ref = window._modalPsicodelico;
         if (!ref || ref.oculto || loginRealizado) return;
 
-        const { texto, messageContainer } = ref;
+        const { texto } = ref;
         const mensaje = mensajes[Math.floor(Math.random() * mensajes.length)];
         const colorFuente = getColorFuenteAleatorio();
         const colorSombra = getColorAleatorio();
 
-        cambiarColorFondo(messageContainer);
-
         // Salida
         texto.style.opacity = '0';
-        texto.style.transform = 'scale(0.9) rotate(3deg)';
+        texto.style.transform = 'scale(0.85) rotate(-3deg)';
         texto.style.color = colorFuente;
 
         setTimeout(() => {
@@ -482,19 +392,19 @@
             texto.style.transform = 'scale(1) rotate(0deg)';
             texto.style.color = colorFuente;
             texto.style.textShadow = `
-                0 0 30px ${colorSombra}50,
-                0 0 60px ${colorSombra}30,
-                0 0 100px ${colorSombra}15,
-                0 0 150px ${colorSombra}10
+                0 0 40px ${colorSombra}50,
+                0 0 80px ${colorSombra}30,
+                0 0 120px ${colorSombra}15,
+                0 0 200px ${colorSombra}10,
+                0 0 300px ${colorSombra}05
             `;
-            texto.style.animation = 'destelloColor 4s ease-in-out infinite';
-            messageContainer.style.animation = 'pulsoSuave 4s ease-in-out infinite';
+            texto.style.animation = 'destelloColor 5s ease-in-out infinite';
 
             // Programar salida después del tiempo visible
             setTimeout(() => {
                 if (!ref.oculto && !loginRealizado) {
                     texto.style.opacity = '0';
-                    texto.style.transform = 'scale(0.9) rotate(-2deg)';
+                    texto.style.transform = 'scale(0.85) rotate(3deg)';
                 }
             }, CONFIG.tiempoVisible);
 
@@ -510,7 +420,6 @@
         const ref = window._modalPsicodelico;
         if (!ref) return;
 
-        // Limpiar estado
         loginRealizado = false;
         ref.oculto = false;
         ref.container.style.opacity = '1';
