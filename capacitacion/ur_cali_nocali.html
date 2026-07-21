@@ -7,9 +7,349 @@
     <title>Estadísticas y Archivo Clínico</title>
     <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
     <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
+    <!-- Font Awesome 6 (gratuito) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
         crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="/estadisticas/main_css/estilos.css" rel="stylesheet">
+    <style>
+        /* === BASE GENERAL === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
+            background-attachment: fixed;
+            overflow: hidden;
+            color: white;
+            font-size: 12px;
+            font-size: clamp(0.85rem, 0.9vw, 0.85rem);
+        }
+
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2vh;
+        }
+
+        /* === PANEL PRINCIPAL (GLASS) === */
+        .glass {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 80vh;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s ease;
+            padding: 1rem;
+            width: min(92%, 1600px);
+        }
+
+        .glass .grid {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin: 0.8rem;
+            padding: 1rem;
+            border-radius: 16px;
+        }
+
+        .glass>.contenido {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            margin: 1rem 0;
+            padding-right: 0.5rem;
+            width: 90%;
+        }
+
+        .glass>.contenido::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .glass>.contenido::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+        }
+
+        /* HEADER / FOOTER */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.1rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            margin-bottom: 0.25rem;
+            flex-shrink: 0;
+        }
+
+        .logo,
+        .usuario {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .logo h1 {
+            font-size: clamp(1rem, 1.5vw, 1.4rem);
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        }
+
+        .logo-icon {
+            font-size: 2.5rem;
+            color: #ffdd00;
+        }
+
+        .glass footer {
+            flex-shrink: 0;
+            margin-top: auto;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #ddd;
+            padding: 0.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        /* TÍTULOS */
+        h5 {
+            color: #85ACBD;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: rgba(238, 223, 223, 0.9);
+            margin-bottom: 1rem;
+        }
+
+        /* CONTENEDOR DE TARJETAS */
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        /* TARJETA DE URGENCIA (mejorada) */
+        .urgencia-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(6px);
+            border-radius: 20px;
+            padding: 1.8rem 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+            transition: transform 0.25s ease, box-shadow 0.3s ease, background 0.2s ease;
+            color: #f0f4fa;
+            will-change: transform;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .urgencia-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            background: rgba(255, 255, 255, 0.18);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Prioridades con acentos */
+        .prioridad-alta {
+            border-left: 6px solid #f44336;
+            background: rgba(244, 67, 54, 0.12);
+        }
+
+        .prioridad-alta h2 {
+            color: #ff8a80;
+        }
+
+        .prioridad-alta i {
+            color: #ff5252;
+        }
+
+        .prioridad-media {
+            border-left: 6px solid #ffb74d;
+            background: rgba(255, 183, 77, 0.10);
+        }
+
+        .prioridad-media h2 {
+            color: #ffcc80;
+        }
+
+        .prioridad-media i {
+            color: #ffb74d;
+        }
+
+        .urgencia-card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            letter-spacing: -0.2px;
+        }
+
+        .urgencia-card h3 {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #cfddee;
+            margin-top: 0.6rem;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.15);
+            padding-bottom: 0.3rem;
+        }
+
+        .urgencia-card p {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            opacity: 0.92;
+            margin: 0.1rem 0;
+        }
+
+        .urgencia-card strong {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .urgencia-card ul {
+            list-style: none;
+            padding: 0;
+            margin: 0.2rem 0 0.4rem 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .urgencia-card ul li {
+            padding: 0.3rem 0 0.3rem 1.6rem;
+            position: relative;
+            font-size: 0.92rem;
+            line-height: 1.4;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .urgencia-card ul li::before {
+            content: "•";
+            position: absolute;
+            left: 0.2rem;
+            color: #85d0ff;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .urgencia-card .atencion-badge {
+            display: inline-block;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 0.3rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            margin-top: 0.4rem;
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            align-self: flex-start;
+        }
+
+        .prioridad-alta .atencion-badge {
+            background: rgba(244, 67, 54, 0.25);
+            border-color: rgba(244, 67, 54, 0.3);
+            color: #ffcdd2;
+        }
+
+        .prioridad-media .atencion-badge {
+            background: rgba(255, 183, 77, 0.2);
+            border-color: rgba(255, 183, 77, 0.25);
+            color: #ffe0b2;
+        }
+
+        /* HEADER y FOOTER inyectados (se mantienen) */
+        #header,
+        #footer {
+            width: 100%;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .glass {
+                width: 95%;
+                height: 92%;
+                padding: 1.2rem;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+
+            .urgencia-card h2 {
+                font-size: 1.3rem;
+            }
+
+            .title {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* Botón salir (estilo extra) */
+        .btn-salir-ultra {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 0.4rem 0.9rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-salir-ultra:hover {
+            color: rgba(255, 255, 255, 1);
+            border-color: rgba(255, 255, 255, 0.4);
+            background: rgba(240, 50, 60, 0.05);
+            transform: translateY(-1px);
+        }
+
+        /* Ajuste para el grid interior */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+            grid-auto-rows: minmax(90px, auto);
+        }
+
+        .contenido {
+            padding: 0.5rem 0;
+        }
+
+        /* Footer texto */
+        #footerText {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+    </style>
 </head>
 
 <body>
@@ -18,14 +358,15 @@
         <div id="header"></div>
         <div class="grid">
             <div class="contenido">
-                <h1 class="title">Tipos de Urgencias Médicas</h1>
+                <h1 class="title"><i class="fas fa-ambulance" style="margin-right: 10px; color: #ffdd00;"></i>Tipos de
+                    Urgencias Médicas</h1>
 
                 <div class="cards-container">
+                    <!-- Tarjeta Urgencia Calificada (prioridad alta) -->
                     <div class="urgencia-card prioridad-alta">
                         <h2><i class="fas fa-exclamation-triangle"></i> Urgencia Calificada</h2>
                         <p><strong>Definición:</strong> Un problema de salud de presentación súbita que pone en riesgo
                             la vida, un órgano o una función.</p>
-
                         <h3>Ejemplos:</h3>
                         <ul>
                             <li>Accidentes (automovilísticos, caídas, quemaduras)</li>
@@ -35,48 +376,47 @@
                             <li>Vómitos o diarrea graves</li>
                             <li>Crisis hipertensiva</li>
                         </ul>
-
                         <h3>Atención:</h3>
-                        <p>Inmediata, se prioriza en el servicio de urgencias.</p>
+                        <p><span class="atencion-badge"><i class="fas fa-clock"
+                                    style="margin-right: 6px;"></i>Inmediata</span> Se prioriza en el servicio de
+                            urgencias.</p>
                     </div>
 
+                    <!-- Tarjeta Urgencia No Calificada (prioridad media) -->
                     <div class="urgencia-card prioridad-media">
                         <h2><i class="fas fa-stethoscope"></i> Urgencia No Calificada</h2>
                         <p><strong>Definición:</strong> Un problema de salud que no pone en riesgo la vida, aunque el
                             paciente lo sienta como urgente. También puede incluir situaciones médico-administrativas o
                             médico-legales.</p>
-
                         <h3>Ejemplos:</h3>
                         <ul>
                             <li>Resfriado común</li>
                             <li>Malestar sin fiebre</li>
                             <li>Problemas crónicos sin deterioro agudo</li>
                         </ul>
-
                         <h3>Atención:</h3>
-                        <p>Puede posponerse o esperar atención en consulta externa. La demora máxima puede ser de hasta
-                            2 horas.</p>
+                        <p><span class="atencion-badge"><i class="fas fa-hourglass-half"
+                                    style="margin-right: 6px;"></i>Puede posponerse</span> Demora máxima de hasta 2
+                            horas en consulta externa.</p>
                     </div>
                 </div>
             </div>
         </div>
         <div id="footer"></div>
     </div>
+
     <script>
+        // Carga de header y footer (igual que original)
         fetch('/estadisticas/comun/header.html')
             .then(r => r.text())
             .then(html => {
                 document.getElementById('header').innerHTML = html;
-
-                // Cargar sesión.js después de insertar el HTML
                 const s = document.createElement('script');
                 s.src = '/estadisticas/comun/sesion_bk.js';
-
                 s.onload = () => {
                     console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
-                    verificarAutenticacion();
+                    if (typeof verificarAutenticacion === 'function') verificarAutenticacion();
                 };
-
                 document.body.appendChild(s);
             });
 
@@ -84,14 +424,13 @@
             .then(r => r.text())
             .then(html => {
                 document.getElementById('footer').innerHTML = html;
-
-                // Ya existe footerText
                 const footer = document.getElementById('footerText');
                 if (footer) {
                     footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
                 }
             });
     </script>
+    <!-- scripts externos (se mantienen) -->
     <script src="/estadisticas/comun/estadoSistema.js"></script>
     <script src="/estadisticas/comun/sesion_bk.js"></script>
 </body>
