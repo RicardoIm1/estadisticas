@@ -263,7 +263,7 @@
       }
     }
 
-    // FUNCIÓN MODIFICADA: Mostrar tabla con orden por FECHA descendente y FOLIO descendente
+    // FUNCIÓN MODIFICADA: Mostrar tabla con orden por FECHA descendente y luego por FOLIO
     function mostrarTabla(registros) {
       const tbody = document.getElementById('tabla-registros');
       tbody.innerHTML = '';
@@ -273,7 +273,7 @@
         return;
       }
 
-      // Ordenar registros por FECHA descendente (más reciente primero) y FOLIO descendente
+      // Ordenar registros por FECHA descendente (más reciente primero) y luego por FOLIO
       const registrosOrdenados = [...registros].sort((a, b) => {
         // Primero ordenar por fecha (descendente)
         const fechaA = a.fechaDefuncion ? new Date(a.fechaDefuncion) : new Date(0);
@@ -284,20 +284,21 @@
           return fechaB.getTime() - fechaA.getTime();
         }
 
-        // Si las fechas son iguales, ordenar por folio (DESCENDENTE)
+        // Si las fechas son iguales, ordenar por folio (ascendente)
         const folioA = a.folio || '';
         const folioB = b.folio || '';
 
-        // Comparar como números si son numéricos
-        const numA = parseInt(folioA);
-        const numB = parseInt(folioB);
+        // Extraer el número del folio (asumiendo que el número está al final)
+        const numA = extraerNumeroFolio(folioA);
+        const numB = extraerNumeroFolio(folioB);
 
-        if (!isNaN(numA) && !isNaN(numB)) {
-          return numB - numA; // <--- CAMBIO AQUÍ: Orden numérico DESCENDENTE
+        // Si ambos tienen números válidos, ordenar numéricamente
+        if (numA !== null && numB !== null) {
+          return numA - numB;
         }
 
-        // Orden alfabético DESCENDENTE
-        return String(folioB).localeCompare(String(folioA)); // <--- CAMBIO AQUÍ
+        // Si no, ordenar alfabéticamente
+        return String(folioA).localeCompare(String(folioB));
       });
 
       registrosOrdenados.forEach((registro, index) => {
@@ -323,6 +324,26 @@
       });
     }
 
+    // Función auxiliar para extraer el número del folio (también para insertar)
+    function extraerNumeroFolio(folio) {
+      if (!folio) return null;
+
+      // Buscar el último número en el folio
+      const match = folio.match(/\d+$/);
+      if (match) {
+        return parseInt(match[0], 10);
+      }
+
+      // Si no encuentra número al final, intentar extraer todos los números
+      const todosNumeros = folio.match(/\d+/g);
+      if (todosNumeros) {
+        // Tomar el último grupo de números (generalmente es el número secuencial)
+        return parseInt(todosNumeros[todosNumeros.length - 1], 10);
+      }
+
+      return null;
+    }
+
     // NUEVA FUNCIÓN: Agregar registro al top sin recargar
     function agregarRegistroAlTop(registro) {
       const tbody = document.getElementById('tabla-registros');
@@ -334,7 +355,7 @@
         tbody.innerHTML = '';
       }
 
-      // Buscar la posición correcta según el orden (fecha descendente, folio descendente)
+      // Buscar la posición correcta según el orden (fecha descendente, folio ascendente)
       let posicionInsertar = 0;
       const filas = tbody.querySelectorAll('tr');
 
@@ -353,20 +374,20 @@
           posicionInsertar = i;
           break;
         } else if (fechaObj.getTime() === fechaNuevo.getTime()) {
-          // Si misma fecha, comparar por folio (DESCENDENTE)
-          const folioNum = parseInt(folioFila);
-          const folioNuevoNum = parseInt(registro.folio);
+          // Si misma fecha, comparar por folio (numéricamente)
+          const numFila = extraerNumeroFolio(folioFila);
+          const numNuevo = extraerNumeroFolio(registro.folio);
 
-          if (!isNaN(folioNum) && !isNaN(folioNuevoNum)) {
-            if (folioNum < folioNuevoNum) { // <--- CAMBIO AQUÍ: Mayor número va primero
+          if (numFila !== null && numNuevo !== null) {
+            if (numFila > numNuevo) {
               posicionInsertar = i;
               break;
             }
           } else {
-            // Convertir a string y comparar descendente
+            // Si no se pueden extraer números, comparar alfabéticamente
             const folioFilaStr = String(folioFila || '');
             const folioNuevoStr = String(registro.folio || '');
-            if (folioFilaStr.localeCompare(folioNuevoStr) < 0) { // <--- CAMBIO AQUÍ
+            if (folioFilaStr.localeCompare(folioNuevoStr) > 0) {
               posicionInsertar = i;
               break;
             }
@@ -376,7 +397,7 @@
         posicionInsertar = i + 1;
       }
 
-      // Crear nueva fila (sin cambios)
+      // Crear nueva fila
       const tr = document.createElement('tr');
       tr.innerHTML = `
     <td>${posicionInsertar + 1}</td>
@@ -396,7 +417,7 @@
     </td>
   `;
 
-      // Insertar en la posición correcta (sin cambios)
+      // Insertar en la posición correcta
       if (posicionInsertar === 0) {
         tbody.insertBefore(tr, tbody.firstChild);
       } else if (posicionInsertar >= filas.length) {
@@ -405,12 +426,13 @@
         tbody.insertBefore(tr, filas[posicionInsertar]);
       }
 
-      // Renumerar todas las filas (sin cambios)
+      // Renumerar todas las filas
       const filasActualizadas = tbody.querySelectorAll('tr');
       filasActualizadas.forEach((fila, index) => {
         fila.querySelector('td:first-child').textContent = index + 1;
       });
     }
+
     // FUNCIÓN MODIFICADA: Guardar registro optimizado
     async function guardar(e) {
       e.preventDefault();
