@@ -12,7 +12,10 @@
   <link href="/estadisticas/main_css/estilos_original.css" rel="stylesheet">
   <link href="/estadisticas/defunciones/estilos.css" rel="stylesheet">
   <link href="/estadisticas/main_css/tabla-wrapper.css" rel="stylesheet">
+  <!-- Chart.js para gráficas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
+
 <style>
   #tabla-registros td:nth-child(2) {
     white-space: normal;
@@ -26,6 +29,188 @@
     height: 0;
     border: none;
   }
+
+  /* Estilos para el modal de gráfica */
+  .modal-grafica-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .modal-grafica-backdrop.active {
+    display: flex;
+  }
+
+  .modal-grafica {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideUp 0.4s ease;
+    position: relative;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      transform: translateY(30px) scale(0.95);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+  }
+
+  .modal-grafica-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-grafica-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #2d3436;
+  }
+
+  .modal-grafica-header h2 i {
+    color: #e17055;
+    margin-right: 10px;
+  }
+
+  .btn-cerrar-grafica {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: #636e72;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+
+  .btn-cerrar-grafica:hover {
+    background: #ff7675;
+    color: white;
+    transform: rotate(90deg);
+  }
+
+  .grafica-container {
+    position: relative;
+    height: 400px;
+  }
+
+  .grafica-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .grafica-leyenda {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+  }
+
+  .leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .leyenda-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+
+  .leyenda-color.mujeres {
+    background: #fd79a8;
+  }
+
+  .leyenda-color.hombres {
+    background: #0984e3;
+  }
+
+  .btn-grafica {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+  }
+
+  .btn-grafica:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 92, 231, 0.5);
+  }
+
+  .btn-grafica i {
+    font-size: 1.1rem;
+  }
+
+  /* Botón de gráfica en el header */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .modal-grafica {
+      padding: 20px;
+      width: 95%;
+    }
+    .modal-grafica-header h2 {
+      font-size: 1.2rem;
+    }
+    .grafica-container {
+      height: 300px;
+    }
+  }
 </style>
 
 <body>
@@ -38,11 +223,13 @@
       <div class="buscador-wrapper">
         <input type="text" id="buscador" placeholder="🔍 Buscar por cualquier campo..." class="input-busqueda">
       </div>
-      <div>
+      <div class="header-actions">
+        <button class="btn-grafica" id="btnAbrirGrafica">
+          <i class="fas fa-chart-bar"></i> Estadísticas
+        </button>
         <div class="usuario">
           <i class="fas fa-user-circle"></i>
           <span id="user-info"></span>
-          <!-- Botón de cerrar sesión -->
           <button onclick="cerrarSesion()" class="btn-salir-ultra">
             Salir
           </button>
@@ -156,6 +343,31 @@
     </div>
   </div> <!-- end .glass -->
 
+  <!-- MODAL PARA GRÁFICA DE DEFUNCIONES -->
+  <div class="modal-grafica-backdrop" id="modalGrafica">
+    <div class="modal-grafica">
+      <div class="modal-grafica-header">
+        <h2><i class="fas fa-chart-bar"></i> Defunciones por Mes y Sexo</h2>
+        <button class="btn-cerrar-grafica" id="btnCerrarGrafica" title="Cerrar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="grafica-container">
+        <canvas id="graficaDefunciones"></canvas>
+      </div>
+      <div class="grafica-leyenda">
+        <div class="leyenda-item">
+          <div class="leyenda-color mujeres"></div>
+          <span>Mujeres</span>
+        </div>
+        <div class="leyenda-item">
+          <div class="leyenda-color hombres"></div>
+          <span>Hombres</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Iframe oculto para enviar formularios -->
   <iframe id="form-iframe" name="form-iframe"></iframe>
 
@@ -235,6 +447,7 @@
 
     // Variables globales
     let idParaEliminar = null;
+    let chartInstance = null;
 
     // Función para cargar datos
     async function cargarRegistros() {
@@ -252,6 +465,8 @@
             data.rows.sort((a, b) => parseInt(b.id) - parseInt(a.id));
           }
           mostrarTabla(data.rows);
+          // Guardar registros globalmente para la gráfica
+          window.registrosGlobales = data.rows || [];
           setEstado('success');
         } else {
           throw new Error(data.error || 'Error del servidor');
@@ -517,6 +732,10 @@
 
           // Añadir al principio de la tabla
           agregarRegistroAlTop(nuevoRegistro);
+          // Actualizar registros globales para la gráfica
+          if (window.registrosGlobales) {
+            window.registrosGlobales.push(nuevoRegistro);
+          }
         } else {
           // Si es edición, recargar todo para actualizar
           cargarRegistros();
@@ -577,6 +796,11 @@
               }
             }
           });
+          
+          // Actualizar registros globales para la gráfica
+          if (window.registrosGlobales) {
+            window.registrosGlobales = window.registrosGlobales.filter(r => r.id !== idParaEliminar);
+          }
         }, 1500);
 
       } catch (error) {
@@ -674,6 +898,140 @@
       setEstado('success');
     }
 
+    // ========== FUNCIONES PARA LA GRÁFICA ==========
+    function generarDatosGrafica(registros) {
+      // Agrupar por mes y sexo
+      const datosPorMes = {};
+      
+      registros.forEach(registro => {
+        if (!registro.fechaDefuncion) return;
+        
+        const fecha = new Date(registro.fechaDefuncion);
+        if (isNaN(fecha.getTime())) return;
+        
+        const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+        const mesLabel = fecha.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        
+        if (!datosPorMes[mesKey]) {
+          datosPorMes[mesKey] = {
+            label: mesLabel,
+            mujeres: 0,
+            hombres: 0
+          };
+        }
+        
+        const sexo = registro.sexo || '';
+        if (sexo === 'Femenino') {
+          datosPorMes[mesKey].mujeres++;
+        } else if (sexo === 'Masculino') {
+          datosPorMes[mesKey].hombres++;
+        }
+      });
+      
+      // Ordenar por fecha
+      const mesesOrdenados = Object.keys(datosPorMes).sort();
+      
+      return {
+        labels: mesesOrdenados.map(key => datosPorMes[key].label),
+        mujeres: mesesOrdenados.map(key => datosPorMes[key].mujeres),
+        hombres: mesesOrdenados.map(key => datosPorMes[key].hombres)
+      };
+    }
+
+    function crearGrafica() {
+      const ctx = document.getElementById('graficaDefunciones').getContext('2d');
+      
+      // Destruir gráfica anterior si existe
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+      
+      const registros = window.registrosGlobales || [];
+      const datos = generarDatosGrafica(registros);
+      
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: datos.labels,
+          datasets: [
+            {
+              label: 'Mujeres',
+              data: datos.mujeres,
+              backgroundColor: 'rgba(253, 121, 168, 0.8)',
+              borderColor: 'rgba(253, 121, 168, 1)',
+              borderWidth: 2,
+              borderRadius: 4
+            },
+            {
+              label: 'Hombres',
+              data: datos.hombres,
+              backgroundColor: 'rgba(9, 132, 227, 0.8)',
+              borderColor: 'rgba(9, 132, 227, 1)',
+              borderWidth: 2,
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  let value = context.parsed.y || 0;
+                  return label + ': ' + value + ' defunciones';
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function abrirGrafica() {
+      const modal = document.getElementById('modalGrafica');
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      // Crear la gráfica con un pequeño retraso para que el modal se renderice
+      setTimeout(() => {
+        crearGrafica();
+      }, 100);
+    }
+
+    function cerrarGrafica() {
+      const modal = document.getElementById('modalGrafica');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+      
+      // Destruir gráfica al cerrar
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+    }
+
     // Inicialización
     document.addEventListener('DOMContentLoaded', function () {
       console.log('🚀 Iniciando aplicación...');
@@ -683,8 +1041,19 @@
       document.getElementById('btn-cancelar').addEventListener('click', cancelarEdicion);
       document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarConfirmado);
       document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarModal);
+      
+      // Eventos para la gráfica
+      document.getElementById('btnAbrirGrafica').addEventListener('click', abrirGrafica);
+      document.getElementById('btnCerrarGrafica').addEventListener('click', cerrarGrafica);
+      
+      // Cerrar modal de gráfica al hacer clic fuera
+      document.getElementById('modalGrafica').addEventListener('click', function (e) {
+        if (e.target === this) {
+          cerrarGrafica();
+        }
+      });
 
-      // Cerrar modal al hacer clic fuera
+      // Cerrar modal de eliminación al hacer clic fuera
       document.getElementById('modalEliminar').addEventListener('click', function (e) {
         if (e.target === this) {
           cerrarModal();
@@ -698,6 +1067,8 @@
     // Funciones globales para los botones
     window.editar = editar;
     window.solicitarEliminar = solicitarEliminar;
+    window.abrirGrafica = abrirGrafica;
+    window.cerrarGrafica = cerrarGrafica;
 
   </script>
 
