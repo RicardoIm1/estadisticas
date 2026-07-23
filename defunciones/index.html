@@ -288,7 +288,7 @@
         const folioA = a.folio || '';
         const folioB = b.folio || '';
 
-        // Extraer el número del folio (asumiendo que el número está al final)
+        // Extraer el número del folio
         const numA = extraerNumeroFolio(folioA);
         const numB = extraerNumeroFolio(folioB);
 
@@ -324,18 +324,24 @@
       });
     }
 
-    // Función auxiliar para extraer el número del folio (también para insertar)
+    // Función auxiliar para extraer el número del folio (CORREGIDA)
     function extraerNumeroFolio(folio) {
-      if (!folio) return null;
+      // Si es null, undefined o vacío, retornar null
+      if (folio === null || folio === undefined || folio === '') {
+        return null;
+      }
+
+      // Convertir a string por si acaso
+      const folioStr = String(folio);
 
       // Buscar el último número en el folio
-      const match = folio.match(/\d+$/);
+      const match = folioStr.match(/\d+$/);
       if (match) {
         return parseInt(match[0], 10);
       }
 
       // Si no encuentra número al final, intentar extraer todos los números
-      const todosNumeros = folio.match(/\d+/g);
+      const todosNumeros = folioStr.match(/\d+/g);
       if (todosNumeros) {
         // Tomar el último grupo de números (generalmente es el número secuencial)
         return parseInt(todosNumeros[todosNumeros.length - 1], 10);
