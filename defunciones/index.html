@@ -14,19 +14,20 @@
   <link href="/estadisticas/main_css/tabla-wrapper.css" rel="stylesheet">
 </head>
 <style>
-      #tabla-registros td:nth-child(2) {
-        white-space: normal;
-        word-break: break-word;
-    }
-        
-    /* Iframe oculto para enviar formularios */
-    #form-iframe {
-      display: none;
-      width: 0;
-      height: 0;
-      border: none;
-    }
+  #tabla-registros td:nth-child(2) {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Iframe oculto para enviar formularios */
+  #form-iframe {
+    display: none;
+    width: 0;
+    height: 0;
+    border: none;
+  }
 </style>
+
 <body>
   <div class="glass" id="dashboard">
     <h5>Defunciones Generales</h5>
@@ -35,8 +36,8 @@
         <a href="/estadisticas/"> <img src="/estadisticas/img/logo-hrpv.png" alt="Logo" width="120"></a>
       </div>
       <div class="buscador-wrapper">
-          <input type="text" id="buscador" placeholder="🔍 Buscar por cualquier campo..." class="input-busqueda">
-        </div>
+        <input type="text" id="buscador" placeholder="🔍 Buscar por cualquier campo..." class="input-busqueda">
+      </div>
       <div>
         <div class="usuario">
           <i class="fas fa-user-circle"></i>
@@ -48,7 +49,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="contenedor-flex">
       <form id="crud-form" class="formulario">
         <input type="hidden" id="id">
@@ -158,414 +159,503 @@
   <!-- Iframe oculto para enviar formularios -->
   <iframe id="form-iframe" name="form-iframe"></iframe>
 
-    <script>
-      // Footer dinámico
-      document.getElementById('footerText').innerHTML =
-        `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+  <script>
+    // Footer dinámico
+    document.getElementById('footerText').innerHTML =
+      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
 
-      // ========== FUNCIÓN PARA FORMATEAR FECHAS ==========
-      function formatearFecha(fechaString) {
-        if (!fechaString) return '-';
+    // ========== FUNCIÓN PARA FORMATEAR FECHAS ==========
+    function formatearFecha(fechaString) {
+      if (!fechaString) return '-';
 
-        try {
-          // Si ya es una fecha válida en formato simple
-          if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
-            const fecha = new Date(fechaString + 'T00:00:00');
-            return fecha.toLocaleDateString('es-ES', {
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric'
-            });
-          }
-
-          // Si viene con hora (formato completo)
-          const fecha = new Date(fechaString);
-
-          // Verificar si es una fecha válida
-          if (isNaN(fecha.getTime())) {
-            return '-';
-          }
-
-          // Formatear a DD/MM/YYYY
+      try {
+        // Si ya es una fecha válida en formato simple
+        if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
+          const fecha = new Date(fechaString + 'T00:00:00');
           return fecha.toLocaleDateString('es-ES', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
           });
-        } catch (error) {
-          console.error('Error formateando fecha:', fechaString, error);
+        }
+
+        // Si viene con hora (formato completo)
+        const fecha = new Date(fechaString);
+
+        // Verificar si es una fecha válida
+        if (isNaN(fecha.getTime())) {
           return '-';
         }
+
+        // Formatear a DD/MM/YYYY
+        return fecha.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      } catch (error) {
+        console.error('Error formateando fecha:', fechaString, error);
+        return '-';
+      }
+    }
+
+    // ========== estadoSistema.js ==========
+    function setEstado(estado) {
+      const dashboard = document.querySelector('.glass');
+
+      if (!dashboard) {
+        console.warn('⚠️ No se encontró el contenedor .glass');
+        return;
       }
 
-      // ========== estadoSistema.js ==========
-      function setEstado(estado) {
-        const dashboard = document.querySelector('.glass');
+      dashboard.style.transition = 'background 0.5s ease, box-shadow 0.8s ease, border 0.5s ease';
+      dashboard.classList.remove('loading', 'success', 'error');
 
-        if (!dashboard) {
-          console.warn('⚠️ No se encontró el contenedor .glass');
-          return;
-        }
+      switch (estado) {
+        case 'loading':
+          dashboard.classList.add('loading');
+          break;
+        case 'success':
+          dashboard.classList.add('success');
+          break;
+        case 'error':
+          dashboard.classList.add('error');
+          break;
+      }
 
-        dashboard.style.transition = 'background 0.5s ease, box-shadow 0.8s ease, border 0.5s ease';
+      // 🔄 Restaurar a cristalino en 5 s
+      setTimeout(() => {
+        dashboard.style.transition = 'background 5s ease, box-shadow 5s ease, border 5s ease';
         dashboard.classList.remove('loading', 'success', 'error');
+      }, 5000);
+    }
 
-        switch (estado) {
-          case 'loading':
-            dashboard.classList.add('loading');
-            break;
-          case 'success':
-            dashboard.classList.add('success');
-            break;
-          case 'error':
-            dashboard.classList.add('error');
-            break;
-        }
+    // ========== app.js ==========
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzTd3NQZuEKXIrIjI9qTRBolbeB9RlJ0d0RETuPunYQqE2Xz4860uiwAqGKiXXg3mfK/exec";
 
-        // 🔄 Restaurar a cristalino en 5 s
-        setTimeout(() => {
-          dashboard.style.transition = 'background 5s ease, box-shadow 5s ease, border 5s ease';
-          dashboard.classList.remove('loading', 'success', 'error');
-        }, 5000);
-      }
+    // Variables globales
+    let idParaEliminar = null;
 
-      // ========== app.js ==========
-      const GAS_URL = "https://script.google.com/macros/s/AKfycbzTd3NQZuEKXIrIjI9qTRBolbeB9RlJ0d0RETuPunYQqE2Xz4860uiwAqGKiXXg3mfK/exec";
+    // Función para cargar datos
+    async function cargarRegistros() {
+      try {
+        console.log('🔄 Cargando registros...');
+        setEstado('loading');
 
-      // Variables globales
-      let idParaEliminar = null;
+        const response = await fetch(GAS_URL);
+        const text = await response.text();
+        const data = JSON.parse(text);
 
-      // Función para cargar datos
-      async function cargarRegistros() {
-        try {
-          console.log('🔄 Cargando registros...');
-          setEstado('loading');
-
-          const response = await fetch(GAS_URL);
-          const text = await response.text();
-          const data = JSON.parse(text);
-
-          if (data.success) {
-            mostrarTabla(data.rows);
-            setEstado('success');
-          } else {
-            throw new Error(data.error || 'Error del servidor');
+        if (data.success) {
+          // Ordenar por ID antes de mostrar
+          if (data.rows && data.rows.length > 0) {
+            data.rows.sort((a, b) => parseInt(b.id) - parseInt(a.id));
           }
-        } catch (error) {
-          console.error('❌ Error:', error);
-          setEstado('error');
-          document.getElementById('tabla-registros').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #ff6b6b;">Error cargando datos</td></tr>';
+          mostrarTabla(data.rows);
+          setEstado('success');
+        } else {
+          throw new Error(data.error || 'Error del servidor');
         }
+      } catch (error) {
+        console.error('❌ Error:', error);
+        setEstado('error');
+        document.getElementById('tabla-registros').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #ff6b6b;">Error cargando datos</td></tr>';
+      }
+    }
+
+    // FUNCIÓN MODIFICADA: Mostrar tabla con orden por ID descendente
+    function mostrarTabla(registros) {
+      const tbody = document.getElementById('tabla-registros');
+      tbody.innerHTML = '';
+
+      if (!registros || registros.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No hay registros</td></tr>';
+        return;
       }
 
-      // Guardar registro - USANDO FORMULARIO EN IFRAME
-      async function guardar(e) {
-        e.preventDefault();
+      // Ordenar registros por ID (último añadido primero)
+      const registrosOrdenados = [...registros].sort((a, b) => {
+        // Asumiendo que el ID es numérico y secuencial
+        return parseInt(b.id) - parseInt(a.id);
+      });
 
-        const id = document.getElementById('id').value;
-        const datos = {
-          folio: document.getElementById('folio').value,
-          nombre: document.getElementById('nombre').value,
-          fechaDefuncion: document.getElementById('fechaDefuncion').value,
-          area: document.getElementById('area').value,
-          edad: document.getElementById('edad').value,
-          sexo: document.getElementById('sexo').value,
-          diagnostico: document.getElementById('diagnostico').value,
-          expediente: document.getElementById('expediente').value,
-          medico: document.getElementById('medico').value,
-          observaciones: document.getElementById('observaciones').value
-        };
+      registrosOrdenados.forEach((registro, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${registro.folio || '-'}</td>
+      <td>${registro.nombre || ''}</td>
+      <td>${formatearFecha(registro.fechaDefuncion)}</td>
+      <td>${registro.area || ''}</td>
+      <td>
+        <div class="acciones-tabla">
+          <button class="btn-editar" onclick="editar('${registro.id}')" title="Editar registro">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-eliminar" onclick="solicitarEliminar('${registro.id}')" title="Eliminar registro">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    `;
+        tbody.appendChild(tr);
+      });
+    }
 
-        if (!datos.nombre) {
-          setEstado('error');
-          alert('❌ El nombre es obligatorio');
-          return;
+    // NUEVA FUNCIÓN: Agregar registro al top sin recargar
+    function agregarRegistroAlTop(registro) {
+      const tbody = document.getElementById('tabla-registros');
+
+      // Si hay un mensaje de "No hay registros" o "Cargando...", limpiarlo
+      if (tbody.children.length === 1 &&
+        (tbody.children[0].textContent.includes('No hay registros') ||
+          tbody.children[0].textContent.includes('Cargando'))) {
+        tbody.innerHTML = '';
+      }
+
+      // Crear nueva fila
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+    <td>1</td>
+    <td>${registro.folio || '-'}</td>
+    <td>${registro.nombre || ''}</td>
+    <td>${formatearFecha(registro.fechaDefuncion)}</td>
+    <td>${registro.area || ''}</td>
+    <td>
+      <div class="acciones-tabla">
+        <button class="btn-editar" onclick="editar('${registro.id}')" title="Editar registro">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-eliminar" onclick="solicitarEliminar('${registro.id}')" title="Eliminar registro">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </td>
+  `;
+
+      // Insertar al principio
+      tbody.insertBefore(tr, tbody.firstChild);
+
+      // Renumerar las filas existentes
+      const filas = tbody.querySelectorAll('tr');
+      filas.forEach((fila, index) => {
+        fila.querySelector('td:first-child').textContent = index + 1;
+      });
+    }
+
+    // FUNCIÓN MODIFICADA: Guardar registro optimizado
+    async function guardar(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('id').value;
+      const datos = {
+        folio: document.getElementById('folio').value,
+        nombre: document.getElementById('nombre').value,
+        fechaDefuncion: document.getElementById('fechaDefuncion').value,
+        area: document.getElementById('area').value,
+        edad: document.getElementById('edad').value,
+        sexo: document.getElementById('sexo').value,
+        diagnostico: document.getElementById('diagnostico').value,
+        expediente: document.getElementById('expediente').value,
+        medico: document.getElementById('medico').value,
+        observaciones: document.getElementById('observaciones').value
+      };
+
+      if (!datos.nombre) {
+        setEstado('error');
+        alert('❌ El nombre es obligatorio');
+        return;
+      }
+
+      console.log('💾 Enviando datos:', datos);
+      setEstado('loading');
+
+      // Crear formulario dinámico
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = GAS_URL;
+      form.target = 'form-iframe';
+      form.style.display = 'none';
+
+      // Agregar campos
+      const campos = {
+        action: id ? 'updateData' : 'createData',
+        ...datos
+      };
+
+      if (id) campos.id = id;
+
+      Object.keys(campos).forEach(key => {
+        const input = document.createElement('input');
+        input.name = key;
+        input.value = campos[key] || '';
+        form.appendChild(input);
+      });
+
+      // Agregar formulario al body y enviar
+      document.body.appendChild(form);
+      form.submit();
+
+      // Optimización: recargar solo si es necesario
+      setTimeout(() => {
+        document.body.removeChild(form);
+        setEstado('success');
+        limpiarForm();
+
+        // Si es un nuevo registro, solo añadir al principio sin recargar todo
+        if (!id) {
+          // Crear un objeto con los datos del nuevo registro
+          const nuevoRegistro = {
+            id: Date.now().toString(), // ID temporal
+            folio: datos.folio || '-',
+            nombre: datos.nombre,
+            fechaDefuncion: datos.fechaDefuncion || '',
+            area: datos.area || '',
+            edad: datos.edad || '',
+            sexo: datos.sexo || '',
+            diagnostico: datos.diagnostico || '',
+            expediente: datos.expediente || '',
+            medico: datos.medico || '',
+            observaciones: datos.observaciones || ''
+          };
+
+          // Añadir al principio de la tabla
+          agregarRegistroAlTop(nuevoRegistro);
+        } else {
+          // Si es edición, recargar todo para actualizar
+          cargarRegistros();
         }
+      }, 1500);
+    }
 
-        console.log('💾 Enviando datos:', datos);
+    // FUNCIÓN MODIFICADA: Eliminar registro optimizado
+    async function eliminarConfirmado() {
+      if (!idParaEliminar) return;
+
+      try {
         setEstado('loading');
 
         // Crear formulario dinámico
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = GAS_URL;
-        form.target = 'form-iframe';  // Enviar al iframe oculto
+        form.target = 'form-iframe';
         form.style.display = 'none';
 
-        // Agregar campos
-        const campos = {
-          action: id ? 'updateData' : 'createData',
-          ...datos
-        };
+        const inputAction = document.createElement('input');
+        inputAction.name = 'action';
+        inputAction.value = 'deleteData';
+        form.appendChild(inputAction);
 
-        if (id) campos.id = id;
-
-        Object.keys(campos).forEach(key => {
-          const input = document.createElement('input');
-          input.name = key;
-          input.value = campos[key] || '';
-          form.appendChild(input);
-        });
+        const inputId = document.createElement('input');
+        inputId.name = 'id';
+        inputId.value = idParaEliminar;
+        form.appendChild(inputId);
 
         // Agregar formulario al body y enviar
         document.body.appendChild(form);
         form.submit();
-        
+
         // Esperar un momento para que se procese
         setTimeout(() => {
           document.body.removeChild(form);
           setEstado('success');
-          limpiarForm();
-          cargarRegistros();
-        }, 1500);
-      }
-
-      // Eliminar registro - USANDO FORMULARIO EN IFRAME
-      async function eliminarConfirmado() {
-        if (!idParaEliminar) return;
-
-        try {
-          setEstado('loading');
-
-          // Crear formulario dinámico
-          const form = document.createElement('form');
-          form.method = 'POST';
-          form.action = GAS_URL;
-          form.target = 'form-iframe';  // Enviar al iframe oculto
-          form.style.display = 'none';
-
-          const inputAction = document.createElement('input');
-          inputAction.name = 'action';
-          inputAction.value = 'deleteData';
-          form.appendChild(inputAction);
-
-          const inputId = document.createElement('input');
-          inputId.name = 'id';
-          inputId.value = idParaEliminar;
-          form.appendChild(inputId);
-
-          // Agregar formulario al body y enviar
-          document.body.appendChild(form);
-          form.submit();
-          
-          // Esperar un momento para que se procese
-          setTimeout(() => {
-            document.body.removeChild(form);
-            setEstado('success');
-            cerrarModal();
-            cargarRegistros();
-          }, 1500);
-
-        } catch (error) {
-          console.error('❌ Error eliminando:', error);
-          setEstado('error');
-          alert('❌ Error eliminando: ' + error.message);
           cerrarModal();
-        }
+
+          // Eliminar la fila del DOM sin recargar todo
+          const filas = document.querySelectorAll('#tabla-registros tr');
+          filas.forEach((fila) => {
+            const botonEliminar = fila.querySelector('.btn-eliminar');
+            if (botonEliminar) {
+              const onclickAttr = botonEliminar.getAttribute('onclick');
+              if (onclickAttr && onclickAttr.includes(idParaEliminar)) {
+                fila.remove();
+                // Renumerar filas restantes
+                const filasRestantes = document.querySelectorAll('#tabla-registros tr');
+                filasRestantes.forEach((f, i) => {
+                  const firstTd = f.querySelector('td:first-child');
+                  if (firstTd) {
+                    firstTd.textContent = i + 1;
+                  }
+                });
+              }
+            }
+          });
+        }, 1500);
+
+      } catch (error) {
+        console.error('❌ Error eliminando:', error);
+        setEstado('error');
+        alert('❌ Error eliminando: ' + error.message);
+        cerrarModal();
       }
+    }
 
-      // Función para solicitar eliminación
-      function solicitarEliminar(id) {
-        idParaEliminar = id;
-        const modal = document.getElementById('modalEliminar');
-        const modalContent = modal.querySelector('.modal');
+    // Función para solicitar eliminación
+    function solicitarEliminar(id) {
+      idParaEliminar = id;
+      const modal = document.getElementById('modalEliminar');
+      const modalContent = modal.querySelector('.modal');
 
-        modal.style.display = 'flex';
-        setTimeout(() => {
-          modalContent.classList.add('show');
-        }, 10);
-      }
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        modalContent.classList.add('show');
+      }, 10);
+    }
 
-      function cerrarModal() {
-        const modal = document.getElementById('modalEliminar');
-        const modalContent = modal.querySelector('.modal');
+    function cerrarModal() {
+      const modal = document.getElementById('modalEliminar');
+      const modalContent = modal.querySelector('.modal');
 
-        modalContent.classList.remove('show');
-        setTimeout(() => {
-          modal.style.display = 'none';
-          idParaEliminar = null;
-        }, 300);
-      }
+      modalContent.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+        idParaEliminar = null;
+      }, 300);
+    }
 
-      // Mostrar tabla
-      function mostrarTabla(registros) {
-        const tbody = document.getElementById('tabla-registros');
-        tbody.innerHTML = '';
+    // Editar registro
+    async function editar(id) {
+      try {
+        setEstado('loading');
 
-        if (!registros || registros.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No hay registros</td></tr>';
-          return;
-        }
+        const response = await fetch(GAS_URL);
+        const data = await response.json();
 
-        // Ordenar registros por fecha más reciente primero
-        const registrosOrdenados = [...registros].sort((a, b) => {
-          return new Date(b.fechaDefuncion) - new Date(a.fechaDefuncion);
-        });
+        if (data.success) {
+          const registro = data.rows.find(r => r.id === id);
+          if (registro) {
+            document.getElementById('id').value = registro.id;
+            document.getElementById('folio').value = registro.folio || '';
+            document.getElementById('nombre').value = registro.nombre || '';
 
-        registrosOrdenados.forEach((registro, index) => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${registro.folio || '-'}</td>
-          <td>${registro.nombre || ''}</td>
-          <td>${formatearFecha(registro.fechaDefuncion)}</td>
-          <td>${registro.area || ''}</td>
-          <td>
-            <div class="acciones-tabla">
-              <button class="btn-editar" onclick="editar('${registro.id}')" title="Editar registro">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn-eliminar" onclick="solicitarEliminar('${registro.id}')" title="Eliminar registro">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
-        `;
-          tbody.appendChild(tr);
-        });
-      }
-
-      // Editar registro
-      async function editar(id) {
-        try {
-          setEstado('loading');
-
-          const response = await fetch(GAS_URL);
-          const data = await response.json();
-
-          if (data.success) {
-            const registro = data.rows.find(r => r.id === id);
-            if (registro) {
-              document.getElementById('id').value = registro.id;
-              document.getElementById('folio').value = registro.folio || '';
-              document.getElementById('nombre').value = registro.nombre || '';
-
-              // Formatear la fecha para el input date (necesita formato YYYY-MM-DD)
-              if (registro.fechaDefuncion) {
-                const fecha = new Date(registro.fechaDefuncion);
-                if (!isNaN(fecha.getTime())) {
-                  document.getElementById('fechaDefuncion').value = fecha.toISOString().split('T')[0];
-                } else {
-                  document.getElementById('fechaDefuncion').value = '';
-                }
+            // Formatear la fecha para el input date (necesita formato YYYY-MM-DD)
+            if (registro.fechaDefuncion) {
+              const fecha = new Date(registro.fechaDefuncion);
+              if (!isNaN(fecha.getTime())) {
+                document.getElementById('fechaDefuncion').value = fecha.toISOString().split('T')[0];
               } else {
                 document.getElementById('fechaDefuncion').value = '';
               }
-
-              document.getElementById('area').value = registro.area || '';
-              document.getElementById('edad').value = registro.edad || '';
-              document.getElementById('sexo').value = registro.sexo || '';
-              document.getElementById('diagnostico').value = registro.diagnostico || '';
-              document.getElementById('expediente').value = registro.expediente || '';
-              document.getElementById('medico').value = registro.medico || '';
-              document.getElementById('observaciones').value = registro.observaciones || '';
-
-              // Cambiar texto del botón
-              document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
-              document.getElementById('btn-cancelar').style.display = 'block';
-
-              setEstado('success');
-              document.querySelector('.formulario').scrollIntoView({ behavior: 'smooth' });
+            } else {
+              document.getElementById('fechaDefuncion').value = '';
             }
+
+            document.getElementById('area').value = registro.area || '';
+            document.getElementById('edad').value = registro.edad || '';
+            document.getElementById('sexo').value = registro.sexo || '';
+            document.getElementById('diagnostico').value = registro.diagnostico || '';
+            document.getElementById('expediente').value = registro.expediente || '';
+            document.getElementById('medico').value = registro.medico || '';
+            document.getElementById('observaciones').value = registro.observaciones || '';
+
+            // Cambiar texto del botón
+            document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
+            document.getElementById('btn-cancelar').style.display = 'block';
+
+            setEstado('success');
+            document.querySelector('.formulario').scrollIntoView({ behavior: 'smooth' });
           }
-        } catch (error) {
-          setEstado('error');
-          alert('❌ Error cargando registro para editar');
         }
+      } catch (error) {
+        setEstado('error');
+        alert('❌ Error cargando registro para editar');
       }
+    }
 
-      // Cancelar edición
-      function cancelarEdicion() {
-        limpiarForm();
-        setEstado('success');
-      }
+    // Cancelar edición
+    function cancelarEdicion() {
+      limpiarForm();
+      setEstado('success');
+    }
 
-      // Limpiar formulario
-      function limpiarForm() {
-        document.getElementById('crud-form').reset();
-        document.getElementById('id').value = '';
-        document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-save"></i> Guardar';
-        document.getElementById('btn-cancelar').style.display = 'none';
-        setEstado('success');
-      }
+    // Limpiar formulario
+    function limpiarForm() {
+      document.getElementById('crud-form').reset();
+      document.getElementById('id').value = '';
+      document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-save"></i> Guardar';
+      document.getElementById('btn-cancelar').style.display = 'none';
+      setEstado('success');
+    }
 
-      // Inicialización
-      document.addEventListener('DOMContentLoaded', function () {
-        console.log('🚀 Iniciando aplicación...');
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', function () {
+      console.log('🚀 Iniciando aplicación...');
 
-        document.getElementById('crud-form').addEventListener('submit', guardar);
-        document.getElementById('btn-limpiar').addEventListener('click', limpiarForm);
-        document.getElementById('btn-cancelar').addEventListener('click', cancelarEdicion);
-        document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarConfirmado);
-        document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarModal);
+      document.getElementById('crud-form').addEventListener('submit', guardar);
+      document.getElementById('btn-limpiar').addEventListener('click', limpiarForm);
+      document.getElementById('btn-cancelar').addEventListener('click', cancelarEdicion);
+      document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarConfirmado);
+      document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarModal);
 
-        // Cerrar modal al hacer clic fuera
-        document.getElementById('modalEliminar').addEventListener('click', function (e) {
-          if (e.target === this) {
-            cerrarModal();
-          }
-        });
-
-        // Cargar datos
-        cargarRegistros();
+      // Cerrar modal al hacer clic fuera
+      document.getElementById('modalEliminar').addEventListener('click', function (e) {
+        if (e.target === this) {
+          cerrarModal();
+        }
       });
 
-      // Funciones globales para los botones
-      window.editar = editar;
-      window.solicitarEliminar = solicitarEliminar;
-    </script>
+      // Cargar datos
+      cargarRegistros();
+    });
 
-    <script>
-      // Verificar si el usuario está logueado
-      function verificarAutenticacion() {
-        const usuario = localStorage.getItem('usuario');
-        const rol = localStorage.getItem('rol');
+    // Funciones globales para los botones
+    window.editar = editar;
+    window.solicitarEliminar = solicitarEliminar;
 
-        if (!usuario) {
-          window.location.href = '/estadisticas/login.html';
-          return;
-        }
+  </script>
 
-        // Mostrar información del usuario
-        console.log('Usuario:', usuario, 'Rol:', rol);
+  <script>
+    // Verificar si el usuario está logueado
+    function verificarAutenticacion() {
+      const usuario = localStorage.getItem('usuario');
+      const rol = localStorage.getItem('rol');
 
-        // Mostrar en la interfaz
-        const userElement = document.getElementById('user-info');
-        if (userElement) {
-          userElement.innerHTML = `${usuario} (${rol})`;
-        }
+      if (!usuario) {
+        window.location.href = '/estadisticas/login.html';
+        return;
       }
 
-      // Cerrar sesión
-      function cerrarSesion() {
-        localStorage.removeItem('usuario');
-        localStorage.removeItem('rol');
-        localStorage.removeItem('loginTime');
-        window.location.href = 'index.html';
+      // Mostrar información del usuario
+      console.log('Usuario:', usuario, 'Rol:', rol);
+
+      // Mostrar en la interfaz
+      const userElement = document.getElementById('user-info');
+      if (userElement) {
+        userElement.innerHTML = `${usuario} (${rol})`;
       }
+    }
 
-      // Verificar al cargar la página
-      window.addEventListener('load', verificarAutenticacion);
-    </script>
+    // Cerrar sesión
+    function cerrarSesion() {
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('rol');
+      localStorage.removeItem('loginTime');
+      window.location.href = 'index.html';
+    }
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const buscador = document.getElementById("buscador");
-        const filas = document.getElementById("tabla-registros");
+    // Verificar al cargar la página
+    window.addEventListener('load', verificarAutenticacion);
+  </script>
 
-        if (!buscador || !filas) return;
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const buscador = document.getElementById("buscador");
+      const filas = document.getElementById("tabla-registros");
 
-        buscador.addEventListener("keyup", function () {
-          const valor = this.value.toLowerCase().trim();
-          const registros = filas.querySelectorAll("tr");
+      if (!buscador || !filas) return;
 
-          registros.forEach(fila => {
-            const textoFila = fila.textContent.toLowerCase();
-            fila.style.display = textoFila.includes(valor) ? "" : "none";
-          });
+      buscador.addEventListener("keyup", function () {
+        const valor = this.value.toLowerCase().trim();
+        const registros = filas.querySelectorAll("tr");
+
+        registros.forEach(fila => {
+          const textoFila = fila.textContent.toLowerCase();
+          fila.style.display = textoFila.includes(valor) ? "" : "none";
         });
       });
-    </script>
+    });
+  </script>
 
 </body>
 
