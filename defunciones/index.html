@@ -296,7 +296,8 @@
           return numA - numB; // Orden numérico ascendente
         }
 
-        return folioA.localeCompare(folioB); // Orden alfabético ascendente
+        // Convertir a string para evitar errores con null/undefined
+        return String(folioA).localeCompare(String(folioB));
       });
 
       registrosOrdenados.forEach((registro, index) => {
@@ -333,10 +334,52 @@
         tbody.innerHTML = '';
       }
 
+      // Buscar la posición correcta según el orden (fecha descendente, folio ascendente)
+      let posicionInsertar = 0;
+      const filas = tbody.querySelectorAll('tr');
+
+      for (let i = 0; i < filas.length; i++) {
+        const fila = filas[i];
+        const fechaFila = fila.querySelector('td:nth-child(4)').textContent;
+        const folioFila = fila.querySelector('td:nth-child(2)').textContent;
+
+        // Convertir fecha de DD/MM/YYYY a objeto Date para comparar
+        const partes = fechaFila.split('/');
+        const fechaObj = partes.length === 3 ? new Date(partes[2], partes[1] - 1, partes[0]) : new Date(0);
+        const fechaNuevo = registro.fechaDefuncion ? new Date(registro.fechaDefuncion) : new Date(0);
+
+        // Comparar fechas
+        if (fechaObj.getTime() < fechaNuevo.getTime()) {
+          posicionInsertar = i;
+          break;
+        } else if (fechaObj.getTime() === fechaNuevo.getTime()) {
+          // Si misma fecha, comparar por folio
+          const folioNum = parseInt(folioFila);
+          const folioNuevoNum = parseInt(registro.folio);
+
+          if (!isNaN(folioNum) && !isNaN(folioNuevoNum)) {
+            if (folioNum > folioNuevoNum) {
+              posicionInsertar = i;
+              break;
+            }
+          } else {
+            // Convertir a string para evitar errores
+            const folioFilaStr = String(folioFila || '');
+            const folioNuevoStr = String(registro.folio || '');
+            if (folioFilaStr.localeCompare(folioNuevoStr) > 0) {
+              posicionInsertar = i;
+              break;
+            }
+          }
+        }
+
+        posicionInsertar = i + 1;
+      }
+
       // Crear nueva fila
       const tr = document.createElement('tr');
       tr.innerHTML = `
-    <td>1</td>
+    <td>${posicionInsertar + 1}</td>
     <td>${registro.folio || '-'}</td>
     <td>${registro.nombre || ''}</td>
     <td>${formatearFecha(registro.fechaDefuncion)}</td>
@@ -353,16 +396,22 @@
     </td>
   `;
 
-      // Insertar al principio
-      tbody.insertBefore(tr, tbody.firstChild);
+      // Insertar en la posición correcta
+      if (posicionInsertar === 0) {
+        tbody.insertBefore(tr, tbody.firstChild);
+      } else if (posicionInsertar >= filas.length) {
+        tbody.appendChild(tr);
+      } else {
+        tbody.insertBefore(tr, filas[posicionInsertar]);
+      }
 
-      // Renumerar las filas existentes
-      const filas = tbody.querySelectorAll('tr');
-      filas.forEach((fila, index) => {
+      // Renumerar todas las filas
+      const filasActualizadas = tbody.querySelectorAll('tr');
+      filasActualizadas.forEach((fila, index) => {
         fila.querySelector('td:first-child').textContent = index + 1;
       });
     }
-
+    
     // FUNCIÓN MODIFICADA: Guardar registro optimizado
     async function guardar(e) {
       e.preventDefault();
