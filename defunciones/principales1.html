@@ -1,761 +1,1083 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Principales Causas de Defunción</title>
-    <link rel="shortcut icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
-    <link rel="icon" href="/estadisticas/img/favicon.ico" type="image/x-icon">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Top 15 Diagnósticos · Dashboard Premium</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
     <style>
-        :root {
-            --primary: #2c3e50;
-            --secondary: #3498db;
-            --accent: #e74c3c;
-            --light: #f8f9fa;
-            --dark: #2c3e50;
-            --gray: #7f8c8d;
-            --success: #27ae60;
-            --warning: #f39c12;
-            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            --radius: 10px;
-        }
-
+        /* ---------- RESET & BASE SKEUOMORFISMO ---------- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
         }
 
         body {
-            background: #f5f7fa;
-            color: var(--dark);
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        /* Header */
-        header {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-            color: white;
-            padding: 2rem;
-            border-radius: var(--radius);
-            margin-bottom: 2rem;
-            box-shadow: var(--shadow);
-        }
-
-        header h1 {
-            font-size: 2.2rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .badge {
-            display: inline-block;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 0.5rem 1rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            margin-top: 1rem;
-        }
-
-        /* Loader */
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--secondary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 2rem auto;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Cards */
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            margin-bottom: 2rem;
-        }
-
-        .card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
-
-        .card h3 {
-            color: var(--gray);
-            font-size: 0.9rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .card .value {
-            font-size: 2rem;
-            font-weight: bold;
-            color: var(--primary);
-            margin: 0.5rem 0;
-        }
-
-        /* Filters */
-        .filters {
-            background: white;
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            margin-bottom: 2rem;
+            background: #c5d0dc;
+            background-image: radial-gradient(circle at 30% 40%, #dce5ef 0%, #b2c0cf 100%);
+            min-height: 100vh;
             display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+            padding: 1.5rem;
+        }
+
+        .dashboard {
+            max-width: 1600px;
+            width: 100%;
+            background: #ecf2fa;
+            border-radius: 56px 56px 40px 40px;
+            box-shadow:
+                inset -3px -3px 12px rgba(0, 0, 0, 0.06),
+                inset 3px 3px 16px rgba(255, 255, 255, 0.8),
+                16px 20px 48px rgba(0, 0, 0, 0.2),
+                0 6px 16px rgba(0, 0, 0, 0.08);
+            padding: 2.2rem 2.5rem 2rem;
+            transition: all 0.2s;
+            backdrop-filter: blur(2px);
+        }
+
+        .header {
+            margin-bottom: 1.8rem;
+            padding-bottom: 0.8rem;
+            border-bottom: 2px solid rgba(100, 130, 170, 0.2);
+            box-shadow: 0 2px 0 rgba(255, 255, 255, 0.6);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             flex-wrap: wrap;
             gap: 1rem;
-            align-items: flex-end;
         }
 
-        .filter-group {
-            flex: 1;
-            min-width: 200px;
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
         }
 
-        .filter-group label {
-            display: block;
-            margin-bottom: 0.5rem;
+        .header-left h1 {
             font-weight: 600;
+            font-size: 2.2rem;
+            letter-spacing: -0.5px;
+            color: #142b44;
+            text-shadow: 0 2px 4px rgba(255, 255, 255, 0.5);
         }
 
-        select,
-        input {
-            width: 100%;
-            padding: 0.7rem;
-            border: 2px solid #e0e6ed;
-            border-radius: 6px;
+        .icon-badge {
+            background: linear-gradient(145deg, #1a3457, #2a4a74);
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 700;
+            padding: 0.35rem 1.2rem;
+            border-radius: 60px;
+            box-shadow: inset 0 1px 4px rgba(255, 255, 255, 0.2), 0 4px 10px rgba(0, 0, 0, 0.15);
+            letter-spacing: 0.4px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 1.2rem;
+            background: rgba(210, 225, 245, 0.4);
+            padding: 0.4rem 1.5rem;
+            border-radius: 60px;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 0 1px 4px rgba(255, 255, 255, 0.7), 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1f3a5a;
+        }
+
+        .stat-item strong {
             font-size: 1rem;
+            color: #0a2540;
         }
 
-        button {
-            padding: 0.7rem 1.5rem;
-            border: none;
-            border-radius: 6px;
+        /* Leyenda expandida con nombres - AHORA CLICKEABLE */
+        .legend-expanded {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.6rem 1.5rem;
+            margin-top: 0.8rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(200, 218, 240, 0.3);
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 0 1px 4px rgba(255, 255, 255, 0.6), 0 2px 8px rgba(0, 0, 0, 0.03);
+        }
+
+        .legend-item-full {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #1f3a5a;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            background: rgba(255, 255, 255, 0.3);
+            backdrop-filter: blur(2px);
+            transition: all 0.2s ease;
             cursor: pointer;
+            border: 2px solid transparent;
+            user-select: none;
+        }
+
+        .legend-item-full:hover {
+            background: rgba(255, 255, 255, 0.7);
+            transform: scale(1.04);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .legend-item-full.active {
+            border-color: #1a3457;
+            background: rgba(255, 255, 255, 0.85);
+            box-shadow: 0 4px 16px rgba(26, 52, 87, 0.2);
+            transform: scale(1.05);
+        }
+
+        .legend-item-full.inactive {
+            opacity: 0.35;
+            filter: grayscale(0.6);
+        }
+
+        .color-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 30px;
+            flex-shrink: 0;
+            box-shadow: inset 0 1px 3px rgba(255, 255, 255, 0.6), 0 1px 4px rgba(0, 0, 0, 0.12);
+        }
+
+        .legend-code {
+            font-weight: 700;
+            color: #0a2540;
+            font-size: 0.75rem;
+        }
+
+        .legend-name {
+            color: #2a4a6e;
+            font-weight: 400;
+            font-size: 0.7rem;
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .legend-total {
             font-weight: 600;
-            transition: all 0.3s;
+            color: #1a3f66;
+            background: rgba(255, 255, 255, 0.4);
+            padding: 0 0.5rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
         }
 
-        .btn-primary {
-            background: var(--secondary);
-            color: white;
+        .legend-item-full .reset-hint {
+            font-size: 0.6rem;
+            opacity: 0.5;
+            margin-left: 2px;
         }
 
-        .btn-secondary {
-            background: var(--gray);
-            color: white;
-        }
-
-        .btn-success {
-            background: var(--success);
-            color: white;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow);
-        }
-
-        /* Charts */
-        .charts {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
-            gap: 1.5rem;
-            margin-bottom: 2rem;
-        }
-
-        @media (max-width: 768px) {
-            .charts {
-                grid-template-columns: 1fr;
-            }
+        /* GRÁFICO */
+        .chart-wrapper {
+            background: #e0e9f3;
+            border-radius: 44px;
+            padding: 1.8rem 1.8rem 0.8rem 1.8rem;
+            box-shadow:
+                inset -4px -4px 14px rgba(0, 0, 0, 0.05),
+                inset 4px 4px 20px rgba(255, 255, 255, 0.7),
+                0 10px 32px rgba(0, 0, 0, 0.1);
+            margin-bottom: 1.2rem;
         }
 
         .chart-container {
-            background: white;
-            padding: 1.5rem;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-        }
-
-        .chart-container h3 {
-            margin-bottom: 1rem;
-            color: var(--primary);
-        }
-
-        /* Table */
-        .table-container {
-            background: white;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            overflow-x: auto;
-        }
-
-        table {
+            position: relative;
             width: 100%;
-            border-collapse: collapse;
+            height: 420px;
+            background: #f5faff;
+            border-radius: 32px;
+            padding: 0.3rem;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.03);
         }
 
-        th,
-        td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid #eee;
+        /* CONTROLES */
+        .footer-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem 1.5rem;
+            margin-top: 0.8rem;
+            padding: 0.4rem 0.6rem;
         }
 
-        th {
-            background: var(--light);
+        .btn-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .btn-skeuo {
+            background: #dce4ef;
+            border: none;
+            padding: 0.5rem 1.6rem;
+            border-radius: 60px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            color: #1f3a5a;
+            box-shadow: inset -2px -2px 6px rgba(0, 0, 0, 0.05), inset 2px 2px 12px #ffffff, 0 4px 10px rgba(0, 0, 0, 0.05);
+            cursor: pointer;
+            transition: all 0.12s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.2px;
+        }
+
+        .btn-skeuo:active {
+            transform: scale(0.95);
+            box-shadow: inset 2px 2px 10px rgba(0, 0, 0, 0.08);
+        }
+
+        .btn-skeuo:hover {
+            background: #e8eff9;
+        }
+
+        .btn-skeuo.active {
+            background: #1a3457;
+            color: white;
+            box-shadow: inset 0 1px 4px rgba(255, 255, 255, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .info-note {
+            font-size: 0.75rem;
+            color: #1f3f66;
+            background: rgba(200, 218, 240, 0.4);
+            padding: 0.4rem 1.4rem;
+            border-radius: 60px;
+            backdrop-filter: blur(2px);
+            box-shadow: inset 0 1px 4px rgba(255, 255, 255, 0.5);
+            font-weight: 450;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-note span {
             font-weight: 600;
-            color: var(--primary);
         }
 
-        tr:hover {
-            background: rgba(52, 152, 219, 0.05);
+        /* Responsive */
+        @media (max-width: 900px) {
+            .dashboard {
+                padding: 1.2rem 1rem;
+                border-radius: 32px;
+            }
+            .header-left h1 {
+                font-size: 1.6rem;
+            }
+            .legend-item-full {
+                font-size: 0.65rem;
+            }
+            .legend-name {
+                max-width: 120px;
+            }
+            .chart-container {
+                height: 300px;
+            }
         }
 
-        /* Status */
-        .status {
-            text-align: center;
-            padding: 2rem;
-            color: var(--gray);
-        }
-
-        .error {
-            background: #fee;
-            color: #c00;
-            padding: 1rem;
-            border-radius: var(--radius);
-            margin: 1rem 0;
+        @media (max-width: 600px) {
+            .dashboard {
+                padding: 0.8rem;
+            }
+            .header-stats {
+                flex-wrap: wrap;
+                gap: 0.4rem 1rem;
+                padding: 0.3rem 1rem;
+            }
+            .legend-expanded {
+                gap: 0.3rem 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+            .legend-name {
+                max-width: 80px;
+            }
+            .btn-skeuo {
+                padding: 0.4rem 1rem;
+                font-size: 0.7rem;
+            }
         }
     </style>
 </head>
-
 <body>
-    <div class="container">
-        <header>
-            <h1><i class="fas fa-heartbeat"></i> Principales Causas de Defunción</h1>
-            <p>Análisis de causas de defunción - Datos en tiempo real desde Google Sheets</p>
-            <div class="badge" id="statusBadge">
-                <i class="fas fa-sync fa-spin"></i> Conectando a datos...
-            </div>
-        </header>
 
-        <div id="errorMessage" class="error" style="display: none;"></div>
+    <div class="dashboard">
 
-        <div id="loader" class="loader"></div>
-
-        <div id="dashboardContent" style="display: none;">
-            <!-- Filtros -->
-            <div class="filters">
-                <div class="filter-group">
-                    <label><i class="fas fa-calendar-alt"></i> Año</label>
-                    <select id="yearFilter">
-                        <option value="all">Todos los años</option>
-                    </select>
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-top">
+                <div class="header-left">
+                    <h1>📊 Diagnósticos · Top 15</h1>
+                    <span class="icon-badge">✨ Click en leyenda</span>
                 </div>
-                <div class="filter-group">
-                    <label><i class="fas fa-calendar"></i> Mes</label>
-                    <select id="monthFilter">
-                        <option value="all">Todos los meses</option>
-                        <option value="1">Enero</option>
-                        <option value="2">Febrero</option>
-                        <option value="3">Marzo</option>
-                        <option value="4">Abril</option>
-                        <option value="5">Mayo</option>
-                        <option value="6">Junio</option>
-                        <option value="7">Julio</option>
-                        <option value="8">Agosto</option>
-                        <option value="9">Septiembre</option>
-                        <option value="10">Octubre</option>
-                        <option value="11">Noviembre</option>
-                        <option value="12">Diciembre</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label><i class="fas fa-search"></i> Buscar</label>
-                    <input type="text" id="searchInput" placeholder="Código CIE o descripción...">
-                </div>
-                <button onclick="applyFilters()" class="btn-primary">
-                    <i class="fas fa-filter"></i> Filtrar
-                </button>
-                <button onclick="resetFilters()" class="btn-secondary">
-                    <i class="fas fa-redo"></i> Limpiar
-                </button>
-                <button onclick="loadData()" class="btn-success">
-                    <i class="fas fa-sync"></i> Actualizar
-                </button>
-            </div>
-
-            <!-- Cards -->
-            <div class="cards">
-                <div class="card">
-                    <h3>TOTAL DEFUNCIONES</h3>
-                    <div class="value" id="totalDeaths">0</div>
-                    <p>Período completo</p>
-                </div>
-                <div class="card">
-                    <h3>CAUSA PRINCIPAL</h3>
-                    <div class="value" id="topCause">-</div>
-                    <p id="topCauseDesc"></p>
-                </div>
-                <div class="card">
-                    <h3>MÁXIMO MENSUAL</h3>
-                    <div class="value" id="peakMonth">-</div>
-                    <p id="peakCount"></p>
-                </div>
-                <div class="card">
-                    <h3>CÓDIGOS ÚNICOS</h3>
-                    <div class="value" id="uniqueCodes">0</div>
-                    <p>Diversidad de causas</p>
+                <div class="header-stats">
+                    <div class="stat-item">📋 <strong id="diagCount">15</strong> diagnósticos</div>
+                    <div class="stat-item">📅 <strong id="monthCount">0</strong> meses</div>
+                    <div class="stat-item">📈 <strong id="totalCases">0</strong> casos totales</div>
                 </div>
             </div>
 
-            <!-- Charts -->
-            <div class="charts">
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-bar"></i> Defunciones por Mes</h3>
-                    <canvas id="monthlyChart" height="250"></canvas>
-                </div>
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-pie"></i> Top 10 Causas</h3>
-                    <canvas id="causesChart" height="250"></canvas>
-                </div>
-            </div>
-
-            <!-- Table -->
-            <div class="table-container">
-                <h3><i class="fas fa-table"></i> Datos Detallados</h3>
-                <p id="tableInfo">Mostrando <span id="rowCount">0</span> registros</p>
-                <table id="dataTable">
-                    <thead>
-                        <tr>
-                            <th>Año</th>
-                            <th>Mes</th>
-                            <th>Código CIE</th>
-                            <th>Descripción</th>
-                            <th>Cantidad</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody">
-                        <!-- Datos dinámicos -->
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="status">
-                <p id="lastUpdate">Última actualización: -</p>
-                <p>Dashboard conectado a Google Sheets vía Google Apps Script</p>
+            <!-- Leyenda expandida: click para resaltar -->
+            <div class="legend-expanded" id="legendFull">
+                <!-- se inyecta con JS -->
             </div>
         </div>
+
+        <!-- GRÁFICO -->
+        <div class="chart-wrapper">
+            <div class="chart-container">
+                <canvas id="trendChart"></canvas>
+            </div>
+        </div>
+
+        <!-- CONTROLES -->
+        <div class="footer-actions">
+            <div class="btn-group">
+                <button class="btn-skeuo active" data-view="total">📊 Total acumulado</button>
+                <button class="btn-skeuo" data-view="tendencia">📈 Tendencia mensual</button>
+                <button class="btn-skeuo" data-view="comparativa">📊 Comparativa</button>
+            </div>
+            <div class="info-note">
+                <span>🖱️</span> Haz clic en un diagnóstico para resaltarlo
+                <span style="opacity:0.4;margin:0 4px;">·</span>
+                <button class="btn-skeuo" id="resetZoomBtn" style="padding:0.2rem 1rem;font-size:0.7rem;">⟳ Restablecer</button>
+                <button class="btn-skeuo" id="clearHighlightBtn" style="padding:0.2rem 1rem;font-size:0.7rem;">✕ Quitar resalte</button>
+            </div>
+        </div>
+
     </div>
 
     <script>
-        // ===== CONFIGURACIÓN =====
-        // IMPORTANTE: Reemplaza esta URL con la de TU Google Apps Script publicado
-        const GAS_URL = 'https://script.google.com/macros/s/AKfycbzLPSiBwOi6EQJ7hN4Gxqh6NOQebHfnZtCAFP-XdabMZCHo7JSHAHU7IxiTaGSFPNc0/exec';
+        // --------------------------------------------------------------
+        // 1. DATOS COMPLETOS (mismos que antes)
+        // --------------------------------------------------------------
+        const rawData = [
+            [2025, "Noviembre", "A419", "SEPSIS, NO ESPECIFICADA", 3],
+            [2025, "Noviembre", "J189", "NEUMONÍA, NO ESPECIFICADA", 2],
+            [2025, "Noviembre", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 2],
+            [2025, "Noviembre", "J128", "NEUMONÍA DEBIDA A OTROS VIRUS", 2],
+            [2025, "Noviembre", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 1],
+            [2025, "Noviembre", "M869", "OSTEOMIELITIS, NO ESPECIFICADA", 1],
+            [2025, "Noviembre", "E115", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES CIRCULATORIAS ...", 1],
+            [2025, "Noviembre", "G039", "MENINGITIS, NO ESPECIFICADA", 1],
+            [2025, "Noviembre", "P228", "OTRAS DIFICULTADES RESPIRATORIAS DEL RECIÉN NACIDO", 1],
+            [2025, "Noviembre", "I629", "HEMORRAGIA INTRACRANEAL (NO TRAUMÁTICA), NO ESPECIFICADA", 1],
+            [2025, "Noviembre", "J90X", "DERRAME PLEURAL NO CLASIFICADO EN OTRA PARTE", 1],
+            [2025, "Noviembre", "I609", "HEMORRAGIA SUBARACNOIDEA, NO ESPECIFICADA", 1],
+            [2025, "Noviembre", "T300", "QUEMADURA DE REGIÓN DEL CUERPO Y GRADO NO ESPECIFICADOS", 1],
+            [2025, "Noviembre", "P369", "SEPSIS BACTERIANA DEL RECIÉN NACIDO, NO ESPECIFICADA", 1],
+            [2025, "Noviembre", "R570", "CHOQUE CARDIOGÉNICO", 1],
+            [2025, "Octubre", "K922", "HEMORRAGIA GASTROINTESTINAL, NO ESPECIFICADA", 2],
+            [2025, "Octubre", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 1],
+            [2025, "Octubre", "K746", "OTRAS CIRROSIS DEL HÍGADO Y LAS NO ESPECIFICADAS", 1],
+            [2025, "Octubre", "J960", "INSUFICIENCIA RESPIRATORIA AGUDA", 1],
+            [2025, "Octubre", "P071", "OTRO PESO BAJO AL NACER", 1],
+            [2025, "Octubre", "A419", "SEPSIS, NO ESPECIFICADA", 1],
+            [2025, "Octubre", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 1],
+            [2025, "Octubre", "J128", "NEUMONÍA DEBIDA A OTROS VIRUS", 1],
+            [2025, "Octubre", "I442", "BLOQUEO AURICULOVENTRICULAR COMPLETO", 1],
+            [2025, "Octubre", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 1],
+            [2025, "Octubre", "I611", "HEMORRAGIA INTRACEREBRAL EN HEMISFERIO, CORTICAL", 1],
+            [2025, "Octubre", "P072", "INMATURIDAD EXTREMA", 1],
+            [2025, "Octubre", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2025, "Septiembre", "A419", "SEPSIS, NO ESPECIFICADA", 8],
+            [2025, "Septiembre", "G039", "MENINGITIS, NO ESPECIFICADA", 2],
+            [2025, "Septiembre", "K746", "OTRAS CIRROSIS DEL HÍGADO Y LAS NO ESPECIFICADAS", 2],
+            [2025, "Septiembre", "J128", "NEUMONÍA DEBIDA A OTROS VIRUS", 1],
+            [2025, "Septiembre", "P070", "PESO EXTREMADAMENTE BAJO AL NACER", 1],
+            [2025, "Septiembre", "K703", "CIRROSIS HEPÁTICA ALCOHÓLICA", 1],
+            [2025, "Septiembre", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 1],
+            [2025, "Septiembre", "N179", "INSUFICIENCIA RENAL AGUDA, NO ESPECIFICADA", 1],
+            [2025, "Septiembre", "I219", "INFARTO AGUDO DEL MIOCARDIO, SIN OTRA ESPECIFICACIÓN", 1],
+            [2025, "Septiembre", "E872", "ACIDOSIS", 1],
+            [2025, "Septiembre", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2025, "Agosto", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 4],
+            [2025, "Agosto", "A419", "SEPSIS, NO ESPECIFICADA", 4],
+            [2025, "Agosto", "E145", "DIABETES MELLITUS NO ESPECIFICADA, CON COMPLICACIONES CIRCU...", 1],
+            [2025, "Agosto", "P072", "INMATURIDAD EXTREMA", 1],
+            [2025, "Agosto", "Q249", "MALFORMACIÓN CONGÉNITA DEL CORAZÓN, NO ESPECIFICADA", 1],
+            [2025, "Agosto", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 1],
+            [2025, "Agosto", "K767", "SÍNDROME HEPATORRENAL", 1],
+            [2025, "Agosto", "S069", "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", 1],
+            [2025, "Agosto", "J128", "NEUMONÍA DEBIDA A OTROS VIRUS", 1],
+            [2025, "Agosto", "E115", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES CIRCULATORIAS ...", 1],
+            [2025, "Agosto", "K631", "PERFORACIÓN DEL INTESTINO (NO TRAUMÁTICA)", 1],
+            [2025, "Agosto", "S320", "FRACTURA DE VÉRTEBRA LUMBAR", 1],
+            [2025, "Agosto", "E875", "HIPERPOTASEMIA", 1],
+            [2025, "Julio", "A419", "SEPSIS, NO ESPECIFICADA", 2],
+            [2025, "Julio", "J189", "NEUMONÍA, NO ESPECIFICADA", 2],
+            [2025, "Julio", "L899", "ÚLCERA DE DECÚBITO Y POR ÁREA DE PRESIÓN, NO ESPECIFICADA", 2],
+            [2025, "Julio", "I219", "INFARTO AGUDO DEL MIOCARDIO, SIN OTRA ESPECIFICACIÓN", 1],
+            [2025, "Julio", "B24X", "ENFERMEDAD POR VIRUS DE LA INMUNODEFICIENCIA HUMANA [VIH], ...", 1],
+            [2025, "Julio", "J81X", "EDEMA PULMONAR", 1],
+            [2025, "Julio", "E118", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES NO ESPECIFICAD...", 1],
+            [2025, "Julio", "J128", "NEUMONÍA DEBIDA A OTROS VIRUS", 1],
+            [2025, "Julio", "C710", "TUMOR MALIGNO DEL CEREBRO, EXCEPTO LÓBULOS Y VENTRÍCULOS", 1],
+            [2025, "Julio", "N390", "INFECCIÓN DE VÍAS URINARIAS, SITIO NO ESPECIFICADO", 1],
+            [2025, "Julio", "I241", "SÍNDROME DE DRESSLER", 1],
+            [2025, "Julio", "K746", "OTRAS CIRROSIS DEL HÍGADO Y LAS NO ESPECIFICADAS", 1],
+            [2025, "Junio", "A419", "SEPSIS, NO ESPECIFICADA", 2],
+            [2025, "Junio", "S069", "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", 2],
+            [2025, "Junio", "E112", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES RENALES", 1],
+            [2025, "Junio", "I219", "INFARTO AGUDO DEL MIOCARDIO, SIN OTRA ESPECIFICACIÓN", 1],
+            [2025, "Junio", "K920", "HEMATEMESIS", 1],
+            [2025, "Junio", "T302", "QUEMADURA DE SEGUNDO GRADO, REGIÓN DEL CUERPO NO ESPECIFICA...", 1],
+            [2025, "Junio", "G936", "EDEMA CEREBRAL", 1],
+            [2025, "Junio", "C509", "TUMOR MALIGNO DE LA MAMA, PARTE NO ESPECIFICADA", 1],
+            [2025, "Mayo", "A419", "SEPSIS, NO ESPECIFICADA", 3],
+            [2025, "Mayo", "P072", "INMATURIDAD EXTREMA", 1],
+            [2025, "Mayo", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2025, "Mayo", "K409", "HERNIA INGUINAL UNILATERAL O NO ESPECIFICADA, SIN OBSTRUCCI...", 1],
+            [2025, "Mayo", "T312", "QUEMADURAS QUE AFECTAN DEL 20 AL 29% DE LA SUPERFICIE DEL CU...", 1],
+            [2025, "Mayo", "S069", "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", 1],
+            [2025, "Mayo", "K859", "PANCREATITIS AGUDA, NO ESPECIFICADA", 1],
+            [2025, "Mayo", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 1],
+            [2025, "Mayo", "I509", "INSUFICIENCIA CARDÍACA, NO ESPECIFICADA", 1],
+            [2025, "Mayo", "G934", "ENCEFALOPATÍA NO ESPECIFICADA", 1],
+            [2025, "Abril", "A419", "SEPSIS, NO ESPECIFICADA", 8],
+            [2025, "Abril", "K566", "OTRAS OBSTRUCCIONES INTESTINALES Y LAS NO ESPECIFICADAS", 2],
+            [2025, "Abril", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 2],
+            [2025, "Abril", "E118", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES NO ESPECIFICAD...", 1],
+            [2025, "Abril", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2025, "Abril", "B24X", "ENFERMEDAD POR VIRUS DE LA INMUNODEFICIENCIA HUMANA [VIH], ...", 1],
+            [2025, "Abril", "P369", "SEPSIS BACTERIANA DEL RECIÉN NACIDO, NO ESPECIFICADA", 1],
+            [2025, "Abril", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 1],
+            [2025, "Abril", "J159", "NEUMONÍA BACTERIANA, NO ESPECIFICADA", 1],
+            [2025, "Abril", "S069", "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", 1],
+            [2025, "Abril", "I219", "INFARTO AGUDO DEL MIOCARDIO, SIN OTRA ESPECIFICACIÓN", 1],
+            [2025, "Abril", "K729", "INSUFICIENCIA HEPÁTICA, NO ESPECIFICADA", 1],
+            [2025, "Marzo", "A419", "SEPSIS, NO ESPECIFICADA", 4],
+            [2025, "Marzo", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 3],
+            [2025, "Marzo", "S068", "OTROS TRAUMATISMOS INTRACRANEALES", 2],
+            [2025, "Marzo", "K922", "HEMORRAGIA GASTROINTESTINAL, NO ESPECIFICADA", 2],
+            [2025, "Marzo", "D649", "ANEMIA DE TIPO NO ESPECIFICADO", 1],
+            [2025, "Marzo", "E115", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES CIRCULATORIAS ...", 1],
+            [2025, "Marzo", "K550", "TRASTORNO VASCULAR AGUDO DE LOS INTESTINOS", 1],
+            [2025, "Marzo", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 1],
+            [2025, "Marzo", "S299", "TRAUMATISMO DEL TÓRAX, NO ESPECIFICADO", 1],
+            [2025, "Marzo", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 1],
+            [2025, "Marzo", "I618", "OTRAS HEMORRAGIAS INTRAENCEFÁLICAS", 1],
+            [2025, "Marzo", "P073", "OTROS RECIÉN NACIDOS PRETÉRMINO", 1],
+            [2025, "Marzo", "K769", "ENFERMEDAD DEL HÍGADO, NO ESPECIFICADA", 1],
+            [2025, "Marzo", "N179", "INSUFICIENCIA RENAL AGUDA, NO ESPECIFICADA", 1],
+            [2025, "Febrero", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 5],
+            [2025, "Febrero", "K922", "HEMORRAGIA GASTROINTESTINAL, NO ESPECIFICADA", 2],
+            [2025, "Febrero", "J189", "NEUMONÍA, NO ESPECIFICADA", 2],
+            [2025, "Febrero", "A419", "SEPSIS, NO ESPECIFICADA", 2],
+            [2025, "Febrero", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 2],
+            [2025, "Febrero", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 1],
+            [2025, "Febrero", "A159", "TUBERCULOSIS RESPIRATORIA NO ESPECIFICADA, CONFIRMADA BACTE...", 1],
+            [2025, "Febrero", "B24X", "ENFERMEDAD POR VIRUS DE LA INMUNODEFICIENCIA HUMANA [VIH], ...", 1],
+            [2025, "Febrero", "K593", "MEGACOLON, NO CLASIFICADO EN OTRA PARTE", 1],
+            [2025, "Febrero", "S520", "FRACTURA DE LA EPÍFISIS SUPERIOR DEL CÚBITO", 1],
+            [2025, "Febrero", "N179", "INSUFICIENCIA RENAL AGUDA, NO ESPECIFICADA", 1],
+            [2025, "Febrero", "I219", "INFARTO AGUDO DEL MIOCARDIO, SIN OTRA ESPECIFICACIÓN", 1],
+            [2025, "Enero", "A419", "SEPSIS, NO ESPECIFICADA", 5],
+            [2025, "Enero", "J189", "NEUMONÍA, NO ESPECIFICADA", 3],
+            [2025, "Enero", "J960", "INSUFICIENCIA RESPIRATORIA AGUDA", 1],
+            [2025, "Enero", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 1],
+            [2025, "Enero", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 1],
+            [2025, "Enero", "G932", "HIPERTENSIÓN INTRACRANEAL BENIGNA", 1],
+            [2025, "Enero", "S068", "OTROS TRAUMATISMOS INTRACRANEALES", 1],
+            [2025, "Enero", "E870", "HIPEROSMOLARIDAD E HIPERNATREMIA", 1],
+            [2025, "Enero", "K750", "ABSCESO DEL HÍGADO", 1],
+            [2025, "Enero", "I629", "HEMORRAGIA INTRACRANEAL (NO TRAUMÁTICA), NO ESPECIFICADA", 1],
+            [2025, "Enero", "K808", "OTRAS COLELITIASIS", 1],
+            [2025, "Enero", "K251", "ÚLCERA GASTRICA, AGUDA CON PERFORACIÓN", 1],
+            [2024, "Diciembre", "A419", "SEPSIS, NO ESPECIFICADA", 5],
+            [2024, "Diciembre", "G409", "EPILEPSIA, TIPO NO ESPECIFICADO", 2],
+            [2024, "Diciembre", "E872", "ACIDOSIS", 2],
+            [2024, "Diciembre", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 2],
+            [2024, "Diciembre", "I500", "INSUFICIENCIA CARDÍACA CONGESTIVA", 1],
+            [2024, "Diciembre", "J36X", "ABSCESO PERIAMIGDALINO", 1],
+            [2024, "Diciembre", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2024, "Diciembre", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 1],
+            [2024, "Diciembre", "I219", "INFARTO AGUDO DEL MIOCARDIO, SIN OTRA ESPECIFICACIÓN", 1],
+            [2024, "Diciembre", "K729", "INSUFICIENCIA HEPÁTICA, NO ESPECIFICADA", 1],
+            [2024, "Diciembre", "N390", "INFECCIÓN DE VÍAS URINARIAS, SITIO NO ESPECIFICADO", 1],
+            [2024, "Diciembre", "S720", "FRACTURA DEL CUELLO DE FÉMUR", 1],
+            [2024, "Diciembre", "G039", "MENINGITIS, NO ESPECIFICADA", 1],
+            [2024, "Diciembre", "I10X", "HIPERTENSIÓN ESENCIAL (PRIMARIA)", 1],
+            [2024, "Diciembre", "M726", "FASCITIS NECROTIZANTE", 1],
+            [2024, "Diciembre", "G038", "MENINGITIS DEBIDAS A OTRAS CAUSAS ESPECIFICADAS", 1],
+            [2024, "Diciembre", "K851", "PANCREATITIS BILIAR AGUDA", 1],
+            [2024, "Diciembre", "K566", "OTRAS OBSTRUCCIONES INTESTINALES Y LAS NO ESPECIFICADAS", 1],
+            [2024, "Diciembre", "N189", "ENFERMEDAD RENAL CRÓNICA, NO ESPECIFICADA", 1],
+            [2024, "Noviembre", "A419", "SEPSIS, NO ESPECIFICADA", 3],
+            [2024, "Noviembre", "E117", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES MÚLTIPLES", 1],
+            [2024, "Noviembre", "R570", "CHOQUE CARDIOGÉNICO", 1],
+            [2024, "Noviembre", "I442", "BLOQUEO AURICULOVENTRICULAR COMPLETO", 1],
+            [2024, "Noviembre", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2024, "Noviembre", "L088", "OTRAS INFECCIONES LOCALES ESPECIFICADAS DE LA PIEL Y DEL TEJ...", 1],
+            [2024, "Noviembre", "D696", "TROMBOCITOPENIA NO ESPECIFICADA", 1],
+            [2024, "Noviembre", "P071", "OTRO PESO BAJO AL NACER", 1],
+            [2024, "Noviembre", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 1],
+            [2024, "Noviembre", "B222", "ENFERMEDAD POR VIH, RESULTANTE EN SÍNDROME CAQUÉCTICO", 1],
+            [2024, "Noviembre", "I631", "INFARTO CEREBRAL DEBIDO A EMBOLIA DE ARTERIAS PRECEREBRALES", 1],
+            [2024, "Noviembre", "P228", "OTRAS DIFICULTADES RESPIRATORIAS DEL RECIÉN NACIDO", 1],
+            [2024, "Noviembre", "A971", "DENGUE CON SIGNOS DE ALARMA", 1],
+            [2024, "Noviembre", "I313", "DERRAME PERICÁRDICO (NO INFLAMATORIO)", 1],
+            [2024, "Octubre", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 5],
+            [2024, "Octubre", "A971", "DENGUE CON SIGNOS DE ALARMA", 3],
+            [2024, "Octubre", "A419", "SEPSIS, NO ESPECIFICADA", 3],
+            [2024, "Octubre", "B200", "ENFERMEDAD POR VIH, RESULTANTE EN INFECCIÓN POR MICOBACTERI...", 1],
+            [2024, "Octubre", "N189", "ENFERMEDAD RENAL CRÓNICA, NO ESPECIFICADA", 1],
+            [2024, "Octubre", "L039", "CELULITIS DE SITIO NO ESPECIFICADO", 1],
+            [2024, "Octubre", "K703", "CIRROSIS HEPÁTICA ALCOHÓLICA", 1],
+            [2024, "Octubre", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 1],
+            [2024, "Octubre", "P210", "ASFIXIA DEL NACIMIENTO, SEVERA", 1],
+            [2024, "Octubre", "A153", "TUBERCULOSIS DEL PULMÓN, CONFIRMADA POR MEDIOS NO ESPECIFIC...", 1],
+            [2024, "Octubre", "J960", "INSUFICIENCIA RESPIRATORIA AGUDA", 1],
+            [2024, "Octubre", "K922", "HEMORRAGIA GASTROINTESTINAL, NO ESPECIFICADA", 1],
+            [2024, "Octubre", "C029", "TUMOR MALIGNO DE LA LENGUA, PARTE NO ESPECIFICADA", 1],
+            [2024, "Octubre", "K566", "OTRAS OBSTRUCCIONES INTESTINALES Y LAS NO ESPECIFICADAS", 1],
+            [2024, "Octubre", "N390", "INFECCIÓN DE VÍAS URINARIAS, SITIO NO ESPECIFICADO", 1],
+            [2024, "Septiembre", "A419", "SEPSIS, NO ESPECIFICADA", 4],
+            [2024, "Septiembre", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 2],
+            [2024, "Septiembre", "N189", "ENFERMEDAD RENAL CRÓNICA, NO ESPECIFICADA", 2],
+            [2024, "Septiembre", "K746", "OTRAS CIRROSIS DEL HÍGADO Y LAS NO ESPECIFICADAS", 1],
+            [2024, "Septiembre", "K859", "PANCREATITIS AGUDA, NO ESPECIFICADA", 1],
+            [2024, "Septiembre", "J449", "ENFERMEDAD PULMONAR OBSTRUCTIVA CRÓNICA, NO ESPECIFICADA", 1],
+            [2024, "Septiembre", "I130", "ENFERMEDAD CARDIORRENAL HIPERTENSIVA CON INSUFICIENCIA CARDÍ...", 1],
+            [2024, "Septiembre", "K729", "INSUFICIENCIA HEPÁTICA, NO ESPECIFICADA", 1],
+            [2024, "Septiembre", "A153", "TUBERCULOSIS DEL PULMÓN, CONFIRMADA POR MEDIOS NO ESPECIFIC...", 1],
+            [2024, "Septiembre", "Q601", "AGENESIA RENAL, BILATERAL", 1],
+            [2024, "Septiembre", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2024, "Septiembre", "J128", "NEUMONÍA DEBIDA A OTROS VIRUS", 1],
+            [2024, "Septiembre", "G936", "EDEMA CEREBRAL", 1],
+            [2024, "Septiembre", "K409", "HERNIA INGUINAL UNILATERAL O NO ESPECIFICADA, SIN OBSTRUCCI...", 1],
+            [2024, "Septiembre", "R509", "FIEBRE, NO ESPECIFICADA", 1],
+            [2024, "Agosto", "J128", "NEUMONÍA DEBIDA A OTROS VIRUS", 3],
+            [2024, "Agosto", "E118", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES NO ESPECIFICAD...", 2],
+            [2024, "Agosto", "P072", "INMATURIDAD EXTREMA", 1],
+            [2024, "Agosto", "N184", "ENFERMEDAD RENAL CRÓNICA, ETAPA 4", 1],
+            [2024, "Agosto", "A419", "SEPSIS, NO ESPECIFICADA", 1],
+            [2024, "Agosto", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2024, "Agosto", "E878", "OTROS TRASTORNOS DEL EQUILIBRIO DE LOS ELECTRÓLITOS Y DE LOS...", 1],
+            [2024, "Agosto", "I10X", "HIPERTENSIÓN ESENCIAL (PRIMARIA)", 1],
+            [2024, "Agosto", "I130", "ENFERMEDAD CARDIORRENAL HIPERTENSIVA CON INSUFICIENCIA CARDÍ...", 1],
+            [2024, "Agosto", "O882", "EMBOLIA DE COÁGULO SANGUÍNEO, OBSTÉTRICA", 1],
+            [2024, "Agosto", "K746", "OTRAS CIRROSIS DEL HÍGADO Y LAS NO ESPECIFICADAS", 1],
+            [2024, "Agosto", "K729", "INSUFICIENCIA HEPÁTICA, NO ESPECIFICADA", 1],
+            [2024, "Agosto", "K358", "OTRAS APENDICITIS AGUDAS, Y LAS NO ESPECIFICADAS", 1],
+            [2024, "Agosto", "N179", "INSUFICIENCIA RENAL AGUDA, NO ESPECIFICADA", 1],
+            [2024, "Agosto", "K631", "PERFORACIÓN DEL INTESTINO (NO TRAUMÁTICA)", 1],
+            [2024, "Agosto", "P220", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL RECIÉN NACIDO", 1],
+            [2024, "Agosto", "I739", "ENFERMEDAD VASCULAR PERIFÉRICA, NO ESPECIFICADA", 1],
+            [2024, "Julio", "A419", "SEPSIS, NO ESPECIFICADA", 4],
+            [2024, "Julio", "P072", "INMATURIDAD EXTREMA", 3],
+            [2024, "Julio", "J189", "NEUMONÍA, NO ESPECIFICADA", 2],
+            [2024, "Julio", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 2],
+            [2024, "Julio", "A099", "GASTROENTERITIS Y COLITIS DE ORIGEN NO ESPECIFICADO", 1],
+            [2024, "Julio", "N189", "ENFERMEDAD RENAL CRÓNICA, NO ESPECIFICADA", 1],
+            [2024, "Julio", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 1],
+            [2024, "Julio", "J960", "INSUFICIENCIA RESPIRATORIA AGUDA", 1],
+            [2024, "Julio", "S424", "FRACTURA DE LA EPÍFISIS INFERIOR DEL HÚMERO", 1],
+            [2024, "Julio", "S720", "FRACTURA DEL CUELLO DE FÉMUR", 1],
+            [2024, "Julio", "N768", "OTRAS INFLAMACIONES ESPECIFICADAS DE LA VAGINA Y DE LA VULVA", 1],
+            [2024, "Julio", "C229", "TUMOR MALIGNO DEL HÍGADO, NO ESPECIFICADO", 1],
+            [2024, "Julio", "G934", "ENCEFALOPATÍA NO ESPECIFICADA", 1],
+            [2024, "Julio", "E872", "ACIDOSIS", 1],
+            [2024, "Julio", "E162", "HIPOGLICEMIA, NO ESPECIFICADA", 1],
+            [2024, "Julio", "P073", "OTROS RECIÉN NACIDOS PRETÉRMINO", 1],
+            [2024, "Julio", "R572", "CHOQUE SÉPTICO", 1],
+            [2024, "Julio", "K729", "INSUFICIENCIA HEPÁTICA, NO ESPECIFICADA", 1],
+            [2024, "Junio", "A419", "SEPSIS, NO ESPECIFICADA", 5],
+            [2024, "Junio", "R571", "CHOQUE HIPOVOLÉMICO", 1],
+            [2024, "Junio", "E115", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES CIRCULATORIAS ...", 1],
+            [2024, "Junio", "S229", "FRACTURA DEL TÓRAX ÓSEO, PARTE NO ESPECIFICADA", 1],
+            [2024, "Junio", "B200", "ENFERMEDAD POR VIH, RESULTANTE EN INFECCIÓN POR MICOBACTERI...", 1],
+            [2024, "Junio", "J960", "INSUFICIENCIA RESPIRATORIA AGUDA", 1],
+            [2024, "Junio", "D259", "LEIOMIOMA DEL ÚTERO, SIN OTRA ESPECIFICACIÓN", 1],
+            [2024, "Junio", "E878", "OTROS TRASTORNOS DEL EQUILIBRIO DE LOS ELECTRÓLITOS Y DE LOS...", 1],
+            [2024, "Junio", "I489", "FIBRILACIÓN Y ALETEO AURICULAR, NO ESPECIFICADO", 1],
+            [2024, "Junio", "I442", "BLOQUEO AURICULOVENTRICULAR COMPLETO", 1],
+            [2024, "Junio", "K729", "INSUFICIENCIA HEPÁTICA, NO ESPECIFICADA", 1],
+            [2024, "Junio", "K920", "HEMATEMESIS", 1],
+            [2024, "Junio", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 1],
+            [2024, "Junio", "S721", "FRACTURA PERTROCANTERIANA", 1],
+            [2024, "Junio", "S069", "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", 1],
+            [2024, "Junio", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2024, "Mayo", "A419", "SEPSIS, NO ESPECIFICADA", 2],
+            [2024, "Mayo", "I219", "INFARTO AGUDO DEL MIOCARDIO, SIN OTRA ESPECIFICACIÓN", 2],
+            [2024, "Mayo", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 2],
+            [2024, "Mayo", "J189", "NEUMONÍA, NO ESPECIFICADA", 2],
+            [2024, "Mayo", "S069", "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", 1],
+            [2024, "Mayo", "J960", "INSUFICIENCIA RESPIRATORIA AGUDA", 1],
+            [2024, "Mayo", "E147", "DIABETES MELLITUS NO ESPECIFICADA, CON COMPLICACIONES MÚLTIP...", 1],
+            [2024, "Mayo", "P072", "INMATURIDAD EXTREMA", 1],
+            [2024, "Mayo", "J90X", "DERRAME PLEURAL NO CLASIFICADO EN OTRA PARTE", 1],
+            [2024, "Mayo", "K550", "TRASTORNO VASCULAR AGUDO DE LOS INTESTINOS", 1],
+            [2024, "Mayo", "P369", "SEPSIS BACTERIANA DEL RECIÉN NACIDO, NO ESPECIFICADA", 1],
+            [2024, "Mayo", "E878", "OTROS TRASTORNOS DEL EQUILIBRIO DE LOS ELECTRÓLITOS Y DE LOS...", 1],
+            [2024, "Mayo", "E115", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES CIRCULATORIAS ...", 1],
+            [2024, "Mayo", "L088", "OTRAS INFECCIONES LOCALES ESPECIFICADAS DE LA PIEL Y DEL TEJ...", 1],
+            [2024, "Mayo", "G936", "EDEMA CEREBRAL", 1],
+            [2024, "Mayo", "Z381", "PRODUCTO ÚNICO, NACIDO FUERA DE HOSPITAL", 1],
+            [2024, "Mayo", "I609", "HEMORRAGIA SUBARACNOIDEA, NO ESPECIFICADA", 1],
+            [2024, "Mayo", "K920", "HEMATEMESIS", 1],
+            [2024, "Mayo", "C788", "TUMOR MALIGNO SECUNDARIO DE OTROS ÓRGANOS DIGESTIVOS Y DE LO...", 1],
+            [2024, "Mayo", "K122", "CELULITIS Y ABSCESO DE BOCA", 1],
+            [2024, "Abril", "A419", "SEPSIS, NO ESPECIFICADA", 4],
+            [2024, "Abril", "N189", "ENFERMEDAD RENAL CRÓNICA, NO ESPECIFICADA", 2],
+            [2024, "Abril", "I500", "INSUFICIENCIA CARDÍACA CONGESTIVA", 1],
+            [2024, "Abril", "G931", "LESIÓN CEREBRAL ANÓXICA, NO CLASIFICADA EN OTRA PARTE", 1],
+            [2024, "Abril", "P369", "SEPSIS BACTERIANA DEL RECIÉN NACIDO, NO ESPECIFICADA", 1],
+            [2024, "Abril", "K566", "OTRAS OBSTRUCCIONES INTESTINALES Y LAS NO ESPECIFICADAS", 1],
+            [2024, "Abril", "E115", "DIABETES MELLITUS TIPO 2, CON COMPLICACIONES CIRCULATORIAS ...", 1],
+            [2024, "Abril", "B210", "ENFERMEDAD POR VIH, RESULTANTE EN SARCOMA DE KAPOSI", 1],
+            [2024, "Abril", "S822", "FRACTURA DE LA DIÁFISIS DE LA TIBIA", 1],
+            [2024, "Abril", "J960", "INSUFICIENCIA RESPIRATORIA AGUDA", 1],
+            [2024, "Abril", "S069", "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", 1],
+            [2024, "Abril", "I669", "OCLUSIÓN Y ESTENOSIS DE ARTERIA CEREBRAL NO ESPECIFICADA", 1],
+            [2024, "Abril", "R572", "CHOQUE SÉPTICO", 1],
+            [2024, "Abril", "K922", "HEMORRAGIA GASTROINTESTINAL, NO ESPECIFICADA", 1],
+            [2024, "Abril", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 1],
+            [2024, "Abril", "C329", "TUMOR MALIGNO DE LA LARINGE, PARTE NO ESPECIFICADA", 1],
+            [2024, "Marzo", "S069", "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", 6],
+            [2024, "Marzo", "A419", "SEPSIS, NO ESPECIFICADA", 4],
+            [2024, "Marzo", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 2],
+            [2024, "Marzo", "P285", "INSUFICIENCIA RESPIRATORIA DEL RECIÉN NACIDO", 1],
+            [2024, "Marzo", "A418", "OTRAS SEPSIS ESPECIFICADAS", 1],
+            [2024, "Marzo", "J954", "SÍNDROME DE MENDELSON", 1],
+            [2024, "Marzo", "I609", "HEMORRAGIA SUBARACNOIDEA, NO ESPECIFICADA", 1],
+            [2024, "Marzo", "E870", "HIPEROSMOLARIDAD E HIPERNATREMIA", 1],
+            [2024, "Marzo", "B377", "SEPSIS DEBIDA A CANDIDA", 1],
+            [2024, "Marzo", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2024, "Marzo", "J869", "PIOTÓRAX SIN FÍSTULA", 1],
+            [2024, "Marzo", "J90X", "DERRAME PLEURAL NO CLASIFICADO EN OTRA PARTE", 1],
+            [2024, "Marzo", "I678", "OTRAS ENFERMEDADES CEREBROVASCULARES ESPECIFICADAS", 1],
+            [2024, "Marzo", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 1],
+            [2024, "Marzo", "G039", "MENINGITIS, NO ESPECIFICADA", 1],
+            [2024, "Febrero", "S069", "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", 1],
+            [2024, "Febrero", "I489", "FIBRILACIÓN Y ALETEO AURICULAR, NO ESPECIFICADO", 1],
+            [2024, "Febrero", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 1],
+            [2024, "Febrero", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 1],
+            [2024, "Febrero", "K721", "INSUFICIENCIA HEPÁTICA CRÓNICA", 1],
+            [2024, "Febrero", "A419", "SEPSIS, NO ESPECIFICADA", 1],
+            [2024, "Febrero", "K729", "INSUFICIENCIA HEPÁTICA, NO ESPECIFICADA", 1],
+            [2024, "Febrero", "A153", "TUBERCULOSIS DEL PULMÓN, CONFIRMADA POR MEDIOS NO ESPECIFIC...", 1],
+            [2024, "Febrero", "F059", "DELIRIO, NO ESPECIFICADO", 1],
+            [2024, "Febrero", "T07X", "TRAUMATISMOS MÚLTIPLES, NO ESPECIFICADOS", 1],
+            [2024, "Febrero", "C229", "TUMOR MALIGNO DEL HÍGADO, NO ESPECIFICADO", 1],
+            [2024, "Febrero", "I616", "HEMORRAGIA INTRAENCEFÁLICA DE LOCALIZACIONES MÚLTIPLES", 1],
+            [2024, "Febrero", "K920", "HEMATEMESIS", 1],
+            [2024, "Enero", "A419", "SEPSIS, NO ESPECIFICADA", 4],
+            [2024, "Enero", "S069", "TRAUMATISMO INTRACRANEAL, NO ESPECIFICADO", 2],
+            [2024, "Enero", "O998", "OTRAS ENFERMEDADES ESPECIFICADAS Y AFECCIONES QUE COMPLICAN ...", 1],
+            [2024, "Enero", "R688", "OTROS SÍNTOMAS Y SIGNOS GENERALES ESPECIFICADOS", 1],
+            [2024, "Enero", "N189", "ENFERMEDAD RENAL CRÓNICA, NO ESPECIFICADA", 1],
+            [2024, "Enero", "J80X", "SÍNDROME DE DIFICULTAD RESPIRATORIA DEL ADULTO", 1],
+            [2024, "Enero", "J189", "NEUMONÍA, NO ESPECIFICADA", 1],
+            [2024, "Enero", "J960", "INSUFICIENCIA RESPIRATORIA AGUDA", 1],
+            [2024, "Enero", "I607", "HEMORRAGIA SUBARACNOIDEA DE ARTERIA INTRACRANEAL NO ESPECIFI...", 1],
+            [2024, "Enero", "K746", "OTRAS CIRROSIS DEL HÍGADO Y LAS NO ESPECIFICADAS", 1],
+            [2024, "Enero", "J128", "NEUMONÍA DEBIDA A OTROS VIRUS", 1],
+            [2024, "Enero", "R092", "PARO RESPIRATORIO", 1],
+            [2024, "Enero", "B169", "HEPATITIS AGUDA TIPO B, SIN AGENTE DELTA Y SIN COMA HEPÁTIC...", 1],
+            [2024, "Enero", "P369", "SEPSIS BACTERIANA DEL RECIÉN NACIDO, NO ESPECIFICADA", 1],
+            [2024, "Enero", "I619", "HEMORRAGIA INTRAENCEFÁLICA, NO ESPECIFICADA", 1]
+        ];
 
-        // ===== VARIABLES GLOBALES =====
-        let rawData = [];
-        let filteredData = [];
-        let monthlyChart = null;
-        let causesChart = null;
-
-        // ===== INICIALIZACIÓN =====
-        document.addEventListener('DOMContentLoaded', function () {
-            console.log('Dashboard inicializando...');
-            loadData();
+        // --------------------------------------------------------------
+        // 2. AGRUPAR: top 15
+        // --------------------------------------------------------------
+        const mapDiag = new Map();
+        rawData.forEach(([year, month, code, diag, cases]) => {
+            const key = `${code}|${diag}`;
+            if (!mapDiag.has(key)) {
+                mapDiag.set(key, { codigo: code, diagnostico: diag, total: 0, meses: {} });
+            }
+            const entry = mapDiag.get(key);
+            entry.total += cases;
+            const mesKey = `${year}-${month}`;
+            entry.meses[mesKey] = (entry.meses[mesKey] || 0) + cases;
         });
 
-        // ===== FUNCIONES PRINCIPALES =====
+        const allDiag = Array.from(mapDiag.values());
+        allDiag.sort((a, b) => b.total - a.total);
+        const top15 = allDiag.slice(0, 15);
+        const totalCasos = top15.reduce((sum, d) => sum + d.total, 0);
 
-        // Cargar datos desde GAS
-        async function loadData() {
-            showLoader(true);
-            showError('');
-            updateStatus('Conectando a Google Sheets...');
+        // --------------------------------------------------------------
+        // 3. Ejes temporales
+        // --------------------------------------------------------------
+        const monthOrder = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre",
+            "Noviembre", "Diciembre"
+        ];
+        const allMonths = new Set();
+        rawData.forEach(([year, month]) => allMonths.add(`${year}-${month}`));
+        const sortedMonths = Array.from(allMonths).sort((a, b) => {
+            const [ay, am] = a.split('-');
+            const [by, bm] = b.split('-');
+            if (ay !== by) return parseInt(ay) - parseInt(by);
+            return monthOrder.indexOf(am) - monthOrder.indexOf(bm);
+        });
 
-            try {
-                // Usar fetch con modo 'no-cors' para GitHub Pages
-                const response = await fetch(GAS_URL, {
-                    method: 'GET',
-                    mode: 'no-cors' // Modo especial para GitHub Pages
-                });
+        // --------------------------------------------------------------
+        // 4. Colores
+        // --------------------------------------------------------------
+        const colors = [
+            '#1f4e79', '#2e75b6', '#4472c4', '#5b9bd5', '#70ad47',
+            '#ed7d31', '#a5a5a5', '#ffc000', '#7030a0', '#e74c3c',
+            '#3498db', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c'
+        ];
+        const diagColors = {};
+        top15.forEach((item, idx) => {
+            diagColors[item.codigo] = colors[idx % colors.length];
+        });
 
-                // Para 'no-cors', usamos un proxy o método alternativo
-                await loadDataWithJSONP();
+        // --------------------------------------------------------------
+        // 5. Estado de resalte
+        // --------------------------------------------------------------
+        let highlightedCode = null;
 
-            } catch (error) {
-                console.error('Error de conexión:', error);
-                showError('Error de conexión. Usando datos de ejemplo...');
-                loadSampleData();
-            }
-        }
+        // --------------------------------------------------------------
+        // 6. Funciones para crear gráficos (con soporte de resalte)
+        // --------------------------------------------------------------
+        function buildDatasets(lineWidth = 2.5, highlight = null) {
+            return top15.map((item) => {
+                const isHighlighted = (highlight && item.codigo === highlight);
+                const isDimmed = (highlight && item.codigo !== highlight);
+                const data = sortedMonths.map(m => item.meses[m] || 0);
 
-        // Método JSONP para evitar CORS
-        function loadDataWithJSONP() {
-            return new Promise((resolve, reject) => {
-                const callbackName = 'callback_' + Date.now();
-                const script = document.createElement('script');
-
-                window[callbackName] = function (data) {
-                    delete window[callbackName];
-                    document.body.removeChild(script);
-
-                    if (data && data.success) {
-                        processData(data.data);
-                        resolve(data);
-                    } else {
-                        reject(new Error('Datos inválidos'));
-                    }
+                return {
+                    label: item.codigo,
+                    data: data,
+                    borderColor: diagColors[item.codigo],
+                    backgroundColor: diagColors[item.codigo] + '22',
+                    borderWidth: isHighlighted ? 5 : (isDimmed ? 1.2 : lineWidth),
+                    pointRadius: isHighlighted ? 6 : (isDimmed ? 2 : 3.5),
+                    pointBackgroundColor: diagColors[item.codigo],
+                    pointBorderColor: isHighlighted ? '#ffffff' : (isDimmed ? '#cccccc' : '#ffffff'),
+                    pointBorderWidth: isHighlighted ? 2.5 : (isDimmed ? 0.8 : 1.2),
+                    tension: 0.2,
+                    fill: false,
+                    pointHoverRadius: isHighlighted ? 8 : 5,
+                    borderDash: isDimmed ? [4, 4] : [],
+                    opacity: isDimmed ? 0.35 : 1.0,
                 };
-
-                script.src = `${GAS_URL}?callback=${callbackName}&format=jsonp`;
-                script.onerror = reject;
-                document.body.appendChild(script);
             });
         }
 
-        // Procesar datos recibidos
-        function processData(data) {
-            try {
-                rawData = data.map(item => ({
-                    year: item.año || item.year,
-                    month: item.mes || item.month,
-                    monthName: item.mes_nombre || item.mesNombre,
-                    code: item.codigo_cie || item.code,
-                    description: item.descripcion_cie || item.description,
-                    count: item.cantidad || item.count
-                }));
-
-                console.log(`${rawData.length} registros cargados`);
-
-                // Actualizar filtros de año
-                updateYearFilters();
-
-                // Mostrar dashboard
-                filteredData = [...rawData];
-                updateDashboard();
-                updateStatus('Datos cargados correctamente');
-                showLoader(false);
-
-            } catch (error) {
-                console.error('Error procesando datos:', error);
-                showError('Error procesando datos. Cargando datos de ejemplo...');
-                loadSampleData();
-            }
-        }
-
-        // Datos de ejemplo (fallback)
-        function loadSampleData() {
-            rawData = [
-                { year: 2024, month: 1, monthName: "Enero", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 4 },
-                { year: 2024, month: 2, monthName: "Febrero", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 1 },
-                { year: 2024, month: 3, monthName: "Marzo", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 4 },
-                { year: 2024, month: 4, monthName: "Abril", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 4 },
-                { year: 2024, month: 5, monthName: "Mayo", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 2 },
-                { year: 2024, month: 6, monthName: "Junio", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 5 },
-                { year: 2024, month: 8, monthName: "Agosto", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 1 },
-                { year: 2024, month: 9, monthName: "Septiembre", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 4 },
-                { year: 2024, month: 10, monthName: "Octubre", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 3 },
-                { year: 2024, month: 11, monthName: "Noviembre", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 3 },
-                { year: 2024, month: 12, monthName: "Diciembre", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 5 },
-                { year: 2025, month: 1, monthName: "Enero", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 5 },
-                { year: 2025, month: 2, monthName: "Febrero", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 2 },
-                { year: 2025, month: 3, monthName: "Marzo", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 4 },
-                { year: 2025, month: 4, monthName: "Abril", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 8 },
-                { year: 2025, month: 5, monthName: "Mayo", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 3 },
-                { year: 2025, month: 6, monthName: "Junio", code: "A419", description: "SEPSIS, NO ESPECIFICADA", count: 2 }
-            ];
-
-            updateYearFilters();
-            filteredData = [...rawData];
-            updateDashboard();
-            updateStatus('Usando datos de ejemplo');
-            showLoader(false);
-        }
-
-        // ===== FUNCIONES DE FILTRADO =====
-
-        function applyFilters() {
-            const year = document.getElementById('yearFilter').value;
-            const month = document.getElementById('monthFilter').value;
-            const search = document.getElementById('searchInput').value.toLowerCase();
-
-            filteredData = rawData.filter(item => {
-                if (year !== 'all' && item.year.toString() !== year) return false;
-                if (month !== 'all' && item.month.toString() !== month) return false;
-                if (search && !item.code.toLowerCase().includes(search) &&
-                    !item.description.toLowerCase().includes(search)) return false;
-                return true;
-            });
-
-            updateDashboard();
-        }
-
-        function resetFilters() {
-            document.getElementById('yearFilter').value = 'all';
-            document.getElementById('monthFilter').value = 'all';
-            document.getElementById('searchInput').value = '';
-            filteredData = [...rawData];
-            updateDashboard();
-        }
-
-        // ===== ACTUALIZAR DASHBOARD =====
-
-        function updateDashboard() {
-            updateStats();
-            updateTable();
-            updateCharts();
-            updateStatus(`Mostrando ${filteredData.length} registros filtrados`);
-        }
-
-        function updateStats() {
-            if (filteredData.length === 0) {
-                document.getElementById('totalDeaths').textContent = '0';
-                document.getElementById('topCause').textContent = '-';
-                document.getElementById('peakMonth').textContent = '-';
-                document.getElementById('uniqueCodes').textContent = '0';
-                return;
-            }
-
-            // Total defunciones
-            const total = filteredData.reduce((sum, item) => sum + item.count, 0);
-            document.getElementById('totalDeaths').textContent = total.toLocaleString();
-
-            // Causa principal
-            const causeCounts = {};
-            filteredData.forEach(item => {
-                causeCounts[item.code] = (causeCounts[item.code] || 0) + item.count;
-            });
-
-            let topCode = '';
-            let topCount = 0;
-            for (const [code, count] of Object.entries(causeCounts)) {
-                if (count > topCount) {
-                    topCount = count;
-                    topCode = code;
-                }
-            }
-
-            const topItem = filteredData.find(item => item.code === topCode);
-            document.getElementById('topCause').textContent = topCode;
-            document.getElementById('topCauseDesc').textContent =
-                topItem ? (topItem.description.length > 40 ?
-                    topItem.description.substring(0, 40) + '...' :
-                    topItem.description) : '';
-
-            // Mes pico
-            const monthCounts = {};
-            filteredData.forEach(item => {
-                const key = `${item.monthName} ${item.year}`;
-                monthCounts[key] = (monthCounts[key] || 0) + item.count;
-            });
-
-            let peakMonth = '';
-            let peakCount = 0;
-            for (const [month, count] of Object.entries(monthCounts)) {
-                if (count > peakCount) {
-                    peakCount = count;
-                    peakMonth = month;
-                }
-            }
-
-            document.getElementById('peakMonth').textContent = peakMonth;
-            document.getElementById('peakCount').textContent = `${peakCount} defunciones`;
-
-            // Códigos únicos
-            const uniqueCodes = new Set(filteredData.map(item => item.code));
-            document.getElementById('uniqueCodes').textContent = uniqueCodes.size;
-        }
-
-        function updateTable() {
-            const tbody = document.getElementById('tableBody');
-            const rowCount = document.getElementById('rowCount');
-
-            if (filteredData.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 2rem;">
-                            No hay datos con los filtros actuales
-                        </td>
-                    </tr>
-                `;
-                rowCount.textContent = '0';
-                return;
-            }
-
-            // Ordenar datos
-            const sortedData = [...filteredData].sort((a, b) => {
-                if (a.year !== b.year) return b.year - a.year;
-                if (a.month !== b.month) return b.month - a.month;
-                return b.count - a.count;
-            });
-
-            let html = '';
-            sortedData.forEach(item => {
-                const shortDesc = item.description.length > 60 ?
-                    item.description.substring(0, 60) + '...' :
-                    item.description;
-
-                html += `
-                    <tr>
-                        <td><strong>${item.year}</strong></td>
-                        <td>${item.monthName}</td>
-                        <td><code>${item.code}</code></td>
-                        <td title="${item.description}">${shortDesc}</td>
-                        <td><span style="color: #e74c3c; font-weight: bold;">${item.count}</span></td>
-                    </tr>
-                `;
-            });
-
-            tbody.innerHTML = html;
-            rowCount.textContent = filteredData.length.toString();
-        }
-
-        function updateCharts() {
-            if (!monthlyChart || !causesChart) {
-                initCharts();
-            }
-
-            updateMonthlyChart();
-            updateCausesChart();
-        }
-
-        function initCharts() {
-            // Gráfico mensual
-            const ctx1 = document.getElementById('monthlyChart').getContext('2d');
-            monthlyChart = new Chart(ctx1, {
-                type: 'bar',
+        function createLineChart(highlight = null) {
+            const ds = buildDatasets(2.5, highlight);
+            return new Chart(ctx, {
+                type: 'line',
                 data: {
-                    labels: [], datasets: [{
-                        label: 'Defunciones',
-                        data: [],
-                        backgroundColor: '#3498db',
-                        borderColor: '#2980b9',
-                        borderWidth: 1
-                    }]
+                    labels: sortedMonths.map(m => m.replace('-', ' ')),
+                    datasets: ds,
                 },
                 options: {
                     responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#f4f9ff',
+                            titleColor: '#1f3a5a',
+                            bodyColor: '#1f3a5a',
+                            borderColor: '#b0c8e0',
+                            borderWidth: 1,
+                            cornerRadius: 16,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y + ' casos';
+                                }
+                            }
+                        }
+                    },
                     scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-
-            // Gráfico de causas
-            const ctx2 = document.getElementById('causesChart').getContext('2d');
-            causesChart = new Chart(ctx2, {
-                type: 'bar',
-                data: {
-                    labels: [], datasets: [{
-                        label: 'Defunciones',
-                        data: [],
-                        backgroundColor: '#e74c3c',
-                        borderColor: '#c0392b',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    scales: {
-                        x: { beginAtZero: true }
+                        x: {
+                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                            ticks: { color: '#2b4a6e', font: { size: 10, weight: '500' } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)', drawBorder: false },
+                            ticks: { color: '#2b4a6e', stepSize: 1, font: { size: 10 } }
+                        }
                     }
                 }
             });
         }
 
-        function updateMonthlyChart() {
-            const monthData = {};
-            filteredData.forEach(item => {
-                const key = `${item.monthName} ${item.year}`;
-                monthData[key] = (monthData[key] || 0) + item.count;
+        function createBarChart(highlight = null) {
+            const sortedForBar = [...top15].sort((a, b) => b.total - a.total);
+            const barLabels = sortedForBar.map(d => d.codigo);
+            const barData = sortedForBar.map(d => d.total);
+            const barColors = sortedForBar.map(d => {
+                const isHighlighted = (highlight && d.codigo === highlight);
+                const isDimmed = (highlight && d.codigo !== highlight);
+                if (isHighlighted) return diagColors[d.codigo];
+                if (isDimmed) return diagColors[d.codigo] + '44';
+                return diagColors[d.codigo] + 'cc';
+            });
+            const borderColors = sortedForBar.map(d => {
+                const isHighlighted = (highlight && d.codigo === highlight);
+                if (isHighlighted) return diagColors[d.codigo];
+                return diagColors[d.codigo];
+            });
+            const borderWidths = sortedForBar.map(d => {
+                const isHighlighted = (highlight && d.codigo === highlight);
+                return isHighlighted ? 3 : 1.5;
             });
 
-            const labels = Object.keys(monthData);
-            const data = Object.values(monthData);
-
-            monthlyChart.data.labels = labels;
-            monthlyChart.data.datasets[0].data = data;
-            monthlyChart.update();
+            return new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: barLabels,
+                    datasets: [{
+                        label: 'Total casos',
+                        data: barData,
+                        backgroundColor: barColors,
+                        borderColor: borderColors,
+                        borderWidth: borderWidths,
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: '#f4f9ff',
+                            titleColor: '#1f3a5a',
+                            bodyColor: '#1f3a5a',
+                            borderColor: '#b0c8e0',
+                            borderWidth: 1,
+                            cornerRadius: 16,
+                            callbacks: {
+                                label: function(context) {
+                                    const diag = top15.find(d => d.codigo === context.label);
+                                    return diag ? diag.diagnostico + ': ' + context.parsed.y + ' casos' : 'Total: ' + context
+                                        .parsed.y + ' casos';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#2b4a6e', font: { size: 10, weight: '600' } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)' },
+                            ticks: { color: '#2b4a6e', stepSize: 1 }
+                        }
+                    }
+                }
+            });
         }
 
-        function updateCausesChart() {
-            const causeData = {};
-            filteredData.forEach(item => {
-                const key = item.code;
-                causeData[key] = (causeData[key] || 0) + item.count;
+        function createComparativeChart(highlight = null) {
+            const top5 = top15.slice(0, 5);
+            const labels = sortedMonths.map(m => m.replace('-', ' '));
+            const datasets = top5.map((item) => {
+                const isHighlighted = (highlight && item.codigo === highlight);
+                const isDimmed = (highlight && item.codigo !== highlight);
+                return {
+                    label: item.codigo,
+                    data: sortedMonths.map(m => item.meses[m] || 0),
+                    backgroundColor: isHighlighted ? diagColors[item.codigo] + 'cc' : (isDimmed ? diagColors[item
+                        .codigo] + '44' : diagColors[item.codigo] + '88'),
+                    borderColor: isHighlighted ? diagColors[item.codigo] : (isDimmed ? diagColors[item.codigo] +
+                        '88' : diagColors[item.codigo]),
+                    borderWidth: isHighlighted ? 3 : (isDimmed ? 1 : 1.5),
+                    borderRadius: 4,
+                };
             });
 
-            const sorted = Object.entries(causeData)
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10);
-
-            const labels = sorted.map(([code]) => code);
-            const data = sorted.map(([, count]) => count);
-
-            causesChart.data.labels = labels;
-            causesChart.data.datasets[0].data = data;
-            causesChart.update();
-        }
-
-        // ===== FUNCIONES AUXILIARES =====
-
-        function updateYearFilters() {
-            const years = [...new Set(rawData.map(item => item.year))].sort((a, b) => b - a);
-            const select = document.getElementById('yearFilter');
-
-            select.innerHTML = '<option value="all">Todos los años</option>';
-            years.forEach(year => {
-                select.innerHTML += `<option value="${year}">${year}</option>`;
+            return new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: true,
+                            position: 'top',
+                            labels: {
+                                color: '#1f3a5a',
+                                font: { size: 10, weight: '600' },
+                                boxWidth: 12,
+                                padding: 12,
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: '#f4f9ff',
+                            titleColor: '#1f3a5a',
+                            bodyColor: '#1f3a5a',
+                            borderColor: '#b0c8e0',
+                            borderWidth: 1,
+                            cornerRadius: 16,
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { color: '#2b4a6e', font: { size: 9 } }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: 'rgba(0,0,0,0.04)' },
+                            ticks: { color: '#2b4a6e', stepSize: 1, font: { size: 9 } }
+                        }
+                    }
+                }
             });
         }
 
-        function updateStatus(message) {
-            const badge = document.getElementById('statusBadge');
-            badge.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-            document.getElementById('lastUpdate').textContent =
-                `Última actualización: ${new Date().toLocaleTimeString()}`;
+        // --------------------------------------------------------------
+        // 7. Renderizar leyenda (con evento click)
+        // --------------------------------------------------------------
+        const legendContainer = document.getElementById('legendFull');
+        const legendItems = [];
+
+        top15.forEach((item) => {
+            const div = document.createElement('div');
+            div.className = 'legend-item-full';
+            div.dataset.code = item.codigo;
+            const color = diagColors[item.codigo];
+            let displayName = item.diagnostico;
+            if (displayName.length > 45) displayName = displayName.substring(0, 42) + '…';
+
+            div.innerHTML = `
+                <span class="color-dot" style="background:${color};"></span>
+                <span class="legend-code">${item.codigo}</span>
+                <span class="legend-name" title="${item.diagnostico}">${displayName}</span>
+                <span class="legend-total">${item.total}</span>
+            `;
+
+            // Evento click: resaltar este diagnóstico
+            div.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const code = this.dataset.code;
+                if (highlightedCode === code) {
+                    // Si ya está resaltado, lo des-resaltamos
+                    clearHighlight();
+                } else {
+                    setHighlight(code);
+                }
+            });
+
+            legendContainer.appendChild(div);
+            legendItems.push(div);
+        });
+
+        // --------------------------------------------------------------
+        // 8. Funciones de resalte
+        // --------------------------------------------------------------
+        function setHighlight(code) {
+            highlightedCode = code;
+            // Actualizar clases en la leyenda
+            legendItems.forEach(el => {
+                const elCode = el.dataset.code;
+                el.classList.remove('active', 'inactive');
+                if (elCode === code) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.add('inactive');
+                }
+            });
+            // Recrear gráfico con resalte
+            recreateChart(highlightedCode);
         }
 
-        function showLoader(show) {
-            document.getElementById('loader').style.display = show ? 'block' : 'none';
-            document.getElementById('dashboardContent').style.display = show ? 'none' : 'block';
+        function clearHighlight() {
+            highlightedCode = null;
+            legendItems.forEach(el => {
+                el.classList.remove('active', 'inactive');
+            });
+            recreateChart(null);
         }
 
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            if (message) {
-                errorDiv.textContent = message;
-                errorDiv.style.display = 'block';
+        // --------------------------------------------------------------
+        // 9. Gestión del gráfico y vistas
+        // --------------------------------------------------------------
+        const ctx = document.getElementById('trendChart').getContext('2d');
+        let trendChart;
+        let currentView = 'total';
+
+        function recreateChart(highlight = null) {
+            trendChart.destroy();
+            if (currentView === 'total') {
+                trendChart = createBarChart(highlight);
+            } else if (currentView === 'tendencia') {
+                trendChart = createLineChart(highlight);
+            } else if (currentView === 'comparativa') {
+                trendChart = createComparativeChart(highlight);
+            }
+        }
+
+        // Botones de vista
+        document.querySelectorAll('[data-view]').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentView = this.dataset.view;
+                recreateChart(highlightedCode);
+            });
+        });
+
+        // Reset (restablecer gráfico y quitar resalte)
+        document.getElementById('resetZoomBtn').addEventListener('click', function() {
+            clearHighlight();
+            const activeBtn = document.querySelector('[data-view].active');
+            if (activeBtn) {
+                // Ya está en la vista correcta, solo recreamos
+                recreateChart(null);
             } else {
-                errorDiv.style.display = 'none';
+                document.querySelector('[data-view="total"]').click();
             }
-        }
+        });
+
+        // Botón para quitar resalte explícitamente
+        document.getElementById('clearHighlightBtn').addEventListener('click', function() {
+            clearHighlight();
+        });
+
+        // --------------------------------------------------------------
+        // 10. Inicializar estadísticas y gráfico
+        // --------------------------------------------------------------
+        document.getElementById('diagCount').textContent = top15.length;
+        document.getElementById('monthCount').textContent = sortedMonths.length;
+        document.getElementById('totalCases').textContent = totalCasos;
+
+        // Iniciar con vista total
+        trendChart = createBarChart(null);
+        document.querySelector('[data-view="total"]').classList.add('active');
     </script>
 </body>
-
 </html>
