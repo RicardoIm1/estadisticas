@@ -263,7 +263,7 @@
       }
     }
 
-    // FUNCIÓN MODIFICADA: Mostrar tabla con orden por ID descendente
+    // FUNCIÓN MODIFICADA: Mostrar tabla con orden por FECHA descendente y luego por FOLIO
     function mostrarTabla(registros) {
       const tbody = document.getElementById('tabla-registros');
       tbody.innerHTML = '';
@@ -273,10 +273,30 @@
         return;
       }
 
-      // Ordenar registros por ID (último añadido primero)
+      // Ordenar registros por FECHA descendente (más reciente primero) y luego por FOLIO
       const registrosOrdenados = [...registros].sort((a, b) => {
-        // Asumiendo que el ID es numérico y secuencial
-        return parseInt(b.id) - parseInt(a.id);
+        // Primero ordenar por fecha (descendente)
+        const fechaA = a.fechaDefuncion ? new Date(a.fechaDefuncion) : new Date(0);
+        const fechaB = b.fechaDefuncion ? new Date(b.fechaDefuncion) : new Date(0);
+
+        // Si las fechas son diferentes, ordenar por fecha (más reciente primero)
+        if (fechaA.getTime() !== fechaB.getTime()) {
+          return fechaB.getTime() - fechaA.getTime();
+        }
+
+        // Si las fechas son iguales, ordenar por folio (ascendente)
+        const folioA = a.folio || '';
+        const folioB = b.folio || '';
+
+        // Comparar como números si son numéricos, o como strings
+        const numA = parseInt(folioA);
+        const numB = parseInt(folioB);
+
+        if (!isNaN(numA) && !isNaN(numB)) {
+          return numA - numB; // Orden numérico ascendente
+        }
+
+        return folioA.localeCompare(folioB); // Orden alfabético ascendente
       });
 
       registrosOrdenados.forEach((registro, index) => {
