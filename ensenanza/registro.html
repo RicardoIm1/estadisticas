@@ -8,11 +8,10 @@
     <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     
-    <!-- ===== SUPABASE JS ===== -->
+    <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <style>
-        /* ===== RESET & BASE ===== */
         * {
             margin: 0;
             padding: 0;
@@ -26,7 +25,6 @@
             padding: 40px 20px;
         }
 
-        /* ===== CONTENEDOR PRINCIPAL ===== */
         .container {
             max-width: 800px;
             margin: 0 auto;
@@ -48,7 +46,6 @@
             }
         }
 
-        /* ===== HEADER ===== */
         .header {
             text-align: center;
             margin-bottom: 35px;
@@ -80,7 +77,6 @@
             margin-top: 5px;
         }
 
-        /* ===== FORMULARIO ===== */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -129,11 +125,42 @@
             background: white;
         }
 
-        .form-group input::placeholder {
-            color: #94a3b8;
+        .form-group input:read-only {
+            background: #f1f5f9;
+            cursor: not-allowed;
+            color: #475569;
         }
 
-        /* ===== FOTO ===== */
+        .form-group .matricula-display {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-group .matricula-display input {
+            flex: 1;
+        }
+
+        .form-group .matricula-badge {
+            background: #dbeafe;
+            color: #1e40af;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .form-group small {
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .form-group small i {
+            margin-right: 4px;
+        }
+
         .photo-upload {
             display: flex;
             align-items: center;
@@ -219,7 +246,6 @@
             display: none;
         }
 
-        /* ===== BOTONES ===== */
         .form-actions {
             grid-column: 1 / -1;
             display: flex;
@@ -289,7 +315,6 @@
             background: #e2e8f0;
         }
 
-        /* ===== ALERTAS ===== */
         .alert {
             padding: 15px 20px;
             border-radius: 12px;
@@ -347,7 +372,6 @@
             opacity: 1;
         }
 
-        /* ===== LISTA DE INTERNOS REGISTRADOS ===== */
         .registered-list {
             margin-top: 30px;
             padding-top: 25px;
@@ -473,7 +497,6 @@
             background: #fee2e2;
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 640px) {
             .container {
                 padding: 20px;
@@ -508,7 +531,6 @@
             }
         }
 
-        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar {
             width: 8px;
         }
@@ -531,7 +553,6 @@
 <body>
 
     <div class="container">
-        <!-- HEADER -->
         <div class="header">
             <div class="logo">
                 <i class="fas fa-hospital-user"></i>
@@ -540,23 +561,27 @@
             <p>Hospital General · Sistema de gestión de médicos internos</p>
         </div>
 
-        <!-- ALERTA -->
         <div id="alertContainer"></div>
 
-        <!-- FORMULARIO -->
         <form id="internoForm" class="form-grid">
-            <!-- Matrícula -->
+            <!-- Matrícula - AUTOMÁTICA -->
             <div class="form-group">
                 <label>
-                    <i class="fas fa-id-card"></i> Matrícula <span class="required">*</span>
+                    <i class="fas fa-id-card"></i> Matrícula 
+                    <span class="matricula-badge">Automática</span>
                 </label>
-                <input 
-                    type="text" 
-                    id="matricula" 
-                    name="matricula" 
-                    placeholder="Ej: MED-2024-001"
-                    required
-                />
+                <div class="matricula-display">
+                    <input 
+                        type="text" 
+                        id="matricula" 
+                        name="matricula" 
+                        placeholder="Generando..."
+                        readonly
+                    />
+                </div>
+                <small>
+                    <i class="fas fa-robot"></i> Se genera automáticamente al guardar
+                </small>
             </div>
 
             <!-- Nombre Completo -->
@@ -564,13 +589,7 @@
                 <label>
                     <i class="fas fa-user"></i> Nombre Completo <span class="required">*</span>
                 </label>
-                <input 
-                    type="text" 
-                    id="nombre" 
-                    name="nombre" 
-                    placeholder="Ej: Juan Pérez González"
-                    required
-                />
+                <input type="text" id="nombre" name="nombre" placeholder="Ej: Juan Pérez González" required />
             </div>
 
             <!-- Universidad -->
@@ -578,13 +597,7 @@
                 <label>
                     <i class="fas fa-university"></i> Universidad <span class="required">*</span>
                 </label>
-                <input 
-                    type="text" 
-                    id="universidad" 
-                    name="universidad" 
-                    placeholder="Nombre de la universidad"
-                    required
-                />
+                <input type="text" id="universidad" name="universidad" placeholder="Nombre de la universidad" required />
             </div>
 
             <!-- Carrera -->
@@ -592,13 +605,7 @@
                 <label>
                     <i class="fas fa-graduation-cap"></i> Carrera <span class="required">*</span>
                 </label>
-                <input 
-                    type="text" 
-                    id="carrera" 
-                    name="carrera" 
-                    placeholder="Carrera"
-                    required
-                />
+                <input type="text" id="carrera" name="carrera" placeholder="Carrera" required />
             </div>
 
             <!-- Semestre -->
@@ -606,13 +613,7 @@
                 <label>
                     <i class="fas fa-layer-group"></i> Semestre <span class="required">*</span>
                 </label>
-                <input 
-                    type="text" 
-                    id="semestre" 
-                    name="semestre" 
-                    placeholder="Ej: 8° Semestre"
-                    required
-                />
+                <input type="text" id="semestre" name="semestre" placeholder="Ej: 8° Semestre" required />
             </div>
 
             <!-- Generación -->
@@ -620,13 +621,7 @@
                 <label>
                     <i class="fas fa-calendar-alt"></i> Generación <span class="required">*</span>
                 </label>
-                <input 
-                    type="text" 
-                    id="generacion" 
-                    name="generacion" 
-                    placeholder="Ej: 2020-2025"
-                    required
-                />
+                <input type="text" id="generacion" name="generacion" placeholder="Ej: 2020-2025" required />
             </div>
 
             <!-- Correo -->
@@ -634,13 +629,7 @@
                 <label>
                     <i class="fas fa-envelope"></i> Correo Electrónico <span class="required">*</span>
                 </label>
-                <input 
-                    type="email" 
-                    id="correo" 
-                    name="correo" 
-                    placeholder="correo@ejemplo.com"
-                    required
-                />
+                <input type="email" id="correo" name="correo" placeholder="correo@ejemplo.com" required />
             </div>
 
             <!-- Teléfono -->
@@ -648,12 +637,7 @@
                 <label>
                     <i class="fas fa-phone"></i> Teléfono
                 </label>
-                <input 
-                    type="tel" 
-                    id="telefono" 
-                    name="telefono" 
-                    placeholder="(55) 1234-5678"
-                />
+                <input type="tel" id="telefono" name="telefono" placeholder="(55) 1234-5678" />
             </div>
 
             <!-- Estatus -->
@@ -667,7 +651,6 @@
                 </select>
             </div>
 
-            <!-- ID oculto para edición -->
             <input type="hidden" id="internoId" value="" />
 
             <!-- Foto -->
@@ -686,13 +669,7 @@
                         <button type="button" class="btn-remove" id="removePhotoBtn" style="display:none;" onclick="removePhoto()">
                             <i class="fas fa-trash"></i> Eliminar
                         </button>
-                        <input 
-                            type="file" 
-                            id="photoInput" 
-                            class="file-input-hidden" 
-                            accept="image/jpeg,image/png,image/webp"
-                            onchange="handlePhotoSelect(event)"
-                        />
+                        <input type="file" id="photoInput" class="file-input-hidden" accept="image/jpeg,image/png,image/webp" onchange="handlePhotoSelect(event)" />
                         <span style="font-size:12px; color:#94a3b8;">
                             Formatos: JPG, PNG, WEBP · Max: 5MB
                         </span>
@@ -726,48 +703,29 @@
         </div>
     </div>
 
-    <!-- ============================================================ -->
-    <!-- JAVASCRIPT -->
-    <!-- ============================================================ -->
     <script>
         // ============================================================
-        // 1. CONFIGURACIÓN DE SUPABASE
+        // CONFIGURACIÓN - REEMPLAZA CON TUS DATOS
         // ============================================================
-        // !!! REEMPLAZA CON TUS CREDENCIALES REALES DE SUPABASE !!!
-        // Ve a Settings → API en tu proyecto de Supabase
         const SUPABASE_URL = 'https://njtlruvhcatklccdxpla.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc'; // DEBE empezar con "eyJ..."
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc';
         // ============================================================
 
-        // ============================================================
-        // 2. VERIFICAR QUE SUPABASE ESTÉ CARGADO
-        // ============================================================
         if (typeof supabase === 'undefined') {
             document.getElementById('internosList').innerHTML = `
                 <p style="color:#ef4444; text-align:center; padding:20px;">
                     <i class="fas fa-exclamation-circle"></i> 
-                    Error: La librería de Supabase no se cargó correctamente.
-                    Verifica tu conexión a internet.
+                    Error: La librería de Supabase no se cargó.
                 </p>
             `;
-            console.error('❌ Supabase no está definido. El script no se cargó.');
         }
 
-        // ============================================================
-        // 3. CLIENTE SUPABASE
-        // ============================================================
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ============================================================
-        // 4. ESTADO GLOBAL
-        // ============================================================
         let currentPhotoFile = null;
         let currentPhotoUrl = null;
         let isEditing = false;
 
-        // ============================================================
-        // 5. REFERENCIAS DOM
-        // ============================================================
         const form = document.getElementById('internoForm');
         const submitBtn = document.getElementById('submitBtn');
         const alertContainer = document.getElementById('alertContainer');
@@ -776,9 +734,59 @@
         const photoPreview = document.getElementById('photoPreview');
         const removePhotoBtn = document.getElementById('removePhotoBtn');
         const photoInput = document.getElementById('photoInput');
+        const matriculaInput = document.getElementById('matricula');
 
         // ============================================================
-        // 6. FUNCIONES DE ALERTA
+        // GENERAR MATRÍCULA AUTOMÁTICA (6 dígitos no secuencial)
+        // ============================================================
+        async function generarMatricula() {
+            let intentos = 0;
+            const maxIntentos = 100;
+            
+            while (intentos < maxIntentos) {
+                const matricula = Math.floor(100000 + Math.random() * 900000).toString();
+                
+                const { data, error } = await supabaseClient
+                    .from('internos')
+                    .select('matricula')
+                    .eq('matricula', matricula)
+                    .maybeSingle();
+                
+                if (error) {
+                    console.error('Error verificando matrícula:', error);
+                    throw new Error('Error al verificar disponibilidad de matrícula');
+                }
+                
+                if (!data) {
+                    return matricula;
+                }
+                
+                intentos++;
+            }
+            
+            throw new Error('No se pudo generar una matrícula única después de ' + maxIntentos + ' intentos');
+        }
+
+        // ============================================================
+        // PREGENERAR MATRÍCULA AL CARGAR LA PÁGINA
+        // ============================================================
+        async function pregenerarMatricula() {
+            if (isEditing) return; // Si estamos editando, no generar nueva
+    
+            try {
+                matriculaInput.value = 'Generando...';
+                const matricula = await generarMatricula();
+                matriculaInput.value = matricula;
+                console.log('✅ Matrícula pregenerada:', matricula);
+            } catch (error) {
+                console.error('Error pregenerando matrícula:', error);
+                matriculaInput.value = 'Error';
+                showAlert('Error al generar matrícula: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // FUNCIONES DE ALERTA
         // ============================================================
         function showAlert(message, type = 'info') {
             const icons = {
@@ -804,7 +812,7 @@
         }
 
         // ============================================================
-        // 7. MANEJO DE FOTO
+        // MANEJO DE FOTO
         // ============================================================
         function handlePhotoSelect(event) {
             const file = event.target.files[0];
@@ -856,7 +864,7 @@
         }
 
         // ============================================================
-        // 8. SUBIR FOTO A SUPABASE STORAGE
+        // SUBIR FOTO
         // ============================================================
         async function uploadPhoto(matricula) {
             if (!currentPhotoFile) return null;
@@ -882,7 +890,7 @@
         }
 
         // ============================================================
-        // 9. CRUD - OBTENER TODOS LOS INTERNOS
+        // CRUD - OBTENER TODOS LOS INTERNOS
         // ============================================================
         async function loadInternos() {
             try {
@@ -901,14 +909,14 @@
                 internosList.innerHTML = `
                     <p style="color:#ef4444; text-align:center; padding:20px;">
                         <i class="fas fa-exclamation-circle"></i> 
-                        Error al cargar los internos: ${error.message}
+                        Error: ${error.message}
                     </p>
                 `;
             }
         }
 
         // ============================================================
-        // 10. RENDERIZAR LISTA DE INTERNOS
+        // RENDERIZAR LISTA
         // ============================================================
         function renderInternos(internos) {
             if (!internos || internos.length === 0) {
@@ -960,9 +968,15 @@
         }
 
         // ============================================================
-        // 11. CRUD - CREAR INTERNO
+        // CRUD - CREAR INTERNO (CON MATRÍCULA AUTOMÁTICA)
         // ============================================================
         async function createInterno(data) {
+            // Generar matrícula si no viene
+            if (!data.matricula) {
+                data.matricula = await generarMatricula();
+                matriculaInput.value = data.matricula;
+            }
+            
             data.qr_token = crypto.randomUUID();
 
             const { data: result, error } = await supabaseClient
@@ -976,7 +990,7 @@
         }
 
         // ============================================================
-        // 12. CRUD - ACTUALIZAR INTERNO
+        // CRUD - ACTUALIZAR INTERNO
         // ============================================================
         async function updateInterno(id, data) {
             const { data: result, error } = await supabaseClient
@@ -991,7 +1005,7 @@
         }
 
         // ============================================================
-        // 13. CRUD - ELIMINAR INTERNO
+        // CRUD - ELIMINAR INTERNO
         // ============================================================
         async function deleteInterno(id) {
             if (!confirm('¿Estás seguro de eliminar este interno?')) return;
@@ -1019,7 +1033,7 @@
         }
 
         // ============================================================
-        // 14. EDITAR INTERNO
+        // EDITAR INTERNO
         // ============================================================
         async function editInterno(id) {
             try {
@@ -1064,7 +1078,7 @@
         }
 
         // ============================================================
-        // 15. RESET FORMULARIO
+        // RESET FORMULARIO
         // ============================================================
         function resetForm() {
             form.reset();
@@ -1076,11 +1090,15 @@
                 <span>Guardar Interno</span>
             `;
             document.getElementById('estatus').value = 'activo';
+            
+            // Pregenerar nueva matrícula
+            pregenerarMatricula();
+            
             showAlert('Formulario limpiado', 'info');
         }
 
         // ============================================================
-        // 16. ENVÍO DEL FORMULARIO
+        // ENVÍO DEL FORMULARIO
         // ============================================================
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -1103,7 +1121,8 @@
                 const telefono = document.getElementById('telefono').value.trim();
                 const estatus = document.getElementById('estatus').value;
 
-                if (!matricula || !nombre || !universidad || !carrera || !semestre || !generacion || !correo) {
+                // Validar campos obligatorios (matrícula ya no es obligatoria)
+                if (!nombre || !universidad || !carrera || !semestre || !generacion || !correo) {
                     showAlert('Por favor, completa todos los campos obligatorios (*)', 'error');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = `
@@ -1128,7 +1147,8 @@
 
                 if (currentPhotoFile) {
                     try {
-                        foto_url = await uploadPhoto(matricula);
+                        const matriculaParaFoto = matricula || 'temp';
+                        foto_url = await uploadPhoto(matriculaParaFoto);
                     } catch (uploadError) {
                         showAlert('Error al subir la foto: ' + uploadError.message, 'error');
                         submitBtn.disabled = false;
@@ -1141,7 +1161,6 @@
                 }
 
                 const internoData = {
-                    matricula,
                     nombre,
                     universidad,
                     carrera,
@@ -1153,12 +1172,17 @@
                     foto_url
                 };
 
+                // Si hay matrícula (para edición) o se genera automáticamente
+                if (matricula) {
+                    internoData.matricula = matricula;
+                }
+
                 if (isEditing && id) {
                     await updateInterno(id, internoData);
                     showAlert('Interno actualizado correctamente', 'success');
                 } else {
-                    await createInterno(internoData);
-                    showAlert('Interno registrado correctamente', 'success');
+                    const result = await createInterno(internoData);
+                    showAlert('Interno registrado correctamente. Matrícula: ' + result.matricula, 'success');
                 }
 
                 await loadInternos();
@@ -1178,18 +1202,15 @@
         });
 
         // ============================================================
-        // 17. INICIALIZAR
+        // INICIALIZAR
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             loadInternos();
+            pregenerarMatricula();
+            
             console.log('🔍 Verificando conexión a Supabase...');
             console.log('URL:', SUPABASE_URL);
             console.log('Key:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ No configurada');
-            
-            if (SUPABASE_ANON_KEY === 'TU_ANON_KEY_REAL_AQUI') {
-                console.warn('⚠️ ADVERTENCIA: Estás usando la key de ejemplo. Reemplázala con tu key real de Supabase.');
-                showAlert('⚠️ Configura tu ANON KEY de Supabase en el código', 'error');
-            }
         });
     </script>
 
