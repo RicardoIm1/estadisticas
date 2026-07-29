@@ -8,6 +8,9 @@
     <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     
+    <!-- ===== SUPABASE JS ===== -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
     <style>
         /* ===== RESET & BASE ===== */
         * {
@@ -128,11 +131,6 @@
 
         .form-group input::placeholder {
             color: #94a3b8;
-        }
-
-        .form-group input:disabled {
-            background: #f1f5f9;
-            cursor: not-allowed;
         }
 
         /* ===== FOTO ===== */
@@ -407,6 +405,7 @@
             justify-content: center;
             font-weight: 700;
             font-size: 14px;
+            flex-shrink: 0;
         }
 
         .interno-item .info .avatar img {
@@ -560,7 +559,7 @@
                 />
             </div>
 
-            <!-- Nombre (nombre completo) -->
+            <!-- Nombre Completo -->
             <div class="form-group">
                 <label>
                     <i class="fas fa-user"></i> Nombre Completo <span class="required">*</span>
@@ -734,28 +733,43 @@
         // ============================================================
         // 1. CONFIGURACIÓN DE SUPABASE
         // ============================================================
-        // !!! REEMPLAZA ESTOS VALORES CON LOS TUYOS !!!
+        // !!! REEMPLAZA CON TUS CREDENCIALES REALES DE SUPABASE !!!
+        // Ve a Settings → API en tu proyecto de Supabase
         const SUPABASE_URL = 'https://njtlruvhcatklccdxpla.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_nqxvbwTmSi9EVPeqb-RrgA_cWsNpW9g';
+        const SUPABASE_ANON_KEY = 'sb_publishable_nqxvbwTmSi9EVPeqb-RrgA_cWsNpW9g'; // DEBE empezar con "eyJ..."
+        // ============================================================
 
         // ============================================================
-        // 2. CLIENTE SUPABASE
+        // 2. VERIFICAR QUE SUPABASE ESTÉ CARGADO
+        // ============================================================
+        if (typeof supabase === 'undefined') {
+            document.getElementById('internosList').innerHTML = `
+                <p style="color:#ef4444; text-align:center; padding:20px;">
+                    <i class="fas fa-exclamation-circle"></i> 
+                    Error: La librería de Supabase no se cargó correctamente.
+                    Verifica tu conexión a internet.
+                </p>
+            `;
+            console.error('❌ Supabase no está definido. El script no se cargó.');
+        }
+
+        // ============================================================
+        // 3. CLIENTE SUPABASE
         // ============================================================
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // ============================================================
-        // 3. ESTADO GLOBAL
+        // 4. ESTADO GLOBAL
         // ============================================================
         let currentPhotoFile = null;
         let currentPhotoUrl = null;
         let isEditing = false;
 
         // ============================================================
-        // 4. REFERENCIAS DOM
+        // 5. REFERENCIAS DOM
         // ============================================================
         const form = document.getElementById('internoForm');
         const submitBtn = document.getElementById('submitBtn');
-        const submitText = document.getElementById('submitText');
         const alertContainer = document.getElementById('alertContainer');
         const internosList = document.getElementById('internosList');
         const totalCount = document.getElementById('totalCount');
@@ -764,7 +778,7 @@
         const photoInput = document.getElementById('photoInput');
 
         // ============================================================
-        // 5. FUNCIONES DE ALERTA
+        // 6. FUNCIONES DE ALERTA
         // ============================================================
         function showAlert(message, type = 'info') {
             const icons = {
@@ -790,7 +804,7 @@
         }
 
         // ============================================================
-        // 6. MANEJO DE FOTO
+        // 7. MANEJO DE FOTO
         // ============================================================
         function handlePhotoSelect(event) {
             const file = event.target.files[0];
@@ -842,7 +856,7 @@
         }
 
         // ============================================================
-        // 7. SUBIR FOTO A SUPABASE STORAGE
+        // 8. SUBIR FOTO A SUPABASE STORAGE
         // ============================================================
         async function uploadPhoto(matricula) {
             if (!currentPhotoFile) return null;
@@ -868,7 +882,7 @@
         }
 
         // ============================================================
-        // 8. CRUD - OBTENER TODOS LOS INTERNOS
+        // 9. CRUD - OBTENER TODOS LOS INTERNOS
         // ============================================================
         async function loadInternos() {
             try {
@@ -894,7 +908,7 @@
         }
 
         // ============================================================
-        // 9. RENDERIZAR LISTA DE INTERNOS
+        // 10. RENDERIZAR LISTA DE INTERNOS
         // ============================================================
         function renderInternos(internos) {
             if (!internos || internos.length === 0) {
@@ -908,7 +922,6 @@
             }
 
             internosList.innerHTML = internos.map(interno => {
-                // Obtener iniciales del nombre completo
                 const iniciales = interno.nombre
                     .split(' ')
                     .filter(palabra => palabra.length > 0)
@@ -947,7 +960,7 @@
         }
 
         // ============================================================
-        // 10. CRUD - CREAR INTERNO
+        // 11. CRUD - CREAR INTERNO
         // ============================================================
         async function createInterno(data) {
             data.qr_token = crypto.randomUUID();
@@ -963,7 +976,7 @@
         }
 
         // ============================================================
-        // 11. CRUD - ACTUALIZAR INTERNO
+        // 12. CRUD - ACTUALIZAR INTERNO
         // ============================================================
         async function updateInterno(id, data) {
             const { data: result, error } = await supabaseClient
@@ -978,7 +991,7 @@
         }
 
         // ============================================================
-        // 12. CRUD - ELIMINAR INTERNO
+        // 13. CRUD - ELIMINAR INTERNO
         // ============================================================
         async function deleteInterno(id) {
             if (!confirm('¿Estás seguro de eliminar este interno?')) return;
@@ -1006,7 +1019,7 @@
         }
 
         // ============================================================
-        // 13. EDITAR INTERNO
+        // 14. EDITAR INTERNO
         // ============================================================
         async function editInterno(id) {
             try {
@@ -1051,7 +1064,7 @@
         }
 
         // ============================================================
-        // 14. RESET FORMULARIO
+        // 15. RESET FORMULARIO
         // ============================================================
         function resetForm() {
             form.reset();
@@ -1067,7 +1080,7 @@
         }
 
         // ============================================================
-        // 15. ENVÍO DEL FORMULARIO
+        // 16. ENVÍO DEL FORMULARIO
         // ============================================================
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -1165,18 +1178,20 @@
         });
 
         // ============================================================
-        // 16. INICIALIZAR
+        // 17. INICIALIZAR
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
             loadInternos();
             console.log('🔍 Verificando conexión a Supabase...');
             console.log('URL:', SUPABASE_URL);
             console.log('Key:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ No configurada');
+            
+            if (SUPABASE_ANON_KEY === 'TU_ANON_KEY_REAL_AQUI') {
+                console.warn('⚠️ ADVERTENCIA: Estás usando la key de ejemplo. Reemplázala con tu key real de Supabase.');
+                showAlert('⚠️ Configura tu ANON KEY de Supabase en el código', 'error');
+            }
         });
     </script>
-
-    <!-- Incluir Supabase JS desde CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 </body>
 </html>
