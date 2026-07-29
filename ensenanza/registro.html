@@ -1,16 +1,20 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Registro de Internos - Hospital</title>
-    
+
     <!-- Font Awesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
+
+    <!-- QRCode.js para generar QR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
     <!-- Supabase JS -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    
+
     <style>
         * {
             margin: 0;
@@ -20,67 +24,68 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #e8f0fe 0%, #d4e4f7 100%);
+            background: #f0f4f8;
             min-height: 100vh;
-            padding: 40px 20px;
+            padding: 20px;
         }
 
-        .container {
-            max-width: 800px;
+        /* ===== BENTO GRID LAYOUT ===== */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 30% 70%;
+            gap: 20px;
+            max-width: 1400px;
             margin: 0 auto;
+            min-height: calc(100vh - 40px);
+        }
+
+        /* ===== COLUMNA IZQUIERDA - FORMULARIO ===== */
+        .bento-form {
             background: white;
             border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-            padding: 40px;
-            animation: slideUp 0.5s ease-out;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+            height: fit-content;
+            position: sticky;
+            top: 20px;
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .header {
+        .bento-form .header {
             text-align: center;
-            margin-bottom: 35px;
-            padding-bottom: 25px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
             border-bottom: 2px solid #f0f4f8;
         }
 
-        .header .logo {
+        .bento-form .header .logo {
             display: inline-block;
             background: linear-gradient(135deg, #1a56db, #3b82f6);
             color: white;
-            width: 70px;
-            height: 70px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
-            line-height: 70px;
-            font-size: 32px;
-            margin-bottom: 15px;
+            line-height: 60px;
+            font-size: 28px;
+            margin-bottom: 10px;
         }
 
-        .header h1 {
-            font-size: 28px;
+        .bento-form .header h1 {
+            font-size: 20px;
             color: #1e293b;
             font-weight: 700;
         }
 
-        .header p {
+        .bento-form .header p {
             color: #64748b;
-            font-size: 15px;
-            margin-top: 5px;
+            font-size: 13px;
+            margin-top: 3px;
         }
 
+        /* ===== FORMULARIO ===== */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 12px;
         }
 
         .form-group {
@@ -93,13 +98,13 @@
         }
 
         .form-group label {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             color: #334155;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
         }
 
         .form-group label .required {
@@ -108,10 +113,10 @@
 
         .form-group input,
         .form-group select {
-            padding: 12px 14px;
+            padding: 10px 12px;
             border: 2px solid #e2e8f0;
             border-radius: 10px;
-            font-size: 14px;
+            font-size: 13px;
             transition: all 0.3s ease;
             background: #f8fafc;
             color: #1e293b;
@@ -121,7 +126,7 @@
         .form-group select:focus {
             outline: none;
             border-color: #3b82f6;
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
             background: white;
         }
 
@@ -131,55 +136,35 @@
             color: #475569;
         }
 
-        .form-group .matricula-display {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .form-group .matricula-display input {
-            flex: 1;
-        }
-
         .form-group .matricula-badge {
             background: #dbeafe;
             color: #1e40af;
-            padding: 4px 12px;
+            padding: 2px 10px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 10px;
             font-weight: 600;
-            white-space: nowrap;
         }
 
         .form-group small {
             color: #64748b;
-            font-size: 12px;
-            margin-top: 4px;
+            font-size: 10px;
+            margin-top: 3px;
         }
 
-        .form-group small i {
-            margin-right: 4px;
-        }
-
+        /* ===== FOTO ===== */
         .photo-upload {
             display: flex;
             align-items: center;
-            gap: 20px;
-            padding: 15px;
+            gap: 15px;
+            padding: 12px;
             background: #f8fafc;
             border-radius: 12px;
             border: 2px dashed #cbd5e1;
-            transition: all 0.3s ease;
-        }
-
-        .photo-upload:hover {
-            border-color: #3b82f6;
-            background: #f1f5f9;
         }
 
         .photo-preview {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             object-fit: cover;
             border: 3px solid #e2e8f0;
@@ -187,36 +172,36 @@
         }
 
         .photo-placeholder {
-            width: 80px;
-            height: 80px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             background: #e2e8f0;
             display: flex;
             align-items: center;
             justify-content: center;
             color: #94a3b8;
-            font-size: 30px;
+            font-size: 24px;
         }
 
         .photo-actions {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
 
         .photo-actions .btn-upload {
             background: #3b82f6;
             color: white;
-            padding: 8px 18px;
+            padding: 6px 14px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             transition: background 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .photo-actions .btn-upload:hover {
@@ -226,16 +211,16 @@
         .photo-actions .btn-remove {
             background: #fee2e2;
             color: #dc2626;
-            padding: 8px 18px;
+            padding: 6px 14px;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             transition: background 0.3s ease;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
         }
 
         .photo-actions .btn-remove:hover {
@@ -246,47 +231,47 @@
             display: none;
         }
 
+        /* ===== BOTONES ===== */
         .form-actions {
             grid-column: 1 / -1;
             display: flex;
-            gap: 15px;
+            gap: 10px;
             margin-top: 10px;
-            padding-top: 20px;
+            padding-top: 15px;
             border-top: 2px solid #f0f4f8;
         }
 
         .btn-submit {
             flex: 1;
-            padding: 14px;
+            padding: 12px;
             background: linear-gradient(135deg, #1a56db, #3b82f6);
             color: white;
             border: none;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 14px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 8px;
         }
 
         .btn-submit:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.35);
         }
 
         .btn-submit:disabled {
             opacity: 0.6;
             cursor: not-allowed;
-            transform: none;
         }
 
         .btn-submit .spinner {
             display: inline-block;
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
@@ -300,12 +285,12 @@
         }
 
         .btn-reset {
-            padding: 14px 30px;
+            padding: 12px 20px;
             background: #f1f5f9;
             color: #475569;
             border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 16px;
+            border-radius: 10px;
+            font-size: 14px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -315,21 +300,24 @@
             background: #e2e8f0;
         }
 
+        /* ===== ALERTAS ===== */
         .alert {
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 15px;
             display: flex;
             align-items: center;
-            gap: 12px;
-            animation: slideDown 0.4s ease-out;
+            gap: 10px;
+            font-size: 13px;
+            animation: slideDown 0.3s ease-out;
         }
 
         @keyframes slideDown {
             from {
                 opacity: 0;
-                transform: translateY(-10px);
+                transform: translateY(-8px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -354,14 +342,10 @@
             border-left: 4px solid #3b82f6;
         }
 
-        .alert i {
-            font-size: 20px;
-        }
-
         .alert .close-alert {
             margin-left: auto;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 16px;
             opacity: 0.6;
             transition: opacity 0.3s ease;
             background: none;
@@ -372,22 +356,31 @@
             opacity: 1;
         }
 
-        .registered-list {
-            margin-top: 30px;
-            padding-top: 25px;
-            border-top: 2px solid #f0f4f8;
+        /* ===== COLUMNA DERECHA - LISTA DE INTERNOS ===== */
+        .bento-list {
+            background: transparent;
         }
 
-        .registered-list h3 {
+        .bento-list .list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        .bento-list .list-header h2 {
             font-size: 18px;
             color: #1e293b;
-            margin-bottom: 15px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .registered-list .badge {
+        .bento-list .list-header .badge {
             background: #3b82f6;
             color: white;
             padding: 2px 12px;
@@ -395,64 +388,119 @@
             font-size: 13px;
         }
 
-        .interno-item {
+        .list-search {
             display: flex;
+            gap: 10px;
             align-items: center;
-            justify-content: space-between;
-            padding: 12px 16px;
-            background: #f8fafc;
+        }
+
+        .list-search input {
+            padding: 8px 14px;
+            border: 2px solid #e2e8f0;
             border-radius: 10px;
-            margin-bottom: 8px;
+            font-size: 13px;
             transition: all 0.3s ease;
-            border-left: 4px solid #3b82f6;
+            background: #f8fafc;
+            width: 200px;
         }
 
-        .interno-item:hover {
-            background: #f1f5f9;
-            transform: translateX(4px);
+        .list-search input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.12);
         }
 
-        .interno-item .info {
+        /* ===== CARDS ===== */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+
+        .card .card-header {
             display: flex;
             align-items: center;
             gap: 12px;
+            margin-bottom: 10px;
         }
 
-        .interno-item .info .avatar {
-            width: 36px;
-            height: 36px;
+        .card .card-avatar {
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
-            background: #3b82f6;
+            background: linear-gradient(135deg, #3b82f6, #1a56db);
             color: white;
             display: flex;
             align-items: center;
             justify-content: center;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 18px;
             flex-shrink: 0;
         }
 
-        .interno-item .info .avatar img {
-            width: 36px;
-            height: 36px;
+        .card .card-avatar img {
+            width: 48px;
+            height: 48px;
             border-radius: 50%;
             object-fit: cover;
         }
 
-        .interno-item .info .name {
+        .card .card-name {
             font-weight: 600;
             color: #1e293b;
+            font-size: 15px;
         }
 
-        .interno-item .info .matricula {
+        .card .card-matricula {
             color: #64748b;
-            font-size: 13px;
+            font-size: 12px;
         }
 
-        .interno-item .status {
-            padding: 4px 12px;
+        .card .card-body {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            margin: 8px 0;
+        }
+
+        .card .card-body .tag {
+            background: #f1f5f9;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            color: #475569;
+        }
+
+        .card .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #f0f4f8;
+        }
+
+        .card .card-status {
+            padding: 3px 12px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
         }
 
@@ -466,257 +514,542 @@
             color: #991b1b;
         }
 
-        .interno-item .actions {
+        .card .card-actions {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
-        .interno-item .actions button {
+        .card .card-actions button {
             background: none;
             border: none;
             cursor: pointer;
             padding: 4px 8px;
             border-radius: 6px;
             transition: all 0.3s ease;
-            font-size: 14px;
+            font-size: 13px;
+            color: #64748b;
         }
 
-        .interno-item .actions .btn-edit {
+        .card .card-actions button:hover {
+            background: #f1f5f9;
+        }
+
+        .card .card-actions .btn-edit:hover {
             color: #3b82f6;
         }
 
-        .interno-item .actions .btn-edit:hover {
-            background: #dbeafe;
-        }
-
-        .interno-item .actions .btn-delete {
+        .card .card-actions .btn-delete:hover {
             color: #ef4444;
         }
 
-        .interno-item .actions .btn-delete:hover {
-            background: #fee2e2;
+        .card .card-qr-mini {
+            width: 40px;
+            height: 40px;
+            margin-left: auto;
+        }
+
+        /* ===== MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .modal {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: scaleIn 0.3s ease-out;
+            position: relative;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #94a3b8;
+            transition: color 0.3s ease;
+        }
+
+        .modal-close:hover {
+            color: #1e293b;
+        }
+
+        /* ===== CREDENCIAL ===== */
+        .credencial {
+            background: linear-gradient(135deg, #1a56db, #3b82f6);
+            border-radius: 20px;
+            padding: 30px;
+            color: white;
+            text-align: center;
+        }
+
+        .credencial .credencial-header {
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 15px;
+            margin-bottom: 15px;
+        }
+
+        .credencial .credencial-header h3 {
+            font-size: 20px;
+        }
+
+        .credencial .credencial-header p {
+            opacity: 0.8;
+            font-size: 13px;
+        }
+
+        .credencial .credencial-body {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            text-align: left;
+        }
+
+        .credencial .credencial-foto {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid white;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .credencial .credencial-foto-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .credencial .credencial-info {
+            flex: 1;
+        }
+
+        .credencial .credencial-info .name {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .credencial .credencial-info .detail {
+            font-size: 13px;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        .credencial .credencial-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .credencial .credencial-footer .qr-container {
+            background: white;
+            padding: 8px;
+            border-radius: 12px;
+        }
+
+        .credencial .credencial-footer .qr-container img,
+        .credencial .credencial-footer .qr-container canvas {
+            width: 60px;
+            height: 60px;
+        }
+
+        .credencial .credencial-footer .status-badge {
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: center;
+        }
+
+        .modal-actions button {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-actions .btn-print {
+            background: #1a56db;
+            color: white;
+        }
+
+        .modal-actions .btn-print:hover {
+            background: #1e40af;
+            transform: translateY(-2px);
+        }
+
+        .modal-actions .btn-close-modal {
+            background: #f1f5f9;
+            color: #475569;
+        }
+
+        .modal-actions .btn-close-modal:hover {
+            background: #e2e8f0;
+        }
+
+        /* ===== EMPTY STATE ===== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            color: #475569;
+            font-size: 18px;
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1024px) {
+            .bento-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bento-form {
+                position: static;
+            }
+
+            .cards-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
         }
 
         @media (max-width: 640px) {
-            .container {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .bento-form {
+                padding: 16px;
+            }
+
+            .modal {
                 padding: 20px;
             }
 
-            .form-grid {
-                grid-template-columns: 1fr;
-                gap: 15px;
-            }
-
-            .form-actions {
-                flex-direction: column;
-            }
-
-            .photo-upload {
+            .credencial .credencial-body {
                 flex-direction: column;
                 text-align: center;
             }
 
-            .header h1 {
-                font-size: 22px;
+            .list-search {
+                flex-direction: column;
+                width: 100%;
             }
 
-            .interno-item {
-                flex-wrap: wrap;
-                gap: 8px;
+            .list-search input {
+                width: 100%;
             }
 
-            .interno-item .info {
-                flex: 1;
-                min-width: 150px;
+            .bento-list .list-header {
+                flex-direction: column;
+                gap: 10px;
+                align-items: stretch;
             }
         }
 
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
+        /* ===== PRINT STYLES ===== */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
 
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
-            border-radius: 10px;
-        }
+            .modal-overlay,
+            .modal-overlay * {
+                visibility: visible;
+            }
 
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
+            .modal-overlay {
+                position: absolute;
+                background: white;
+                backdrop-filter: none;
+            }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+            .modal {
+                box-shadow: none;
+                padding: 20px;
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .modal-close,
+            .modal-actions {
+                display: none !important;
+            }
         }
     </style>
 </head>
+
 <body>
 
-    <div class="container">
-        <div class="header">
-            <div class="logo">
-                <i class="fas fa-hospital-user"></i>
-            </div>
-            <h1>Registro de Internos</h1>
-            <p>Hospital General · Sistema de gestión de médicos internos</p>
-        </div>
-
-        <div id="alertContainer"></div>
-
-        <form id="internoForm" class="form-grid">
-            <!-- Matrícula - AUTOMÁTICA -->
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-id-card"></i> Matrícula 
-                    <span class="matricula-badge">Automática</span>
-                </label>
-                <div class="matricula-display">
-                    <input 
-                        type="text" 
-                        id="matricula" 
-                        name="matricula" 
-                        placeholder="Generando..."
-                        readonly
-                    />
+    <div class="bento-grid">
+        <!-- ===== COLUMNA IZQUIERDA - FORMULARIO ===== -->
+        <div class="bento-form">
+            <div class="header">
+                <div class="logo">
+                    <i class="fas fa-hospital-user"></i>
                 </div>
-                <small>
-                    <i class="fas fa-robot"></i> Se genera automáticamente al guardar
-                </small>
+                <h1>Registro de Internos</h1>
+                <p>Hospital General</p>
             </div>
 
-            <!-- Nombre Completo -->
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-user"></i> Nombre Completo <span class="required">*</span>
-                </label>
-                <input type="text" id="nombre" name="nombre" placeholder="Ej: Juan Pérez González" required />
-            </div>
+            <div id="alertContainer"></div>
 
-            <!-- Universidad -->
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-university"></i> Universidad <span class="required">*</span>
-                </label>
-                <input type="text" id="universidad" name="universidad" placeholder="Nombre de la universidad" required />
-            </div>
+            <form id="internoForm" class="form-grid">
+                <!-- Matrícula - AUTOMÁTICA -->
+                <div class="form-group full-width">
+                    <label>
+                        <i class="fas fa-id-card"></i> Matrícula
+                        <span class="matricula-badge">Automática</span>
+                    </label>
+                    <input type="text" id="matricula" name="matricula" placeholder="Generando..." readonly />
+                    <small><i class="fas fa-robot"></i> Se genera automáticamente</small>
+                </div>
 
-            <!-- Carrera -->
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-graduation-cap"></i> Carrera <span class="required">*</span>
-                </label>
-                <input type="text" id="carrera" name="carrera" placeholder="Carrera" required />
-            </div>
+                <!-- Nombre -->
+                <div class="form-group full-width">
+                    <label>
+                        <i class="fas fa-user"></i> Nombre Completo <span class="required">*</span>
+                    </label>
+                    <input type="text" id="nombre" name="nombre" placeholder="Juan Pérez González" required />
+                </div>
 
-            <!-- Semestre -->
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-layer-group"></i> Semestre <span class="required">*</span>
-                </label>
-                <input type="text" id="semestre" name="semestre" placeholder="Ej: 8° Semestre" required />
-            </div>
+                <!-- Universidad -->
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-university"></i> Universidad <span class="required">*</span>
+                    </label>
+                    <input type="text" id="universidad" name="universidad" placeholder="Universidad" required />
+                </div>
 
-            <!-- Generación -->
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-calendar-alt"></i> Generación <span class="required">*</span>
-                </label>
-                <input type="text" id="generacion" name="generacion" placeholder="Ej: 2020-2025" required />
-            </div>
+                <!-- Carrera -->
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-graduation-cap"></i> Carrera <span class="required">*</span>
+                    </label>
+                    <input type="text" id="carrera" name="carrera" placeholder="Carrera" required />
+                </div>
 
-            <!-- Correo -->
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-envelope"></i> Correo Electrónico <span class="required">*</span>
-                </label>
-                <input type="email" id="correo" name="correo" placeholder="correo@ejemplo.com" required />
-            </div>
+                <!-- Semestre -->
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-layer-group"></i> Semestre <span class="required">*</span>
+                    </label>
+                    <input type="text" id="semestre" name="semestre" placeholder="8° Semestre" required />
+                </div>
 
-            <!-- Teléfono -->
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-phone"></i> Teléfono
-                </label>
-                <input type="tel" id="telefono" name="telefono" placeholder="(55) 1234-5678" />
-            </div>
+                <!-- Generación -->
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-calendar-alt"></i> Generación <span class="required">*</span>
+                    </label>
+                    <input type="text" id="generacion" name="generacion" placeholder="2020-2025" required />
+                </div>
 
-            <!-- Estatus -->
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-toggle-on"></i> Estatus
-                </label>
-                <select id="estatus" name="estatus">
-                    <option value="activo">Activo</option>
-                    <option value="inactivo">Inactivo</option>
-                </select>
-            </div>
+                <!-- Correo -->
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-envelope"></i> Correo <span class="required">*</span>
+                    </label>
+                    <input type="email" id="correo" name="correo" placeholder="correo@ejemplo.com" required />
+                </div>
 
-            <input type="hidden" id="internoId" value="" />
+                <!-- Teléfono -->
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-phone"></i> Teléfono
+                    </label>
+                    <input type="tel" id="telefono" name="telefono" placeholder="(55) 1234-5678" />
+                </div>
 
-            <!-- Foto -->
-            <div class="form-group full-width">
-                <label><i class="fas fa-camera"></i> Foto</label>
-                <div class="photo-upload">
-                    <div id="photoPreview">
-                        <div class="photo-placeholder">
-                            <i class="fas fa-user-circle"></i>
+                <!-- Estatus -->
+                <div class="form-group">
+                    <label>
+                        <i class="fas fa-toggle-on"></i> Estatus
+                    </label>
+                    <select id="estatus" name="estatus">
+                        <option value="activo">Activo</option>
+                        <option value="inactivo">Inactivo</option>
+                    </select>
+                </div>
+
+                <input type="hidden" id="internoId" value="" />
+
+                <!-- Foto -->
+                <div class="form-group full-width">
+                    <label><i class="fas fa-camera"></i> Foto</label>
+                    <div class="photo-upload">
+                        <div id="photoPreview">
+                            <div class="photo-placeholder">
+                                <i class="fas fa-user-circle"></i>
+                            </div>
+                        </div>
+                        <div class="photo-actions">
+                            <button type="button" class="btn-upload"
+                                onclick="document.getElementById('photoInput').click()">
+                                <i class="fas fa-upload"></i> Subir
+                            </button>
+                            <button type="button" class="btn-remove" id="removePhotoBtn" style="display:none;"
+                                onclick="removePhoto()">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                            <input type="file" id="photoInput" class="file-input-hidden"
+                                accept="image/jpeg,image/png,image/webp" onchange="handlePhotoSelect(event)" />
                         </div>
                     </div>
-                    <div class="photo-actions">
-                        <button type="button" class="btn-upload" onclick="document.getElementById('photoInput').click()">
-                            <i class="fas fa-upload"></i> Subir foto
-                        </button>
-                        <button type="button" class="btn-remove" id="removePhotoBtn" style="display:none;" onclick="removePhoto()">
-                            <i class="fas fa-trash"></i> Eliminar
-                        </button>
-                        <input type="file" id="photoInput" class="file-input-hidden" accept="image/jpeg,image/png,image/webp" onchange="handlePhotoSelect(event)" />
-                        <span style="font-size:12px; color:#94a3b8;">
-                            Formatos: JPG, PNG, WEBP · Max: 5MB
-                        </span>
-                    </div>
+                </div>
+
+                <!-- BOTONES -->
+                <div class="form-actions">
+                    <button type="submit" class="btn-submit" id="submitBtn">
+                        <i class="fas fa-save"></i>
+                        <span id="submitText">Guardar</span>
+                    </button>
+                    <button type="reset" class="btn-reset" onclick="resetForm()">
+                        <i class="fas fa-undo"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- ===== COLUMNA DERECHA - LISTA DE INTERNOS ===== -->
+        <div class="bento-list">
+            <div class="list-header">
+                <h2>
+                    <i class="fas fa-users"></i> Internos
+                    <span class="badge" id="totalCount">0</span>
+                </h2>
+                <div class="list-search">
+                    <input type="text" id="searchInput" placeholder="Buscar interno..." oninput="filterCards()" />
                 </div>
             </div>
 
-            <!-- BOTONES -->
-            <div class="form-actions">
-                <button type="submit" class="btn-submit" id="submitBtn">
-                    <i class="fas fa-save"></i> 
-                    <span id="submitText">Guardar Interno</span>
-                </button>
-                <button type="reset" class="btn-reset" onclick="resetForm()">
-                    <i class="fas fa-undo"></i> Limpiar
-                </button>
+            <div id="internosList" class="cards-grid">
+                <div class="empty-state">
+                    <i class="fas fa-user-plus"></i>
+                    <h3>No hay internos registrados</h3>
+                    <p>Comienza registrando un nuevo interno</p>
+                </div>
             </div>
-        </form>
+        </div>
+    </div>
 
-        <!-- LISTA DE INTERNOS REGISTRADOS -->
-        <div class="registered-list">
-            <h3>
-                <i class="fas fa-list"></i> Internos Registrados
-                <span class="badge" id="totalCount">0</span>
-            </h3>
-            <div id="internosList">
-                <p style="color:#94a3b8; text-align:center; padding:20px;">
-                    <i class="fas fa-spinner fa-spin"></i> Cargando internos...
-                </p>
+    <!-- ===== MODAL CREDENCIAL ===== -->
+    <div class="modal-overlay" id="modalCredencial">
+        <div class="modal">
+            <button class="modal-close" onclick="closeModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div id="credencialContent"></div>
+            <div class="modal-actions">
+                <button class="btn-print" onclick="imprimirCredencial()">
+                    <i class="fas fa-print"></i> Imprimir
+                </button>
+                <button class="btn-close-modal" onclick="closeModal()">
+                    <i class="fas fa-times"></i> Cerrar
+                </button>
             </div>
         </div>
     </div>
 
     <script>
         // ============================================================
-        // CONFIGURACIÓN - REEMPLAZA CON TUS DATOS
+        // CONFIGURACIÓN
         // ============================================================
         const SUPABASE_URL = 'https://njtlruvhcatklccdxpla.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc';
-        // ============================================================
 
         if (typeof supabase === 'undefined') {
             document.getElementById('internosList').innerHTML = `
-                <p style="color:#ef4444; text-align:center; padding:20px;">
-                    <i class="fas fa-exclamation-circle"></i> 
-                    Error: La librería de Supabase no se cargó.
-                </p>
+                <div class="empty-state">
+                    <i class="fas fa-exclamation-circle" style="color:#ef4444;"></i>
+                    <h3 style="color:#ef4444;">Error de conexión</h3>
+                    <p>La librería de Supabase no se cargó correctamente.</p>
+                </div>
             `;
         }
 
@@ -725,6 +1058,7 @@
         let currentPhotoFile = null;
         let currentPhotoUrl = null;
         let isEditing = false;
+        let allInternos = [];
 
         const form = document.getElementById('internoForm');
         const submitBtn = document.getElementById('submitBtn');
@@ -735,58 +1069,56 @@
         const removePhotoBtn = document.getElementById('removePhotoBtn');
         const photoInput = document.getElementById('photoInput');
         const matriculaInput = document.getElementById('matricula');
+        const searchInput = document.getElementById('searchInput');
 
         // ============================================================
-        // GENERAR MATRÍCULA AUTOMÁTICA (6 dígitos no secuencial)
+        // GENERAR MATRÍCULA AUTOMÁTICA
         // ============================================================
         async function generarMatricula() {
             let intentos = 0;
             const maxIntentos = 100;
-            
+
             while (intentos < maxIntentos) {
                 const matricula = Math.floor(100000 + Math.random() * 900000).toString();
-                
-                const { data, error } = await supabaseClient
+
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('matricula')
                     .eq('matricula', matricula)
                     .maybeSingle();
-                
+
                 if (error) {
                     console.error('Error verificando matrícula:', error);
                     throw new Error('Error al verificar disponibilidad de matrícula');
                 }
-                
+
                 if (!data) {
                     return matricula;
                 }
-                
+
                 intentos++;
             }
-            
-            throw new Error('No se pudo generar una matrícula única después de ' + maxIntentos + ' intentos');
+
+            throw new Error('No se pudo generar una matrícula única');
         }
 
         // ============================================================
-        // PREGENERAR MATRÍCULA AL CARGAR LA PÁGINA
+        // PREGENERAR MATRÍCULA
         // ============================================================
         async function pregenerarMatricula() {
-            if (isEditing) return; // Si estamos editando, no generar nueva
-    
+            if (isEditing) return;
             try {
                 matriculaInput.value = 'Generando...';
                 const matricula = await generarMatricula();
                 matriculaInput.value = matricula;
-                console.log('✅ Matrícula pregenerada:', matricula);
             } catch (error) {
-                console.error('Error pregenerando matrícula:', error);
+                console.error('Error:', error);
                 matriculaInput.value = 'Error';
-                showAlert('Error al generar matrícula: ' + error.message, 'error');
             }
         }
 
         // ============================================================
-        // FUNCIONES DE ALERTA
+        // ALERTAS
         // ============================================================
         function showAlert(message, type = 'info') {
             const icons = {
@@ -808,11 +1140,11 @@
             setTimeout(() => {
                 const alert = alertContainer.querySelector('.alert');
                 if (alert) alert.remove();
-            }, 6000);
+            }, 5000);
         }
 
         // ============================================================
-        // MANEJO DE FOTO
+        // FOTO
         // ============================================================
         function handlePhotoSelect(event) {
             const file = event.target.files[0];
@@ -832,9 +1164,8 @@
             }
 
             currentPhotoFile = file;
-
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 photoPreview.innerHTML = `
                     <img src="${e.target.result}" alt="Foto" class="photo-preview" />
                 `;
@@ -873,16 +1204,16 @@
             const fileName = `${matricula}.${fileExt}`;
             const filePath = `internos/${fileName}`;
 
-            const { error: uploadError } = await supabaseClient.storage
+            const {error: uploadError} = await supabaseClient.storage
                 .from('fotos-internos')
-                .upload(filePath, currentPhotoFile, { upsert: true });
+                .upload(filePath, currentPhotoFile, {upsert: true});
 
             if (uploadError) {
                 console.error('Error subiendo foto:', uploadError);
                 throw new Error('Error al subir la foto: ' + uploadError.message);
             }
 
-            const { data } = supabaseClient.storage
+            const {data} = supabaseClient.storage
                 .from('fotos-internos')
                 .getPublicUrl(filePath);
 
@@ -890,41 +1221,67 @@
         }
 
         // ============================================================
-        // CRUD - OBTENER TODOS LOS INTERNOS
+        // GENERAR QR
+        // ============================================================
+        function generarQR(elementId, data) {
+            const container = document.getElementById(elementId);
+            if (!container) return;
+
+            container.innerHTML = '';
+            try {
+                new QRCode(container, {
+                    text: JSON.stringify(data),
+                    width: 60,
+                    height: 60,
+                    colorDark: '#1a56db',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            } catch (e) {
+                console.error('Error generando QR:', e);
+                container.innerHTML = '⚠️';
+            }
+        }
+
+        // ============================================================
+        // CRUD - OBTENER TODOS
         // ============================================================
         async function loadInternos() {
             try {
-                const { data, error } = await supabaseClient
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('*')
-                    .order('nombre', { ascending: true });
+                    .order('created_at', {ascending: false});
 
                 if (error) throw error;
 
-                renderInternos(data);
+                allInternos = data;
+                renderCards(data);
                 totalCount.textContent = data.length;
 
             } catch (error) {
-                console.error('Error cargando internos:', error);
+                console.error('Error:', error);
                 internosList.innerHTML = `
-                    <p style="color:#ef4444; text-align:center; padding:20px;">
-                        <i class="fas fa-exclamation-circle"></i> 
-                        Error: ${error.message}
-                    </p>
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-circle" style="color:#ef4444;"></i>
+                        <h3 style="color:#ef4444;">Error</h3>
+                        <p>${error.message}</p>
+                    </div>
                 `;
             }
         }
 
         // ============================================================
-        // RENDERIZAR LISTA
+        // RENDER CARDS
         // ============================================================
-        function renderInternos(internos) {
+        function renderCards(internos) {
             if (!internos || internos.length === 0) {
                 internosList.innerHTML = `
-                    <p style="color:#94a3b8; text-align:center; padding:20px;">
-                        <i class="fas fa-inbox"></i> 
-                        No hay internos registrados aún
-                    </p>
+                    <div class="empty-state">
+                        <i class="fas fa-user-plus"></i>
+                        <h3>No hay internos registrados</h3>
+                        <p>Comienza registrando un nuevo interno</p>
+                    </div>
                 `;
                 return;
             }
@@ -932,54 +1289,107 @@
             internosList.innerHTML = internos.map(interno => {
                 const iniciales = interno.nombre
                     .split(' ')
-                    .filter(palabra => palabra.length > 0)
-                    .map(palabra => palabra[0])
+                    .filter(p => p.length > 0)
+                    .map(p => p[0])
                     .join('')
                     .slice(0, 2)
                     .toUpperCase();
 
+                const qrData = {
+                    id: interno.id,
+                    matricula: interno.matricula,
+                    nombre: interno.nombre,
+                    token: interno.qr_token
+                };
+
                 return `
-                <div class="interno-item" data-id="${interno.id}">
-                    <div class="info">
-                        <div class="avatar">
-                            ${interno.foto_url 
-                                ? `<img src="${interno.foto_url}" />`
-                                : iniciales
-                            }
+                <div class="card" data-id="${interno.id}" onclick="openModal('${interno.id}')">
+                    <div class="card-header">
+                        <div class="card-avatar">
+                            ${interno.foto_url
+                        ? `<img src="${interno.foto_url}" />`
+                        : iniciales
+                    }
                         </div>
                         <div>
-                            <div class="name">${interno.nombre}</div>
-                            <div class="matricula">${interno.matricula} · ${interno.carrera}</div>
+                            <div class="card-name">${interno.nombre}</div>
+                            <div class="card-matricula">${interno.matricula}</div>
                         </div>
+                        <div class="card-qr-mini" id="qr-${interno.id}"></div>
                     </div>
-                    <span class="status ${interno.estatus === 'activo' ? 'status-activo' : 'status-inactivo'}">
-                        ${interno.estatus}
-                    </span>
-                    <div class="actions">
-                        <button class="btn-edit" onclick="editInterno('${interno.id}')" title="Editar">
-                            <i class="fas fa-pen"></i>
-                        </button>
-                        <button class="btn-delete" onclick="deleteInterno('${interno.id}')" title="Eliminar">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                    <div class="card-body">
+                        <span class="tag"><i class="fas fa-university"></i> ${interno.universidad}</span>
+                        <span class="tag"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</span>
+                        <span class="tag"><i class="fas fa-layer-group"></i> ${interno.semestre}</span>
+                        <span class="tag"><i class="fas fa-envelope"></i> ${interno.correo}</span>
+                    </div>
+                    <div class="card-footer">
+                        <span class="card-status ${interno.estatus === 'activo' ? 'status-activo' : 'status-inactivo'}">
+                            ${interno.estatus}
+                        </span>
+                        <div class="card-actions">
+                            <button class="btn-edit" onclick="event.stopPropagation(); editInterno('${interno.id}')" title="Editar">
+                                <i class="fas fa-pen"></i>
+                            </button>
+                            <button class="btn-delete" onclick="event.stopPropagation(); deleteInterno('${interno.id}')" title="Eliminar">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `}).join('');
+
+            // Generar QR para cada card
+            internos.forEach(interno => {
+                const qrData = {
+                    id: interno.id,
+                    matricula: interno.matricula,
+                    nombre: interno.nombre,
+                    token: interno.qr_token
+                };
+                const container = document.getElementById(`qr-${interno.id}`);
+                if (container) {
+                    try {
+                        new QRCode(container, {
+                            text: JSON.stringify(qrData),
+                            width: 40,
+                            height: 40,
+                            colorDark: '#1a56db',
+                            colorLight: '#ffffff',
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    } catch (e) {
+                        console.error('Error generando QR:', e);
+                    }
+                }
+            });
         }
 
         // ============================================================
-        // CRUD - CREAR INTERNO (CON MATRÍCULA AUTOMÁTICA)
+        // FILTRAR CARDS
+        // ============================================================
+        function filterCards() {
+            const search = searchInput.value.toLowerCase().trim();
+            const filtered = allInternos.filter(interno =>
+                interno.nombre.toLowerCase().includes(search) ||
+                interno.matricula.includes(search) ||
+                interno.carrera.toLowerCase().includes(search)
+            );
+            renderCards(filtered);
+        }
+
+        // ============================================================
+        // CRUD - CREAR
         // ============================================================
         async function createInterno(data) {
-            // Generar matrícula si no viene
             if (!data.matricula) {
                 data.matricula = await generarMatricula();
                 matriculaInput.value = data.matricula;
             }
-            
+
             data.qr_token = crypto.randomUUID();
 
-            const { data: result, error } = await supabaseClient
+            const {data: result, error} = await supabaseClient
                 .from('internos')
                 .insert([data])
                 .select()
@@ -990,10 +1400,10 @@
         }
 
         // ============================================================
-        // CRUD - ACTUALIZAR INTERNO
+        // CRUD - ACTUALIZAR
         // ============================================================
         async function updateInterno(id, data) {
-            const { data: result, error } = await supabaseClient
+            const {data: result, error} = await supabaseClient
                 .from('internos')
                 .update(data)
                 .eq('id', id)
@@ -1005,13 +1415,14 @@
         }
 
         // ============================================================
-        // CRUD - ELIMINAR INTERNO
+        // CRUD - ELIMINAR
         // ============================================================
         async function deleteInterno(id) {
+            event.stopPropagation();
             if (!confirm('¿Estás seguro de eliminar este interno?')) return;
 
             try {
-                const { error } = await supabaseClient
+                const {error} = await supabaseClient
                     .from('internos')
                     .delete()
                     .eq('id', id);
@@ -1022,22 +1433,21 @@
                 loadInternos();
 
                 const currentId = document.getElementById('internoId').value;
-                if (currentId === id) {
-                    resetForm();
-                }
+                if (currentId === id) resetForm();
 
             } catch (error) {
-                console.error('Error eliminando interno:', error);
+                console.error('Error:', error);
                 showAlert('Error al eliminar: ' + error.message, 'error');
             }
         }
 
         // ============================================================
-        // EDITAR INTERNO
+        // EDITAR
         // ============================================================
         async function editInterno(id) {
+            event.stopPropagation();
             try {
-                const { data, error } = await supabaseClient
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('*')
                     .eq('id', id)
@@ -1065,20 +1475,20 @@
                 isEditing = true;
                 submitBtn.innerHTML = `
                     <i class="fas fa-save"></i> 
-                    <span>Actualizar Interno</span>
+                    <span>Actualizar</span>
                 `;
 
-                document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
+                document.querySelector('.bento-form').scrollIntoView({behavior: 'smooth'});
                 showAlert('Editando: ' + data.nombre, 'info');
 
             } catch (error) {
-                console.error('Error cargando interno para editar:', error);
-                showAlert('Error al cargar los datos: ' + error.message, 'error');
+                console.error('Error:', error);
+                showAlert('Error al cargar: ' + error.message, 'error');
             }
         }
 
         // ============================================================
-        // RESET FORMULARIO
+        // RESET FORM
         // ============================================================
         function resetForm() {
             form.reset();
@@ -1087,20 +1497,120 @@
             isEditing = false;
             submitBtn.innerHTML = `
                 <i class="fas fa-save"></i> 
-                <span>Guardar Interno</span>
+                <span>Guardar</span>
             `;
             document.getElementById('estatus').value = 'activo';
-            
-            // Pregenerar nueva matrícula
             pregenerarMatricula();
-            
             showAlert('Formulario limpiado', 'info');
         }
 
         // ============================================================
+        // MODAL CREDENCIAL
+        // ============================================================
+        async function openModal(id) {
+            try {
+                const {data, error} = await supabaseClient
+                    .from('internos')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                const iniciales = data.nombre
+                    .split(' ')
+                    .filter(p => p.length > 0)
+                    .map(p => p[0])
+                    .join('')
+                    .slice(0, 2)
+                    .toUpperCase();
+
+                const qrData = {
+                    id: data.id,
+                    matricula: data.matricula,
+                    nombre: data.nombre,
+                    token: data.qr_token
+                };
+
+                document.getElementById('credencialContent').innerHTML = `
+                    <div class="credencial">
+                        <div class="credencial-header">
+                            <h3>🏥 Hospital General</h3>
+                            <p>Credencial de Interno</p>
+                        </div>
+                        <div class="credencial-body">
+                            ${data.foto_url
+                        ? `<img src="${data.foto_url}" class="credencial-foto" />`
+                        : `<div class="credencial-foto-placeholder">${iniciales}</div>`
+                    }
+                            <div class="credencial-info">
+                                <div class="name">${data.nombre}</div>
+                                <div class="detail"><i class="fas fa-id-card"></i> ${data.matricula}</div>
+                                <div class="detail"><i class="fas fa-university"></i> ${data.universidad}</div>
+                                <div class="detail"><i class="fas fa-graduation-cap"></i> ${data.carrera}</div>
+                                <div class="detail"><i class="fas fa-layer-group"></i> ${data.semestre}</div>
+                                <div class="detail"><i class="fas fa-calendar"></i> ${data.generacion}</div>
+                            </div>
+                        </div>
+                        <div class="credencial-footer">
+                            <div class="qr-container" id="modalQR"></div>
+                            <span class="status-badge ${data.estatus === 'activo' ? 'status-activo' : 'status-inactivo'}">
+                                ${data.estatus.toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+                `;
+
+                // Generar QR en el modal
+                const qrContainer = document.getElementById('modalQR');
+                if (qrContainer) {
+                    try {
+                        new QRCode(qrContainer, {
+                            text: JSON.stringify(qrData),
+                            width: 80,
+                            height: 80,
+                            colorDark: '#1a56db',
+                            colorLight: '#ffffff',
+                            correctLevel: QRCode.CorrectLevel.H
+                        });
+                    } catch (e) {
+                        console.error('Error generando QR en modal:', e);
+                        qrContainer.innerHTML = '⚠️ Error QR';
+                    }
+                }
+
+                document.getElementById('modalCredencial').classList.add('active');
+                document.body.style.overflow = 'hidden';
+
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Error al cargar la credencial: ' + error.message, 'error');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalCredencial').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function imprimirCredencial() {
+            window.print();
+        }
+
+        // Cerrar modal al hacer clic fuera
+        document.getElementById('modalCredencial').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Cerrar modal con ESC
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ============================================================
         // ENVÍO DEL FORMULARIO
         // ============================================================
-        form.addEventListener('submit', async function(e) {
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             submitBtn.disabled = true;
@@ -1121,24 +1631,23 @@
                 const telefono = document.getElementById('telefono').value.trim();
                 const estatus = document.getElementById('estatus').value;
 
-                // Validar campos obligatorios (matrícula ya no es obligatoria)
                 if (!nombre || !universidad || !carrera || !semestre || !generacion || !correo) {
-                    showAlert('Por favor, completa todos los campos obligatorios (*)', 'error');
+                    showAlert('Completa todos los campos obligatorios (*)', 'error');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = `
                         <i class="fas fa-save"></i> 
-                        <span>${isEditing ? 'Actualizar Interno' : 'Guardar Interno'}</span>
+                        <span>${isEditing ? 'Actualizar' : 'Guardar'}</span>
                     `;
                     return;
                 }
 
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(correo)) {
-                    showAlert('Por favor, ingresa un correo electrónico válido', 'error');
+                    showAlert('Correo electrónico inválido', 'error');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = `
                         <i class="fas fa-save"></i> 
-                        <span>${isEditing ? 'Actualizar Interno' : 'Guardar Interno'}</span>
+                        <span>${isEditing ? 'Actualizar' : 'Guardar'}</span>
                     `;
                     return;
                 }
@@ -1154,7 +1663,7 @@
                         submitBtn.disabled = false;
                         submitBtn.innerHTML = `
                             <i class="fas fa-save"></i> 
-                            <span>${isEditing ? 'Actualizar Interno' : 'Guardar Interno'}</span>
+                            <span>${isEditing ? 'Actualizar' : 'Guardar'}</span>
                         `;
                         return;
                     }
@@ -1167,36 +1676,36 @@
                     semestre,
                     generacion,
                     correo,
-                    telefono,
+                    telefono: telefono || null,
                     estatus,
-                    foto_url
+                    foto_url: foto_url || null
                 };
 
-                // Si hay matrícula (para edición) o se genera automáticamente
-                if (matricula) {
+                if (matricula && !isEditing) {
                     internoData.matricula = matricula;
                 }
 
+                let result;
                 if (isEditing && id) {
-                    await updateInterno(id, internoData);
+                    result = await updateInterno(id, internoData);
                     showAlert('Interno actualizado correctamente', 'success');
                 } else {
-                    const result = await createInterno(internoData);
-                    showAlert('Interno registrado correctamente. Matrícula: ' + result.matricula, 'success');
+                    result = await createInterno(internoData);
+                    showAlert('✅ Interno registrado. Matrícula: ' + result.matricula, 'success');
                 }
 
                 await loadInternos();
                 resetForm();
-                document.querySelector('.registered-list').scrollIntoView({ behavior: 'smooth' });
+                document.querySelector('.bento-list').scrollIntoView({behavior: 'smooth'});
 
             } catch (error) {
-                console.error('Error guardando interno:', error);
+                console.error('Error:', error);
                 showAlert('Error al guardar: ' + error.message, 'error');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = `
                     <i class="fas fa-save"></i> 
-                    <span>${isEditing ? 'Actualizar Interno' : 'Guardar Interno'}</span>
+                    <span>${isEditing ? 'Actualizar' : 'Guardar'}</span>
                 `;
             }
         });
@@ -1204,15 +1713,13 @@
         // ============================================================
         // INICIALIZAR
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadInternos();
             pregenerarMatricula();
-            
-            console.log('🔍 Verificando conexión a Supabase...');
-            console.log('URL:', SUPABASE_URL);
-            console.log('Key:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ No configurada');
+            console.log('🔍 Conectado a Supabase');
         });
     </script>
 
 </body>
+
 </html>
