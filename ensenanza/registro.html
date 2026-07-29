@@ -1585,6 +1585,70 @@
                 font-size: 18px;
             }
         }
+
+        /* ============================================================
+   CARD FOOTER - CON FECHA
+   ============================================================ */
+        .card .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 2px solid var(--border);
+        }
+
+        .card .card-footer-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .card .card-status {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .card .card-updated {
+            font-size: 10px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .card .card-updated i {
+            font-size: 10px;
+        }
+
+        .card .card-actions {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .card .card-footer {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .card .card-footer-left {
+                justify-content: space-between;
+            }
+
+            .card .card-actions {
+                justify-content: flex-end;
+            }
+        }
     </style>
 </head>
 
@@ -2381,17 +2445,17 @@
         }
 
         // ============================================================
-        // RENDER CARDS
+        // RENDER CARDS - CON FECHA DE ACTUALIZACIÓN
         // ============================================================
         function renderCards(internos) {
             if (!internos || internos.length === 0) {
                 internosList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-user-plus"></i>
-                        <h3>No hay internos registrados</h3>
-                        <p>Comienza registrando un nuevo interno</p>
-                    </div>
-                `;
+            <div class="empty-state">
+                <i class="fas fa-user-plus"></i>
+                <h3>No hay internos registrados</h3>
+                <p>Comienza registrando un nuevo interno</p>
+            </div>
+        `;
                 return;
             }
 
@@ -2404,42 +2468,60 @@
                     .slice(0, 2)
                     .toUpperCase();
 
+                // Formatear la fecha de actualización
+                const fechaActualizacion = interno.updated_at
+                    ? new Date(interno.updated_at)
+                    : new Date(interno.created_at);
+
+                const fechaFormateada = fechaActualizacion.toLocaleDateString('es-MX', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
                 return `
-                <div class="card" data-id="${interno.id}" onclick="openModal('${interno.id}')">
-                    <div class="card-header">
-                        <div class="card-avatar">
-                            ${interno.foto_url
+        <div class="card" data-id="${interno.id}" onclick="openModal('${interno.id}')">
+            <div class="card-header">
+                <div class="card-avatar">
+                    ${interno.foto_url
                         ? `<img src="${interno.foto_url}" />`
                         : iniciales
                     }
-                        </div>
-                        <div>
-                            <div class="card-name">${interno.nombre}</div>
-                            <div class="card-matricula">${interno.matricula}</div>
-                        </div>
-                        <div class="card-qr-mini" id="qr-${interno.id}"></div>
-                    </div>
-                    <div class="card-body">
-                        <span class="tag"><i class="fas fa-university"></i> ${interno.universidad}</span>
-                        <span class="tag"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</span>
-                        <span class="tag"><i class="fas fa-layer-group"></i> ${interno.semestre}</span>
-                        <span class="tag"><i class="fas fa-envelope"></i> ${interno.correo}</span>
-                    </div>
-                    <div class="card-footer">
-                        <span class="card-status ${interno.estatus === 'activo' ? 'status-activo' : 'status-inactivo'}">
-                            ${interno.estatus}
-                        </span>
-                        <div class="card-actions">
-                            <button class="btn-edit" onclick="event.stopPropagation(); editInterno('${interno.id}')" title="Editar">
-                                <i class="fas fa-pen"></i>
-                            </button>
-                            <button class="btn-delete" onclick="event.stopPropagation(); deleteInterno('${interno.id}')" title="Eliminar">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
                 </div>
-            `}).join('');
+                <div>
+                    <div class="card-name">${interno.nombre}</div>
+                    <div class="card-matricula">${interno.matricula}</div>
+                </div>
+                <div class="card-qr-mini" id="qr-${interno.id}"></div>
+            </div>
+            <div class="card-body">
+                <span class="tag"><i class="fas fa-university"></i> ${interno.universidad}</span>
+                <span class="tag"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</span>
+                <span class="tag"><i class="fas fa-layer-group"></i> ${interno.semestre}</span>
+                <span class="tag"><i class="fas fa-envelope"></i> ${interno.correo}</span>
+            </div>
+            <div class="card-footer">
+                <div class="card-footer-left">
+                    <span class="card-status ${interno.estatus === 'activo' ? 'status-activo' : 'status-inactivo'}">
+                        ${interno.estatus}
+                    </span>
+                    <span class="card-updated">
+                        <i class="fas fa-clock"></i> ${fechaFormateada}
+                    </span>
+                </div>
+                <div class="card-actions">
+                    <button class="btn-edit" onclick="event.stopPropagation(); editInterno('${interno.id}')" title="Editar">
+                        <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="btn-delete" onclick="event.stopPropagation(); deleteInterno('${interno.id}')" title="Eliminar">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `}).join('');
 
             setTimeout(() => {
                 internos.forEach(interno => {
@@ -2784,6 +2866,35 @@
             console.log('✅ Todos los datos se guardarán en MAYÚSCULAS (excepto email)');
             console.log('📷 Si tienes cámara, puedes tomar foto desde el formulario');
         });
+
+        // ============================================================
+        // FORMATEAR FECHA PARA MOSTRAR
+        // ============================================================
+        function formatearFecha(fecha) {
+            if (!fecha) return 'Fecha no disponible';
+
+            const date = new Date(fecha);
+            const ahora = new Date();
+            const diffMs = ahora - date;
+            const diffMin = Math.floor(diffMs / 60000);
+            const diffHoras = Math.floor(diffMs / 3600000);
+            const diffDias = Math.floor(diffMs / 86400000);
+
+            // Si es hoy
+            if (diffMin < 1) return 'Hace un momento';
+            if (diffMin < 60) return `Hace ${diffMin} min`;
+            if (diffHoras < 24) return `Hace ${diffHoras} h`;
+            if (diffDias < 7) return `Hace ${diffDias} días`;
+
+            // Si es más antiguo, mostrar fecha completa
+            return date.toLocaleDateString('es-MX', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
     </script>
 
 </body>
