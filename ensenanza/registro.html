@@ -701,7 +701,6 @@
                 opacity: 0;
                 transform: translateX(120px) scale(0.9);
             }
-
             100% {
                 opacity: 1;
                 transform: translateX(0) scale(1);
@@ -713,7 +712,6 @@
                 opacity: 1;
                 transform: translateX(0) scale(1);
             }
-
             100% {
                 opacity: 0;
                 transform: translateX(120px) scale(0.9);
@@ -724,7 +722,6 @@
             0% {
                 width: 100%;
             }
-
             100% {
                 width: 0%;
             }
@@ -745,6 +742,7 @@
             position: sticky;
             top: 24px;
             overflow: hidden;
+            min-height: 400px;
         }
 
         .bento-list .list-header {
@@ -762,6 +760,8 @@
             position: sticky;
             top: 0;
             z-index: 10;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .bento-list .list-scroll {
@@ -771,6 +771,7 @@
             padding-right: 4px;
             background: transparent;
             border-radius: 0 0 var(--radius) var(--radius);
+            min-height: 0;
         }
 
         /* Scroll personalizado */
@@ -793,17 +794,17 @@
             background: #94a3b8;
         }
 
-        /* Cards grid dentro del scroll */
+        /* ============================================================
+           CARDS
+           ============================================================ */
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 18px;
             padding: 18px 4px 18px 0;
+            align-content: start;
         }
 
-        /* ============================================================
-           CARDS
-           ============================================================ */
         .card {
             background: var(--surface);
             border-radius: var(--radius);
@@ -813,6 +814,10 @@
             cursor: pointer;
             border: 2px solid transparent;
             position: relative;
+            height: fit-content;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
         }
 
         .card:hover {
@@ -869,6 +874,7 @@
             flex-wrap: wrap;
             gap: 5px 10px;
             margin: 8px 0;
+            flex: 1;
         }
 
         .card .card-body .tag {
@@ -896,6 +902,7 @@
             margin-top: 10px;
             padding-top: 10px;
             border-top: 2px solid var(--border);
+            flex-shrink: 0;
         }
 
         .card .card-footer-left {
@@ -987,6 +994,33 @@
         }
 
         /* ============================================================
+           BUSCADOR - BORDES REDONDEADOS
+           ============================================================ */
+        .list-search input {
+            padding: 9px 16px;
+            border: 2px solid var(--border);
+            border-radius: 9999px;
+            font-size: 13px;
+            transition: var(--transition);
+            background: #fafbfc;
+            width: 220px;
+            font-weight: 500;
+            outline: none;
+        }
+
+        .list-search input::placeholder {
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .list-search input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
+            background: var(--surface);
+        }
+
+        /* ============================================================
            MODAL
            ============================================================ */
         .modal-overlay {
@@ -1012,7 +1046,6 @@
             from {
                 opacity: 0;
             }
-
             to {
                 opacity: 1;
             }
@@ -1036,7 +1069,6 @@
                 transform: scale(0.92) translateY(20px);
                 opacity: 0;
             }
-
             to {
                 transform: scale(1) translateY(0);
                 opacity: 1;
@@ -1276,6 +1308,7 @@
             border-radius: var(--radius);
             box-shadow: var(--shadow-sm);
             border: 2px dashed var(--border);
+            grid-column: 1 / -1;
         }
 
         .empty-state i {
@@ -1340,6 +1373,7 @@
 
             .list-search input {
                 width: 100%;
+                border-radius: 10px;
             }
 
             .cards-grid {
@@ -1798,8 +1832,8 @@
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: 'environment',
-                            width: {ideal: 640},
-                            height: {ideal: 480}
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
                         },
                         audio: false
                     });
@@ -1807,8 +1841,8 @@
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: 'user',
-                            width: {ideal: 640},
-                            height: {ideal: 480}
+                            width: { ideal: 640 },
+                            height: { ideal: 480 }
                         },
                         audio: false
                     });
@@ -1868,7 +1902,7 @@
                 canvas.height = height;
                 context.drawImage(video, 0, 0, width, height);
 
-                canvas.toBlob(function (blob) {
+                canvas.toBlob(function(blob) {
                     if (!blob) {
                         showAlert('Error al capturar la foto', 'error');
                         return;
@@ -1878,7 +1912,7 @@
                         type: 'image/jpeg'
                     });
 
-                    const event = {target: {files: [file]}};
+                    const event = { target: { files: [file] } };
                     handlePhotoSelect(event);
                     cerrarCamara();
                     showAlert('✅ Foto capturada correctamente', 'success');
@@ -1891,7 +1925,7 @@
             }
         }
 
-        document.addEventListener('keydown', function (e) {
+        document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && cameraOverlay.classList.contains('active')) {
                 cerrarCamara();
             }
@@ -1956,7 +1990,7 @@
             while (intentos < maxIntentos) {
                 const matricula = Math.floor(100000 + Math.random() * 900000).toString();
 
-                const {data, error} = await supabaseClient
+                const { data, error } = await supabaseClient
                     .from('internos')
                     .select('matricula')
                     .eq('matricula', matricula)
@@ -2058,7 +2092,7 @@
 
             toast.dataset.timeoutId = timeoutId;
 
-            toast.addEventListener('click', function (e) {
+            toast.addEventListener('click', function(e) {
                 if (e.target.closest('.toast-close')) return;
                 removeToast(this);
             });
@@ -2104,7 +2138,7 @@
 
             currentPhotoFile = file;
             const reader = new FileReader();
-            reader.onload = function (e) {
+            reader.onload = function(e) {
                 photoPreview.innerHTML = `
                     <img src="${e.target.result}" alt="Foto" class="photo-preview" />
                 `;
@@ -2143,16 +2177,16 @@
             const fileName = `${matricula}.${fileExt}`;
             const filePath = `internos/${fileName}`;
 
-            const {error: uploadError} = await supabaseClient.storage
+            const { error: uploadError } = await supabaseClient.storage
                 .from('fotos-internos')
-                .upload(filePath, currentPhotoFile, {upsert: true});
+                .upload(filePath, currentPhotoFile, { upsert: true });
 
             if (uploadError) {
                 console.error('Error subiendo foto:', uploadError);
                 throw new Error('Error al subir la foto: ' + uploadError.message);
             }
 
-            const {data} = supabaseClient.storage
+            const { data } = supabaseClient.storage
                 .from('fotos-internos')
                 .getPublicUrl(filePath);
 
@@ -2223,10 +2257,10 @@
         // ============================================================
         async function loadInternos() {
             try {
-                const {data, error} = await supabaseClient
+                const { data, error } = await supabaseClient
                     .from('internos')
                     .select('*')
-                    .order('created_at', {ascending: false});
+                    .order('created_at', { ascending: false });
 
                 if (error) throw error;
 
@@ -2247,9 +2281,12 @@
         }
 
         // ============================================================
-        // RENDER CARDS
+        // RENDER CARDS - Actualiza el contador
         // ============================================================
         function renderCards(internos) {
+            // Actualizar el contador con los resultados mostrados
+            totalCount.textContent = internos ? internos.length : 0;
+
             if (!internos || internos.length === 0) {
                 internosList.innerHTML = `
                     <div class="empty-state">
@@ -2287,9 +2324,9 @@
                         <div class="card-header">
                             <div class="card-avatar">
                                 ${interno.foto_url
-                        ? `<img src="${interno.foto_url}" />`
-                        : iniciales
-                    }
+                                    ? `<img src="${interno.foto_url}" />`
+                                    : iniciales
+                                }
                             </div>
                             <div>
                                 <div class="card-name">${interno.nombre}</div>
@@ -2333,7 +2370,7 @@
         }
 
         // ============================================================
-        // FILTRAR CARDS
+        // FILTRAR CARDS - Actualiza el contador
         // ============================================================
         function filterCards() {
             const search = searchInput.value.toLowerCase().trim();
@@ -2343,6 +2380,7 @@
                 interno.carrera.toLowerCase().includes(search)
             );
             renderCards(filtered);
+            // El contador se actualiza dentro de renderCards
         }
 
         // ============================================================
@@ -2358,7 +2396,7 @@
 
             sanitizedData.qr_token = crypto.randomUUID();
 
-            const {data: result, error} = await supabaseClient
+            const { data: result, error } = await supabaseClient
                 .from('internos')
                 .insert([sanitizedData])
                 .select()
@@ -2374,7 +2412,7 @@
         async function updateInterno(id, data) {
             const sanitizedData = sanitizeInternoData(data);
 
-            const {data: result, error} = await supabaseClient
+            const { data: result, error } = await supabaseClient
                 .from('internos')
                 .update(sanitizedData)
                 .eq('id', id)
@@ -2393,7 +2431,7 @@
             if (!confirm('¿Estás seguro de eliminar este interno?')) return;
 
             try {
-                const {error} = await supabaseClient
+                const { error } = await supabaseClient
                     .from('internos')
                     .delete()
                     .eq('id', id);
@@ -2418,7 +2456,7 @@
         async function editInterno(id) {
             event.stopPropagation();
             try {
-                const {data, error} = await supabaseClient
+                const { data, error } = await supabaseClient
                     .from('internos')
                     .select('*')
                     .eq('id', id)
@@ -2452,7 +2490,7 @@
                     <span>Actualizar</span>
                 `;
 
-                document.querySelector('.bento-form').scrollIntoView({behavior: 'smooth'});
+                document.querySelector('.bento-form').scrollIntoView({ behavior: 'smooth' });
                 showAlert('✏️ Editando: ' + data.nombre, 'info');
 
             } catch (error) {
@@ -2487,7 +2525,7 @@
         // ============================================================
         async function openModal(id) {
             try {
-                const {data, error} = await supabaseClient
+                const { data, error } = await supabaseClient
                     .from('internos')
                     .select('*')
                     .eq('id', id)
@@ -2511,9 +2549,9 @@
                         </div>
                         <div class="credencial-body">
                             ${data.foto_url
-                        ? `<img src="${data.foto_url}" class="credencial-foto" />`
-                        : `<div class="credencial-foto-placeholder">${iniciales}</div>`
-                    }
+                                ? `<img src="${data.foto_url}" class="credencial-foto" />`
+                                : `<div class="credencial-foto-placeholder">${iniciales}</div>`
+                            }
                             <div class="credencial-info">
                                 <div class="name">${data.nombre}</div>
                                 <div class="detail"><i class="fas fa-id-card"></i> ${data.matricula}</div>
@@ -2554,18 +2592,18 @@
             window.print();
         }
 
-        document.getElementById('modalCredencial').addEventListener('click', function (e) {
+        document.getElementById('modalCredencial').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
 
-        document.addEventListener('keydown', function (e) {
+        document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') closeModal();
         });
 
         // ============================================================
         // ENVÍO DEL FORMULARIO
         // ============================================================
-        form.addEventListener('submit', async function (e) {
+        form.addEventListener('submit', async function(e) {
             e.preventDefault();
 
             submitBtn.disabled = true;
@@ -2651,7 +2689,7 @@
 
                 await loadInternos();
                 resetForm();
-                document.querySelector('.bento-list').scrollIntoView({behavior: 'smooth'});
+                document.querySelector('.bento-list').scrollIntoView({ behavior: 'smooth' });
 
             } catch (error) {
                 console.error('Error:', error);
@@ -2668,7 +2706,7 @@
         // ============================================================
         // INICIALIZAR
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             loadInternos();
             pregenerarMatricula();
             console.log('🔍 Conectado a Supabase');
