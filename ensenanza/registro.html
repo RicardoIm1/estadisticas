@@ -701,6 +701,7 @@
                 opacity: 0;
                 transform: translateX(120px) scale(0.9);
             }
+
             100% {
                 opacity: 1;
                 transform: translateX(0) scale(1);
@@ -712,6 +713,7 @@
                 opacity: 1;
                 transform: translateX(0) scale(1);
             }
+
             100% {
                 opacity: 0;
                 transform: translateX(120px) scale(0.9);
@@ -722,6 +724,7 @@
             0% {
                 width: 100%;
             }
+
             100% {
                 width: 0%;
             }
@@ -1046,6 +1049,7 @@
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
@@ -1069,6 +1073,7 @@
                 transform: scale(0.92) translateY(20px);
                 opacity: 0;
             }
+
             to {
                 transform: scale(1) translateY(0);
                 opacity: 1;
@@ -1832,8 +1837,8 @@
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: 'environment',
-                            width: { ideal: 640 },
-                            height: { ideal: 480 }
+                            width: {ideal: 640},
+                            height: {ideal: 480}
                         },
                         audio: false
                     });
@@ -1841,8 +1846,8 @@
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: 'user',
-                            width: { ideal: 640 },
-                            height: { ideal: 480 }
+                            width: {ideal: 640},
+                            height: {ideal: 480}
                         },
                         audio: false
                     });
@@ -1902,7 +1907,7 @@
                 canvas.height = height;
                 context.drawImage(video, 0, 0, width, height);
 
-                canvas.toBlob(function(blob) {
+                canvas.toBlob(function (blob) {
                     if (!blob) {
                         showAlert('Error al capturar la foto', 'error');
                         return;
@@ -1912,7 +1917,7 @@
                         type: 'image/jpeg'
                     });
 
-                    const event = { target: { files: [file] } };
+                    const event = {target: {files: [file]}};
                     handlePhotoSelect(event);
                     cerrarCamara();
                     showAlert('✅ Foto capturada correctamente', 'success');
@@ -1925,7 +1930,7 @@
             }
         }
 
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && cameraOverlay.classList.contains('active')) {
                 cerrarCamara();
             }
@@ -1990,7 +1995,7 @@
             while (intentos < maxIntentos) {
                 const matricula = Math.floor(100000 + Math.random() * 900000).toString();
 
-                const { data, error } = await supabaseClient
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('matricula')
                     .eq('matricula', matricula)
@@ -2092,7 +2097,7 @@
 
             toast.dataset.timeoutId = timeoutId;
 
-            toast.addEventListener('click', function(e) {
+            toast.addEventListener('click', function (e) {
                 if (e.target.closest('.toast-close')) return;
                 removeToast(this);
             });
@@ -2138,7 +2143,7 @@
 
             currentPhotoFile = file;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 photoPreview.innerHTML = `
                     <img src="${e.target.result}" alt="Foto" class="photo-preview" />
                 `;
@@ -2177,16 +2182,16 @@
             const fileName = `${matricula}.${fileExt}`;
             const filePath = `internos/${fileName}`;
 
-            const { error: uploadError } = await supabaseClient.storage
+            const {error: uploadError} = await supabaseClient.storage
                 .from('fotos-internos')
-                .upload(filePath, currentPhotoFile, { upsert: true });
+                .upload(filePath, currentPhotoFile, {upsert: true});
 
             if (uploadError) {
                 console.error('Error subiendo foto:', uploadError);
                 throw new Error('Error al subir la foto: ' + uploadError.message);
             }
 
-            const { data } = supabaseClient.storage
+            const {data} = supabaseClient.storage
                 .from('fotos-internos')
                 .getPublicUrl(filePath);
 
@@ -2253,14 +2258,14 @@
         }
 
         // ============================================================
-        // CRUD - OBTENER TODOS
+        // CRUD - OBTENER TODOS (Ordenado alfabéticamente)
         // ============================================================
         async function loadInternos() {
             try {
-                const { data, error } = await supabaseClient
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('nombre', {ascending: true}); // Orden alfabético por nombre
 
                 if (error) throw error;
 
@@ -2271,12 +2276,12 @@
             } catch (error) {
                 console.error('Error:', error);
                 internosList.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-circle" style="color:#ef4444;"></i>
-                        <h3 style="color:#ef4444;">Error</h3>
-                        <p>${error.message}</p>
-                    </div>
-                `;
+            <div class="empty-state">
+                <i class="fas fa-exclamation-circle" style="color:#ef4444;"></i>
+                <h3 style="color:#ef4444;">Error</h3>
+                <p>${error.message}</p>
+            </div>
+        `;
             }
         }
 
@@ -2324,9 +2329,9 @@
                         <div class="card-header">
                             <div class="card-avatar">
                                 ${interno.foto_url
-                                    ? `<img src="${interno.foto_url}" />`
-                                    : iniciales
-                                }
+                        ? `<img src="${interno.foto_url}" />`
+                        : iniciales
+                    }
                             </div>
                             <div>
                                 <div class="card-name">${interno.nombre}</div>
@@ -2370,15 +2375,19 @@
         }
 
         // ============================================================
-        // FILTRAR CARDS - Actualiza el contador
+        // FILTRAR CARDS - Mantiene orden alfabético
         // ============================================================
         function filterCards() {
             const search = searchInput.value.toLowerCase().trim();
-            const filtered = allInternos.filter(interno =>
-                interno.nombre.toLowerCase().includes(search) ||
-                interno.matricula.includes(search) ||
-                interno.carrera.toLowerCase().includes(search)
-            );
+            const filtered = allInternos
+                .filter(interno =>
+                    interno.nombre.toLowerCase().includes(search) ||
+                    interno.matricula.includes(search) ||
+                    interno.carrera.toLowerCase().includes(search)
+                )
+                // Ordenar alfabéticamente los resultados filtrados
+                .sort((a, b) => a.nombre.localeCompare(b.nombre));
+
             renderCards(filtered);
             // El contador se actualiza dentro de renderCards
         }
@@ -2396,7 +2405,7 @@
 
             sanitizedData.qr_token = crypto.randomUUID();
 
-            const { data: result, error } = await supabaseClient
+            const {data: result, error} = await supabaseClient
                 .from('internos')
                 .insert([sanitizedData])
                 .select()
@@ -2412,7 +2421,7 @@
         async function updateInterno(id, data) {
             const sanitizedData = sanitizeInternoData(data);
 
-            const { data: result, error } = await supabaseClient
+            const {data: result, error} = await supabaseClient
                 .from('internos')
                 .update(sanitizedData)
                 .eq('id', id)
@@ -2431,7 +2440,7 @@
             if (!confirm('¿Estás seguro de eliminar este interno?')) return;
 
             try {
-                const { error } = await supabaseClient
+                const {error} = await supabaseClient
                     .from('internos')
                     .delete()
                     .eq('id', id);
@@ -2456,7 +2465,7 @@
         async function editInterno(id) {
             event.stopPropagation();
             try {
-                const { data, error } = await supabaseClient
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('*')
                     .eq('id', id)
@@ -2490,7 +2499,7 @@
                     <span>Actualizar</span>
                 `;
 
-                document.querySelector('.bento-form').scrollIntoView({ behavior: 'smooth' });
+                document.querySelector('.bento-form').scrollIntoView({behavior: 'smooth'});
                 showAlert('✏️ Editando: ' + data.nombre, 'info');
 
             } catch (error) {
@@ -2525,7 +2534,7 @@
         // ============================================================
         async function openModal(id) {
             try {
-                const { data, error } = await supabaseClient
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('*')
                     .eq('id', id)
@@ -2549,9 +2558,9 @@
                         </div>
                         <div class="credencial-body">
                             ${data.foto_url
-                                ? `<img src="${data.foto_url}" class="credencial-foto" />`
-                                : `<div class="credencial-foto-placeholder">${iniciales}</div>`
-                            }
+                        ? `<img src="${data.foto_url}" class="credencial-foto" />`
+                        : `<div class="credencial-foto-placeholder">${iniciales}</div>`
+                    }
                             <div class="credencial-info">
                                 <div class="name">${data.nombre}</div>
                                 <div class="detail"><i class="fas fa-id-card"></i> ${data.matricula}</div>
@@ -2592,18 +2601,18 @@
             window.print();
         }
 
-        document.getElementById('modalCredencial').addEventListener('click', function(e) {
+        document.getElementById('modalCredencial').addEventListener('click', function (e) {
             if (e.target === this) closeModal();
         });
 
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeModal();
         });
 
         // ============================================================
         // ENVÍO DEL FORMULARIO
         // ============================================================
-        form.addEventListener('submit', async function(e) {
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             submitBtn.disabled = true;
@@ -2689,7 +2698,7 @@
 
                 await loadInternos();
                 resetForm();
-                document.querySelector('.bento-list').scrollIntoView({ behavior: 'smooth' });
+                document.querySelector('.bento-list').scrollIntoView({behavior: 'smooth'});
 
             } catch (error) {
                 console.error('Error:', error);
@@ -2706,7 +2715,7 @@
         // ============================================================
         // INICIALIZAR
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadInternos();
             pregenerarMatricula();
             console.log('🔍 Conectado a Supabase');
