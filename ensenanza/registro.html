@@ -737,71 +737,75 @@
         /* ============================================================
            COLUMNA DERECHA - LISTA
            ============================================================ */
+        /* ============================================================
+   COLUMNA DERECHA - LISTA CON HEADER FIJO Y SCROLL
+   ============================================================ */
         .bento-list {
             background: transparent;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 48px);
+            /* Altura de la ventana menos el padding */
+            position: sticky;
+            top: 24px;
+            overflow: hidden;
+            /* Evita que el contenido se desborde */
         }
 
         .bento-list .list-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 0;
             background: var(--surface);
             padding: 16px 24px;
-            border-radius: var(--radius);
+            border-radius: var(--radius) var(--radius) 0 0;
             box-shadow: var(--shadow-md);
             border: 1px solid rgba(255, 255, 255, 0.5);
+            border-bottom: 2px solid var(--border);
+            flex-shrink: 0;
+            /* Evita que se encoja */
+            position: sticky;
+            top: 0;
+            z-index: 10;
         }
 
-        .bento-list .list-header h2 {
-            font-size: 18px;
-            font-weight: 800;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        /* Contenedor de la lista con scroll */
+        .bento-list .list-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 4px;
+            background: transparent;
+            border-radius: 0 0 var(--radius) var(--radius);
         }
 
-        .bento-list .list-header h2 i {
-            color: var(--primary);
+        /* Scroll personalizado para la lista */
+        .bento-list .list-scroll::-webkit-scrollbar {
+            width: 6px;
         }
 
-        .bento-list .list-header .badge {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 2px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
+        .bento-list .list-scroll::-webkit-scrollbar-track {
+            background: var(--background);
+            border-radius: 10px;
         }
 
-        .list-search {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .list-search input {
-            padding: 9px 16px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            font-size: 13px;
+        .bento-list .list-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
             transition: var(--transition);
-            background: #fafbfc;
-            width: 220px;
-            font-weight: 500;
         }
 
-        .list-search input::placeholder {
-            color: var(--text-muted);
-            font-weight: 400;
+        .bento-list .list-scroll::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
         }
 
-        .list-search input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.10);
-            background: var(--surface);
+        /* Cards grid dentro del scroll */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 18px;
+            padding: 18px 4px 18px 0;
         }
 
         /* ============================================================
@@ -1523,10 +1527,9 @@
             background: #94a3b8;
         }
 
-        .internosList{
+        .internosList {
             overflow-y: auto;
         }
-    
     </style>
 </head>
 
@@ -1697,12 +1700,13 @@
                     <input type="text" id="searchInput" placeholder="Buscar interno..." oninput="filterCards()" />
                 </div>
             </div>
-
-            <div id="internosList" class="cards-grid">
-                <div class="empty-state">
-                    <i class="fas fa-user-plus"></i>
-                    <h3>No hay internos registrados</h3>
-                    <p>Comienza registrando un nuevo interno</p>
+            <div class="list-scroll" id="listScroll">
+                <div id="internosList" class="cards-grid">
+                    <div class="empty-state">
+                        <i class="fas fa-user-plus"></i>
+                        <h3>No hay internos registrados</h3>
+                        <p>Comienza registrando un nuevo interno</p>
+                    </div>
                 </div>
             </div>
         </div>
