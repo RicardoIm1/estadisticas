@@ -1835,13 +1835,12 @@
         // GENERAR TEXTO PARA QR
         // ============================================================
         function generarTextoQR(interno) {
-            return `HOSPITAL REGIONAL PV
-INTERNO: ${interno.nombre}
-MAT: ${interno.matricula}
-CAR: ${interno.carrera}
-UNIV: ${interno.universidad}
-SEM: ${interno.semestre}
-GEN: ${interno.generacion}`;
+            // Texto compacto con separadores claros
+            const nombreCorto = interno.nombre.length > 28
+                ? interno.nombre.substring(0, 28) + '…'
+                : interno.nombre;
+
+            return `HRPV|${interno.matricula}|${nombreCorto}|${interno.carrera}`;
         }
 
         // ============================================================
@@ -2005,55 +2004,63 @@ GEN: ${interno.generacion}`;
 
             container.innerHTML = '';
 
-            try {
-                const textoQR = generarTextoQR(interno);
+            // Array de formatos de texto para intentar
+            const formatos = [
+                // Formato 1: Completo pero compacto
+                () => {
+                    const nombre = interno.nombre.length > 25
+                        ? interno.nombre.substring(0, 25) + '…'
+                        : interno.nombre;
+                    return `HRPV|${interno.matricula}|${nombre}|${interno.carrera}`;
+                },
+                // Formato 2: Solo datos esenciales
+                () => `${interno.matricula}|${interno.nombre.substring(0, 30)}`,
+                // Formato 3: Matrícula + iniciales
+                () => `${interno.matricula}|${interno.nombre.split(' ').map(w => w[0]).join('')}`,
+                // Formato 4: Solo matrícula
+                () => `${interno.matricula}`
+            ];
 
-                const qr = new QRCode(container, {
-                    text: textoQR,
-                    width: size,
-                    height: size,
-                    colorDark: '#1a56db',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.L
-                });
-
-                const canvas = container.querySelector('canvas');
-                if (canvas) {
-                    canvas.style.width = size + 'px';
-                    canvas.style.height = size + 'px';
-                }
-
-                return qr;
-            } catch (e) {
-                console.error('Error generando QR:', e);
+            for (let i = 0; i < formatos.length; i++) {
                 try {
-                    const textoCorto = `MAT:${interno.matricula}|${interno.nombre}`;
+                    const texto = formatos[i]();
+
+                    // Si el texto está vacío, saltar
+                    if (!texto || texto.length < 2) continue;
+
                     const qr = new QRCode(container, {
-                        text: textoCorto,
+                        text: texto,
                         width: size,
                         height: size,
                         colorDark: '#1a56db',
                         colorLight: '#ffffff',
-                        correctLevel: QRCode.CorrectLevel.L
+                        correctLevel: QRCode.CorrectLevel.L // Máxima capacidad
                     });
+
                     const canvas = container.querySelector('canvas');
                     if (canvas) {
                         canvas.style.width = size + 'px';
                         canvas.style.height = size + 'px';
                     }
+
+                    console.log(`✅ QR generado (${texto.length} caracteres)`);
                     return qr;
-                } catch (e2) {
-                    console.error('Error generando QR con texto corto:', e2);
-                    container.innerHTML = `
-                        <div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;background:#f1f5f9;border-radius:8px;font-size:10px;color:#94a3b8;">
-                            QR Error
-                        </div>
-                    `;
-                    return null;
+
+                } catch (e) {
+                    console.warn(`Intento ${i + 1} falló:`, e.message);
+                    // Continuar con el siguiente formato
                 }
             }
-        }
 
+            // Si todo falla, mostrar error visual
+            container.innerHTML = `
+        <div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;background:#fef2f2;border-radius:8px;font-size:8px;color:#dc2626;text-align:center;padding:2px;border:1px solid #fca5a5;line-height:1.2;">
+            QR Error
+        </div>
+    `;
+            console.error('❌ No se pudo generar el QR');
+            return null;
+        }
         // ============================================================
         // CRUD - OBTENER TODOS
         // ============================================================
