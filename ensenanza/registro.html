@@ -610,7 +610,7 @@
             color: #1e293b;
         }
 
-        /* ===== CREDENCIAL - ESTILO GAFFETTE (COMPACTO) ===== */
+        /* ===== CREDENCIAL ===== */
         .credencial {
             background: linear-gradient(135deg, #0f2b5e, #1a56db);
             border-radius: 16px;
@@ -721,8 +721,6 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(4px);
         }
 
         .credencial .credencial-footer .status-badge.activo {
@@ -907,11 +905,6 @@
                 max-width: 300px !important;
                 margin: 0 auto;
                 page-break-inside: avoid;
-            }
-
-            .credencial .credencial-footer .qr-container canvas {
-                width: 60px !important;
-                height: 60px !important;
             }
         }
 
@@ -1143,6 +1136,23 @@
         const searchInput = document.getElementById('searchInput');
 
         // ============================================================
+        // GENERAR TEXTO PARA QR (LEGIBLE POR CÁMARA)
+        // ============================================================
+        function generarTextoQR(interno) {
+            // Formato de texto plano que cualquier lector de QR puede mostrar
+            return `HOSPITAL REGIONAL PV
+━━━━━━━━━━━━━━━━━━━
+INTERNO: ${interno.nombre}
+MATRÍCULA: ${interno.matricula}
+CARRERA: ${interno.carrera}
+UNIVERSIDAD: ${interno.universidad}
+SEMESTRE: ${interno.semestre}
+GENERACIÓN: ${interno.generacion}
+━━━━━━━━━━━━━━━━━━━
+ID: ${interno.id}`;
+        }
+
+        // ============================================================
         // GENERAR MATRÍCULA AUTOMÁTICA
         // ============================================================
         async function generarMatricula() {
@@ -1292,9 +1302,9 @@
         }
 
         // ============================================================
-        // GENERAR QR - VERSIÓN MEJORADA
+        // GENERAR QR - VERSIÓN MEJORADA CON TEXTO LEGIBLE
         // ============================================================
-        function generarQR(elementId, data, size = 60) {
+        function generarQR(elementId, interno, size = 60) {
             const container = document.getElementById(elementId);
             if (!container) {
                 console.warn('Contenedor no encontrado:', elementId);
@@ -1304,11 +1314,11 @@
             container.innerHTML = '';
 
             try {
-                // Asegurar que el texto sea string
-                const text = typeof data === 'string' ? data : JSON.stringify(data);
+                // Generar texto legible para el QR
+                const textoQR = generarTextoQR(interno);
 
                 const qr = new QRCode(container, {
-                    text: text,
+                    text: textoQR,
                     width: size,
                     height: size,
                     colorDark: '#1a56db',
@@ -1387,21 +1397,14 @@
                     .slice(0, 2)
                     .toUpperCase();
 
-                const qrData = {
-                    id: interno.id,
-                    matricula: interno.matricula,
-                    nombre: interno.nombre,
-                    token: interno.qr_token
-                };
-
                 return `
                 <div class="card" data-id="${interno.id}" onclick="openModal('${interno.id}')">
                     <div class="card-header">
                         <div class="card-avatar">
                             ${interno.foto_url
-                        ? `<img src="${interno.foto_url}" />`
-                        : iniciales
-                    }
+                                ? `<img src="${interno.foto_url}" />`
+                                : iniciales
+                            }
                         </div>
                         <div>
                             <div class="card-name">${interno.nombre}</div>
@@ -1431,16 +1434,10 @@
                 </div>
             `}).join('');
 
-            // Generar QR para cada card - con retraso para asegurar DOM
+            // Generar QR para cada card con el texto legible
             setTimeout(() => {
                 internos.forEach(interno => {
-                    const qrData = {
-                        id: interno.id,
-                        matricula: interno.matricula,
-                        nombre: interno.nombre,
-                        token: interno.qr_token
-                    };
-                    generarQR(`qr-${interno.id}`, qrData, 50);
+                    generarQR(`qr-${interno.id}`, interno, 50);
                 });
             }, 100);
         }
@@ -1605,13 +1602,6 @@
                     .slice(0, 2)
                     .toUpperCase();
 
-                const qrData = {
-                    id: data.id,
-                    matricula: data.matricula,
-                    nombre: data.nombre,
-                    token: data.qr_token
-                };
-
                 document.getElementById('credencialContent').innerHTML = `
                     <div class="credencial">
                         <div class="credencial-header">
@@ -1620,9 +1610,9 @@
                         </div>
                         <div class="credencial-body">
                             ${data.foto_url
-                        ? `<img src="${data.foto_url}" class="credencial-foto" />`
-                        : `<div class="credencial-foto-placeholder">${iniciales}</div>`
-                    }
+                                ? `<img src="${data.foto_url}" class="credencial-foto" />`
+                                : `<div class="credencial-foto-placeholder">${iniciales}</div>`
+                            }
                             <div class="credencial-info">
                                 <div class="name">${data.nombre}</div>
                                 <div class="detail"><i class="fas fa-id-card"></i> ${data.matricula}</div>
@@ -1641,9 +1631,9 @@
                     </div>
                 `;
 
-                // Generar QR en el modal - con retraso para asegurar DOM
+                // Generar QR en el modal con el texto legible
                 setTimeout(() => {
-                    generarQR('modalQR', qrData, 70);
+                    generarQR('modalQR', data, 70);
                 }, 50);
 
                 document.getElementById('modalCredencial').classList.add('active');
