@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registro de Internos - Hospital</title>
+    
+    <!-- Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f0fe 0%, #d4e4f7 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        /* ===== CONTENEDOR PRINCIPAL ===== */
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            padding: 40px;
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            text-align: center;
+            margin-bottom: 35px;
+            padding-bottom: 25px;
+            border-bottom: 2px solid #f0f4f8;
+        }
+
+        .header .logo {
+            display: inline-block;
+            background: linear-gradient(135deg, #1a56db, #3b82f6);
+            color: white;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            line-height: 70px;
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 15px;
+            margin-top: 5px;
+        }
+
+        /* ===== FORMULARIO ===== */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .form-group label .required {
+            color: #ef4444;
+        }
+
+        .form-group input,
+        .form-group select {
+            padding: 12px 14px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+            background: white;
+        }
+
+        .form-group input::placeholder {
+            color: #94a3b8;
+        }
+
+        .form-group input:disabled {
+            background: #f1f5f9;
+            cursor: not-allowed;
+        }
+
+        /* ===== FOTO ===== */
+        .photo-upload {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 12px;
+            border: 2px dashed #cbd5e1;
+            transition: all 0.3s ease;
+        }
+
+        .photo-upload:hover {
+            border-color: #3b82f6;
+            background: #f1f5f9;
+        }
+
+        .photo-preview {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #e2e8f0;
+            background: white;
+        }
+
+        .photo-placeholder {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            font-size: 30px;
+        }
+
+        .photo-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .photo-actions .btn-upload {
+            background: #3b82f6;
+            color: white;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .photo-actions .btn-upload:hover {
+            background: #2563eb;
+        }
+
+        .photo-actions .btn-remove {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 8px 18px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: background 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .photo-actions .btn-remove:hover {
+            background: #fecaca;
+        }
+
+        .file-input-hidden {
+            display: none;
+        }
+
+        /* ===== BOTONES ===== */
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+            padding-top: 20px;
+            border-top: 2px solid #f0f4f8;
+        }
+
+        .btn-submit {
+            flex: 1;
+            padding: 14px;
+            background: linear-gradient(135deg, #1a56db, #3b82f6);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-submit .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .btn-reset {
+            padding: 14px 30px;
+            background: #f1f5f9;
+            color: #475569;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-reset:hover {
+            background: #e2e8f0;
+        }
+
+        /* ===== ALERTAS ===== */
+        .alert {
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid #22c55e;
+        }
+
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .alert i {
+            font-size: 20px;
+        }
+
+        .alert .close-alert {
+            margin-left: auto;
+            cursor: pointer;
+            font-size: 18px;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+            background: none;
+            border: none;
+        }
+
+        .alert .close-alert:hover {
+            opacity: 1;
+        }
+
+        /* ===== LISTA DE INTERNOS REGISTRADOS ===== */
+        .registered-list {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f4f8;
+        }
+
+        .registered-list h3 {
+            font-size: 18px;
+            color: #1e293b;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .registered-list .badge {
+            background: #3b82f6;
+            color: white;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+        }
+
+        .interno-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            transition: all 0.3s ease;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .interno-item:hover {
+            background: #f1f5f9;
+            transform: translateX(4px);
+        }
+
+        .interno-item .info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .interno-item .info .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #3b82f6;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .interno-item .info .name {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .interno-item .info .matricula {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .interno-item .status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .status-activo {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactivo {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .interno-item .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .interno-item .actions button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .interno-item .actions .btn-edit {
+            color: #3b82f6;
+        }
+
+        .interno-item .actions .btn-edit:hover {
+            background: #dbeafe;
+        }
+
+        .interno-item .actions .btn-delete {
+            color: #ef4444;
+        }
+
+        .interno-item .actions .btn-delete:hover {
+            background: #fee2e2;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 640px) {
+            .container {
+                padding: 20px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .photo-upload {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header h1 {
+                font-size: 22px;
+            }
+
+            .interno-item {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .interno-item .info {
+                flex: 1;
+                min-width: 150px;
+            }
+        }
+
+        /* ===== SCROLLBAR ===== */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-hospital-user"></i>
+            </div>
+            <h1>Registro de Internos</h1>
+            <p>Hospital General · Sistema de gestión de médicos internos</p>
+        </div>
+
+        <!-- ALERTA -->
+        <div id="alertContainer"></div>
+
+        <!-- FORMULARIO -->
+        <form id="internoForm" class="form-grid">
+            <!-- Matrícula -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-id-card"></i> Matrícula <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="matricula" 
+                    name="matricula" 
+                    placeholder="Ej: MED-2024-001"
+                    required
+                />
+            </div>
+
+            <!-- Nombre -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-user"></i> Nombre <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="nombre" 
+                    name="nombre" 
+                    placeholder="Nombre"
+                    required
+                />
+            </div>
+
+            <!-- Apellido Paterno -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-user"></i> Apellido Paterno <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="apellido_paterno" 
+                    name="apellido_paterno" 
+                    placeholder="Apellido Paterno"
+                    required
+                />
+            </div>
+
+            <!-- Apellido Materno -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-user"></i> Apellido Materno
+                </label>
+                <input 
+                    type="text" 
+                    id="apellido_materno" 
+                    name="apellido_materno" 
+                    placeholder="Apellido Materno"
+                />
+            </div>
+
+            <!-- Universidad -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-university"></i> Universidad <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="universidad" 
+                    name="universidad" 
+                    placeholder="Nombre de la universidad"
+                    required
+                />
+            </div>
+
+            <!-- Carrera -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-graduation-cap"></i> Carrera <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="carrera" 
+                    name="carrera" 
+                    placeholder="Carrera"
+                    required
+                />
+            </div>
+
+            <!-- Semestre -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-layer-group"></i> Semestre <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="semestre" 
+                    name="semestre" 
+                    placeholder="Ej: 8° Semestre"
+                    required
+                />
+            </div>
+
+            <!-- Generación -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-calendar-alt"></i> Generación <span class="required">*</span>
+                </label>
+                <input 
+                    type="text" 
+                    id="generacion" 
+                    name="generacion" 
+                    placeholder="Ej: 2020-2025"
+                    required
+                />
+            </div>
+
+            <!-- Correo -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-envelope"></i> Correo Electrónico <span class="required">*</span>
+                </label>
+                <input 
+                    type="email" 
+                    id="correo" 
+                    name="correo" 
+                    placeholder="correo@ejemplo.com"
+                    required
+                />
+            </div>
+
+            <!-- Teléfono -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-phone"></i> Teléfono
+                </label>
+                <input 
+                    type="tel" 
+                    id="telefono" 
+                    name="telefono" 
+                    placeholder="(55) 1234-5678"
+                />
+            </div>
+
+            <!-- Estatus -->
+            <div class="form-group">
+                <label>
+                    <i class="fas fa-toggle-on"></i> Estatus
+                </label>
+                <select id="estatus" name="estatus">
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                </select>
+            </div>
+
+            <!-- ID oculto para edición -->
+            <input type="hidden" id="internoId" value="" />
+
+            <!-- Foto -->
+            <div class="form-group full-width">
+                <label><i class="fas fa-camera"></i> Foto</label>
+                <div class="photo-upload">
+                    <div id="photoPreview">
+                        <div class="photo-placeholder">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                    </div>
+                    <div class="photo-actions">
+                        <button type="button" class="btn-upload" onclick="document.getElementById('photoInput').click()">
+                            <i class="fas fa-upload"></i> Subir foto
+                        </button>
+                        <button type="button" class="btn-remove" id="removePhotoBtn" style="display:none;" onclick="removePhoto()">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </button>
+                        <input 
+                            type="file" 
+                            id="photoInput" 
+                            class="file-input-hidden" 
+                            accept="image/jpeg,image/png,image/webp"
+                            onchange="handlePhotoSelect(event)"
+                        />
+                        <span style="font-size:12px; color:#94a3b8;">
+                            Formatos: JPG, PNG, WEBP · Max: 5MB
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BOTONES -->
+            <div class="form-actions">
+                <button type="submit" class="btn-submit" id="submitBtn">
+                    <i class="fas fa-save"></i> 
+                    <span id="submitText">Guardar Interno</span>
+                </button>
+                <button type="reset" class="btn-reset" onclick="resetForm()">
+                    <i class="fas fa-undo"></i> Limpiar
+                </button>
+            </div>
+        </form>
+
+        <!-- LISTA DE INTERNOS REGISTRADOS -->
+        <div class="registered-list">
+            <h3>
+                <i class="fas fa-list"></i> Internos Registrados
+                <span class="badge" id="totalCount">0</span>
+            </h3>
+            <div id="internosList">
+                <p style="color:#94a3b8; text-align:center; padding:20px;">
+                    <i class="fas fa-spinner fa-spin"></i> Cargando internos...
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ============================================================ -->
+    <script>
+        // ============================================================
+        // 1. CONFIGURACIÓN DE SUPABASE
+        // ============================================================
+        // !!! REEMPLAZA ESTOS VALORES CON LOS TUYOS !!!
+        const SUPABASE_URL = 'https://njtlruvhcatklccdxpla.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_nqxvbwTmSi9EVPeqb-RrgA_cWsNpW9g';
+
+        // ============================================================
+        // 2. CLIENTE SUPABASE
+        // ============================================================
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ============================================================
+        // 3. ESTADO GLOBAL
+        // ============================================================
+        let currentPhotoFile = null;
+        let currentPhotoUrl = null;
+        let isEditing = false;
+
+        // ============================================================
+        // 4. REFERENCIAS DOM
+        // ============================================================
+        const form = document.getElementById('internoForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const submitText = document.getElementById('submitText');
+        const alertContainer = document.getElementById('alertContainer');
+        const internosList = document.getElementById('internosList');
+        const totalCount = document.getElementById('totalCount');
+        const photoPreview = document.getElementById('photoPreview');
+        const removePhotoBtn = document.getElementById('removePhotoBtn');
+        const photoInput = document.getElementById('photoInput');
+
+        // ============================================================
+        // 5. FUNCIONES DE ALERTA
+        // ============================================================
+        function showAlert(message, type = 'info') {
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                info: 'fa-info-circle'
+            };
+
+            alertContainer.innerHTML = `
+                <div class="alert alert-${type}">
+                    <i class="fas ${icons[type] || icons.info}"></i>
+                    <span>${message}</span>
+                    <button class="close-alert" onclick="this.parentElement.remove()">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+
+            // Auto-cerrar después de 6 segundos
+            setTimeout(() => {
+                const alert = alertContainer.querySelector('.alert');
+                if (alert) alert.remove();
+            }, 6000);
+        }
+
+        // ============================================================
+        // 6. MANEJO DE FOTO
+        // ============================================================
+        function handlePhotoSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            // Validar tamaño (5MB max)
+            if (file.size > 5 * 1024 * 1024) {
+                showAlert('La imagen no debe exceder los 5MB', 'error');
+                photoInput.value = '';
+                return;
+            }
+
+            // Validar formato
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                showAlert('Formato no permitido. Usa JPG, PNG o WEBP', 'error');
+                photoInput.value = '';
+                return;
+            }
+
+            currentPhotoFile = file;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                photoPreview.innerHTML = `
+                    <img src="${e.target.result}" alt="Foto" class="photo-preview" />
+                `;
+                removePhotoBtn.style.display = 'inline-flex';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function removePhoto() {
+            currentPhotoFile = null;
+            currentPhotoUrl = null;
+            photoInput.value = '';
+            photoPreview.innerHTML = `
+                <div class="photo-placeholder">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            `;
+            removePhotoBtn.style.display = 'none';
+        }
+
+        function setPhotoFromUrl(url) {
+            currentPhotoUrl = url;
+            photoPreview.innerHTML = `
+                <img src="${url}" alt="Foto" class="photo-preview" />
+            `;
+            removePhotoBtn.style.display = 'inline-flex';
+        }
+
+        // ============================================================
+        // 7. SUBIR FOTO A SUPABASE STORAGE
+        // ============================================================
+        async function uploadPhoto(matricula) {
+            if (!currentPhotoFile) return null;
+
+            const fileExt = currentPhotoFile.name.split('.').pop();
+            const fileName = `${matricula}.${fileExt}`;
+            const filePath = `internos/${fileName}`;
+
+            const { error: uploadError } = await supabaseClient.storage
+                .from('fotos-internos')
+                .upload(filePath, currentPhotoFile, { upsert: true });
+
+            if (uploadError) {
+                console.error('Error subiendo foto:', uploadError);
+                throw new Error('Error al subir la foto: ' + uploadError.message);
+            }
+
+            const { data } = supabaseClient.storage
+                .from('fotos-internos')
+                .getPublicUrl(filePath);
+
+            return data.publicUrl;
+        }
+
+        // ============================================================
+        // 8. CRUD - OBTENER TODOS LOS INTERNOS
+        // ============================================================
+        async function loadInternos() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('internos')
+                    .select('*')
+                    .order('apellido_paterno', { ascending: true });
+
+                if (error) throw error;
+
+                renderInternos(data);
+                totalCount.textContent = data.length;
+
+            } catch (error) {
+                console.error('Error cargando internos:', error);
+                internosList.innerHTML = `
+                    <p style="color:#ef4444; text-align:center; padding:20px;">
+                        <i class="fas fa-exclamation-circle"></i> 
+                        Error al cargar los internos: ${error.message}
+                    </p>
+                `;
+            }
+        }
+
+        // ============================================================
+        // 9. RENDERIZAR LISTA DE INTERNOS
+        // ============================================================
+        function renderInternos(internos) {
+            if (!internos || internos.length === 0) {
+                internosList.innerHTML = `
+                    <p style="color:#94a3b8; text-align:center; padding:20px;">
+                        <i class="fas fa-inbox"></i> 
+                        No hay internos registrados aún
+                    </p>
+                `;
+                return;
+            }
+
+            internosList.innerHTML = internos.map(interno => `
+                <div class="interno-item" data-id="${interno.id}">
+                    <div class="info">
+                        <div class="avatar">
+                            ${interno.foto_url 
+                                ? `<img src="${interno.foto_url}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;" />`
+                                : `${interno.nombre[0]}${interno.apellido_paterno[0]}`
+                            }
+                        </div>
+                        <div>
+                            <div class="name">${interno.nombre} ${interno.apellido_paterno} ${interno.apellido_materno || ''}</div>
+                            <div class="matricula">${interno.matricula} · ${interno.carrera}</div>
+                        </div>
+                    </div>
+                    <span class="status ${interno.estatus === 'activo' ? 'status-activo' : 'status-inactivo'}">
+                        ${interno.estatus}
+                    </span>
+                    <div class="actions">
+                        <button class="btn-edit" onclick="editInterno('${interno.id}')" title="Editar">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button class="btn-delete" onclick="deleteInterno('${interno.id}')" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // ============================================================
+        // 10. CRUD - CREAR INTERNO
+        // ============================================================
+        async function createInterno(data) {
+            // Generar QR token
+            data.qr_token = crypto.randomUUID();
+
+            const { data: result, error } = await supabaseClient
+                .from('internos')
+                .insert([data])
+                .select()
+                .single();
+
+            if (error) throw error;
+            return result;
+        }
+
+        // ============================================================
+        // 11. CRUD - ACTUALIZAR INTERNO
+        // ============================================================
+        async function updateInterno(id, data) {
+            const { data: result, error } = await supabaseClient
+                .from('internos')
+                .update(data)
+                .eq('id', id)
+                .select()
+                .single();
+
+            if (error) throw error;
+            return result;
+        }
+
+        // ============================================================
+        // 12. CRUD - ELIMINAR INTERNO
+        // ============================================================
+        async function deleteInterno(id) {
+            if (!confirm('¿Estás seguro de eliminar este interno?')) return;
+
+            try {
+                const { error } = await supabaseClient
+                    .from('internos')
+                    .delete()
+                    .eq('id', id);
+
+                if (error) throw error;
+
+                showAlert('Interno eliminado correctamente', 'success');
+                loadInternos();
+
+                // Si estamos editando el que eliminamos, resetear formulario
+                const currentId = document.getElementById('internoId').value;
+                if (currentId === id) {
+                    resetForm();
+                }
+
+            } catch (error) {
+                console.error('Error eliminando interno:', error);
+                showAlert('Error al eliminar: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // 13. EDITAR INTERNO (cargar datos en el formulario)
+        // ============================================================
+        async function editInterno(id) {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('internos')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                // Llenar formulario
+                document.getElementById('internoId').value = data.id;
+                document.getElementById('matricula').value = data.matricula;
+                document.getElementById('nombre').value = data.nombre;
+                document.getElementById('apellido_paterno').value = data.apellido_paterno;
+                document.getElementById('apellido_materno').value = data.apellido_materno || '';
+                document.getElementById('universidad').value = data.universidad;
+                document.getElementById('carrera').value = data.carrera;
+                document.getElementById('semestre').value = data.semestre;
+                document.getElementById('generacion').value = data.generacion;
+                document.getElementById('correo').value = data.correo;
+                document.getElementById('telefono').value = data.telefono || '';
+                document.getElementById('estatus').value = data.estatus || 'activo';
+
+                // Foto
+                if (data.foto_url) {
+                    setPhotoFromUrl(data.foto_url);
+                } else {
+                    removePhoto();
+                }
+
+                isEditing = true;
+                submitText.textContent = 'Actualizar Interno';
+                submitBtn.innerHTML = `
+                    <i class="fas fa-save"></i> 
+                    <span>Actualizar Interno</span>
+                `;
+
+                // Scroll al formulario
+                document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
+
+                showAlert('Editando: ' + data.nombre + ' ' + data.apellido_paterno, 'info');
+
+            } catch (error) {
+                console.error('Error cargando interno para editar:', error);
+                showAlert('Error al cargar los datos: ' + error.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // 14. RESET FORMULARIO
+        // ============================================================
+        function resetForm() {
+            form.reset();
+            document.getElementById('internoId').value = '';
+            removePhoto();
+            isEditing = false;
+            submitText.textContent = 'Guardar Interno';
+            submitBtn.innerHTML = `
+                <i class="fas fa-save"></i> 
+                <span>Guardar Interno</span>
+            `;
+            // Resetear el select de estatus a 'activo'
+            document.getElementById('estatus').value = 'activo';
+            showAlert('Formulario limpiado', 'info');
+        }
+
+        // ============================================================
+        // 15. ENVÍO DEL FORMULARIO
+        // ============================================================
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // Deshabilitar botón
+            submitBtn.disabled = true;
+            submitText.textContent = isEditing ? 'Actualizando...' : 'Guardando...';
+
+            try {
+                // Recoger datos del formulario
+                const id = document.getElementById('internoId').value;
+                const matricula = document.getElementById('matricula').value.trim();
+                const nombre = document.getElementById('nombre').value.trim();
+                const apellido_paterno = document.getElementById('apellido_paterno').value.trim();
+                const apellido_materno = document.getElementById('apellido_materno').value.trim();
+                const universidad = document.getElementById('universidad').value.trim();
+                const carrera = document.getElementById('carrera').value.trim();
+                const semestre = document.getElementById('semestre').value.trim();
+                const generacion = document.getElementById('generacion').value.trim();
+                const correo = document.getElementById('correo').value.trim();
+                const telefono = document.getElementById('telefono').value.trim();
+                const estatus = document.getElementById('estatus').value;
+
+                // Validaciones básicas
+                if (!matricula || !nombre || !apellido_paterno || !universidad || !carrera || !semestre || !generacion || !correo) {
+                    showAlert('Por favor, completa todos los campos obligatorios (*)', 'error');
+                    submitBtn.disabled = false;
+                    submitText.textContent = isEditing ? 'Actualizar Interno' : 'Guardar Interno';
+                    return;
+                }
+
+                // Validar email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(correo)) {
+                    showAlert('Por favor, ingresa un correo electrónico válido', 'error');
+                    submitBtn.disabled = false;
+                    submitText.textContent = isEditing ? 'Actualizar Interno' : 'Guardar Interno';
+                    return;
+                }
+
+                // Preparar datos
+                let foto_url = currentPhotoUrl;
+
+                // Si hay una nueva foto, subirla
+                if (currentPhotoFile) {
+                    try {
+                        foto_url = await uploadPhoto(matricula);
+                    } catch (uploadError) {
+                        showAlert('Error al subir la foto: ' + uploadError.message, 'error');
+                        submitBtn.disabled = false;
+                        submitText.textContent = isEditing ? 'Actualizar Interno' : 'Guardar Interno';
+                        return;
+                    }
+                }
+
+                const internoData = {
+                    matricula,
+                    nombre,
+                    apellido_paterno,
+                    apellido_materno,
+                    universidad,
+                    carrera,
+                    semestre,
+                    generacion,
+                    correo,
+                    telefono,
+                    estatus,
+                    foto_url
+                };
+
+                let result;
+
+                if (isEditing && id) {
+                    // ACTUALIZAR
+                    result = await updateInterno(id, internoData);
+                    showAlert('Interno actualizado correctamente', 'success');
+                } else {
+                    // CREAR
+                    result = await createInterno(internoData);
+                    showAlert('Interno registrado correctamente', 'success');
+                }
+
+                // Recargar lista
+                await loadInternos();
+
+                // Resetear formulario
+                resetForm();
+
+                // Scroll a la lista
+                document.querySelector('.registered-list').scrollIntoView({ behavior: 'smooth' });
+
+            } catch (error) {
+                console.error('Error guardando interno:', error);
+                showAlert('Error al guardar: ' + error.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitText.textContent = isEditing ? 'Actualizar Interno' : 'Guardar Interno';
+                submitBtn.innerHTML = `
+                    <i class="fas fa-save"></i> 
+                    <span>${isEditing ? 'Actualizar Interno' : 'Guardar Interno'}</span>
+                `;
+            }
+        });
+
+        // ============================================================
+        // 16. INICIALIZAR
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadInternos();
+
+            // Verificar conexión a Supabase
+            console.log('🔍 Verificando conexión a Supabase...');
+            console.log('URL:', SUPABASE_URL);
+            console.log('Key:', SUPABASE_ANON_KEY ? '✅ Configurada' : '❌ No configurada');
+        });
+
+        // ============================================================
+        // 17. CONFIGURACIÓN DE STORAGE (ejecutar en Supabase SQL)
+        // ============================================================
+        /*
+        -- Crear bucket para fotos
+        INSERT INTO storage.buckets (id, name, public) 
+        VALUES ('fotos-internos', 'fotos-internos', true);
+
+        -- Políticas de seguridad para el bucket
+        CREATE POLICY "Give users access to own folder" ON storage.objects
+            FOR ALL
+            USING ( bucket_id = 'fotos-internos' )
+            WITH CHECK ( bucket_id = 'fotos-internos' );
+        */
+        // ============================================================
+    </script>
+
+    <!-- Incluir Supabase JS desde CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+</body>
+</html>
