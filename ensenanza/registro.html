@@ -1390,6 +1390,201 @@
         ::-webkit-scrollbar-thumb:hover {
             background: #94a3b8;
         }
+
+        /* ============================================================
+   TOAST NOTIFICATIONS - ESQUINA SUPERIOR DERECHA
+   ============================================================ */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 380px;
+            width: 100%;
+            pointer-events: none;
+        }
+
+        .toast {
+            padding: 16px 20px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: var(--shadow-lg);
+            animation: toastIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            pointer-events: auto;
+            cursor: default;
+            border-left: 4px solid transparent;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .toast::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.4);
+            animation: toastProgress 2.8s linear forwards;
+        }
+
+        /* Colores de las alertas */
+        .toast-success {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            color: #166534;
+            border-left-color: #22c55e;
+        }
+
+        .toast-error {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+            border-left-color: #ef4444;
+        }
+
+        .toast-info {
+            background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+            color: #1e40af;
+            border-left-color: #3b82f6;
+        }
+
+        .toast-warning {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+            border-left-color: #f59e0b;
+        }
+
+        /* Iconos de las alertas */
+        .toast i {
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+
+        .toast-success i {
+            color: #22c55e;
+        }
+
+        .toast-error i {
+            color: #ef4444;
+        }
+
+        .toast-info i {
+            color: #3b82f6;
+        }
+
+        .toast-warning i {
+            color: #f59e0b;
+        }
+
+        /* Contenido de la alerta */
+        .toast-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .toast-title {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .toast-message {
+            font-weight: 400;
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        /* Botón cerrar */
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: var(--transition);
+            padding: 4px;
+            color: inherit;
+            flex-shrink: 0;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* ============================================================
+   ANIMACIONES DE ENTRADA Y SALIDA
+   ============================================================ */
+
+        /* Entrada desde la derecha */
+        @keyframes toastIn {
+            0% {
+                opacity: 0;
+                transform: translateX(120px) scale(0.9);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+        }
+
+        /* Salida por la derecha */
+        @keyframes toastOut {
+            0% {
+                opacity: 1;
+                transform: translateX(0) scale(1);
+            }
+
+            100% {
+                opacity: 0;
+                transform: translateX(120px) scale(0.9);
+            }
+        }
+
+        /* Barra de progreso */
+        @keyframes toastProgress {
+            0% {
+                width: 100%;
+            }
+
+            100% {
+                width: 0%;
+            }
+        }
+
+        /* Clase para animación de salida */
+        .toast-exit {
+            animation: toastOut 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards !important;
+        }
+
+        /* ============================================================
+   RESPONSIVE
+   ============================================================ */
+        @media (max-width: 480px) {
+            .toast-container {
+                top: 12px;
+                right: 12px;
+                left: 12px;
+                max-width: none;
+                width: auto;
+            }
+
+            .toast {
+                padding: 14px 16px;
+                font-size: 13px;
+            }
+
+            .toast i {
+                font-size: 18px;
+            }
+        }
     </style>
 </head>
 
@@ -1785,8 +1980,9 @@
         });
 
         // ============================================================
-        // FUNCIONES DE SANITIZACIÓN
+        // FUNCIONES DE SANITIZACIÓN - CORREGIDAS
         // ============================================================
+
         function sanitizeUpperCase(text) {
             if (!text) return '';
             return text.toString().trim().replace(/\s+/g, ' ').toUpperCase();
@@ -1807,9 +2003,17 @@
             return matricula.toString().trim().replace(/\s+/g, '').toUpperCase();
         }
 
+        function sanitizeEstatus(estatus) {
+            if (!estatus) return 'activo';
+            // Convertir a minúsculas y validar
+            const value = estatus.toString().toLowerCase().trim();
+            return value === 'inactivo' ? 'inactivo' : 'activo';
+        }
+
         function sanitizeInternoData(data) {
             const sanitized = {};
-            const upperFields = ['nombre', 'universidad', 'carrera', 'semestre', 'generacion', 'telefono', 'estatus'];
+            // ELIMINAR 'estatus' de upperFields
+            const upperFields = ['nombre', 'universidad', 'carrera', 'semestre', 'generacion', 'telefono'];
 
             for (const [key, value] of Object.entries(data)) {
                 if (value === null || value === undefined) {
@@ -1821,6 +2025,9 @@
                     sanitized[key] = sanitizeEmail(value);
                 } else if (key === 'matricula') {
                     sanitized[key] = sanitizeMatricula(value);
+                } else if (key === 'estatus') {
+                    // El estatus siempre en minúsculas
+                    sanitized[key] = sanitizeEstatus(value);
                 } else if (upperFields.includes(key)) {
                     sanitized[key] = sanitizeUpperCase(value);
                 } else {
@@ -1892,27 +2099,111 @@
         // ============================================================
         // ALERTAS
         // ============================================================
-        function showAlert(message, type = 'info') {
-            const icons = {
-                success: 'fa-check-circle',
-                error: 'fa-exclamation-circle',
-                info: 'fa-info-circle'
+        // ============================================================
+        // TOAST NOTIFICATIONS - ESQUINA SUPERIOR DERECHA
+        // ============================================================
+
+        // Crear el contenedor de toast si no existe
+        function getToastContainer() {
+            let container = document.querySelector('.toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.className = 'toast-container';
+                document.body.appendChild(container);
+            }
+            return container;
+        }
+
+        // Mostrar alerta tipo toast
+        function showAlert(message, type = 'info', duration = 2800) {
+            const container = getToastContainer();
+
+            // Configurar iconos y títulos según el tipo
+            const configs = {
+                success: {
+                    icon: 'fa-check-circle',
+                    title: '¡Éxito!',
+                    className: 'toast-success'
+                },
+                error: {
+                    icon: 'fa-exclamation-circle',
+                    title: '¡Error!',
+                    className: 'toast-error'
+                },
+                info: {
+                    icon: 'fa-info-circle',
+                    title: 'Información',
+                    className: 'toast-info'
+                },
+                warning: {
+                    icon: 'fa-exclamation-triangle',
+                    title: 'Atención',
+                    className: 'toast-warning'
+                }
             };
 
-            alertContainer.innerHTML = `
-                <div class="alert alert-${type}">
-                    <i class="fas ${icons[type] || icons.info}"></i>
-                    <span>${message}</span>
-                    <button class="close-alert" onclick="this.parentElement.remove()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            `;
+            const config = configs[type] || configs.info;
 
+            // Crear el elemento toast
+            const toast = document.createElement('div');
+            toast.className = `toast ${config.className}`;
+            toast.innerHTML = `
+        <i class="fas ${config.icon}"></i>
+        <div class="toast-content">
+            <div class="toast-title">${config.title}</div>
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.closest('.toast').remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+            // Agregar al contenedor
+            container.appendChild(toast);
+
+            // Auto-remover después de la duración
+            const timeoutId = setTimeout(() => {
+                removeToast(toast);
+            }, duration);
+
+            // Guardar el timeout para poder cancelarlo si el usuario cierra manualmente
+            toast.dataset.timeoutId = timeoutId;
+
+            // También cerrar al hacer clic en cualquier parte del toast
+            toast.addEventListener('click', function (e) {
+                if (e.target.closest('.toast-close')) return;
+                removeToast(this);
+            });
+
+            return toast;
+        }
+
+        // Función para remover el toast con animación
+        function removeToast(toast) {
+            // Si ya está en proceso de eliminación, no hacer nada
+            if (toast.classList.contains('toast-exit')) return;
+
+            // Cancelar el timeout automático
+            if (toast.dataset.timeoutId) {
+                clearTimeout(parseInt(toast.dataset.timeoutId));
+            }
+
+            // Agregar clase de salida
+            toast.classList.add('toast-exit');
+
+            // Remover del DOM después de la animación
             setTimeout(() => {
-                const alert = alertContainer.querySelector('.alert');
-                if (alert) alert.remove();
-            }, 5000);
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 500);
+        }
+
+        // Función para limpiar todas las alertas
+        function clearAllToasts() {
+            const container = getToastContainer();
+            const toasts = container.querySelectorAll('.toast');
+            toasts.forEach(toast => removeToast(toast));
         }
 
         // ============================================================
