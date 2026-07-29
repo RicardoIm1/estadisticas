@@ -701,6 +701,7 @@
                 opacity: 0;
                 transform: translateX(120px) scale(0.9);
             }
+
             100% {
                 opacity: 1;
                 transform: translateX(0) scale(1);
@@ -712,6 +713,7 @@
                 opacity: 1;
                 transform: translateX(0) scale(1);
             }
+
             100% {
                 opacity: 0;
                 transform: translateX(120px) scale(0.9);
@@ -722,6 +724,7 @@
             0% {
                 width: 100%;
             }
+
             100% {
                 width: 0%;
             }
@@ -1018,6 +1021,7 @@
             from {
                 opacity: 0;
             }
+
             to {
                 opacity: 1;
             }
@@ -1041,6 +1045,7 @@
                 transform: scale(0.92) translateY(20px);
                 opacity: 0;
             }
+
             to {
                 transform: scale(1) translateY(0);
                 opacity: 1;
@@ -1617,20 +1622,16 @@
                     <input type="tel" id="telefono" name="telefono" placeholder="(55) 1234-5678" class="upper-input" />
                 </div>
 
-                <!-- Estatus - Mostrar como badge no editable -->
-                <div class="form-group">
+                <!-- Estatus - Select oculto, visible SOLO en edición -->
+                <div class="form-group" id="estatusGroup" style="display: none;">
                     <label>
                         <i class="fas fa-toggle-on"></i> Estatus
                     </label>
-                    <div id="estatusBadge"
-                        style="padding: 10px 14px; background: #dcfce7; border-radius: 10px; color: #166534; font-weight: 700; display: flex; align-items: center; gap: 8px;">
-                        <i class="fas fa-check-circle" style="color: #22c55e;"></i>
-                        <span id="estatusText">ACTIVO</span>
-                        <span style="font-size: 11px; font-weight: 400; opacity: 0.7; margin-left: auto;">
-                            <span id="estatusHint">(Automático)</span>
-                        </span>
-                    </div>
-                    <input type="hidden" id="estatus" name="estatus" value="activo" />
+                    <select id="estatus" name="estatus">
+                        <option value="activo">ACTIVO</option>
+                        <option value="inactivo">INACTIVO</option>
+                    </select>
+                    <span class="hint">Cambia el estatus del interno</span>
                 </div>
 
                 <input type="hidden" id="internoId" value="" />
@@ -1795,8 +1796,8 @@
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: 'environment',
-                            width: { ideal: 640 },
-                            height: { ideal: 480 }
+                            width: {ideal: 640},
+                            height: {ideal: 480}
                         },
                         audio: false
                     });
@@ -1804,8 +1805,8 @@
                     stream = await navigator.mediaDevices.getUserMedia({
                         video: {
                             facingMode: 'user',
-                            width: { ideal: 640 },
-                            height: { ideal: 480 }
+                            width: {ideal: 640},
+                            height: {ideal: 480}
                         },
                         audio: false
                     });
@@ -1865,7 +1866,7 @@
                 canvas.height = height;
                 context.drawImage(video, 0, 0, width, height);
 
-                canvas.toBlob(function(blob) {
+                canvas.toBlob(function (blob) {
                     if (!blob) {
                         showAlert('Error al capturar la foto', 'error');
                         return;
@@ -1875,7 +1876,7 @@
                         type: 'image/jpeg'
                     });
 
-                    const event = { target: { files: [file] } };
+                    const event = {target: {files: [file]}};
                     handlePhotoSelect(event);
                     cerrarCamara();
                     showAlert('✅ Foto capturada correctamente', 'success');
@@ -1888,7 +1889,7 @@
             }
         }
 
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && cameraOverlay.classList.contains('active')) {
                 cerrarCamara();
             }
@@ -1933,6 +1934,7 @@
                 } else if (key === 'matricula') {
                     sanitized[key] = sanitizeMatricula(value);
                 } else if (key === 'estatus') {
+                    // El estatus siempre en minúsculas
                     sanitized[key] = sanitizeEstatus(value);
                 } else if (upperFields.includes(key)) {
                     sanitized[key] = sanitizeUpperCase(value);
@@ -1943,7 +1945,6 @@
 
             return sanitized;
         }
-
         // ============================================================
         // GENERAR MATRÍCULA AUTOMÁTICA
         // ============================================================
@@ -1954,7 +1955,7 @@
             while (intentos < maxIntentos) {
                 const matricula = Math.floor(100000 + Math.random() * 900000).toString();
 
-                const { data, error } = await supabaseClient
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('matricula')
                     .eq('matricula', matricula)
@@ -1984,6 +1985,10 @@
                 matriculaInput.value = 'Generando...';
                 const matricula = await generarMatricula();
                 matriculaInput.value = matricula;
+
+                // Asegurar que el select de estatus esté oculto
+                document.getElementById('estatusGroup').style.display = 'none';
+                document.getElementById('estatus').value = 'activo';
             } catch (error) {
                 console.error('Error:', error);
                 matriculaInput.value = 'Error';
@@ -2052,7 +2057,7 @@
 
             toast.dataset.timeoutId = timeoutId;
 
-            toast.addEventListener('click', function(e) {
+            toast.addEventListener('click', function (e) {
                 if (e.target.closest('.toast-close')) return;
                 removeToast(this);
             });
@@ -2098,7 +2103,7 @@
 
             currentPhotoFile = file;
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = function (e) {
                 photoPreview.innerHTML = `
                     <img src="${e.target.result}" alt="Foto" class="photo-preview" />
                 `;
@@ -2137,16 +2142,16 @@
             const fileName = `${matricula}.${fileExt}`;
             const filePath = `internos/${fileName}`;
 
-            const { error: uploadError } = await supabaseClient.storage
+            const {error: uploadError} = await supabaseClient.storage
                 .from('fotos-internos')
-                .upload(filePath, currentPhotoFile, { upsert: true });
+                .upload(filePath, currentPhotoFile, {upsert: true});
 
             if (uploadError) {
                 console.error('Error subiendo foto:', uploadError);
                 throw new Error('Error al subir la foto: ' + uploadError.message);
             }
 
-            const { data } = supabaseClient.storage
+            const {data} = supabaseClient.storage
                 .from('fotos-internos')
                 .getPublicUrl(filePath);
 
@@ -2217,10 +2222,10 @@
         // ============================================================
         async function loadInternos() {
             try {
-                const { data, error } = await supabaseClient
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('*')
-                    .order('created_at', { ascending: false });
+                    .order('created_at', {ascending: false});
 
                 if (error) throw error;
 
@@ -2281,9 +2286,9 @@
                         <div class="card-header">
                             <div class="card-avatar">
                                 ${interno.foto_url
-                                    ? `<img src="${interno.foto_url}" />`
-                                    : iniciales
-                                }
+                        ? `<img src="${interno.foto_url}" />`
+                        : iniciales
+                    }
                             </div>
                             <div>
                                 <div class="card-name">${interno.nombre}</div>
@@ -2352,7 +2357,7 @@
 
             sanitizedData.qr_token = crypto.randomUUID();
 
-            const { data: result, error } = await supabaseClient
+            const {data: result, error} = await supabaseClient
                 .from('internos')
                 .insert([sanitizedData])
                 .select()
@@ -2368,7 +2373,7 @@
         async function updateInterno(id, data) {
             const sanitizedData = sanitizeInternoData(data);
 
-            const { data: result, error } = await supabaseClient
+            const {data: result, error} = await supabaseClient
                 .from('internos')
                 .update(sanitizedData)
                 .eq('id', id)
@@ -2387,7 +2392,7 @@
             if (!confirm('¿Estás seguro de eliminar este interno?')) return;
 
             try {
-                const { error } = await supabaseClient
+                const {error} = await supabaseClient
                     .from('internos')
                     .delete()
                     .eq('id', id);
@@ -2407,12 +2412,12 @@
         }
 
         // ============================================================
-        // EDITAR
+        // EDITAR - Muestra el select de estatus
         // ============================================================
         async function editInterno(id) {
             event.stopPropagation();
             try {
-                const { data, error } = await supabaseClient
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('*')
                     .eq('id', id)
@@ -2429,27 +2434,10 @@
                 document.getElementById('generacion').value = data.generacion;
                 document.getElementById('correo').value = data.correo;
                 document.getElementById('telefono').value = data.telefono || '';
+
+                // MOSTRAR el select de estatus en modo edición
+                document.getElementById('estatusGroup').style.display = 'block';
                 document.getElementById('estatus').value = data.estatus || 'activo';
-
-                // Actualizar badge del estatus
-                const estatusBadge = document.getElementById('estatusBadge');
-                const estatusText = document.getElementById('estatusText');
-                const estatusHint = document.getElementById('estatusHint');
-
-                if (data.estatus === 'activo') {
-                    estatusBadge.style.background = '#dcfce7';
-                    estatusBadge.style.color = '#166534';
-                    estatusBadge.querySelector('i').className = 'fas fa-check-circle';
-                    estatusBadge.querySelector('i').style.color = '#22c55e';
-                    estatusText.textContent = 'ACTIVO';
-                } else {
-                    estatusBadge.style.background = '#fee2e2';
-                    estatusBadge.style.color = '#991b1b';
-                    estatusBadge.querySelector('i').className = 'fas fa-times-circle';
-                    estatusBadge.querySelector('i').style.color = '#ef4444';
-                    estatusText.textContent = 'INACTIVO';
-                }
-                estatusHint.textContent = '(Editando)';
 
                 if (data.foto_url) {
                     setPhotoFromUrl(data.foto_url);
@@ -2459,11 +2447,11 @@
 
                 isEditing = true;
                 submitBtn.innerHTML = `
-                    <i class="fas fa-save"></i> 
-                    <span>Actualizar</span>
-                `;
+            <i class="fas fa-save"></i> 
+            <span>Actualizar</span>
+        `;
 
-                document.querySelector('.bento-form').scrollIntoView({ behavior: 'smooth' });
+                document.querySelector('.bento-form').scrollIntoView({behavior: 'smooth'});
                 showAlert('✏️ Editando: ' + data.nombre, 'info');
 
             } catch (error) {
@@ -2473,7 +2461,7 @@
         }
 
         // ============================================================
-        // RESET FORM
+        // RESET FORM - Oculta el select de estatus
         // ============================================================
         function resetForm() {
             form.reset();
@@ -2481,22 +2469,13 @@
             removePhoto();
             isEditing = false;
             submitBtn.innerHTML = `
-                <i class="fas fa-save"></i> 
-                <span>Guardar</span>
-            `;
+        <i class="fas fa-save"></i> 
+        <span>Guardar</span>
+    `;
+
+            // OCULTAR el select de estatus en modo creación
+            document.getElementById('estatusGroup').style.display = 'none';
             document.getElementById('estatus').value = 'activo';
-
-            // Resetear badge del estatus
-            const estatusBadge = document.getElementById('estatusBadge');
-            const estatusText = document.getElementById('estatusText');
-            const estatusHint = document.getElementById('estatusHint');
-
-            estatusBadge.style.background = '#dcfce7';
-            estatusBadge.style.color = '#166534';
-            estatusBadge.querySelector('i').className = 'fas fa-check-circle';
-            estatusBadge.querySelector('i').style.color = '#22c55e';
-            estatusText.textContent = 'ACTIVO';
-            estatusHint.textContent = '(Automático)';
 
             pregenerarMatricula();
             showAlert('Formulario limpiado', 'info');
@@ -2507,7 +2486,7 @@
         // ============================================================
         async function openModal(id) {
             try {
-                const { data, error } = await supabaseClient
+                const {data, error} = await supabaseClient
                     .from('internos')
                     .select('*')
                     .eq('id', id)
@@ -2531,9 +2510,9 @@
                         </div>
                         <div class="credencial-body">
                             ${data.foto_url
-                                ? `<img src="${data.foto_url}" class="credencial-foto" />`
-                                : `<div class="credencial-foto-placeholder">${iniciales}</div>`
-                            }
+                        ? `<img src="${data.foto_url}" class="credencial-foto" />`
+                        : `<div class="credencial-foto-placeholder">${iniciales}</div>`
+                    }
                             <div class="credencial-info">
                                 <div class="name">${data.nombre}</div>
                                 <div class="detail"><i class="fas fa-id-card"></i> ${data.matricula}</div>
@@ -2574,18 +2553,18 @@
             window.print();
         }
 
-        document.getElementById('modalCredencial').addEventListener('click', function(e) {
+        document.getElementById('modalCredencial').addEventListener('click', function (e) {
             if (e.target === this) closeModal();
         });
 
-        document.addEventListener('keydown', function(e) {
+        document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape') closeModal();
         });
 
         // ============================================================
         // ENVÍO DEL FORMULARIO
         // ============================================================
-        form.addEventListener('submit', async function(e) {
+        form.addEventListener('submit', async function (e) {
             e.preventDefault();
 
             submitBtn.disabled = true;
@@ -2671,7 +2650,7 @@
 
                 await loadInternos();
                 resetForm();
-                document.querySelector('.bento-list').scrollIntoView({ behavior: 'smooth' });
+                document.querySelector('.bento-list').scrollIntoView({behavior: 'smooth'});
 
             } catch (error) {
                 console.error('Error:', error);
@@ -2688,7 +2667,7 @@
         // ============================================================
         // INICIALIZAR
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             loadInternos();
             pregenerarMatricula();
             console.log('🔍 Conectado a Supabase');
