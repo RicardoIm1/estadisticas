@@ -1686,22 +1686,6 @@
                         class="upper-input" />
                 </div>
 
-                <!-- CURP -->
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-id-card"></i> CURP
-                    </label>
-                    <input type="text" id="curp" name="curp" placeholder="CURP" class="upper-input" />
-                </div>
-
-                <!-- RFC -->
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-file-invoice"></i> RFC
-                    </label>
-                    <input type="text" id="rfc" name="rfc" placeholder="RFC" class="upper-input" />
-                </div>
-
                 <!-- Universidad -->
                 <div class="form-group">
                     <label>
@@ -1751,33 +1735,6 @@
                         <i class="fas fa-phone"></i> Teléfono
                     </label>
                     <input type="tel" id="telefono" name="telefono" placeholder="(55) 1234-5678" class="upper-input" />
-                </div>
-
-                <!-- Tipo Sanguíneo -->
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-droplet"></i> Tipo Sanguíneo
-                    </label>
-                    <select id="tipo_sanguineo" name="tipo_sanguineo">
-                        <option value="">Seleccionar</option>
-                        <option value="A+">A+</option>
-                        <option value="A-">A-</option>
-                        <option value="B+">B+</option>
-                        <option value="B-">B-</option>
-                        <option value="AB+">AB+</option>
-                        <option value="AB-">AB-</option>
-                        <option value="O+">O+</option>
-                        <option value="O-">O-</option>
-                        <option value="no lo se">No lo sé</option>
-                    </select>
-                </div>
-
-                <!-- Alergias -->
-                <div class="form-group">
-                    <label>
-                        <i class="fas fa-allergies"></i> Alergias
-                    </label>
-                    <input type="text" id="alergias" name="alergias" placeholder="Ej: Penicilina, Polen, etc." />
                 </div>
 
                 <!-- Estatus - Select oculto, visible SOLO en edición -->
@@ -2080,9 +2037,7 @@
 
         function sanitizeInternoData(data) {
             const sanitized = {};
-            const upperFields = ['nombre', 'universidad', 'carrera', 'semestre', 'generacion', 'telefono', 'curp', 'rfc',
-                'alergias'
-            ];
+            const upperFields = ['nombre', 'universidad', 'carrera', 'semestre', 'generacion', 'telefono'];
 
             for (const [key, value] of Object.entries(data)) {
                 if (value === null || value === undefined) {
@@ -2096,8 +2051,6 @@
                     sanitized[key] = sanitizeMatricula(value);
                 } else if (key === 'estatus') {
                     sanitized[key] = sanitizeEstatus(value);
-                } else if (key === 'tipo_sanguineo') {
-                    sanitized[key] = value.toString().trim() || null;
                 } else if (upperFields.includes(key)) {
                     sanitized[key] = sanitizeUpperCase(value);
                 } else {
@@ -2598,16 +2551,12 @@
                 document.getElementById('internoId').value = data.id;
                 document.getElementById('matricula').value = data.matricula;
                 document.getElementById('nombre').value = data.nombre;
-                document.getElementById('curp').value = data.curp || '';
-                document.getElementById('rfc').value = data.rfc || '';
                 document.getElementById('universidad').value = data.universidad;
                 document.getElementById('carrera').value = data.carrera;
                 document.getElementById('semestre').value = data.semestre;
                 document.getElementById('generacion').value = data.generacion;
                 document.getElementById('correo').value = data.correo;
                 document.getElementById('telefono').value = data.telefono || '';
-                document.getElementById('tipo_sanguineo').value = data.tipo_sanguineo || '';
-                document.getElementById('alergias').value = data.alergias || '';
 
                 // MOSTRAR el select de estatus en modo edición
                 document.getElementById('estatusGroup').style.display = 'block';
@@ -2640,10 +2589,6 @@
         function resetForm() {
             form.reset();
             document.getElementById('internoId').value = '';
-            document.getElementById('curp').value = '';
-            document.getElementById('rfc').value = '';
-            document.getElementById('tipo_sanguineo').value = '';
-            document.getElementById('alergias').value = '';
             removePhoto();
             isEditing = false;
             submitBtn.innerHTML = `
@@ -2755,16 +2700,12 @@
                 const id = document.getElementById('internoId').value;
                 const matricula = document.getElementById('matricula').value.trim();
                 const nombre = document.getElementById('nombre').value.trim();
-                const curp = document.getElementById('curp').value.trim();
-                const rfc = document.getElementById('rfc').value.trim();
                 const universidad = document.getElementById('universidad').value.trim();
                 const carrera = document.getElementById('carrera').value.trim();
                 const semestre = document.getElementById('semestre').value.trim();
                 const generacion = document.getElementById('generacion').value.trim();
                 const correo = document.getElementById('correo').value.trim();
                 const telefono = document.getElementById('telefono').value.trim();
-                const tipo_sanguineo = document.getElementById('tipo_sanguineo').value;
-                const alergias = document.getElementById('alergias').value.trim();
                 const estatus = document.getElementById('estatus').value;
 
                 if (!nombre || !universidad || !carrera || !semestre || !generacion || !correo) {
@@ -2807,16 +2748,12 @@
 
                 const internoData = {
                     nombre,
-                    curp: curp || null,
-                    rfc: rfc || null,
                     universidad,
                     carrera,
                     semestre,
                     generacion,
                     correo,
                     telefono: telefono || null,
-                    tipo_sanguineo: tipo_sanguineo || null,
-                    alergias: alergias || null,
                     estatus,
                     foto_url: foto_url || null
                 };
