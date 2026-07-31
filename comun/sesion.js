@@ -87,7 +87,7 @@ function protegerContenidoSensible(rol) {
 
 function redirigirALogin() {
   // Usar ruta absoluta para evitar problemas
-  window.location.href = window.location.origin + '/estadisticas/login.html';
+  window.location.href = window.location.origin + '/login.html';
 }
 
 // Cerrar sesión

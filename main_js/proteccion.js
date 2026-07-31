@@ -13,7 +13,7 @@ window.manejarValidacionSesion = function(resultado) {
     if (!resultado.success) {
         console.warn("❌ Sesión inválida, redirigiendo...");
         localStorage.clear();
-        window.location.href = '/estadisticas/login.html';
+        window.location.href = '/login.html';
         return false;
     }
     
@@ -23,7 +23,7 @@ window.manejarValidacionSesion = function(resultado) {
     
     if (!tienePermisos(rolActual, paginaActual)) {
         console.warn("🚫 Sin permisos para esta página");
-        window.location.href = '/estadisticas/acceso-denegado.html';
+        window.location.href = '/acceso-denegado.html';
         return false;
     }
     
@@ -35,11 +35,11 @@ window.manejarValidacionSesion = function(resultado) {
 // ✅ Verificar permisos según rol y página
 function tienePermisos(rol, pagina) {
     const permisos = {
-        'ADMIN': ['/estadisticas/control/', '/estadisticas/', '/estadisticas/caja/', '/estadisticas/gantt/', '/estadisticas/archivo/'],
-        'CAJA': ['/estadisticas/caja/'],
-        'Lector': ['/estadisticas/gantt/'],
-        'ESTADISTICAS': ['/estadisticas/'],
-        'ARCHIVO CLINICO': ['/estadisticas/archivo/']
+        'ADMIN': ['/control/', '/', '/caja/', '/gantt/', '/archivo/'],
+        'CAJA': ['/caja/'],
+        'Lector': ['/gantt/'],
+        'ESTADISTICAS': ['/'],
+        'ARCHIVO CLINICO': ['/archivo/']
     };
     
     return permisos[rol] && permisos[rol].some(ruta => pagina.includes(ruta));
@@ -145,7 +145,7 @@ function mostrarInfoUsuario() {
 }
 
 function redirigirALogin() {
-    window.location.href = '/estadisticas/login.html';
+    window.location.href = '/login.html';
 }
 
 // ✅ Cerrar sesión

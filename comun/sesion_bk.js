@@ -7,7 +7,7 @@ function verificarAutenticacion() {
 
   if (!usuario || !rol || !loginTime) {
     console.warn('❌ No hay sesión activa - Redirigiendo a login');
-    window.location.href = '/estadisticas/login.html';
+    window.location.href = '/login.html';
     return false;
   }
 
@@ -18,7 +18,7 @@ function verificarAutenticacion() {
   if (horasTranscurridas > 24) {
     console.warn('⏰ Sesión expirada - Redirigiendo a login');
     localStorage.clear();
-    window.location.href = '/estadisticas/login.html';
+    window.location.href = '/login.html';
     return false;
   }
 
@@ -35,7 +35,7 @@ function verificarAutenticacion() {
 function cerrarSesion() {
   if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
     localStorage.clear();
-    window.location.href = '/estadisticas/login.html';
+    window.location.href = '/login.html';
   }
 }
 
