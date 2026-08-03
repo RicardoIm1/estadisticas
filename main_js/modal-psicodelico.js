@@ -5,7 +5,13 @@
         interval: 9000,
         transitionDuration: 3000,
         tiempoVisible: 5000,
-        fontSize: '2.8rem',
+        // 📌 TAMAÑOS DE FUENTE RESPONSIVOS
+        fontSize: {
+            default: '2.8rem',
+            tablet: '2.2rem',    // Para pantallas medianas
+            mobile: '1.6rem',    // Para pantallas pequeñas
+            smallMobile: '1.2rem' // Para pantallas muy pequeñas
+        },
         zIndex: 9999,
         tiempoReaparicion: 30000,
         particleCount: 12
@@ -249,8 +255,8 @@
         intervalId: null,
         timerId: null,
         loginRealizado: false,
-        historial: [], // Array circular para evitar repeticiones
-        maxHistorial: 15 // Número de mensajes a recordar para evitar repeticiones
+        historial: [],
+        maxHistorial: 15
     };
 
     // ===== HELPERS =====
@@ -258,14 +264,26 @@
         return arr[Math.floor(Math.random() * arr.length)];
     }
 
-    // Algoritmo de selección mejorado con historial circular
+    // 📌 FUNCIÓN PARA OBTENER TAMAÑO DE FUENTE RESPONSIVO
+    function getResponsiveFontSize() {
+        const width = window.innerWidth;
+        
+        if (width < 480) {
+            return CONFIG.fontSize.smallMobile; // Móviles muy pequeños
+        } else if (width < 768) {
+            return CONFIG.fontSize.mobile; // Móviles
+        } else if (width < 1024) {
+            return CONFIG.fontSize.tablet; // Tablets
+        } else {
+            return CONFIG.fontSize.default; // Desktop
+        }
+    }
+
     function getMensaje() {
-        // Si el historial está lleno, eliminar el más antiguo
         if (state.historial.length >= state.maxHistorial) {
             state.historial.shift();
         }
 
-        // Intentar encontrar un mensaje no repetido (máximo 100 intentos)
         let intentos = 0;
         let idx;
         let mensaje;
@@ -274,15 +292,10 @@
         do {
             idx = Math.floor(Math.random() * mensajes.length);
             mensaje = mensajes[idx];
-
-            // Verificar si el mensaje está en el historial
             esRepetido = state.historial.some(item => item === mensaje);
-
             intentos++;
 
-            // Si hemos intentado demasiadas veces o todos los mensajes están en el historial
             if (intentos > 100 || state.historial.length >= mensajes.length) {
-                // Limpiar historial si está lleno para evitar bucles infinitos
                 if (state.historial.length >= mensajes.length) {
                     state.historial = [];
                 }
@@ -290,9 +303,7 @@
             }
         } while (esRepetido);
 
-        // Agregar al historial
         state.historial.push(mensaje);
-
         return mensaje;
     }
 
@@ -333,8 +344,10 @@
 
         const t1 = document.createElement('div');
         t1.id = 'txt1';
+        // 📌 USAR TAMAÑO RESPONSIVO
+        const initialFontSize = getResponsiveFontSize();
         Object.assign(t1.style, {
-            position: 'absolute', color: 'white', fontSize: CONFIG.fontSize, fontWeight: '700',
+            position: 'absolute', color: 'white', fontSize: initialFontSize, fontWeight: '700',
             textShadow: '0 0 40px rgba(0,0,0,0.6), 0 0 80px rgba(0,0,0,0.4)',
             lineHeight: '1.5', letterSpacing: '3px',
             transition: `all ${CONFIG.transitionDuration}ms cubic-bezier(0.4,0,0.2,1)`,
@@ -346,6 +359,7 @@
         const t2 = t1.cloneNode();
         t2.id = 'txt2';
         t2.style.zIndex = '1';
+        t2.style.fontSize = initialFontSize; // 📌 MISMO TAMAÑO RESPONSIVO
 
         // Partículas (solo 12)
         const particles = document.createElement('div');
@@ -354,7 +368,6 @@
             pointerEvents: 'none', overflow: 'hidden', zIndex: CONFIG.zIndex - 0.5
         });
 
-        // Usar requestAnimationFrame para partículas más eficientes
         let particlePositions = [];
         for (let i = 0; i < CONFIG.particleCount; i++) {
             const size = Math.random() * 35 + 10;
@@ -374,7 +387,6 @@
             });
             particles.appendChild(p);
 
-            // Guardar posición inicial para animación optimizada
             particlePositions.push({
                 element: p,
                 x: Math.random() * 50 - 25,
@@ -385,7 +397,6 @@
             });
         }
 
-        // Animación optimizada con requestAnimationFrame
         let animationId = null;
         let startTime = Date.now();
 
@@ -404,7 +415,6 @@
             animationId = requestAnimationFrame(animateParticles);
         }
 
-        // Iniciar animación
         animateParticles();
 
         // CSS
@@ -420,6 +430,34 @@
             @keyframes respira {
                 0%,100% { transform: scale(1); }
                 50% { transform: scale(1.015); }
+            }
+            
+            /* 📌 MEDIA QUERIES PARA RESPONSIVIDAD ADICIONAL */
+            @media (max-width: 1024px) {
+                #txt1, #txt2 {
+                    font-size: ${CONFIG.fontSize.tablet} !important;
+                    padding: 25px 35px !important;
+                    letter-spacing: 2px !important;
+                }
+            }
+            
+            @media (max-width: 768px) {
+                #txt1, #txt2 {
+                    font-size: ${CONFIG.fontSize.mobile} !important;
+                    padding: 20px 30px !important;
+                    letter-spacing: 1.5px !important;
+                    line-height: 1.6 !important;
+                }
+            }
+            
+            @media (max-width: 480px) {
+                #txt1, #txt2 {
+                    font-size: ${CONFIG.fontSize.smallMobile} !important;
+                    padding: 15px 20px !important;
+                    letter-spacing: 1px !important;
+                    line-height: 1.7 !important;
+                    max-width: 90vw !important;
+                }
             }
         `;
         document.head.appendChild(style);
@@ -439,6 +477,19 @@
             animationId: animationId,
             particlePositions: particlePositions
         };
+
+        // 📌 EVENTO PARA ACTUALIZAR TAMAÑO AL REDIMENSIONAR
+        function handleResize() {
+            if (state.ref && !state.ref.oculto) {
+                const newSize = getResponsiveFontSize();
+                // Actualizar solo si no hay media queries aplicadas
+                // Las media queries en CSS manejarán el tamaño
+            }
+        }
+        
+        window.addEventListener('resize', handleResize);
+        // Guardar referencia para limpiar después
+        state._resizeHandler = handleResize;
 
         // Eventos
         document.addEventListener('click', () => {
@@ -464,7 +515,6 @@
 
         clearTimeout(state.timerId);
 
-        // Pausar animación de partículas
         if (r.animationId) {
             cancelAnimationFrame(r.animationId);
             r.animationId = null;
@@ -489,7 +539,6 @@
 
         clearTimeout(state.timerId);
 
-        // Detener animación de partículas
         if (r.animationId) {
             cancelAnimationFrame(r.animationId);
             r.animationId = null;
@@ -509,7 +558,6 @@
         const r = state.ref;
         if (!r || state.loginRealizado) return;
 
-        // Reiniciar animación de partículas
         if (!r.animationId) {
             let startTime = Date.now();
             const particlePositions = r.particlePositions;
@@ -585,14 +633,13 @@
         if (!r) return;
 
         state.loginRealizado = false;
-        state.historial = []; // Resetear historial al iniciar
+        state.historial = [];
 
         r.oculto = false;
         r.modal.style.opacity = '1';
         r.modal.style.transform = 'scale(1)';
         r.overlay.style.opacity = '1';
 
-        // Iniciar animación de partículas
         if (!r.animationId) {
             let startTime = Date.now();
             const particlePositions = r.particlePositions;
@@ -642,8 +689,12 @@
         clearInterval(state.intervalId);
         clearTimeout(state.timerId);
 
+        // 📌 LIMPIAR EVENT LISTENER DE RESIZE
+        if (state._resizeHandler) {
+            window.removeEventListener('resize', state._resizeHandler);
+        }
+
         if (state.ref) {
-            // Detener animación
             if (state.ref.animationId) {
                 cancelAnimationFrame(state.ref.animationId);
             }
