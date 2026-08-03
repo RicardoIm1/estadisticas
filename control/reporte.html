@@ -16,18 +16,312 @@
       referrerpolicy="no-referrer"
     />
     <style>
-      /* ===== TUS ESTILOS ORIGINALES ===== */
+      /* ===== BASE GENERAL (COPIADO DE TU EJEMPLO) ===== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
+        background-attachment: fixed;
+        overflow: hidden;
+        color: white;
+        font-size: clamp(0.85rem, 0.9vw, 0.85rem);
+      }
+
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2vh;
+      }
+
+      /* ===== PANEL PRINCIPAL (GLASS) ===== */
+      .glass {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 80vh;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        transition: all 0.3s ease;
+        padding: 1rem;
+        width: min(92%, 600px);
+      }
+
+      .glass.loading {
+        background: rgba(0, 123, 255, 0.15);
+      }
+
+      .glass.success {
+        background: rgba(40, 167, 69, 0.2);
+      }
+
+      .glass.error {
+        background: rgba(240, 50, 60, 0.45);
+      }
+
+      /* ===== HEADER ===== */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        padding: 0.1rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        margin-bottom: 0.25rem;
+        flex-shrink: 0;
+      }
+
+      .header h5 {
+        color: #85acbd;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        margin: 0;
+      }
+
       #header {
         margin-bottom: 1px;
         padding: 0;
+        width: 100%;
       }
 
+      /* ===== CONTENIDO ===== */
+      .contenido {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        margin: 0.5rem 0;
+        padding-right: 0.5rem;
+        width: 100%;
+      }
+
+      .contenido::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .contenido::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+      }
+
+      /* ===== FORMULARIO ===== */
       #reporteForm {
         margin-top: 1px;
         padding: 0;
+        width: 100%;
       }
 
-      /* === BOTÓN SALIR === */
+      /* Fila de 3 campos */
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 14px;
+      }
+
+      .form-group {
+        width: 100%;
+      }
+
+      /* Etiquetas */
+      .form-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 5px;
+        font-weight: 500;
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.85);
+        letter-spacing: 0.2px;
+      }
+
+      .form-label i {
+        width: 16px;
+        color: #ffdd00;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      /* Inputs, selects y textarea */
+      .form-select,
+      .form-input,
+      .form-input-text,
+      .form-textarea {
+        width: 100%;
+        padding: 10px 12px;
+        font-size: 0.95rem;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        color: white;
+        transition: all 0.3s ease;
+        outline: none;
+        font-family: inherit;
+        backdrop-filter: blur(4px);
+        -webkit-backdrop-filter: blur(4px);
+      }
+
+      .form-input-text {
+        cursor: not-allowed;
+        opacity: 0.8;
+      }
+
+      .form-select {
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.6)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        padding-right: 34px;
+      }
+
+      .form-select option {
+        background: #2c3e50;
+        color: white;
+        padding: 6px;
+      }
+
+      .form-textarea {
+        resize: vertical;
+        min-height: 70px;
+        max-height: 150px;
+        line-height: 1.5;
+      }
+
+      .form-select::placeholder,
+      .form-input::placeholder,
+      .form-textarea::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 300;
+      }
+
+      /* Focus */
+      .form-select:focus,
+      .form-input:focus,
+      .form-input-text:focus,
+      .form-textarea:focus {
+        border-color: #ffdd00;
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 0 0 3px rgba(255, 221, 0, 0.08);
+      }
+
+      /* ===== BOTÓN ===== */
+      .submit-btn {
+        width: 100%;
+        padding: 12px 20px;
+        font-size: 1rem;
+        font-weight: 600;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        letter-spacing: 0.3px;
+      }
+
+      .submit-btn:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .submit-btn:active {
+        transform: scale(0.97);
+        opacity: 0.9;
+      }
+
+      .submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+
+      .submit-btn i {
+        font-size: 1rem;
+      }
+
+      /* ===== MENSAJE DE ÉXITO ===== */
+      .success-message {
+        display: none;
+        margin-top: 14px;
+        padding: 14px 18px;
+        background: rgba(40, 167, 69, 0.15);
+        border: 1px solid rgba(40, 167, 69, 0.2);
+        border-radius: 8px;
+        color: white;
+        text-align: center;
+        animation: slideUp 0.4s ease;
+      }
+
+      .success-message i {
+        font-size: 2rem;
+        color: #ffdd00;
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .success-message .titulo {
+        font-weight: 600;
+        margin-bottom: 3px;
+        font-size: 1rem;
+      }
+
+      .success-message .subtitulo {
+        font-size: 0.85rem;
+        opacity: 0.8;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ===== MENSAJE DE ESTADO ===== */
+      #message {
+        min-height: 32px;
+        text-align: center;
+        padding: 8px 12px;
+        margin: 5px 0 10px 0;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        background: rgba(0, 0, 0, 0.1);
+        color: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      #message i {
+        font-size: 1rem;
+      }
+
+      /* ===== BOTÓN SALIR (DEL HEADER) ===== */
       .btn-salir-ultra {
         background: transparent;
         color: rgba(255, 255, 255, 0.7);
@@ -54,263 +348,23 @@
         transition: all 0.1s ease;
       }
 
-      /* ===== MIS ESTILOS PARA EL FORMULARIO (RESPETANDO TUS COLORES) ===== */
-
-      /* Reset y base */
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
-      body {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        padding: 15px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        font-family: Arial, Helvetica, sans-serif;
-      }
-
-      /* Contenedor principal - TUS COLORES */
-      .glass {
-        width: 100%;
-        max-width: 680px;
-        margin: 0 auto;
-        padding: 30px 28px;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
-        transition: transform 0.3s ease;
-      }
-
-      .glass h5 {
-        color: white;
-        font-size: 1.4rem;
-        font-weight: 600;
+      /* ===== FOOTER ===== */
+      footer {
+        flex-shrink: 0;
+        margin-top: auto;
         text-align: center;
-        margin: 0 0 14px 0;
-        padding-bottom: 14px;
-        border-bottom: 2px solid rgba(78, 205, 196, 0.25);
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-        letter-spacing: 0.5px;
-      }
-
-      /* Formulario */
-      #reporteForm {
-        margin-top: 8px;
-        width: 100%;
-      }
-
-      /* Fila de 3 campos */
-      .form-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
-        gap: 14px;
-        margin-bottom: 16px;
-      }
-
-      .form-group {
-        width: 100%;
-      }
-
-      /* Etiquetas - TUS COLORES */
-      .form-label {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 6px;
-        font-weight: 500;
-        font-size: 0.9rem;
-        color: rgba(255, 255, 255, 0.85);
-        letter-spacing: 0.2px;
-      }
-
-      .form-label i {
-        width: 18px;
-        color: #4ecdc4;
-        font-size: 0.95rem;
-        text-align: center;
-      }
-
-      /* Inputs, selects y textarea - TUS COLORES */
-      .form-select,
-      .form-input,
-      .form-input-text,
-      .form-textarea {
-        width: 100%;
-        padding: 12px 14px;
-        font-size: 1rem;
-        border: 1.5px solid rgba(255, 255, 255, 0.12);
-        border-radius: 10px;
-        background: rgba(255, 255, 255, 0.06);
-        color: white;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        outline: none;
-        font-family: inherit;
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-      }
-
-      .form-input-text {
-        cursor: not-allowed;
-        opacity: 0.8;
-      }
-
-      .form-select {
-        cursor: pointer;
-        appearance: none;
-        -webkit-appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 12 12'%3E%3Cpath fill='rgba(255,255,255,0.6)' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        padding-right: 34px;
-      }
-
-      .form-select option {
-        background: #1a0e3e;
-        color: white;
-        padding: 6px;
-      }
-
-      .form-textarea {
-        resize: vertical;
-        min-height: 80px;
-        max-height: 160px;
-        line-height: 1.5;
-      }
-
-      .form-select::placeholder,
-      .form-input::placeholder,
-      .form-textarea::placeholder {
-        color: rgba(255, 255, 255, 0.35);
-        font-weight: 300;
-      }
-
-      /* Focus - TUS COLORES */
-      .form-select:focus,
-      .form-input:focus,
-      .form-input-text:focus,
-      .form-textarea:focus {
-        border-color: #4ecdc4;
-        background: rgba(255, 255, 255, 0.1);
-        box-shadow: 0 0 0 3px rgba(78, 205, 196, 0.1);
-      }
-
-      /* Botón - TUS COLORES */
-      .submit-btn {
-        width: 100%;
-        padding: 14px 22px;
-        font-size: 1.05rem;
-        font-weight: 600;
-        border: none;
-        border-radius: 10px;
-        cursor: pointer;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        background: linear-gradient(135deg, #4ecdc4, #3db8b0);
-        color: white;
-        box-shadow: 0 4px 15px rgba(78, 205, 196, 0.2);
-        margin-top: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        letter-spacing: 0.3px;
-      }
-
-      .submit-btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 25px rgba(78, 205, 196, 0.3);
-      }
-
-      .submit-btn:active {
-        transform: translateY(0);
-      }
-
-      .submit-btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-        transform: none !important;
-      }
-
-      .submit-btn i {
-        font-size: 1.1rem;
-      }
-
-      /* Mensaje de éxito - TUS COLORES */
-      .success-message {
-        display: none;
-        margin-top: 16px;
-        padding: 16px 20px;
-        background: rgba(78, 205, 196, 0.12);
-        border: 1.5px solid rgba(78, 205, 196, 0.2);
-        border-radius: 10px;
-        color: white;
-        text-align: center;
-        animation: slideUp 0.4s ease;
-        backdrop-filter: blur(4px);
-      }
-
-      .success-message i {
-        font-size: 2.2rem;
-        color: #4ecdc4;
-        display: block;
-        margin-bottom: 6px;
-      }
-
-      .success-message .titulo {
-        font-weight: 600;
-        margin-bottom: 3px;
-        font-size: 1.05rem;
-      }
-
-      .success-message .subtitulo {
-        font-size: 0.9rem;
-        opacity: 0.8;
-      }
-
-      @keyframes slideUp {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-
-      /* Mensaje de estado - TUS COLORES */
-      #message {
-        min-height: 34px;
-        text-align: center;
-        padding: 8px 14px;
-        margin: 5px 0 12px 0;
-        border-radius: 8px;
-        font-size: 0.95rem;
-        background: rgba(0, 0, 0, 0.1);
-        color: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(4px);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-      }
-
-      #message i {
-        font-size: 1rem;
+        font-size: 0.85rem;
+        color: #ddd;
+        padding: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
       }
 
       /* ===== RESPONSIVIDAD ===== */
-      @media (max-width: 700px) {
+      @media (max-width: 768px) {
         .glass {
-          max-width: 100%;
-          padding: 20px 16px;
-          border-radius: 18px;
+          width: 95%;
+          height: 92%;
+          padding: 1.2rem;
         }
 
         .form-row {
@@ -319,93 +373,16 @@
           margin-bottom: 14px;
         }
 
-        .form-select,
-        .form-input,
-        .form-input-text,
-        .form-textarea {
-          padding: 12px 14px;
-          font-size: 16px !important;
-          border-radius: 10px;
-        }
-
-        .form-label {
-          font-size: 0.9rem;
-        }
-
-        .submit-btn {
-          padding: 14px 18px;
-          font-size: 0.95rem;
-        }
-
-        .glass h5 {
-          font-size: 1.2rem;
-          padding-bottom: 10px;
+        .header {
+          flex-direction: column;
+          text-align: center;
         }
       }
 
-      @media (max-width: 400px) {
+      @media (max-width: 480px) {
         .glass {
-          padding: 14px 10px;
-          border-radius: 14px;
-        }
-
-        .form-select,
-        .form-input,
-        .form-input-text,
-        .form-textarea {
-          padding: 10px 12px;
-          font-size: 15px !important;
-          border-radius: 8px;
-        }
-
-        .form-label {
-          font-size: 0.8rem;
-        }
-
-        .form-label i {
-          font-size: 0.85rem;
-          width: 14px;
-        }
-
-        .submit-btn {
-          padding: 11px 14px;
-          font-size: 0.9rem;
-          border-radius: 8px;
-        }
-
-        .glass h5 {
-          font-size: 1rem;
-        }
-
-        .form-textarea {
-          min-height: 60px;
-        }
-
-        .success-message {
-          padding: 12px 14px;
-        }
-
-        .success-message i {
-          font-size: 1.6rem;
-        }
-      }
-
-      /* Orientación landscape en móviles */
-      @media (max-height: 500px) and (orientation: landscape) {
-        body {
-          padding: 10px 20px;
-        }
-
-        .glass {
-          max-width: 650px;
-          padding: 14px 18px;
-          max-height: 92vh;
-          overflow-y: auto;
-        }
-
-        .form-row {
-          gap: 10px;
-          margin-bottom: 10px;
+          padding: 0.8rem;
+          height: 95%;
         }
 
         .form-select,
@@ -413,44 +390,16 @@
         .form-input-text,
         .form-textarea {
           padding: 8px 10px;
-          font-size: 0.85rem;
-        }
-
-        .form-textarea {
-          min-height: 50px;
-        }
-
-        .form-label {
-          font-size: 0.75rem;
-          margin-bottom: 4px;
+          font-size: 15px !important;
         }
 
         .submit-btn {
           padding: 10px 14px;
-          font-size: 0.85rem;
-          margin-top: 4px;
+          font-size: 0.9rem;
         }
 
-        .glass h5 {
-          font-size: 1rem;
-          margin-bottom: 8px;
-          padding-bottom: 8px;
-        }
-
-        #message {
-          min-height: 24px;
-          padding: 5px 10px;
+        .form-label {
           font-size: 0.8rem;
-          margin: 3px 0 8px 0;
-        }
-
-        .success-message {
-          padding: 10px 14px;
-          margin-top: 10px;
-        }
-
-        .success-message i {
-          font-size: 1.4rem;
         }
       }
 
@@ -470,7 +419,7 @@
       }
 
       .form-textarea::-webkit-scrollbar-thumb {
-        background: rgba(78, 205, 196, 0.3);
+        background: rgba(255, 221, 0, 0.3);
         border-radius: 6px;
       }
     </style>
@@ -478,96 +427,110 @@
 
   <body>
     <div class="glass" id="dashboard">
-      <h5>Reporte de Actividades</h5>
-      <div id="header"></div>
+      <!-- HEADER -->
+      <div class="header">
+        <h5>Reporte de Actividades</h5>
+        <div id="header"></div>
+      </div>
+
+      <!-- MENSAJE -->
       <div id="message">
         <i class="fa-regular fa-pen-to-square"></i> Completa los campos para
         registrar tu avance
       </div>
-      <form id="reporteForm">
-        <!-- FILA DE 3 CAMPOS -->
-        <div class="form-row">
-          <!-- Responsable -->
+
+      <!-- CONTENIDO PRINCIPAL -->
+      <div class="contenido">
+        <form id="reporteForm">
+          <!-- FILA DE 3 CAMPOS -->
+          <div class="form-row">
+            <!-- Responsable -->
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-solid fa-user-tie"></i> Responsable
+              </label>
+              <input
+                type="text"
+                class="form-input-text"
+                id="persona"
+                readonly
+                disabled
+                placeholder="Cargando usuario..."
+              />
+            </div>
+
+            <!-- Tarea -->
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-solid fa-list-check"></i> Tarea
+              </label>
+              <select class="form-select" id="tarea" required>
+                <option value="">Selecciona</option>
+                <option value="Validación CIE-10">Validación CIE-10</option>
+                <option value="Captura en SINBA">Captura en SINBA</option>
+                <option value="Concentrado de servicios">
+                  Concentrado de servicios
+                </option>
+                <option value="Informe mensual">Informe mensual</option>
+                <option value="Envío digital y respaldo">
+                  Envío digital y respaldo
+                </option>
+                <option value="Supervisión y retroalimentación">
+                  Supervisión y retroalimentación
+                </option>
+                <option value="Integración de observaciones jurisdiccionales">
+                  Integración de observaciones jurisdiccionales
+                </option>
+              </select>
+            </div>
+
+            <!-- Documentos -->
+            <div class="form-group">
+              <label class="form-label">
+                <i class="fa-solid fa-file-circle-check"></i> Documentos
+              </label>
+              <input
+                type="number"
+                class="form-input"
+                id="documentos"
+                placeholder="Cantidad"
+                min="0"
+                max="10000"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- Observaciones -->
           <div class="form-group">
             <label class="form-label">
-              <i class="fa-solid fa-user-tie"></i> Responsable
+              <i class="fa-solid fa-comment-dots"></i> Observaciones
             </label>
-            <input
-              type="text"
-              class="form-input-text"
-              id="persona"
-              readonly
-              disabled
-              placeholder="Cargando usuario..."
-            />
+            <textarea
+              class="form-textarea"
+              id="observaciones"
+              placeholder="Detalles relevantes del avance (opcional)..."
+            ></textarea>
           </div>
 
-          <!-- Tarea -->
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fa-solid fa-list-check"></i> Tarea
-            </label>
-            <select class="form-select" id="tarea" required>
-              <option value="">Selecciona</option>
-              <option value="Validación CIE-10">Validación CIE-10</option>
-              <option value="Captura en SINBA">Captura en SINBA</option>
-              <option value="Concentrado de servicios">
-                Concentrado de servicios
-              </option>
-              <option value="Informe mensual">Informe mensual</option>
-              <option value="Envío digital y respaldo">
-                Envío digital y respaldo
-              </option>
-              <option value="Supervisión y retroalimentación">
-                Supervisión y retroalimentación
-              </option>
-              <option value="Integración de observaciones jurisdiccionales">
-                Integración de observaciones jurisdiccionales
-              </option>
-            </select>
+          <button type="submit" class="submit-btn" id="submitBtn">
+            <i class="fa-solid fa-paper-plane"></i> Registrar Avance
+          </button>
+
+          <div id="successMessage" class="success-message">
+            <i class="fa-solid fa-check-circle"></i>
+            <div class="titulo">¡Reporte Guardado!</div>
+            <div class="subtitulo">
+              El registro se ha actualizado en el sistema
+            </div>
           </div>
+        </form>
+      </div>
 
-          <!-- Documentos -->
-          <div class="form-group">
-            <label class="form-label">
-              <i class="fa-solid fa-file-circle-check"></i> Documentos
-            </label>
-            <input
-              type="number"
-              class="form-input"
-              id="documentos"
-              placeholder="Cantidad"
-              min="0"
-              max="10000"
-              required
-            />
-          </div>
-        </div>
-
-        <!-- Observaciones -->
-        <div class="form-group">
-          <label class="form-label">
-            <i class="fa-solid fa-comment-dots"></i> Observaciones
-          </label>
-          <textarea
-            class="form-textarea"
-            id="observaciones"
-            placeholder="Detalles relevantes del avance (opcional)..."
-          ></textarea>
-        </div>
-
-        <button type="submit" class="submit-btn" id="submitBtn">
-          <i class="fa-solid fa-paper-plane"></i> Registrar Avance
-        </button>
-
-        <div id="successMessage" class="success-message">
-          <i class="fa-solid fa-check-circle"></i>
-          <div class="titulo">¡Reporte Guardado!</div>
-          <div class="subtitulo">
-            El registro se ha actualizado en el sistema
-          </div>
-        </div>
-      </form>
+      <!-- FOOTER -->
+      <footer>
+        <p id="footerText">Hecho con ❤️ por Ricardo · 2026</p>
+      </footer>
     </div>
 
     <script>
@@ -586,7 +549,7 @@
             msg.innerHTML =
               '<i class="fa-regular fa-circle-check"></i> Responsable: ' +
               nombreUsuario;
-            msg.style.background = "rgba(78, 205, 196, 0.12)";
+            msg.style.background = "rgba(255, 221, 0, 0.08)";
             setTimeout(() => {
               msg.innerHTML =
                 '<i class="fa-regular fa-pen-to-square"></i> Completa los campos para registrar tu avance';
@@ -664,7 +627,7 @@
               const msg = document.getElementById("message");
               msg.innerHTML =
                 '<i class="fa-regular fa-circle-check"></i> ¡Reporte registrado correctamente!';
-              msg.style.background = "rgba(78, 205, 196, 0.15)";
+              msg.style.background = "rgba(40, 167, 69, 0.15)";
 
               setTimeout(() => {
                 document.getElementById("successMessage").style.display =
