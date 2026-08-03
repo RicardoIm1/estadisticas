@@ -56,23 +56,19 @@
         width: min(92%, 600px);
       }
 
-      /* === ESTADOS DEL SISTEMA === */
       .glass.loading {
         background: rgba(0, 123, 255, 0.25) !important;
         border-color: rgba(0, 123, 255, 0.3) !important;
-        transition: background 0.5s ease;
       }
 
       .glass.success {
         background: rgba(40, 167, 69, 0.25) !important;
         border-color: rgba(40, 167, 69, 0.3) !important;
-        transition: background 0.5s ease;
       }
 
       .glass.error {
         background: rgba(220, 53, 69, 0.35) !important;
         border-color: rgba(220, 53, 69, 0.4) !important;
-        transition: background 0.5s ease;
       }
 
       /* ===== HEADER ===== */
@@ -139,7 +135,6 @@
         width: 100%;
       }
 
-      /* Etiquetas */
       .form-label {
         display: flex;
         align-items: center;
@@ -158,7 +153,6 @@
         text-align: center;
       }
 
-      /* Inputs, selects y textarea */
       .form-select,
       .form-input,
       .form-input-text,
@@ -265,7 +259,6 @@
         font-size: 1.2rem;
       }
 
-      /* ===== MENSAJE DE ÉXITO ===== */
       .success-message {
         display: none;
         margin-top: 16px;
@@ -307,7 +300,6 @@
         }
       }
 
-      /* ===== MENSAJE DE ESTADO ===== */
       #message {
         min-height: 38px;
         text-align: center;
@@ -329,7 +321,6 @@
         font-size: 1.1rem;
       }
 
-      /* ===== BOTÓN SALIR ===== */
       .btn-salir-ultra {
         background: transparent;
         color: rgba(255, 255, 255, 0.7);
@@ -356,7 +347,6 @@
         transition: all 0.1s ease;
       }
 
-      /* ===== FOOTER ===== */
       footer {
         flex-shrink: 0;
         margin-top: auto;
@@ -450,24 +440,18 @@
 
   <body>
     <div class="glass" id="dashboard">
-      <!-- HEADER -->
       <div class="header">
         <h5>Reporte de Actividades</h5>
         <div id="header"></div>
       </div>
 
-      <!-- MENSAJE -->
       <div id="message">
-        <i class="fa-regular fa-pen-to-square"></i> Completa los campos para
-        registrar tu avance
+        <i class="fa-regular fa-pen-to-square"></i> Cargando tareas...
       </div>
 
-      <!-- CONTENIDO PRINCIPAL -->
       <div class="contenido">
         <form id="reporteForm">
-          <!-- FILA DE 3 CAMPOS -->
           <div class="form-row">
-            <!-- Responsable -->
             <div class="form-group">
               <label class="form-label">
                 <i class="fa-solid fa-user-tie"></i> Responsable
@@ -482,32 +466,15 @@
               />
             </div>
 
-            <!-- Tarea -->
             <div class="form-group">
               <label class="form-label">
                 <i class="fa-solid fa-list-check"></i> Tarea
               </label>
               <select class="form-select" id="tarea" required>
-                <option value="">Selecciona</option>
-                <option value="Validación CIE-10">Validación CIE-10</option>
-                <option value="Captura en SINBA">Captura en SINBA</option>
-                <option value="Concentrado de servicios">
-                  Concentrado de servicios
-                </option>
-                <option value="Informe mensual">Informe mensual</option>
-                <option value="Envío digital y respaldo">
-                  Envío digital y respaldo
-                </option>
-                <option value="Supervisión y retroalimentación">
-                  Supervisión y retroalimentación
-                </option>
-                <option value="Integración de observaciones jurisdiccionales">
-                  Integración de observaciones jurisdiccionales
-                </option>
+                <option value="">Cargando tareas...</option>
               </select>
             </div>
 
-            <!-- Documentos -->
             <div class="form-group">
               <label class="form-label">
                 <i class="fa-solid fa-file-circle-check"></i> Documentos
@@ -524,7 +491,6 @@
             </div>
           </div>
 
-          <!-- Observaciones -->
           <div class="form-group">
             <label class="form-label">
               <i class="fa-solid fa-comment-dots"></i> Observaciones
@@ -550,32 +516,31 @@
         </form>
       </div>
 
-      <!-- FOOTER -->
       <footer>
         <p id="footerText">Hecho con ❤️ por Ricardo · 2026</p>
       </footer>
     </div>
 
     <script>
+      // ===== CONFIGURACIÓN =====
+      const GAS_URL =
+        "https://script.google.com/macros/s/AKfycbw5lrSCqUScFDhgcGvSgkiWdTte_as7rcwqVcAp8MCfjPvOrvBIDO-gUSfbJEOCVjET/exec";
+
       // ===== FUNCIÓN PARA CAMBIAR ESTADO DEL SISTEMA =====
       function setEstadoSistema(estado, mensaje = null) {
         const dashboard = document.getElementById("dashboard");
         if (!dashboard) return;
 
-        // Remover clases de estado anteriores
         dashboard.classList.remove("loading", "success", "error");
 
-        // Agregar la nueva clase
         if (estado) {
           dashboard.classList.add(estado);
         }
 
-        // Si hay mensaje, mostrarlo en #message
         if (mensaje) {
           const msg = document.getElementById("message");
           msg.innerHTML = mensaje;
 
-          // Color según estado
           if (estado === "loading") {
             msg.style.background = "rgba(0, 123, 255, 0.15)";
           } else if (estado === "success") {
@@ -585,19 +550,136 @@
           }
         }
 
-        // Auto-limpiar estado después de 5 segundos (vuelve a translúcido)
+        // Auto-limpiar estado después de 5 segundos
         if (estado && estado !== "loading") {
           setTimeout(() => {
             dashboard.classList.remove(estado);
-            // Restaurar mensaje por defecto si no hay otro
-            const msg = document.getElementById("message");
-            if (msg && !msg.innerHTML.includes("Responsable")) {
+          }, 5000);
+        }
+      }
+
+      // ===== FUNCIÓN PARA CARGAR TAREAS DESDE GOOGLE SHEETS =====
+      function cargarTareas() {
+        const select = document.getElementById("tarea");
+
+        // Mostrar estado de carga
+        setEstadoSistema(
+          "loading",
+          '<i class="fa-solid fa-spinner fa-spin"></i> Cargando tareas desde el servidor...',
+        );
+
+        // Deshabilitar select mientras carga
+        select.disabled = true;
+        select.innerHTML = '<option value="">Cargando...</option>';
+
+        const callbackName = "cargarTareas_" + Date.now();
+
+        window[callbackName] = function (response) {
+          delete window[callbackName];
+          const script = document.querySelector(
+            `script[src*="${callbackName}"]`,
+          );
+          if (script) script.remove();
+
+          console.log("📥 Respuesta de tareas:", response);
+
+          if (response && response.success && response.data) {
+            // Limpiar select
+            select.innerHTML = '<option value="">Selecciona una tarea</option>';
+
+            // Agregar tareas
+            response.data.forEach((tarea) => {
+              const option = document.createElement("option");
+              option.value = tarea.name;
+
+              // Mostrar información adicional
+              let label = tarea.name;
+              if (tarea.progress !== undefined && tarea.progress !== null) {
+                label += ` (${tarea.progress}%)`;
+              }
+              option.textContent = label;
+
+              // Guardar datos extra como atributos data-
+              option.dataset.id = tarea.id;
+              option.dataset.start = tarea.start;
+              option.dataset.end = tarea.end;
+              option.dataset.progress = tarea.progress;
+              option.dataset.dependencies = tarea.dependencies || "";
+              option.dataset.customClass = tarea.custom_class || "";
+
+              // Tooltip con información completa
+              let tooltip = tarea.name;
+              if (tarea.start) tooltip += `\nInicio: ${tarea.start}`;
+              if (tarea.end) tooltip += `\nFin: ${tarea.end}`;
+              if (tarea.progress !== undefined)
+                tooltip += `\nProgreso: ${tarea.progress}%`;
+              if (tarea.dependencies)
+                tooltip += `\nDependencias: ${tarea.dependencies}`;
+              option.title = tooltip;
+
+              select.appendChild(option);
+            });
+
+            // Habilitar select
+            select.disabled = false;
+
+            // Mostrar mensaje de éxito
+            setEstadoSistema(
+              "success",
+              `<i class="fa-regular fa-circle-check"></i> ${response.data.length} tareas cargadas correctamente`,
+            );
+
+            // Después de 3 segundos volver a normal
+            setTimeout(() => {
+              const dashboard = document.getElementById("dashboard");
+              dashboard.classList.remove("success");
+              const msg = document.getElementById("message");
               msg.innerHTML =
                 '<i class="fa-regular fa-pen-to-square"></i> Completa los campos para registrar tu avance';
               msg.style.background = "rgba(0, 0, 0, 0.1)";
-            }
-          }, 5000);
-        }
+            }, 3000);
+          } else {
+            // Error al cargar tareas
+            setEstadoSistema(
+              "error",
+              '<i class="fa-solid fa-triangle-exclamation"></i> Error: ' +
+                (response?.error || "No se pudieron cargar las tareas"),
+            );
+
+            select.innerHTML =
+              '<option value="">Error al cargar tareas</option>';
+            select.disabled = false;
+          }
+        };
+
+        // Hacer la petición JSONP
+        const script = document.createElement("script");
+        script.src = `${GAS_URL}?callback=${callbackName}`;
+
+        script.onerror = function () {
+          delete window[callbackName];
+          setEstadoSistema(
+            "error",
+            '<i class="fa-solid fa-wifi"></i> Error de conexión al servidor',
+          );
+          select.innerHTML = '<option value="">Error de conexión</option>';
+          select.disabled = false;
+        };
+
+        document.head.appendChild(script);
+
+        // Timeout por seguridad
+        setTimeout(() => {
+          if (window[callbackName]) {
+            delete window[callbackName];
+            setEstadoSistema(
+              "error",
+              '<i class="fa-solid fa-clock"></i> Timeout al cargar tareas',
+            );
+            select.innerHTML = '<option value="">Timeout al cargar</option>';
+            select.disabled = false;
+          }
+        }, 10000);
       }
 
       // ===== FUNCIÓN PARA CARGAR RESPONSABLE =====
@@ -610,20 +692,8 @@
           if (nombreUsuario) {
             personaInput.value = nombreUsuario;
             console.log("👤 Responsable cargado:", nombreUsuario);
-
-            const msg = document.getElementById("message");
-            msg.innerHTML =
-              '<i class="fa-regular fa-circle-check"></i> Responsable: ' +
-              nombreUsuario;
-            msg.style.background = "rgba(255, 221, 0, 0.08)";
-            setTimeout(() => {
-              msg.innerHTML =
-                '<i class="fa-regular fa-pen-to-square"></i> Completa los campos para registrar tu avance';
-              msg.style.background = "rgba(0, 0, 0, 0.1)";
-            }, 2500);
           } else {
             personaInput.placeholder = "No se detectó usuario";
-            console.warn("⚠️ No se encontró usuario");
           }
         }
       }
@@ -647,10 +717,7 @@
         setTimeout(() => observer.disconnect(), 5000);
       }
 
-      // ===== GAS URL =====
-      const GAS_URL =
-        "https://script.google.com/macros/s/AKfycbw5lrSCqUScFDhgcGvSgkiWdTte_as7rcwqVcAp8MCfjPvOrvBIDO-gUSfbJEOCVjET/exec";
-
+      // ===== ENVÍO DEL FORMULARIO =====
       document
         .getElementById("reporteForm")
         .addEventListener("submit", function (e) {
@@ -659,7 +726,16 @@
           const submitBtn = document.getElementById("submitBtn");
           const originalHTML = submitBtn.innerHTML;
 
-          // === ESTADO: CARGANDO ===
+          // Validar que se haya seleccionado una tarea
+          const tareaSelect = document.getElementById("tarea");
+          if (!tareaSelect.value) {
+            setEstadoSistema(
+              "error",
+              '<i class="fa-solid fa-triangle-exclamation"></i> Por favor selecciona una tarea',
+            );
+            return;
+          }
+
           setEstadoSistema(
             "loading",
             '<i class="fa-solid fa-spinner fa-spin"></i> Enviando datos al servidor...',
@@ -692,7 +768,6 @@
             submitBtn.innerHTML = originalHTML;
 
             if (response && response.success) {
-              // === ESTADO: ÉXITO ===
               setEstadoSistema(
                 "success",
                 '<i class="fa-regular fa-circle-check"></i> ¡Reporte registrado correctamente!',
@@ -707,13 +782,16 @@
                   "none";
               }, 4000);
             } else {
-              // === ESTADO: ERROR ===
+              const errorMsg =
+                response?.error ||
+                response?.message ||
+                "No se pudo guardar el reporte";
               setEstadoSistema(
                 "error",
                 '<i class="fa-solid fa-triangle-exclamation"></i> Error: ' +
-                  (response.error || "No se pudo guardar el reporte"),
+                  errorMsg,
               );
-              alert("❌ Error: " + (response.error || "No se pudo guardar"));
+              alert("❌ Error: " + errorMsg);
             }
           };
 
@@ -727,8 +805,6 @@
           script.onerror = function () {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalHTML;
-
-            // === ESTADO: ERROR DE CONEXIÓN ===
             setEstadoSistema(
               "error",
               '<i class="fa-solid fa-wifi"></i> Error de conexión al servidor',
@@ -743,8 +819,6 @@
             if (window[callbackName]) {
               submitBtn.disabled = false;
               submitBtn.innerHTML = originalHTML;
-
-              // === ESTADO: TIMEOUT ===
               setEstadoSistema(
                 "error",
                 '<i class="fa-solid fa-clock"></i> Timeout - El servidor no respondió',
@@ -755,30 +829,12 @@
           }, 10000);
         });
 
+      // ===== INICIALIZACIÓN =====
+      document.addEventListener("DOMContentLoaded", function () {
+        cargarTareas();
+      });
+
       document.getElementById("tarea").focus();
-
-      // ===== VERIFICAR CONEXIÓN AL CARGAR =====
-      function verificarConexionInicial() {
-        setEstadoSistema(
-          "loading",
-          '<i class="fa-solid fa-spinner fa-spin"></i> Conectando al servidor...',
-        );
-
-        // Simular verificación (después de 2 segundos vuelve a normal)
-        setTimeout(() => {
-          const dashboard = document.getElementById("dashboard");
-          dashboard.classList.remove("loading");
-          const msg = document.getElementById("message");
-          if (msg) {
-            msg.innerHTML =
-              '<i class="fa-regular fa-pen-to-square"></i> Completa los campos para registrar tu avance';
-            msg.style.background = "rgba(0, 0, 0, 0.1)";
-          }
-        }, 1500);
-      }
-
-      // Ejecutar verificación al cargar
-      document.addEventListener("DOMContentLoaded", verificarConexionInicial);
     </script>
 
     <script>
