@@ -184,8 +184,43 @@
       transform: translate(2px, -2px);
     }
 
-    /* === MODAL CON ESTILO GLASSMORPHISM === */
-    .modal-camas {
+    /* === BOTÓN PARA ABRIR MODAL DE FÓRMULAS === */
+    .btn-formulas {
+      background: rgba(100, 200, 255, 0.1);
+      border: 1px solid rgba(100, 200, 255, 0.2);
+      color: #64c8ff;
+      padding: 0.6rem 1.2rem;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .btn-formulas:hover {
+      background: rgba(100, 200, 255, 0.2);
+      border-color: rgba(100, 200, 255, 0.4);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(100, 200, 255, 0.15);
+    }
+
+    .btn-formulas i {
+      font-size: 1rem;
+    }
+
+    .header-botones {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    /* === MODAL DE FÓRMULAS === */
+    .modal-formulas {
       display: none;
       position: fixed;
       inset: 0;
@@ -198,6 +233,10 @@
       animation: fadeIn 0.3s ease-out;
     }
 
+    .modal-formulas.active {
+      display: flex;
+    }
+
     @keyframes fadeIn {
       from {
         opacity: 0;
@@ -207,14 +246,14 @@
       }
     }
 
-    .modal-contenido {
+    .modal-formulas .modal-contenido {
       background: rgba(255, 255, 255, 0.06);
       backdrop-filter: blur(20px);
       padding: 2rem;
       border-radius: 16px;
-      width: 90%;
-      max-width: 700px;
-      max-height: 80vh;
+      width: 95%;
+      max-width: 900px;
+      max-height: 85vh;
       overflow-y: auto;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
       animation: aparecer 0.3s ease-out;
@@ -222,27 +261,25 @@
       position: relative;
     }
 
-    /* Scrollbar del modal - solo visible cuando hay scroll */
-    .modal-contenido::-webkit-scrollbar {
+    .modal-formulas .modal-contenido::-webkit-scrollbar {
       width: 4px;
     }
 
-    .modal-contenido::-webkit-scrollbar-track {
+    .modal-formulas .modal-contenido::-webkit-scrollbar-track {
       background: transparent;
     }
 
-    .modal-contenido::-webkit-scrollbar-thumb {
+    .modal-formulas .modal-contenido::-webkit-scrollbar-thumb {
       background: rgba(100, 200, 255, 0.3);
       border-radius: 10px;
       transition: all 0.3s ease;
     }
 
-    .modal-contenido::-webkit-scrollbar-thumb:hover {
+    .modal-formulas .modal-contenido::-webkit-scrollbar-thumb:hover {
       background: rgba(100, 200, 255, 0.5);
     }
 
-    /* Firefox para modal - solo visible cuando hay scroll */
-    .modal-contenido {
+    .modal-formulas .modal-contenido {
       scrollbar-width: thin;
       scrollbar-color: rgba(100, 200, 255, 0.3) transparent;
     }
@@ -258,8 +295,240 @@
       }
     }
 
-    /* Título del modal - estilo azul */
-    .modal-contenido h2 {
+    .modal-formulas .modal-contenido h2 {
+      color: #64c8ff;
+      font-size: 1.8rem;
+      margin: 0 0 0.3rem 0;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-formulas .modal-contenido h2::before {
+      content: '📊';
+      font-size: 1.5rem;
+      filter: drop-shadow(0 2px 8px rgba(100, 200, 255, 0.2));
+    }
+
+    .modal-formulas .subtitulo {
+      opacity: 0.6;
+      font-size: 0.95rem;
+      margin-top: -0.2rem;
+      margin-bottom: 1.5rem;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Tabla de fórmulas */
+    .tabla-formulas {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+      border-radius: 10px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .tabla-formulas th {
+      background: rgba(100, 200, 255, 0.08);
+      color: #64c8ff;
+      padding: 12px 14px;
+      text-align: left;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .tabla-formulas td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: rgba(255, 255, 255, 0.85);
+      vertical-align: top;
+    }
+
+    .tabla-formulas tr:hover td {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tabla-formulas tr:last-child td {
+      border-bottom: none;
+    }
+
+    .tabla-formulas .num {
+      color: #64c8ff;
+      font-weight: 600;
+      font-size: 0.8rem;
+      width: 40px;
+      text-align: center;
+    }
+
+    .tabla-formulas .indicador {
+      font-weight: 500;
+      min-width: 180px;
+    }
+
+    .tabla-formulas .formula {
+      font-family: 'Courier New', monospace;
+      color: #00ff89;
+      font-size: 0.85rem;
+      background: rgba(0, 255, 89, 0.05);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid rgba(0, 255, 89, 0.1);
+      display: inline-block;
+    }
+
+    .tabla-formulas .tipo {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 2px 10px;
+      border-radius: 12px;
+      display: inline-block;
+      font-weight: 600;
+    }
+
+    .tipo-porcentaje {
+      background: rgba(100, 200, 255, 0.15);
+      color: #64c8ff;
+    }
+
+    .tipo-promedio {
+      background: rgba(0, 255, 89, 0.15);
+      color: #00ff89;
+    }
+
+    .tipo-razon {
+      background: rgba(255, 200, 50, 0.15);
+      color: #ffc832;
+    }
+
+    .seccion-formulas {
+      margin-top: 1.5rem;
+    }
+
+    .seccion-formulas:first-of-type {
+      margin-top: 0;
+    }
+
+    .seccion-formulas h3 {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin: 0 0 0.8rem 0;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .badge-total {
+      display: inline-block;
+      background: rgba(100, 200, 255, 0.1);
+      color: #64c8ff;
+      padding: 0.2rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      margin-left: 0.5rem;
+    }
+
+    .resumen-cocientes {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .resumen-cocientes span {
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 0.8rem;
+    }
+
+    .resumen-cocientes .num-destacado {
+      font-weight: 600;
+    }
+
+    .resumen-cocientes .num-azul {
+      color: #64c8ff;
+    }
+
+    .resumen-cocientes .num-verde {
+      color: #00ff89;
+    }
+
+    .resumen-cocientes .num-amarillo {
+      color: #ffc832;
+    }
+
+    .resumen-cocientes .total {
+      color: #64c8ff;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* === MODAL CAMAS (existente) === */
+    .modal-camas {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(12px);
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      padding: 1rem;
+      animation: fadeIn 0.3s ease-out;
+    }
+
+    .modal-camas .modal-contenido {
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(20px);
+      padding: 2rem;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      animation: aparecer 0.3s ease-out;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      position: relative;
+    }
+
+    .modal-camas .modal-contenido::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .modal-camas .modal-contenido::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .modal-camas .modal-contenido::-webkit-scrollbar-thumb {
+      background: rgba(100, 200, 255, 0.3);
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .modal-camas .modal-contenido::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 200, 255, 0.5);
+    }
+
+    .modal-camas .modal-contenido {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(100, 200, 255, 0.3) transparent;
+    }
+
+    .modal-camas .modal-contenido h2 {
       color: #64c8ff;
       font-size: 1.5rem;
       margin: 0 0 0.3rem 0;
@@ -270,13 +539,13 @@
       letter-spacing: 0.5px;
     }
 
-    .modal-contenido h2::before {
+    .modal-camas .modal-contenido h2::before {
       content: '🏥';
       font-size: 1.3rem;
       filter: drop-shadow(0 2px 8px rgba(100, 200, 255, 0.2));
     }
 
-    .modal-contenido .subtitulo {
+    .modal-camas .subtitulo {
       opacity: 0.6;
       font-size: 0.9rem;
       margin-top: -0.2rem;
@@ -284,8 +553,7 @@
       color: rgba(255, 255, 255, 0.7);
     }
 
-    /* Botón cerrar - estilo glass */
-    .cerrar {
+    .modal-camas .cerrar {
       position: absolute;
       top: 14px;
       right: 18px;
@@ -306,14 +574,13 @@
       backdrop-filter: blur(4px);
     }
 
-    .cerrar:hover {
+    .modal-camas .cerrar:hover {
       color: #ff6b6b;
       background: rgba(255, 107, 107, 0.1);
       border-color: rgba(255, 107, 107, 0.2);
       transform: rotate(90deg) scale(1.1);
     }
 
-    /* Tablas con estilo glass - ahora con acento azul */
     .tablas-modal {
       display: grid;
       grid-template-columns: 1fr;
@@ -321,7 +588,7 @@
       margin-top: 0.5rem;
     }
 
-    .modal-contenido table {
+    .modal-camas table {
       width: 100%;
       border-collapse: collapse;
       font-size: 0.9rem;
@@ -331,7 +598,7 @@
       border: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .modal-contenido th {
+    .modal-camas th {
       background: rgba(100, 200, 255, 0.08);
       color: #64c8ff;
       padding: 12px 14px;
@@ -343,33 +610,32 @@
       border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .modal-contenido td {
+    .modal-camas td {
       padding: 10px 14px;
       border-bottom: 1px solid rgba(255, 255, 255, 0.04);
       color: rgba(255, 255, 255, 0.85);
     }
 
-    .modal-contenido tr:hover td {
+    .modal-camas tr:hover td {
       background: rgba(255, 255, 255, 0.05);
     }
 
-    .modal-contenido tr:last-child td {
+    .modal-camas tr:last-child td {
       border-bottom: none;
     }
 
-    .modal-contenido tr:last-child td {
+    .modal-camas tr:last-child td {
       font-weight: 700;
       color: #64c8ff;
       border-top: 2px solid rgba(100, 200, 255, 0.15);
       background: rgba(100, 200, 255, 0.05);
     }
 
-    .modal-contenido tr:last-child td:last-child {
+    .modal-camas tr:last-child td:last-child {
       font-size: 1.1rem;
     }
 
-    /* Efecto de brillo en el modal al hacer hover */
-    .modal-contenido::before {
+    .modal-camas .modal-contenido::before {
       content: '';
       position: absolute;
       top: -50%;
@@ -383,11 +649,11 @@
       border-radius: 16px;
     }
 
-    .modal-contenido:hover::before {
+    .modal-camas .modal-contenido:hover::before {
       opacity: 1;
     }
 
-    /* === RESPONSIVE MEJORADO === */
+    /* === RESPONSIVE === */
     @media (max-width: 768px) {
       .grid {
         grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
@@ -406,6 +672,35 @@
 
       .celda p {
         font-size: 1.4rem;
+      }
+
+      .modal-formulas .modal-contenido {
+        padding: 1.2rem;
+        width: 98%;
+        max-height: 90vh;
+      }
+
+      .tabla-formulas {
+        font-size: 0.75rem;
+      }
+
+      .tabla-formulas th,
+      .tabla-formulas td {
+        padding: 8px 10px;
+      }
+
+      .tabla-formulas .formula {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+      }
+
+      .tabla-formulas .indicador {
+        min-width: 120px;
+        font-size: 0.7rem;
+      }
+
+      .modal-formulas .modal-contenido h2 {
+        font-size: 1.3rem;
       }
     }
 
@@ -429,31 +724,75 @@
         font-size: 1.2rem;
       }
 
-      .modal-contenido {
+      .modal-camas .modal-contenido {
         padding: 1.2rem;
         width: 95%;
         max-height: 85vh;
       }
 
-      .modal-contenido table {
+      .modal-camas table {
         font-size: 0.75rem;
       }
 
-      .modal-contenido th,
-      .modal-contenido td {
+      .modal-camas th,
+      .modal-camas td {
         padding: 6px 10px;
       }
 
-      .modal-contenido h2 {
+      .modal-camas .modal-contenido h2 {
         font-size: 1.2rem;
       }
 
-      .cerrar {
+      .modal-camas .cerrar {
         width: 30px;
         height: 30px;
         font-size: 18px;
         top: 10px;
         right: 12px;
+      }
+
+      .tabla-formulas {
+        font-size: 0.65rem;
+      }
+
+      .tabla-formulas th,
+      .tabla-formulas td {
+        padding: 6px 8px;
+      }
+
+      .tabla-formulas .formula {
+        font-size: 0.6rem;
+        padding: 2px 4px;
+      }
+
+      .tabla-formulas .num {
+        width: 25px;
+        font-size: 0.65rem;
+      }
+
+      .tabla-formulas .indicador {
+        min-width: 80px;
+        font-size: 0.6rem;
+      }
+
+      .tabla-formulas .tipo {
+        font-size: 0.55rem;
+        padding: 1px 6px;
+      }
+
+      .modal-formulas .modal-contenido h2 {
+        font-size: 1.1rem;
+      }
+
+      .header-botones {
+        justify-content: center;
+      }
+
+      .btn-formulas {
+        font-size: 0.75rem;
+        padding: 0.5rem 1rem;
+        width: 100%;
+        justify-content: center;
       }
     }
 
@@ -486,7 +825,218 @@
     </div>
 
     <!-- =======================================
-         GRID PRINCIPAL MEJORADO
+         BOTÓN DE FÓRMULAS
+    ============================================ -->
+    <div class="header-botones">
+      <button class="btn-formulas" onclick="abrirModalFormulas()">
+        <i class="fas fa-calculator"></i> Ver Fórmulas de Cocientes
+      </button>
+    </div>
+
+    <!-- =======================================
+         MODAL DE FÓRMULAS
+    ============================================ -->
+    <div id="modalFormulas" class="modal-formulas">
+      <div class="modal-contenido">
+        <button class="cerrar" onclick="cerrarModalFormulas()">&times;</button>
+        <h2>Fórmulas de Indicadores</h2>
+        <p class="subtitulo">Cocientes, porcentajes, promedios y razones</p>
+
+        <!-- ========== PORCENTAJES DE OCUPACIÓN ========== -->
+        <div class="seccion-formulas">
+          <h3><span>📈</span> Porcentajes de Ocupación <span class="badge-total">6</span></h3>
+          <table class="tabla-formulas">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Indicador</th>
+                <th>Fórmula</th>
+                <th>Tipo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="num">12</td>
+                <td class="indicador">% OCUPACIÓN HOSPITALARIA</td>
+                <td><span class="formula">(Pacientes Hospitalizados ÷ Total Camas Censables) × 100</span></td>
+                <td><span class="tipo tipo-porcentaje">Porcentaje</span></td>
+              </tr>
+              <tr>
+                <td class="num">13</td>
+                <td class="indicador">% OCUPACIÓN URGENCIAS ADULTOS</td>
+                <td><span class="formula">(Pacientes Urgencias Adultos ÷ Camas Adultos Urgencias) × 100</span></td>
+                <td><span class="tipo tipo-porcentaje">Porcentaje</span></td>
+              </tr>
+              <tr>
+                <td class="num">14</td>
+                <td class="indicador">% OCUPACIÓN URGENCIAS PEDIATRIA</td>
+                <td><span class="formula">(Pacientes Urgencias Pediatría ÷ Camas Pediatría Urgencias) × 100</span></td>
+                <td><span class="tipo tipo-porcentaje">Porcentaje</span></td>
+              </tr>
+              <tr>
+                <td class="num">15</td>
+                <td class="indicador">% OCUPACIÓN UCIN</td>
+                <td><span class="formula">(Pacientes UCIN ÷ Camas UCIN) × 100</span></td>
+                <td><span class="tipo tipo-porcentaje">Porcentaje</span></td>
+              </tr>
+              <tr>
+                <td class="num">16</td>
+                <td class="indicador">% OCUPACIÓN UCINEX</td>
+                <td><span class="formula">(Pacientes UCINEX ÷ Camas UCINEX) × 100</span></td>
+                <td><span class="tipo tipo-porcentaje">Porcentaje</span></td>
+              </tr>
+              <tr>
+                <td class="num">17</td>
+                <td class="indicador">% OCUPACIÓN TOCOCIRUGIA</td>
+                <td><span class="formula">(Pacientes Tococirugía ÷ Camas Tococirugía) × 100</span></td>
+                <td><span class="tipo tipo-porcentaje">Porcentaje</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ========== PROMEDIOS DE ESTANCIA ========== -->
+        <div class="seccion-formulas">
+          <h3><span>⏱️</span> Promedios de Estancia <span class="badge-total">3</span></h3>
+          <table class="tabla-formulas">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Indicador</th>
+                <th>Fórmula</th>
+                <th>Tipo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="num">18</td>
+                <td class="indicador">DÍAS ESTANCIA HOSPITAL</td>
+                <td><span class="formula">Total Días de Estancia ÷ Total Egresos</span></td>
+                <td><span class="tipo tipo-promedio">Promedio</span></td>
+              </tr>
+              <tr>
+                <td class="num">19</td>
+                <td class="indicador">DÍAS ESTANCIA URGENCIAS ADULTOS</td>
+                <td><span class="formula">Total Días Estancia Urgencias Adultos ÷ Total Egresos Urgencias Adultos</span></td>
+                <td><span class="tipo tipo-promedio">Promedio</span></td>
+              </tr>
+              <tr>
+                <td class="num">20</td>
+                <td class="indicador">DÍAS ESTANCIA URGENCIAS PEDIÁTRICAS</td>
+                <td><span class="formula">Total Días Estancia Urgencias Pediatría ÷ Total Egresos Urgencias Pediatría</span></td>
+                <td><span class="tipo tipo-promedio">Promedio</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ========== RAZONES DE PERSONAL MÉDICO ========== -->
+        <div class="seccion-formulas">
+          <h3><span>👨‍⚕️</span> Razones de Personal Médico <span class="badge-total">5</span></h3>
+          <table class="tabla-formulas">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Indicador</th>
+                <th>Fórmula</th>
+                <th>Tipo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="num">32</td>
+                <td class="indicador">MÉDICO/CAMAS (MATUTINO)</td>
+                <td><span class="formula">Médicos Turno Matutino ÷ Total Camas Censables</span></td>
+                <td><span class="tipo tipo-razon">Razón</span></td>
+              </tr>
+              <tr>
+                <td class="num">33</td>
+                <td class="indicador">MÉDICO/CAMAS (VESPERTINO)</td>
+                <td><span class="formula">Médicos Turno Vespertino ÷ Total Camas Censables</span></td>
+                <td><span class="tipo tipo-razon">Razón</span></td>
+              </tr>
+              <tr>
+                <td class="num">34</td>
+                <td class="indicador">MÉDICO/CAMAS (NOCTURNO A)</td>
+                <td><span class="formula">Médicos Turno Nocturno A ÷ Total Camas Censables</span></td>
+                <td><span class="tipo tipo-razon">Razón</span></td>
+              </tr>
+              <tr>
+                <td class="num">35</td>
+                <td class="indicador">MÉDICO/CAMAS (NOCTURNO B)</td>
+                <td><span class="formula">Médicos Turno Nocturno B ÷ Total Camas Censables</span></td>
+                <td><span class="tipo tipo-razon">Razón</span></td>
+              </tr>
+              <tr>
+                <td class="num">36</td>
+                <td class="indicador">MÉDICO/CAMAS (JORNADA ACUMULADA)</td>
+                <td><span class="formula">Médicos Jornada Acumulada ÷ Total Camas Censables</span></td>
+                <td><span class="tipo tipo-razon">Razón</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ========== RAZONES DE PERSONAL ENFERMERÍA ========== -->
+        <div class="seccion-formulas">
+          <h3><span>👩‍⚕️</span> Razones de Personal Enfermería <span class="badge-total">5</span></h3>
+          <table class="tabla-formulas">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Indicador</th>
+                <th>Fórmula</th>
+                <th>Tipo</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="num">37</td>
+                <td class="indicador">ENFERMERA/CAMAS (MATUTINO)</td>
+                <td><span class="formula">Enfermeras Turno Matutino ÷ Total Camas Censables</span></td>
+                <td><span class="tipo tipo-razon">Razón</span></td>
+              </tr>
+              <tr>
+                <td class="num">38</td>
+                <td class="indicador">ENFERMERA/CAMAS (VESPERTINO)</td>
+                <td><span class="formula">Enfermeras Turno Vespertino ÷ Total Camas Censables</span></td>
+                <td><span class="tipo tipo-razon">Razón</span></td>
+              </tr>
+              <tr>
+                <td class="num">39</td>
+                <td class="indicador">ENFERMERA/CAMAS (NOCTURNO A)</td>
+                <td><span class="formula">Enfermeras Turno Nocturno A ÷ Total Camas Censables</span></td>
+                <td><span class="tipo tipo-razon">Razón</span></td>
+              </tr>
+              <tr>
+                <td class="num">40</td>
+                <td class="indicador">ENFERMERA/CAMAS (NOCTURNO B)</td>
+                <td><span class="formula">Enfermeras Turno Nocturno B ÷ Total Camas Censables</span></td>
+                <td><span class="tipo tipo-razon">Razón</span></td>
+              </tr>
+              <tr>
+                <td class="num">41</td>
+                <td class="indicador">ENFERMERA/CAMAS (JORNADA ACUMULADA)</td>
+                <td><span class="formula">Enfermeras Jornada Acumulada ÷ Total Camas Censables</span></td>
+                <td><span class="tipo tipo-razon">Razón</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- ========== RESUMEN ========== -->
+        <div class="resumen-cocientes">
+          <span><span class="num-destacado num-azul">6</span> Porcentajes</span>
+          <span><span class="num-destacado num-verde">3</span> Promedios</span>
+          <span><span class="num-destacado num-amarillo">10</span> Razones</span>
+          <span class="total">Total: 19 Cocientes</span>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- =======================================
+         GRID PRINCIPAL
     ============================================ -->
     <div class="grid" id="indicadores">
 
@@ -856,9 +1406,48 @@
   </div>
 
   <!-- =======================================
-       SCRIPT GENERAL
+       SCRIPTS
     ============================================ -->
   <script>
+    // === MODAL DE FÓRMULAS ===
+    function abrirModalFormulas() {
+      document.getElementById('modalFormulas').classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function cerrarModalFormulas() {
+      document.getElementById('modalFormulas').classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+
+    // Cerrar modal de fórmulas al hacer clic fuera
+    window.addEventListener('click', (e) => {
+      if (e.target.classList.contains('modal-formulas')) {
+        e.target.classList.remove('active');
+        document.body.style.overflow = 'auto';
+      }
+    });
+
+    // Cerrar con tecla ESC (ambos modales)
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        // Cerrar modal de fórmulas
+        const modalFormulas = document.getElementById('modalFormulas');
+        if (modalFormulas.classList.contains('active')) {
+          modalFormulas.classList.remove('active');
+          document.body.style.overflow = 'auto';
+        }
+        // Cerrar modales de camas
+        document.querySelectorAll('.modal-camas').forEach(modal => {
+          if (modal.style.display === 'flex') {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+          }
+        });
+      }
+    });
+
+    // === MODALES DE CAMAS ===
     function abrirModal(id) {
       document.getElementById(id).style.display = 'flex';
       document.body.style.overflow = 'hidden';
@@ -869,7 +1458,7 @@
       document.body.style.overflow = 'auto';
     }
 
-    // Cerrar modal al hacer clic fuera
+    // Cerrar modal de camas al hacer clic fuera
     window.addEventListener('click', (e) => {
       if (e.target.classList.contains('modal-camas')) {
         e.target.style.display = 'none';
@@ -877,27 +1466,13 @@
       }
     });
 
-    // Cerrar con tecla ESC
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        document.querySelectorAll('.modal-camas').forEach(modal => {
-          if (modal.style.display === 'flex') {
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
-          }
-        });
-      }
-    });
-
     // footer dinámico
     document.getElementById('footerText').innerHTML =
       `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-  </script>
 
-  <!-- =======================================
-       SESIÓN
-    ============================================ -->
-  <script>
+    // ============================================
+    // SESIÓN
+    // ============================================
     function verificarAutenticacion() {
       const usuario = localStorage.getItem('usuario');
       const rol = localStorage.getItem('rol');
