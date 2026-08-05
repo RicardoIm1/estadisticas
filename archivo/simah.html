@@ -39,30 +39,38 @@
         scrollbar-color: rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.03);
       }
 
-      /* ===== GLASS ORIGINAL ===== */
+      /* ===== GLASS CONTAINER ===== */
       .glass {
         background: rgba(255, 255, 255, 0.05) !important;
         backdrop-filter: blur(10px) !important;
         -webkit-backdrop-filter: blur(10px) !important;
-        border-radius: 16px;
-        padding: 1rem;
-        margin: 1rem;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
         transition:
-          border-color 0.8s ease,
-          box-shadow 0.8s ease;
+          background 1s ease,
+          border-color 1s ease,
+          box-shadow 1s ease;
       }
 
+      /* ===== ESTADOS DEL GLASS (COLOR DE FONDO) ===== */
       .glass.loading {
+        background: rgba(74, 158, 255, 0.15) !important;
         border-color: rgba(74, 158, 255, 0.4);
         box-shadow: 0 8px 32px rgba(74, 158, 255, 0.15);
       }
+
       .glass.success {
+        background: rgba(0, 255, 89, 0.1) !important;
         border-color: rgba(0, 255, 89, 0.3);
         box-shadow: 0 8px 32px rgba(0, 255, 89, 0.1);
       }
+
       .glass.error {
+        background: rgba(255, 50, 50, 0.12) !important;
         border-color: rgba(255, 50, 50, 0.3);
         box-shadow: 0 8px 32px rgba(255, 50, 50, 0.1);
       }
@@ -406,30 +414,33 @@
         color: #fff;
       }
 
-      /* ===== ESTADÍSTICAS ===== */
-      .stats {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      /* ===== ESTADÍSTICAS EN UNA SOLA FILA ===== */
+      .stats-row {
+        display: flex;
         gap: 10px;
         margin-bottom: 15px;
+        flex-wrap: wrap;
+        justify-content: space-around;
       }
 
       .stat-card {
+        flex: 1;
+        min-width: 70px;
         background: rgba(255, 255, 255, 0.04);
         border-radius: 10px;
-        padding: 10px 15px;
+        padding: 8px 12px;
         border: 1px solid rgba(255, 255, 255, 0.06);
         text-align: center;
       }
 
       .stat-card .number {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
         font-weight: 700;
         display: block;
       }
 
       .stat-card .label {
-        font-size: 10px;
+        font-size: 9px;
         color: rgba(255, 255, 255, 0.5);
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -579,42 +590,6 @@
         justify-content: center;
       }
 
-      /* ===== TOAST ===== */
-      .toast {
-        position: fixed;
-        bottom: 30px;
-        right: 30px;
-        padding: 12px 20px;
-        border-radius: 10px;
-        background: rgba(20, 25, 35, 0.95);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        color: #fff;
-        font-weight: 500;
-        font-size: 14px;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-        transform: translateY(100px);
-        opacity: 0;
-        transition: all 0.4s ease;
-        z-index: 2000;
-        max-width: 400px;
-        backdrop-filter: blur(10px);
-      }
-
-      .toast.show {
-        transform: translateY(0);
-        opacity: 1;
-      }
-
-      .toast.success {
-        border-color: rgba(0, 255, 89, 0.3);
-      }
-      .toast.error {
-        border-color: rgba(255, 50, 50, 0.3);
-      }
-      .toast.info {
-        border-color: rgba(74, 158, 255, 0.3);
-      }
-
       /* ===== RESPONSIVE ===== */
       @media (max-width: 1200px) {
         .cards-grid {
@@ -630,7 +605,6 @@
           grid-template-columns: 1fr;
         }
 
-        /* En tablets, los filtros se acomodan en 2 filas */
         .search-filters-row {
           flex-direction: column;
           align-items: stretch;
@@ -659,9 +633,26 @@
           flex-direction: column;
           gap: 10px;
         }
-        .stats {
-          grid-template-columns: repeat(2, 1fr);
+
+        .stats-row {
+          flex-wrap: wrap;
+          gap: 6px;
         }
+
+        .stat-card {
+          flex: 1 1 calc(33% - 6px);
+          min-width: 60px;
+          padding: 6px 8px;
+        }
+
+        .stat-card .number {
+          font-size: 1rem;
+        }
+
+        .stat-card .label {
+          font-size: 8px;
+        }
+
         .header-simah {
           flex-direction: column;
           align-items: stretch;
@@ -731,8 +722,8 @@
 
       <div id="header"></div>
 
-      <!-- 📊 ESTADÍSTICAS -->
-      <div class="stats" id="stats">
+      <!-- 📊 ESTADÍSTICAS EN UNA SOLA FILA -->
+      <div class="stats-row" id="stats">
         <div class="stat-card total">
           <span class="number" id="totalCount">0</span>
           <span class="label">Total</span>
@@ -885,9 +876,6 @@
       </div>
     </div>
 
-    <!-- ===== TOAST ===== -->
-    <div class="toast" id="toast"></div>
-
     <!-- ⚠️ CARGA LA LIBRERÍA DE SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -913,12 +901,66 @@
       let totalRegistros = 0;
 
       // ============================================================
+      // SISTEMA DE ESTADO (como el login)
+      // ============================================================
+      let intensidadUso = 0;
+      let respiracionInterval;
+
+      function iniciarRespiracion() {
+        const dashboard = document.querySelector(".glass");
+        if (!dashboard) return;
+
+        clearInterval(respiracionInterval);
+
+        let fase = 0;
+        respiracionInterval = setInterval(() => {
+          fase += 0.02;
+          const intensidad = Math.min(0.15 + intensidadUso / 80, 0.4);
+          const escala = 1 + Math.sin(fase) * intensidad * 0.02;
+          dashboard.style.transform = `scale(${escala})`;
+        }, 500);
+      }
+
+      function setEstado(estado, mensaje = null) {
+        const dashboard = document.querySelector(".glass");
+        if (!dashboard) return;
+
+        intensidadUso = Math.min(intensidadUso + 1, 10);
+        iniciarRespiracion();
+        setTimeout(
+          () => (intensidadUso = Math.max(intensidadUso - 1, 0)),
+          8000,
+        );
+
+        dashboard.classList.remove("loading", "success", "error");
+        dashboard.classList.add(estado);
+
+        // Si es success, después de 3 segundos vuelve a normal
+        if (estado === "success") {
+          setTimeout(() => {
+            dashboard.classList.remove("loading", "success", "error");
+          }, 3000);
+        } else if (estado === "error") {
+          setTimeout(() => {
+            dashboard.classList.remove("loading", "success", "error");
+          }, 4000);
+        } else if (estado === "loading") {
+          // El loading se quita cuando termina la operación
+        }
+      }
+
+      // Iniciar respiración al cargar
+      document.addEventListener("DOMContentLoaded", function () {
+        iniciarRespiracion();
+      });
+
+      // ============================================================
       // FUNCIONES CRUD
       // ============================================================
 
       // 📥 CARGAR DATOS
       async function cargarDatos() {
-        setGlassState("loading");
+        setEstado("loading");
 
         try {
           let query = sb.from("expedientes").select("*", { count: "exact" });
@@ -958,11 +1000,10 @@
             Math.ceil(totalRegistros / registrosPorPagina),
           );
 
-          setGlassState("success");
+          setEstado("success");
         } catch (error) {
           console.error("Error:", error);
-          setGlassState("error");
-          mostrarToast("Error al cargar datos: " + error.message, "error");
+          setEstado("error");
         }
       }
 
@@ -1006,6 +1047,8 @@
 
       // ➕ CREAR
       async function crearRegistro(datosForm) {
+        setEstado("loading");
+
         try {
           const { data, error } = await sb
             .from("expedientes")
@@ -1014,17 +1057,20 @@
 
           if (error) throw error;
 
-          mostrarToast("✅ Expediente creado exitosamente", "success");
+          setEstado("success");
           await cargarDatos();
           return data;
         } catch (error) {
-          mostrarToast("❌ Error al crear: " + error.message, "error");
+          setEstado("error");
+          console.error("Error al crear:", error);
           throw error;
         }
       }
 
       // ✏️ ACTUALIZAR
       async function actualizarRegistro(id, datosForm) {
+        setEstado("loading");
+
         try {
           const { data, error } = await sb
             .from("expedientes")
@@ -1034,11 +1080,12 @@
 
           if (error) throw error;
 
-          mostrarToast("✅ Expediente actualizado exitosamente", "success");
+          setEstado("success");
           await cargarDatos();
           return data;
         } catch (error) {
-          mostrarToast("❌ Error al actualizar: " + error.message, "error");
+          setEstado("error");
+          console.error("Error al actualizar:", error);
           throw error;
         }
       }
@@ -1048,15 +1095,18 @@
         if (!confirm(`¿Estás seguro de eliminar el expediente de "${nombre}"?`))
           return;
 
+        setEstado("loading");
+
         try {
           const { error } = await sb.from("expedientes").delete().eq("id", id);
 
           if (error) throw error;
 
-          mostrarToast("✅ Expediente eliminado exitosamente", "success");
+          setEstado("success");
           await cargarDatos();
         } catch (error) {
-          mostrarToast("❌ Error al eliminar: " + error.message, "error");
+          setEstado("error");
+          console.error("Error al eliminar:", error);
         }
       }
 
@@ -1189,7 +1239,7 @@
       function abrirModalEditar(id) {
         const registro = datos.find((r) => r.id === id);
         if (!registro) {
-          mostrarToast("Registro no encontrado", "error");
+          setEstado("error");
           return;
         }
 
@@ -1247,33 +1297,6 @@
 
       function recargarDatos() {
         cargarDatos();
-        mostrarToast("🔄 Recargando datos...", "info");
-      }
-
-      // 💬 TOAST
-      function mostrarToast(mensaje, tipo = "info") {
-        const toast = document.getElementById("toast");
-        toast.textContent = mensaje;
-        toast.className = "toast " + tipo;
-        setTimeout(() => toast.classList.add("show"), 10);
-
-        clearTimeout(toast._timeout);
-        toast._timeout = setTimeout(() => {
-          toast.classList.remove("show");
-        }, 3000);
-      }
-
-      // 🎨 GLASS STATE
-      function setGlassState(state) {
-        const glass = document.querySelector(".glass");
-        glass.classList.remove("loading", "success", "error");
-        if (state) {
-          glass.classList.add(state);
-          clearTimeout(window.glassTimeout);
-          window.glassTimeout = setTimeout(() => {
-            glass.classList.remove("loading", "success", "error");
-          }, 3000);
-        }
       }
 
       // ============================================================
