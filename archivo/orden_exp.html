@@ -14,26 +14,38 @@
     />
     <link href="/main_css/estilos.css" rel="stylesheet" />
     <style>
-      /* ===== Estilos base (mínimos cambios) ===== */
-      .grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1rem;
-        padding: 1rem;
+      /* ===== SCROLLBAR SUTIL ===== */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
       }
 
-      blockquote {
-        font-style: italic;
-        color: #e0e0e0;
-        margin: 0;
+      ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
       }
 
-      /* CELDA: principal modificación para evitar desbordamiento y mejorar responsividad */
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        transition: background 0.3s ease;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.03);
+      }
+
+      /* ===== MEJORAS DE LEGIBILIDAD EN CELDAS ===== */
       .celda {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.12);
         border-radius: 12px;
         padding: 0.8rem;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         cursor: pointer;
         transition:
           transform 0.2s ease,
@@ -47,31 +59,27 @@
         justify-content: space-between;
         height: auto;
         min-height: 90px;
-        /* altura mínima para consistencia */
         overflow: hidden;
-        /* evita desbordes externos */
         word-wrap: break-word;
-        /* rompe palabras largas */
         hyphens: auto;
-        /* guiones para palabras largas */
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      }
+
+      .celda:hover {
+        transform: translateY(-3px) scale(1.02);
+        background: rgba(255, 255, 255, 0.18);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
       }
 
       #egresos {
         background-color: rgba(40, 167, 69, 0.2);
       }
 
-      .celda:hover {
-        transform: translateY(-3px) scale(1.02);
-        background: rgba(255, 255, 255, 0.15);
-      }
-
       .celda h3 {
         font-size: 0.95rem;
-        /* ligeramente más pequeño para móviles */
         margin-bottom: 0.2rem;
         color: white;
         word-break: break-word;
-        /* seguridad extra */
         line-height: 1.2;
       }
 
@@ -95,11 +103,9 @@
         display: flex;
         align-items: flex-start;
         gap: 6px;
-        /* en lugar de margin-right fijo */
         margin-bottom: 0.3rem;
         padding: 2px 0;
         flex-wrap: wrap;
-        /* permite que los elementos bajen en pantallas muy pequeñas */
       }
 
       .celda-icon {
@@ -110,27 +116,27 @@
         align-items: center;
         justify-content: center;
         margin-right: 6px;
-        color: rgb(0, 255, 89);
-        font-weight: bold;
+        color: #00ff89;
+        font-weight: 700;
         font-size: 14px;
         flex-shrink: 0;
-        background: rgba(255, 255, 255, 0.15);
+        background: rgba(0, 255, 89, 0.15);
+        text-shadow: 0 0 10px rgba(0, 255, 89, 0.2);
       }
 
       .celda-title {
         font-size: 0.9rem;
-        font-weight: 600;
-        color: white;
+        font-weight: 700;
+        color: #ffffff;
         margin: 0;
         line-height: 1.2;
         flex: 1;
-        /* ocupa el espacio disponible */
         min-width: 60px;
-        /* evita que se encoja demasiado */
         word-break: break-word;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        letter-spacing: 0.3px;
       }
 
-      /* Contenedor de estados: permite que los badges bajen si es necesario */
       .celda-status-wrapper {
         display: flex;
         flex-wrap: wrap;
@@ -138,19 +144,18 @@
         margin-top: 4px;
         align-self: flex-start;
         width: 100%;
-        /* ocupa todo el ancho para que los badges se alineen bien */
       }
 
       .celda-status {
         display: inline-block;
-        padding: 2px 8px;
+        padding: 2px 10px;
         border-radius: 10px;
         font-size: 0.7rem;
-        /* más pequeño en móviles */
-        font-weight: 500;
+        font-weight: 600;
         text-transform: uppercase;
         white-space: nowrap;
-        /* evita que se rompan en varias líneas */
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       }
 
       .celda-content {
@@ -173,26 +178,26 @@
         position: relative;
       }
 
-      /* Estados */
+      /* Estados con mejor contraste */
       .status-required {
-        background: rgba(255, 50, 50, 0.2);
-        color: #ff3232;
-        border: 1px solid rgba(255, 50, 50, 0.3);
+        background: rgba(255, 50, 50, 0.25);
+        color: #ff6b6b;
+        border: 1px solid rgba(255, 50, 50, 0.2);
       }
 
       .status-pending {
-        background: rgba(255, 153, 0, 0.2);
-        color: #ff9900;
-        border: 1px solid rgba(255, 153, 0, 0.3);
+        background: rgba(255, 153, 0, 0.25);
+        color: #ffb84d;
+        border: 1px solid rgba(255, 153, 0, 0.2);
       }
 
       .status-complete {
-        background: rgba(0, 255, 89, 0.2);
-        color: rgb(0, 255, 89);
-        border: 1px solid rgba(0, 255, 89, 0.3);
+        background: rgba(0, 255, 89, 0.25);
+        color: #4dff8a;
+        border: 1px solid rgba(0, 255, 89, 0.2);
       }
 
-      /* ===== BUSCADOR (universal y versátil) ===== */
+      /* ===== BUSCADOR ===== */
       .search-container {
         display: flex;
         justify-content: center;
@@ -269,7 +274,7 @@
         display: none;
       }
 
-      /* ===== Modal (sin cambios relevantes) ===== */
+      /* ===== Modal ===== */
       .modal-overlay {
         position: fixed;
         top: 0;
@@ -389,7 +394,7 @@
       .modal-content {
         flex: 1;
         position: relative;
-        overflow: hidden;
+        overflow: auto;
         padding: 0;
       }
 
@@ -443,7 +448,6 @@
       @media (max-width: 360px) {
         .grid {
           grid-template-columns: 1fr;
-          /* una sola columna */
           padding: 0.5rem;
           gap: 0.6rem;
         }
@@ -466,7 +470,7 @@
 
         .celda-status {
           font-size: 0.6rem;
-          padding: 1px 6px;
+          padding: 1px 8px;
         }
 
         .search-box input {
@@ -515,69 +519,8 @@
 
         .celda-status {
           font-size: 0.6rem;
-          padding: 1px 6px;
+          padding: 1px 8px;
         }
-      }
-
-      /* ===== Ocultar elementos que no se usan ===== */
-      .celda .celda-status-wrapper .celda-status:only-child {
-        /* si solo hay un estado, se muestra normal */
-      }
-    </style>
-    <style>
-      /* ===== SCROLLBAR SUTIL E INADVERTIBLE ===== */
-      /* Para navegadores WebKit (Chrome, Edge, Safari, Opera) */
-      ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-      }
-
-      ::-webkit-scrollbar-track {
-        background: rgba(255, 255, 255, 0.03);
-        border-radius: 10px;
-      }
-
-      ::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 10px;
-        transition: background 0.3s ease;
-      }
-
-      ::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.2);
-      }
-
-      /* Para Firefox */
-      * {
-        scrollbar-width: thin;
-        scrollbar-color: rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.03);
-      }
-
-      /* ===== SCROLLBAR PARA EL MODAL (aún más sutil) ===== */
-      .modal-content::-webkit-scrollbar {
-        width: 4px;
-        height: 4px;
-      }
-
-      .modal-content::-webkit-scrollbar-track {
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 10px;
-      }
-
-      .modal-content::-webkit-scrollbar-thumb {
-        background: rgba(255, 255, 255, 0.08);
-        border-radius: 10px;
-        transition: background 0.3s ease;
-      }
-
-      .modal-content::-webkit-scrollbar-thumb:hover {
-        background: rgba(255, 255, 255, 0.15);
-      }
-
-      /* Para Firefox en el modal */
-      .modal-content {
-        scrollbar-width: thin;
-        scrollbar-color: rgba(255, 255, 255, 0.08) rgba(0, 0, 0, 0.1);
       }
     </style>
   </head>
@@ -587,7 +530,7 @@
       <h5>Orden del Expediente Clínico</h5>
       <div id="header"></div>
 
-      <!-- ===== BUSCADOR (universal) ===== -->
+      <!-- ===== BUSCADOR ===== -->
       <div class="search-container">
         <div class="search-box">
           <i class="fas fa-search"></i>
@@ -608,7 +551,7 @@
       </div>
 
       <div class="grid" id="gridContainer">
-        <!-- Las celdas se generan dinámicamente con JavaScript para mantener el orden y permitir búsqueda -->
+        <!-- Las celdas se generan dinámicamente con JavaScript -->
       </div>
 
       <div class="no-results" id="noResults">
@@ -655,7 +598,7 @@
 
     <script>
       // ============================================================
-      // DATOS DE LAS CELDAS (para generar dinámicamente y buscar)
+      // DATOS DE LAS CELDAS
       // ============================================================
       const documentos = [
         {
@@ -929,22 +872,18 @@
         const filterLower = filter.toLowerCase().trim();
         let hasResults = false;
 
-        // Limpiar grid
         grid.innerHTML = "";
 
         documentos.forEach((doc) => {
-          // Construir texto a buscar (número, título, estado, estado extra)
           const searchableText =
             `${doc.id} ${doc.title} ${doc.status} ${doc.extraStatus || ""}`.toLowerCase();
 
-          // Si hay filtro y no coincide, ocultar
           if (filterLower && !searchableText.includes(filterLower)) {
             return;
           }
 
           hasResults = true;
 
-          // Crear celda
           const celda = document.createElement("div");
           celda.className = "celda";
           if (doc.extraId === "egresos") {
@@ -954,7 +893,6 @@
           celda.setAttribute("data-title", doc.title);
           celda.setAttribute("data-url", doc.url || "");
 
-          // Header
           const header = document.createElement("div");
           header.className = "celda-header";
 
@@ -969,7 +907,6 @@
           header.appendChild(icon);
           header.appendChild(title);
 
-          // Wrapper de estados
           const statusWrapper = document.createElement("div");
           statusWrapper.className = "celda-status-wrapper";
 
@@ -989,7 +926,6 @@
           celda.appendChild(header);
           celda.appendChild(statusWrapper);
 
-          // Evento click
           celda.addEventListener("click", function (e) {
             if (e.target.tagName === "A" || e.target.closest("a")) return;
             openModal(this);
@@ -998,7 +934,6 @@
           grid.appendChild(celda);
         });
 
-        // Mostrar/ocultar mensaje de no resultados
         if (filterLower && !hasResults) {
           noResults.style.display = "block";
         } else {
@@ -1007,7 +942,7 @@
       }
 
       // ============================================================
-      // FUNCIONES DEL MODAL (igual que antes)
+      // FUNCIONES DEL MODAL
       // ============================================================
       let currentDocumentUrl = "";
 
@@ -1125,10 +1060,8 @@
       // EVENTOS Y DOMContentLoaded
       // ============================================================
       document.addEventListener("DOMContentLoaded", function () {
-        // Renderizar todas las celdas
         renderCeldas();
 
-        // Buscador
         searchInput.addEventListener("input", function () {
           const value = this.value;
           renderCeldas(value);
@@ -1142,7 +1075,6 @@
           searchInput.focus();
         });
 
-        // Modal: eventos
         document
           .getElementById("closeModalBtn")
           .addEventListener("click", closeModal);
