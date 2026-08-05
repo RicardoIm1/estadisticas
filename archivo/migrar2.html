@@ -1,119 +1,108 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <title>Migrar datos.json a Supabase (CON VERIFICACIÓN)</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-      body {
-        font-family: "Courier New", monospace;
-        background: #1a1a2e;
-        color: #eee;
-        padding: 20px;
-        margin: 0;
-      }
-      #log {
-        background: #0f0f1a;
-        padding: 20px;
-        border-radius: 10px;
-        max-height: 80vh;
-        overflow-y: auto;
-        border: 1px solid #333;
-        white-space: pre-wrap;
-        font-size: 14px;
-        line-height: 1.6;
-      }
-      .success {
-        color: #00ff89;
-      }
-      .error {
-        color: #ff4444;
-      }
-      .info {
-        color: #4a9eff;
-      }
-      .title {
-        color: #ffdd00;
-        font-size: 20px;
-      }
-      .warning {
-        color: #ff9900;
-      }
-      .progress-bar {
-        width: 100%;
-        height: 20px;
-        background: #333;
-        border-radius: 10px;
-        margin: 10px 0;
-        overflow: hidden;
-      }
-      .progress-bar .fill {
-        height: 100%;
-        background: linear-gradient(90deg, #4a9eff, #00ff89);
-        border-radius: 10px;
-        transition: width 0.5s ease;
-        width: 0%;
-      }
+        body {
+            font-family: "Courier New", monospace;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+            margin: 0;
+        }
+        #log {
+            background: #0f0f1a;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #333;
+            white-space: pre-wrap;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .success { color: #00ff89; }
+        .error { color: #ff4444; }
+        .info { color: #4a9eff; }
+        .title { color: #ffdd00; font-size: 20px; }
+        .warning { color: #ff9900; }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #333;
+            border-radius: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-bar .fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a9eff, #00ff89);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+            width: 0%;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <h1>📋 Migrador de datos.json → Supabase (CON VERIFICACIÓN)</h1>
     <div class="progress-bar">
-      <div class="fill" id="progressFill"></div>
+        <div class="fill" id="progressFill"></div>
     </div>
     <div id="log">⏳ Iniciando migración...</div>
 
     <script>
-      // ============================================================
-      // CONFIGURACIÓN SUPABASE
-      // ============================================================
-      const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
-      const SUPABASE_KEY =
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
+        // ============================================================
+        // CONFIGURACIÓN SUPABASE
+        // ============================================================
+        const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
+        const SUPABASE_KEY =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-      /* const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); */
+        // ✅ SOLO UNA DECLARACIÓN - elimina las otras que encuentres
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      // ============================================================
-      // LOGGING
-      // ============================================================
-      const logDiv = document.getElementById("log");
-      const progressFill = document.getElementById("progressFill");
+        // ============================================================
+        // LOGGING
+        // ============================================================
+        const logDiv = document.getElementById("log");
+        const progressFill = document.getElementById("progressFill");
 
-      function log(message, type = "info") {
-        const colors = {
-          success: "#00ff89",
-          error: "#ff4444",
-          info: "#4a9eff",
-          title: "#ffdd00",
-          warning: "#ff9900",
-        };
-        logDiv.innerHTML += `<span style="color: ${colors[type] || "#eee"}">${message}</span>\n`;
-        logDiv.scrollTop = logDiv.scrollHeight;
-      }
+        function log(message, type = "info") {
+            const colors = {
+                success: "#00ff89",
+                error: "#ff4444",
+                info: "#4a9eff",
+                title: "#ffdd00",
+                warning: "#ff9900",
+            };
+            logDiv.innerHTML += `<span style="color: ${colors[type] || "#eee"}">${message}</span>\n`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
 
-      function updateProgress(current, total) {
-        const percent = total > 0 ? Math.round((current / total) * 100) : 0;
-        progressFill.style.width = percent + "%";
-      }
+        function updateProgress(current, total) {
+            const percent = total > 0 ? Math.round((current / total) * 100) : 0;
+            progressFill.style.width = percent + "%";
+        }
 
-      // ============================================================
-      // VERIFICAR CONEXIÓN Y TABLA
-      // ============================================================
-      async function verificarConexion() {
-        log("🔍 Verificando conexión con Supabase...", "info");
+        // ============================================================
+        // VERIFICAR CONEXIÓN Y TABLA
+        // ============================================================
+        async function verificarConexion() {
+            log("🔍 Verificando conexión con Supabase...", "info");
+            
+            try {
+                // Probar conexión con una consulta simple
+                const { data, error } = await supabase
+                    .from('expedientes')
+                    .select('count', { count: 'exact', head: true });
 
-        try {
-          // Probar conexión con una consulta simple
-          const { data, error } = await supabase
-            .from("expedientes")
-            .select("count", { count: "exact", head: true });
-
-          if (error) {
-            if (error.code === "42P01") {
-              log("❌ La tabla 'expedientes' NO existe en Supabase", "error");
-              log("\n💡 Debes crear la tabla primero. Ejecuta en SQL:", "info");
-              log(
-                `
+                if (error) {
+                    if (error.code === '42P01') {
+                        log("❌ La tabla 'expedientes' NO existe en Supabase", "error");
+                        log("\n💡 Debes crear la tabla primero. Ejecuta en SQL:", "info");
+                        log(`
                             CREATE TABLE expedientes (
                               id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                               nombre_paciente TEXT NOT NULL,
@@ -127,207 +116,168 @@
                               created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
                               updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
                             );
-                        `,
-                "info",
-              );
-              return false;
-            } else {
-              log(`❌ Error de conexión: ${error.message}`, "error");
-              return false;
-            }
-          }
-
-          log("✅ Conexión exitosa. La tabla 'expedientes' existe.", "success");
-          return true;
-        } catch (error) {
-          log(`❌ Error al conectar: ${error.message}`, "error");
-          return false;
-        }
-      }
-
-      // ============================================================
-      // CARGAR datos.json
-      // ============================================================
-      async function cargarDatosJSON() {
-        try {
-          log("📂 Cargando datos.json...", "info");
-          const response = await fetch("datos.json");
-
-          if (!response.ok) {
-            throw new Error(
-              `No se pudo cargar datos.json (HTTP ${response.status})`,
-            );
-          }
-
-          const data = await response.json();
-          const registros = Array.isArray(data)
-            ? data
-            : data.rows || data.data || [];
-
-          log(
-            `✅ Cargados ${registros.length} registros de datos.json\n`,
-            "success",
-          );
-          return registros;
-        } catch (error) {
-          log(`❌ Error cargando datos.json: ${error.message}`, "error");
-          log("\n💡 Asegúrate de que:", "info");
-          log("   1. datos.json está en la misma carpeta", "info");
-          log("   2. El archivo tiene formato JSON válido", "info");
-          return null;
-        }
-      }
-
-      // ============================================================
-      // MIGRAR DATOS
-      // ============================================================
-      async function migrarDatos() {
-        // PASO 1: Verificar conexión
-        const conexionOk = await verificarConexion();
-        if (!conexionOk) return;
-
-        // PASO 2: Cargar datos
-        const registros = await cargarDatosJSON();
-        if (!registros || registros.length === 0) {
-          log("❌ No hay datos para migrar", "error");
-          return;
-        }
-
-        log("\n🚀 Iniciando migración a Supabase (UUID)...\n", "title");
-
-        const BATCH_SIZE = 50; // Lotes más pequeños para mejor control
-        let migrados = 0;
-        let errores = 0;
-        let duplicados = 0;
-        const total = registros.length;
-
-        // Procesar en lotes
-        for (let i = 0; i < registros.length; i += BATCH_SIZE) {
-          const batch = registros.slice(i, i + BATCH_SIZE);
-          const batchRegistros = [];
-
-          // Preparar los registros del lote
-          for (const item of batch) {
-            const registro = {
-              nombre_paciente: item["NOMBRE DEL PACIENTE"]?.trim() || "",
-              expediente: item["EXPEDIENTE"]?.trim() || "",
-              servicio: item["SERVICIO"]?.trim() || "",
-              fecha_registro: item["FECHA DE REGISTRO"]
-                ? new Date(item["FECHA DE REGISTRO"])
-                    .toISOString()
-                    .split("T")[0]
-                : null,
-              estado: item["estado"] || "Activo",
-              sexo: item["sexo"] || null,
-              fecha_nac: item["fecha_nac"] || null,
-              tel_part: item["tel_part"] || null,
-            };
-
-            if (registro.expediente) {
-              batchRegistros.push(registro);
-            }
-          }
-
-          if (batchRegistros.length === 0) {
-            log(`⚠️ Lote ${i + 1}: Sin registros válidos`, "warning");
-            continue;
-          }
-
-          try {
-            // Intentar insertar el lote completo
-            const { data, error } = await supabase
-              .from("expedientes")
-              .insert(batchRegistros)
-              .select();
-
-            if (error) {
-              log(
-                `❌ Error en lote ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`,
-                "error",
-              );
-
-              // Intentar uno por uno para identificar problemas
-              for (const reg of batchRegistros) {
-                try {
-                  const { error: singleError } = await supabase
-                    .from("expedientes")
-                    .insert([reg]);
-
-                  if (singleError) {
-                    if (singleError.code === "23505") {
-                      duplicados++;
+                        `, "info");
+                        return false;
                     } else {
-                      errores++;
-                      log(
-                        `❌ ${reg.expediente}: ${singleError.message}`,
-                        "error",
-                      );
+                        log(`❌ Error de conexión: ${error.message}`, "error");
+                        return false;
                     }
-                  } else {
-                    migrados++;
-                    log(
-                      `✅ ${reg.nombre_paciente} (${reg.expediente})`,
-                      "success",
-                    );
-                  }
-                } catch (e) {
-                  errores++;
                 }
-              }
-            } else {
-              migrados += data.length;
-              log(
-                `✅ Lote ${Math.floor(i / BATCH_SIZE) + 1}: ${data.length} registros insertados`,
-                "success",
-              );
+
+                log("✅ Conexión exitosa. La tabla 'expedientes' existe.", "success");
+                return true;
+
+            } catch (error) {
+                log(`❌ Error al conectar: ${error.message}`, "error");
+                return false;
+            }
+        }
+
+        // ============================================================
+        // CARGAR datos.json
+        // ============================================================
+        async function cargarDatosJSON() {
+            try {
+                log("📂 Cargando datos.json...", "info");
+                const response = await fetch("datos.json");
+                
+                if (!response.ok) {
+                    throw new Error(`No se pudo cargar datos.json (HTTP ${response.status})`);
+                }
+                
+                const data = await response.json();
+                const registros = Array.isArray(data) ? data : data.rows || data.data || [];
+                
+                log(`✅ Cargados ${registros.length} registros de datos.json\n`, "success");
+                return registros;
+                
+            } catch (error) {
+                log(`❌ Error cargando datos.json: ${error.message}`, "error");
+                log("\n💡 Asegúrate de que:", "info");
+                log("   1. datos.json está en la misma carpeta", "info");
+                log("   2. El archivo tiene formato JSON válido", "info");
+                return null;
+            }
+        }
+
+        // ============================================================
+        // MIGRAR DATOS
+        // ============================================================
+        async function migrarDatos() {
+            // PASO 1: Verificar conexión
+            const conexionOk = await verificarConexion();
+            if (!conexionOk) return;
+
+            // PASO 2: Cargar datos
+            const registros = await cargarDatosJSON();
+            if (!registros || registros.length === 0) {
+                log("❌ No hay datos para migrar", "error");
+                return;
             }
 
-            // Actualizar progreso
-            const procesados = Math.min(i + BATCH_SIZE, total);
-            updateProgress(procesados, total);
-            log(
-              `📊 Progreso: ${procesados}/${total} (${Math.round((procesados / total) * 100)}%)`,
-              "info",
-            );
-          } catch (error) {
-            log(
-              `❌ Error en lote ${Math.floor(i / BATCH_SIZE) + 1}: ${error.message}`,
-              "error",
-            );
-            errores += batchRegistros.length;
-          }
+            log("\n🚀 Iniciando migración a Supabase (UUID)...\n", "title");
 
-          // Pausa para no saturar
-          await new Promise((resolve) => setTimeout(resolve, 1000));
+            const BATCH_SIZE = 50;
+            let migrados = 0;
+            let errores = 0;
+            let duplicados = 0;
+            const total = registros.length;
+
+            for (let i = 0; i < registros.length; i += BATCH_SIZE) {
+                const batch = registros.slice(i, i + BATCH_SIZE);
+                const batchRegistros = [];
+
+                for (const item of batch) {
+                    const registro = {
+                        nombre_paciente: item["NOMBRE DEL PACIENTE"]?.trim() || "",
+                        expediente: item["EXPEDIENTE"]?.trim() || "",
+                        servicio: item["SERVICIO"]?.trim() || "",
+                        fecha_registro: item["FECHA DE REGISTRO"]
+                            ? new Date(item["FECHA DE REGISTRO"]).toISOString().split("T")[0]
+                            : null,
+                        estado: item["estado"] || "Activo",
+                        sexo: item["sexo"] || null,
+                        fecha_nac: item["fecha_nac"] || null,
+                        tel_part: item["tel_part"] || null,
+                    };
+
+                    if (registro.expediente) {
+                        batchRegistros.push(registro);
+                    }
+                }
+
+                if (batchRegistros.length === 0) {
+                    log(`⚠️ Lote ${i+1}: Sin registros válidos`, "warning");
+                    continue;
+                }
+
+                try {
+                    const { data, error } = await supabase
+                        .from("expedientes")
+                        .insert(batchRegistros)
+                        .select();
+
+                    if (error) {
+                        log(`❌ Error en lote ${Math.floor(i/BATCH_SIZE)+1}: ${error.message}`, "error");
+                        
+                        for (const reg of batchRegistros) {
+                            try {
+                                const { error: singleError } = await supabase
+                                    .from("expedientes")
+                                    .insert([reg]);
+
+                                if (singleError) {
+                                    if (singleError.code === "23505") {
+                                        duplicados++;
+                                    } else {
+                                        errores++;
+                                        log(`❌ ${reg.expediente}: ${singleError.message}`, "error");
+                                    }
+                                } else {
+                                    migrados++;
+                                    log(`✅ ${reg.nombre_paciente} (${reg.expediente})`, "success");
+                                }
+                            } catch (e) {
+                                errores++;
+                            }
+                        }
+                    } else {
+                        migrados += data.length;
+                        log(`✅ Lote ${Math.floor(i/BATCH_SIZE)+1}: ${data.length} registros insertados`, "success");
+                    }
+
+                    const procesados = Math.min(i + BATCH_SIZE, total);
+                    updateProgress(procesados, total);
+                    log(`📊 Progreso: ${procesados}/${total} (${Math.round((procesados/total)*100)}%)`, "info");
+
+                } catch (error) {
+                    log(`❌ Error en lote ${Math.floor(i/BATCH_SIZE)+1}: ${error.message}`, "error");
+                    errores += batchRegistros.length;
+                }
+
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+
+            log("\n" + "=".repeat(50), "info");
+            log("📊 MIGRACIÓN COMPLETADA", "title");
+            log(`   ✅ Migrados exitosamente: ${migrados}`, "success");
+            log(`   ⚠️  Duplicados omitidos: ${duplicados}`, "warning");
+            log(`   ❌ Errores: ${errores}`, "error");
+            log(`   📦 Total procesados: ${total}`, "info");
+            log("=".repeat(50), "info");
+
+            if (migrados > 0) {
+                log("\n✅ Migración exitosa. Verifica los datos en Supabase.", "success");
+                log("📋 Puedes cerrar esta ventana y abrir tu CRUD", "success");
+            } else {
+                log("\n❌ No se migró ningún registro. Revisa los errores arriba.", "error");
+            }
         }
 
-        // Resumen final
-        log("\n" + "=".repeat(50), "info");
-        log("📊 MIGRACIÓN COMPLETADA", "title");
-        log(`   ✅ Migrados exitosamente: ${migrados}`, "success");
-        log(`   ⚠️  Duplicados omitidos: ${duplicados}`, "warning");
-        log(`   ❌ Errores: ${errores}`, "error");
-        log(`   📦 Total procesados: ${total}`, "info");
-        log("=".repeat(50), "info");
-
-        if (migrados > 0) {
-          log(
-            "\n✅ Migración exitosa. Verifica los datos en Supabase.",
-            "success",
-          );
-          log("📋 Puedes cerrar esta ventana y abrir tu CRUD", "success");
-        } else {
-          log(
-            "\n❌ No se migró ningún registro. Revisa los errores arriba.",
-            "error",
-          );
-        }
-      }
-
-      // ============================================================
-      // INICIAR MIGRACIÓN
-      // ============================================================
-      migrarDatos();
+        // ============================================================
+        // INICIAR MIGRACIÓN
+        // ============================================================
+        migrarDatos();
     </script>
-  </body>
+</body>
 </html>
