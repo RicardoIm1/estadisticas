@@ -762,7 +762,7 @@
           <input
             type="text"
             id="busqueda"
-            placeholder="Buscar por nombre, expediente, teléfono, fecha..."
+            placeholder="Buscar por nombre, expediente, teléfono, servicio..."
             oninput="buscar()"
           />
           <i class="fa-solid fa-magnifying-glass"></i>
@@ -939,9 +939,9 @@
         try {
           let query = sb.from("expedientes").select("*", { count: "exact" });
 
-          // 🔍 BÚSQUEDA EN TODOS LOS CAMPOS (SIN fecha_registro::text)
+          // 🔍 BÚSQUEDA SOLO EN CAMPOS DE TEXTO (SIN fecha_registro)
           if (textoBusqueda) {
-            // Buscar solo en campos de texto
+            // Solo campos de texto - fecha_registro se omite porque causa error
             const conditions = [
               `nombre_paciente.ilike.%${textoBusqueda}%`,
               `expediente.ilike.%${textoBusqueda}%`,
@@ -950,9 +950,6 @@
               `sexo.ilike.%${textoBusqueda}%`,
               `tel_part.ilike.%${textoBusqueda}%`,
             ];
-
-            // Para fecha, usamos cast a texto
-            conditions.push(`fecha_registro::text.ilike.%${textoBusqueda}%`);
 
             query = query.or(conditions.join(","));
           }
