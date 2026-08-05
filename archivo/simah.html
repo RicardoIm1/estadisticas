@@ -718,7 +718,7 @@
   <body>
     <div class="glass" id="dashboard">
       <div class="header-simah">
-        <h5>🛟 EXPEDIENTES CLÍNICOS</h5>
+        <h5>📋 EXPEDIENTES CLÍNICOS</h5>
         <div class="header-actions">
           <button class="btn btn-primary" onclick="abrirModal()">
             <i class="fas fa-plus"></i> Nuevo
@@ -762,7 +762,7 @@
           <input
             type="text"
             id="busqueda"
-            placeholder="Buscar…"
+            placeholder="Buscar por nombre, expediente, teléfono, fecha..."
             oninput="buscar()"
           />
           <i class="fa-solid fa-magnifying-glass"></i>
@@ -904,17 +904,16 @@
       // ============================================================
       // VARIABLES GLOBALES
       // ============================================================
-      let datos = [];
       let paginaActual = 1;
       const registrosPorPagina = 12;
       let textoBusqueda = "";
       let estadoFiltro = "";
       let sexoFiltro = "";
       let totalRegistros = 0;
-      let hayFiltroActivo = false;
+      let datosActuales = [];
 
       // ============================================================
-      // SISTEMA DE ESTADO (como el login)
+      // SISTEMA DE ESTADO
       // ============================================================
       let intensidadUso = 0;
       let respiracionInterval;
@@ -934,7 +933,7 @@
         }, 500);
       }
 
-      function setEstado(estado, mensaje = null) {
+      function setEstado(estado) {
         const dashboard = document.querySelector(".glass");
         if (!dashboard) return;
 
@@ -971,12 +970,9 @@
         setEstado("loading");
 
         try {
-          // Determinar si hay filtros activos
-          hayFiltroActivo = !!(textoBusqueda || estadoFiltro || sexoFiltro);
-
           let query = sb.from("expedientes").select("*", { count: "exact" });
 
-          // 🔍 BÚSQUEDA EN TODOS LOS CAMPOS
+          // 🔍 BÚSQUEDA EN TODOS LOS CAMPOS (como en la versión original)
           if (textoBusqueda) {
             query = query.or(
               `nombre_paciente.ilike.%${textoBusqueda}%,` +
@@ -1000,15 +996,10 @@
           const from = (paginaActual - 1) * registrosPorPagina;
           const to = from + registrosPorPagina - 1;
 
-          // 🔥 ORDEN: Si hay filtro → alfabético, si no → por fecha (más reciente primero)
-          let orderField = "nombre_paciente";
-          let orderAscending = true;
-
-          if (!hayFiltroActivo) {
-            // Sin filtro: ordenar por fecha de registro, más reciente primero
-            orderField = "created_at";
-            orderAscending = false;
-          }
+          // 🔥 ORDEN: Sin filtros → por fecha (más reciente primero), con filtros → alfabético
+          const hayFiltro = !!(textoBusqueda || estadoFiltro || sexoFiltro);
+          const orderField = hayFiltro ? "nombre_paciente" : "created_at";
+          const orderAscending = hayFiltro ? true : false;
 
           const { data, error, count } = await query
             .order(orderField, { ascending: orderAscending })
@@ -1016,10 +1007,10 @@
 
           if (error) throw error;
 
-          datos = data || [];
+          datosActuales = data || [];
           totalRegistros = count || 0;
 
-          renderCards(datos);
+          renderCards(datosActuales);
           actualizarEstadisticas();
           renderPaginacion(
             totalRegistros,
@@ -1255,7 +1246,7 @@
       }
 
       function abrirModalEditar(id) {
-        const registro = datos.find((r) => r.id === id);
+        const registro = datosActuales.find((r) => r.id === id);
         if (!registro) {
           setEstado("error");
           return;
