@@ -1,740 +1,212 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BD SIMAH - Supabase</title>
-
-  <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon">
-  <link rel="icon" href="/img/favicon.ico" type="image/x-icon">
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
-
-  <link href="/main_css/estilos.css" rel="stylesheet">
-
-  <!-- Supabase JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <style>
-    /* ===== SCROLLBAR SUTIL ===== */
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.12);
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.03);
-    }
-
-    /* ===== GLASS ===== */
-    .glass {
-      background: rgba(255, 255, 255, 0.05) !important;
-      backdrop-filter: blur(10px) !important;
-      -webkit-backdrop-filter: blur(10px) !important;
-      border-radius: 16px;
-      padding: 1rem;
-      margin: 1rem;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      transition: border-color 0.8s ease, box-shadow 0.8s ease;
-    }
-
-    .glass.loading {
-      border-color: rgba(74, 158, 255, 0.4);
-      box-shadow: 0 8px 32px rgba(74, 158, 255, 0.15);
-    }
-    .glass.success {
-      border-color: rgba(0, 255, 89, 0.3);
-      box-shadow: 0 8px 32px rgba(0, 255, 89, 0.1);
-    }
-    .glass.error {
-      border-color: rgba(255, 50, 50, 0.3);
-      box-shadow: 0 8px 32px rgba(255, 50, 50, 0.1);
-    }
-
-    /* ===== GRID ===== */
-    .grid {
-      display: grid;
-      grid-template-rows: 1fr auto;
-      height: 100%;
-      gap: 20px;
-    }
-
-    .cards-grid {
-      grid-row: 1;
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      width: 100%;
-      overflow-y: auto;
-    }
-
-    /* ===== PAGINACIÓN ===== */
-    .paginacion {
-      grid-row: 2;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
-      padding: 15px;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 10px;
-    }
-
-    .paginacion button {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .paginacion button:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-    .paginacion span {
-      font-weight: 600;
-      color: white;
-    }
-
-    /* ===== CARDS ===== */
-    .card {
-      background: rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
-      padding: 1.4rem;
-      transition: transform .2s ease;
-      min-height: 100px;
-      overflow: hidden;
-      word-wrap: break-word;
-      hyphens: auto;
-      position: relative;
-    }
-    .card:hover {
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.12);
-    }
-
-    .card span {
-      font-weight: 600;
-      font-size: 14px;
-      display: block;
-      margin-bottom: 5px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    .card small {
-      font-size: 0.85rem;
-      display: block;
-      margin-bottom: 3px;
-      color: #fff;
-      opacity: 0.85;
-    }
-
-    .card .card-actions {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      gap: 8px;
-    }
-
-    .card .card-actions button {
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      color: white;
-      padding: 4px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.2s ease;
-    }
-    .card .card-actions button:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
-    .card .card-actions .btn-edit:hover {
-      background: rgba(74, 158, 255, 0.3);
-    }
-    .card .card-actions .btn-delete:hover {
-      background: rgba(255, 50, 50, 0.3);
-    }
-
-    /* ===== BUSCADOR ===== */
-    .buscador {
-      margin: 12px 0 20px;
-      position: relative;
-    }
-    .buscador input {
-      width: 100%;
-      padding: 10px 38px 10px 14px;
-      border-radius: 12px;
-      border: none;
-      outline: none;
-      font-size: 14px;
-      background: rgba(255, 255, 255, 0.12);
-      color: #fff;
-    }
-    .buscador input::placeholder {
-      color: rgba(255, 255, 255, 0.5);
-    }
-    .buscador i {
-      position: absolute;
-      right: 14px;
-      top: 50%;
-      transform: translateY(-50%);
-      opacity: .6;
-    }
-
-    /* ===== ESTADOS ===== */
-    .estado-defuncion {
-      color: #ff4444 !important;
-      font-weight: bold !important;
-    }
-    .estado-activo {
-      color: #00ff89 !important;
-      font-weight: bold !important;
-    }
-    .estado-inactivo {
-      color: #ff9900 !important;
-      font-weight: bold !important;
-    }
-    .estado-alta {
-      color: #4a9eff !important;
-      font-weight: bold !important;
-    }
-
-    /* ===== MODAL CRUD ===== */
-    .modal-crud {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.8);
-      backdrop-filter: blur(5px);
-      z-index: 1000;
-      justify-content: center;
-      align-items: center;
-    }
-    .modal-crud.active {
-      display: flex;
-    }
-
-    .modal-crud-content {
-      background: rgba(30, 35, 45, 0.95);
-      border-radius: 16px;
-      padding: 2rem;
-      max-width: 500px;
-      width: 90%;
-      max-height: 90vh;
-      overflow-y: auto;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    }
-
-    .modal-crud-content h2 {
-      color: white;
-      margin-top: 0;
-      margin-bottom: 1.5rem;
-    }
-
-    .modal-crud-content form {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .modal-crud-content label {
-      color: rgba(255, 255, 255, 0.8);
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .modal-crud-content input,
-    .modal-crud-content select {
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      background: rgba(255, 255, 255, 0.08);
-      color: white;
-      font-size: 14px;
-      width: 100%;
-      box-sizing: border-box;
-    }
-
-    .modal-crud-content input:focus,
-    .modal-crud-content select:focus {
-      outline: none;
-      border-color: #4a9eff;
-      box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
-    }
-
-    .modal-crud-content input::placeholder {
-      color: rgba(255, 255, 255, 0.3);
-    }
-
-    .modal-crud-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .modal-crud-actions button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 8px;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      flex: 1;
-    }
-
-    .modal-crud-actions .btn-save {
-      background: linear-gradient(135deg, #4a9eff, #2d7dd2);
-      color: white;
-    }
-    .modal-crud-actions .btn-save:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(74, 158, 255, 0.3);
-    }
-
-    .modal-crud-actions .btn-cancel {
-      background: rgba(255, 255, 255, 0.1);
-      color: rgba(255, 255, 255, 0.8);
-    }
-    .modal-crud-actions .btn-cancel:hover {
-      background: rgba(255, 255, 255, 0.15);
-    }
-
-    /* ===== RESPONSIVE ===== */
-    @media (max-width: 1200px) {
-      .cards-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (max-width: 900px) {
-      .cards-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (max-width: 600px) {
-      .cards-grid { grid-template-columns: 1fr; }
-      .paginacion { flex-direction: column; gap: 10px; }
-      .modal-crud-content { padding: 1.5rem; }
-    }
-  </style>
-</head>
-
-<body>
-
-  <div class="glass" id="dashboard">
-    <h5>📋 EXPEDIENTES CLÍNICOS - SUPABASE</h5>
-    <div id="header"></div>
-
-    <!-- 🔍 BUSCADOR -->
-    <div class="buscador">
-      <input type="text" id="busqueda" placeholder="Buscar por nombre, expediente o servicio…">
-      <i class="fa-solid fa-magnifying-glass"></i>
-    </div>
-
-    <!-- 🎯 CONTENEDOR GRID PRINCIPAL -->
-    <div class="grid">
-      <div id="cards" class="cards-grid"></div>
-      <div class="paginacion">
-        <button onclick="cambiarPagina(-1)">← Anterior</button>
-        <span id="paginaActual">Página 1 de 1</span>
-        <button onclick="cambiarPagina(1)">Siguiente →</button>
-      </div>
-    </div>
-
-    <!-- Botón para agregar nuevo -->
-    <div style="margin-top: 20px; text-align: center;">
-      <button onclick="abrirModalCrear()" style="
-        background: linear-gradient(135deg, #4a9eff, #2d7dd2);
-        color: white;
-        border: none;
-        padding: 12px 24px;
+  <head>
+    <meta charset="UTF-8" />
+    <title>Migrar datos.json a Supabase (UUID)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      body {
+        font-family: "Courier New", monospace;
+        background: #1a1a2e;
+        color: #eee;
+        padding: 20px;
+        margin: 0;
+      }
+      #log {
+        background: #0f0f1a;
+        padding: 20px;
         border-radius: 10px;
-        font-size: 16px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      ">
-        <i class="fas fa-plus"></i> Nuevo Expediente
-      </button>
-    </div>
-
-    <div id="footer"></div>
-  </div>
-
-  <!-- ===== MODAL CRUD ===== -->
-  <div class="modal-crud" id="modalCrud">
-    <div class="modal-crud-content">
-      <h2 id="modalTitle">Nuevo Expediente</h2>
-      <form id="crudForm" onsubmit="guardarRegistro(event)">
-        <input type="hidden" id="editId">
-
-        <label>Nombre del Paciente *</label>
-        <input type="text" id="nombrePaciente" required>
-
-        <label>Expediente *</label>
-        <input type="text" id="expediente" required>
-
-        <label>Servicio</label>
-        <input type="text" id="servicio">
-
-        <label>Fecha de Registro</label>
-        <input type="date" id="fechaRegistro">
-
-        <label>Estado</label>
-        <select id="estado">
-          <option value="Activo">Activo</option>
-          <option value="Inactivo">Inactivo</option>
-          <option value="Defunción">Defunción</option>
-          <option value="Alta">Alta</option>
-        </select>
-
-        <label>Sexo</label>
-        <select id="sexo">
-          <option value="">No especificado</option>
-          <option value="M">Masculino</option>
-          <option value="F">Femenino</option>
-        </select>
-
-        <label>Fecha de Nacimiento</label>
-        <input type="date" id="fechaNac">
-
-        <label>Teléfono</label>
-        <input type="text" id="telPart" placeholder="555-1234">
-
-        <div class="modal-crud-actions">
-          <button type="submit" class="btn-save">Guardar</button>
-          <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <script>
-    // ============================================================
-    // CONFIGURACIÓN SUPABASE - ¡CAMBIAR ESTOS VALORES!
-    // ============================================================
-    const SUPABASE_URL = 'https://njtlruvhcatklccdxpla.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc';
-
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-    // ============================================================
-    // VARIABLES GLOBALES
-    // ============================================================
-    const ITEMS_PER_PAGE = 20;
-    let page = 1;
-    let totalPages = 1;
-    let datosOriginales = [];
-    let datosFiltrados = [];
-
-    // ============================================================
-    // FUNCIONES CRUD
-    // ============================================================
-
-    // 📥 CARGAR DATOS DESDE SUPABASE
-    async function cargarDatos() {
-      setGlassState('loading');
-
-      try {
-        const { data, error } = await supabase
-          .from('expedientes')
-          .select('*')
-          .order('nombre_paciente', { ascending: true });
-
-        if (error) throw error;
-
-        datosOriginales = data || [];
-        totalPages = Math.ceil(datosOriginales.length / ITEMS_PER_PAGE);
-        mostrarPagina();
-        setGlassState('success');
-      } catch (error) {
-        console.error('Error cargando datos:', error);
-        setGlassState('error');
-        document.getElementById("cards").innerHTML = `<small>Error al cargar datos: ${error.message}</small>`;
+        max-height: 80vh;
+        overflow-y: auto;
+        border: 1px solid #333;
+        white-space: pre-wrap;
+        font-size: 14px;
+        line-height: 1.6;
       }
-    }
-
-    // ➕ CREAR REGISTRO
-    async function crearRegistro(datos) {
-      setGlassState('loading');
-
-      try {
-        const { data, error } = await supabase
-          .from('expedientes')
-          .insert([datos])
-          .select();
-
-        if (error) throw error;
-
-        setGlassState('success');
-        await cargarDatos();
-        cerrarModal();
-        return data;
-      } catch (error) {
-        console.error('Error creando registro:', error);
-        setGlassState('error');
-        alert(`Error al crear: ${error.message}`);
-        return null;
+      .success {
+        color: #00ff89;
       }
-    }
-
-    // ✏️ ACTUALIZAR REGISTRO
-    async function actualizarRegistro(id, datos) {
-      setGlassState('loading');
-
-      try {
-        const { data, error } = await supabase
-          .from('expedientes')
-          .update(datos)
-          .eq('id', id)
-          .select();
-
-        if (error) throw error;
-
-        setGlassState('success');
-        await cargarDatos();
-        cerrarModal();
-        return data;
-      } catch (error) {
-        console.error('Error actualizando registro:', error);
-        setGlassState('error');
-        alert(`Error al actualizar: ${error.message}`);
-        return null;
+      .error {
+        color: #ff4444;
       }
-    }
-
-    // 🗑️ ELIMINAR REGISTRO
-    async function eliminarRegistro(id) {
-      if (!confirm('¿Estás seguro de eliminar este registro?')) return;
-
-      setGlassState('loading');
-
-      try {
-        const { error } = await supabase
-          .from('expedientes')
-          .delete()
-          .eq('id', id);
-
-        if (error) throw error;
-
-        setGlassState('success');
-        await cargarDatos();
-      } catch (error) {
-        console.error('Error eliminando registro:', error);
-        setGlassState('error');
-        alert(`Error al eliminar: ${error.message}`);
+      .info {
+        color: #4a9eff;
       }
-    }
+      .title {
+        color: #ffdd00;
+        font-size: 20px;
+      }
+      .warning {
+        color: #ff9900;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>📋 Migrador de datos.json → Supabase (UUID)</h1>
+    <div id="log">⏳ Cargando datos.json...</div>
 
-    // ============================================================
-    // FUNCIONES DE INTERFAZ
-    // ============================================================
+    <script>
+      // ============================================================
+      // CONFIGURACIÓN SUPABASE
+      // ============================================================
+      const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
+      const SUPABASE_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-    // 🎨 RENDER DE CARDS
-    function render(rows) {
-      const cont = document.getElementById("cards");
-      cont.innerHTML = "";
+      const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      if (!rows || rows.length === 0) {
-        cont.innerHTML = "<small>No hay resultados</small>";
-        return;
+      // ============================================================
+      // LOGGING
+      // ============================================================
+      const logDiv = document.getElementById("log");
+
+      function log(message, type = "info") {
+        const colors = {
+          success: "#00ff89",
+          error: "#ff4444",
+          info: "#4a9eff",
+          title: "#ffdd00",
+          warning: "#ff9900",
+        };
+        logDiv.innerHTML += `<span style="color: ${colors[type] || "#eee"}">${message}</span>\n`;
+        logDiv.scrollTop = logDiv.scrollHeight;
       }
 
-      rows.forEach(r => {
-        const estado = r.estado || "";
-        let estadoClass = '';
-        if (estado === 'Defunción') estadoClass = 'estado-defuncion';
-        else if (estado === 'Activo') estadoClass = 'estado-activo';
-        else if (estado === 'Inactivo') estadoClass = 'estado-inactivo';
-        else if (estado === 'Alta') estadoClass = 'estado-alta';
+      // ============================================================
+      // CARGAR datos.json
+      // ============================================================
+      async function cargarDatosJSON() {
+        try {
+          log("📂 Cargando datos.json...", "info");
 
-        cont.innerHTML += `
-          <div class="card">
-            <div class="card-actions">
-              <button class="btn-edit" onclick="abrirModalEditar('${r.id}')" title="Editar">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn-delete" onclick="eliminarRegistro('${r.id}')" title="Eliminar">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-            <span><b>${r.nombre_paciente || ""}</b></span>
-            <small>Expediente: <strong style="color: rgb(0, 255, 89); font-weight: 700;">${r.expediente || ""}</strong></small>
-            <small>Servicio: ${r.servicio || ""}</small>
-            <small>Fecha registro: ${r.fecha_registro || ""}</small>
-            <small>Estado: <span class="${estadoClass}">${estado || ""}</span></small>
-            <small>Sexo: ${r.sexo || ""}</small>
-            <small>Fecha nac: ${r.fecha_nac || ""}</small>
-            <small>Teléfono: ${r.tel_part || ""}</small>
-          </div>
-        `;
-      });
-    }
+          const response = await fetch("datos.json");
 
-    // 📄 MOSTRAR PÁGINA
-    function mostrarPagina() {
-      const base = datosFiltrados.length ? datosFiltrados : datosOriginales;
-      const inicio = (page - 1) * ITEMS_PER_PAGE;
-      const fin = inicio + ITEMS_PER_PAGE;
-      const paginaDatos = base.slice(inicio, fin);
+          if (!response.ok) {
+            throw new Error(
+              `No se pudo cargar datos.json (HTTP ${response.status})`,
+            );
+          }
 
-      totalPages = Math.ceil(base.length / ITEMS_PER_PAGE);
-      document.getElementById("paginaActual").textContent = `Página ${page} de ${totalPages || 1}`;
-      render(paginaDatos);
-    }
+          const data = await response.json();
+          const registros = Array.isArray(data)
+            ? data
+            : data.rows || data.data || [];
 
-    // 🔄 CAMBIAR PÁGINA
-    function cambiarPagina(delta) {
-      const newPage = page + delta;
-      if (newPage >= 1 && newPage <= totalPages) {
-        page = newPage;
-        mostrarPagina();
-      }
-    }
+          log(
+            `✅ Cargados ${registros.length} registros de datos.json\n`,
+            "success",
+          );
 
-    // 🔍 BÚSQUEDA
-    document.getElementById("busqueda").addEventListener("input", function(e) {
-      const q = this.value.toLowerCase().trim();
-
-      if (q === "") {
-        datosFiltrados = [];
-      } else {
-        datosFiltrados = datosOriginales.filter(r =>
-          (r.nombre_paciente || "").toString().toLowerCase().includes(q) ||
-          (r.expediente || "").toString().toLowerCase().includes(q) ||
-          (r.servicio || "").toString().toLowerCase().includes(q) ||
-          (r.estado || "").toString().toLowerCase().includes(q) ||
-          (r.sexo || "").toString().toLowerCase().includes(q) ||
-          (r.tel_part || "").toString().toLowerCase().includes(q)
-        );
-      }
-
-      page = 1;
-      mostrarPagina();
-    });
-
-    // ============================================================
-    // MODAL CRUD
-    // ============================================================
-
-    function abrirModalCrear() {
-      document.getElementById('modalTitle').textContent = 'Nuevo Expediente';
-      document.getElementById('editId').value = '';
-      document.getElementById('crudForm').reset();
-      document.getElementById('modalCrud').classList.add('active');
-    }
-
-    function abrirModalEditar(id) {
-      const registro = datosOriginales.find(r => r.id == id);
-      if (!registro) return;
-
-      document.getElementById('modalTitle').textContent = 'Editar Expediente';
-      document.getElementById('editId').value = id;
-      document.getElementById('nombrePaciente').value = registro.nombre_paciente || '';
-      document.getElementById('expediente').value = registro.expediente || '';
-      document.getElementById('servicio').value = registro.servicio || '';
-      document.getElementById('fechaRegistro').value = registro.fecha_registro || '';
-      document.getElementById('estado').value = registro.estado || 'Activo';
-      document.getElementById('sexo').value = registro.sexo || '';
-      document.getElementById('fechaNac').value = registro.fecha_nac || '';
-      document.getElementById('telPart').value = registro.tel_part || '';
-
-      document.getElementById('modalCrud').classList.add('active');
-    }
-
-    function cerrarModal() {
-      document.getElementById('modalCrud').classList.remove('active');
-    }
-
-    // 📝 GUARDAR REGISTRO
-    async function guardarRegistro(e) {
-      e.preventDefault();
-
-      const id = document.getElementById('editId').value;
-      const datos = {
-        nombre_paciente: document.getElementById('nombrePaciente').value.trim(),
-        expediente: document.getElementById('expediente').value.trim(),
-        servicio: document.getElementById('servicio').value.trim(),
-        fecha_registro: document.getElementById('fechaRegistro').value || null,
-        estado: document.getElementById('estado').value,
-        sexo: document.getElementById('sexo').value || null,
-        fecha_nac: document.getElementById('fechaNac').value || null,
-        tel_part: document.getElementById('telPart').value.trim() || null
-      };
-
-      if (id) {
-        await actualizarRegistro(id, datos);
-      } else {
-        await crearRegistro(datos);
-      }
-    }
-
-    // ============================================================
-    // CONTROL DE ESTADOS DEL GLASS
-    // ============================================================
-    const glass = document.querySelector('.glass');
-
-    function setGlassState(state) {
-      glass.classList.remove('loading', 'success', 'error');
-      if (state) {
-        glass.classList.add(state);
-        clearTimeout(window.glassTimeout);
-        window.glassTimeout = setTimeout(() => {
-          glass.classList.remove('loading', 'success', 'error');
-        }, 3000);
-      }
-    }
-
-    // ============================================================
-    // HEADER Y FOOTER
-    // ============================================================
-    fetch('/comun/header-archivo.html')
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById('header').innerHTML = html;
-        const s = document.createElement('script');
-        s.src = '/comun/sesion_bk.js';
-        s.onload = () => verificarAutenticacion();
-        document.body.appendChild(s);
-      });
-
-    fetch('/comun/footer.html')
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById('footer').innerHTML = html;
-        const footer = document.getElementById('footerText');
-        if (footer) {
-          footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+          return registros;
+        } catch (error) {
+          log(`❌ Error cargando datos.json: ${error.message}`, "error");
+          log("\n💡 Asegúrate de que:", "info");
+          log("   1. datos.json está en la misma carpeta", "info");
+          log("   2. El archivo tiene formato JSON válido", "info");
+          return null;
         }
-      });
+      }
 
-    // ============================================================
-    // INICIALIZAR
-    // ============================================================
-    window.onload = cargarDatos;
-  </script>
+      // ============================================================
+      // MIGRAR DATOS
+      // ============================================================
+      async function migrarDatos() {
+        const registros = await cargarDatosJSON();
+        if (!registros || registros.length === 0) {
+          log("❌ No hay datos para migrar", "error");
+          return;
+        }
 
-  <script src="/comun/sesion_bk.js"></script>
-  <script src="/comun/estadoSistema.js"></script>
+        log("\n🚀 Iniciando migración a Supabase (UUID)...\n", "title");
 
-</body>
+        let migrados = 0;
+        let errores = 0;
+        let duplicados = 0;
 
+        for (let i = 0; i < registros.length; i++) {
+          const item = registros[i];
+
+          if (i % 10 === 0 && i > 0) {
+            log(
+              `\n📊 Progreso: ${i}/${registros.length} (${Math.round((i / registros.length) * 100)}%)`,
+              "info",
+            );
+          }
+
+          try {
+            const registro = {
+              // El ID se genera automáticamente con gen_random_uuid()
+              nombre_paciente: item["NOMBRE DEL PACIENTE"]?.trim() || "",
+              expediente: item["EXPEDIENTE"]?.trim() || "",
+              servicio: item["SERVICIO"]?.trim() || "",
+              fecha_registro: item["FECHA DE REGISTRO"]
+                ? new Date(item["FECHA DE REGISTRO"])
+                    .toISOString()
+                    .split("T")[0]
+                : null,
+              estado: item["estado"] || "Activo",
+              sexo: item["sexo"] || null,
+              fecha_nac: item["fecha_nac"] || null,
+              tel_part: item["tel_part"] || null,
+            };
+
+            if (!registro.expediente) {
+              log(
+                `⚠️ Expediente vacío en registro ${i + 1}, saltando`,
+                "warning",
+              );
+              errores++;
+              continue;
+            }
+
+            const { data, error } = await supabase
+              .from("expedientes")
+              .insert([registro])
+              .select();
+
+            if (error) {
+              if (error.code === "23505") {
+                log(
+                  `⚠️ Duplicado: ${registro.expediente} (${registro.nombre_paciente})`,
+                  "warning",
+                );
+                duplicados++;
+              } else {
+                log(
+                  `❌ Error con ${registro.expediente}: ${error.message}`,
+                  "error",
+                );
+                errores++;
+              }
+            } else {
+              const uuid = data[0]?.id || "N/A";
+              log(
+                `✅ ${registro.nombre_paciente} (${registro.expediente}) → UUID: ${uuid.substring(0, 8)}...`,
+                "success",
+              );
+              migrados++;
+            }
+          } catch (error) {
+            log(`❌ Error en registro ${i + 1}: ${error.message}`, "error");
+            errores++;
+          }
+        }
+
+        log("\n" + "=".repeat(50), "info");
+        log("📊 MIGRACIÓN COMPLETADA", "title");
+        log(`   ✅ Migrados exitosamente: ${migrados}`, "success");
+        log(`   ⚠️  Duplicados omitidos: ${duplicados}`, "warning");
+        log(`   ❌ Errores: ${errores}`, "error");
+        log(`   📦 Total procesados: ${registros.length}`, "info");
+        log("=".repeat(50), "info");
+
+        if (migrados > 0) {
+          log("\n✅ Puedes cerrar esta ventana y abrir tu CRUD", "success");
+          log("📋 Los datos ya están en Supabase con IDs UUID", "success");
+        }
+      }
+
+      migrarDatos();
+    </script>
+  </body>
 </html>
