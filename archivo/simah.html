@@ -972,17 +972,26 @@
         try {
           let query = sb.from("expedientes").select("*", { count: "exact" });
 
-          // 🔍 BÚSQUEDA EN TODOS LOS CAMPOS (como en la versión original)
+          // 🔍 BÚSQUEDA EN TODOS LOS CAMPOS (con manejo de tipos)
           if (textoBusqueda) {
-            query = query.or(
-              `nombre_paciente.ilike.%${textoBusqueda}%,` +
-              `expediente.ilike.%${textoBusqueda}%,` +
-              `servicio.ilike.%${textoBusqueda}%,` +
-              `fecha_registro.ilike.%${textoBusqueda}%,` +
-              `estado.ilike.%${textoBusqueda}%,` +
-              `sexo.ilike.%${textoBusqueda}%,` +
-              `tel_part.ilike.%${textoBusqueda}%`
+            // Para campos de texto (usamos ilike)
+            const textConditions = [
+              `nombre_paciente.ilike.%${textoBusqueda}%`,
+              `expediente.ilike.%${textoBusqueda}%`,
+              `servicio.ilike.%${textoBusqueda}%`,
+              `estado.ilike.%${textoBusqueda}%`,
+              `sexo.ilike.%${textoBusqueda}%`,
+              `tel_part.ilike.%${textoBusqueda}%`,
+            ];
+
+            // Para fecha (convertimos a texto con ::text)
+            // Esto evita el error "operator does not exist: date ~~* unknown"
+            textConditions.push(
+              `fecha_registro::text.ilike.%${textoBusqueda}%`,
             );
+
+            // Unir todas las condiciones con OR
+            query = query.or(textConditions.join(","));
           }
 
           if (estadoFiltro) {
