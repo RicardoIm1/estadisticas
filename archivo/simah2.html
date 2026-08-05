@@ -9,6 +9,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
       /* ===== RESET Y BASE ===== */
@@ -911,43 +912,73 @@
       const SUPABASE_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-      // ✅ CREAR EL CLIENTE DE SUPABASE - USAR window PARA GLOBAL
-      window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-      // También asignamos a una variable local para facilitar el uso
-      const sb = window.supabase;
+      // ✅ CREAR EL CLIENTE DE SUPABASE
+      const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
       // ============================================================
       // VARIABLES GLOBALES
       // ============================================================
       let datos = [];
-      let datosFiltrados = [];
       let paginaActual = 1;
-      const registrosPorPagina = 15;
+      const registrosPorPagina = 20;
       let campoOrden = "nombre_paciente";
       let ordenDireccion = "asc";
+      let textoBusqueda = "";
+      let estadoFiltro = "";
+      let sexoFiltro = "";
+      let totalRegistros = 0;
 
       // ============================================================
       // FUNCIONES CRUD
       // ============================================================
 
-      // 📥 CARGAR DATOS
+      // 📥 CARGAR DATOS CON PAGINACIÓN Y BÚSQUEDA EN SUPABASE
       async function cargarDatos() {
         setGlassState("loading");
 
         try {
-          // Usamos 'sb' en lugar de 'supabase'
-          const { data, error } = await sb
+          // Construir la consulta
+          let query = supabase
             .from("expedientes")
-            .select("*")
-            .order(campoOrden, { ascending: ordenDireccion === "asc" });
+            .select("*", { count: "exact" });
+
+          // Aplicar filtros directamente en Supabase
+          if (textoBusqueda) {
+            query = query.or(
+              `nombre_paciente.ilike.%${textoBusqueda}%,` +
+                `expediente.ilike.%${textoBusqueda}%,` +
+                `servicio.ilike.%${textoBusqueda}%`,
+            );
+          }
+
+          if (estadoFiltro) {
+            query = query.eq("estado", estadoFiltro);
+          }
+
+          if (sexoFiltro) {
+            query = query.eq("sexo", sexoFiltro);
+          }
+
+          // Ordenar y paginar
+          const from = (paginaActual - 1) * registrosPorPagina;
+          const to = from + registrosPorPagina - 1;
+
+          const { data, error, count } = await query
+            .order(campoOrden, { ascending: ordenDireccion === "asc" })
+            .range(from, to);
 
           if (error) throw error;
 
           datos = data || [];
-          datosFiltrados = [...datos];
+          totalRegistros = count || 0;
+
+          renderizarTabla(datos);
           actualizarEstadisticas();
-          mostrarPagina();
+          renderizarPaginacion(
+            totalRegistros,
+            Math.ceil(totalRegistros / registrosPorPagina),
+          );
+
           setGlassState("success");
         } catch (error) {
           console.error("Error:", error);
@@ -956,10 +987,49 @@
         }
       }
 
+      // 📊 ESTADÍSTICAS
+      async function actualizarEstadisticas() {
+        try {
+          // Obtener totales por estado
+          const { count: total } = await supabase
+            .from("expedientes")
+            .select("*", { count: "exact", head: true });
+
+          const { count: activos } = await supabase
+            .from("expedientes")
+            .select("*", { count: "exact", head: true })
+            .eq("estado", "Activo");
+
+          const { count: inactivos } = await supabase
+            .from("expedientes")
+            .select("*", { count: "exact", head: true })
+            .eq("estado", "Inactivo");
+
+          const { count: defunciones } = await supabase
+            .from("expedientes")
+            .select("*", { count: "exact", head: true })
+            .eq("estado", "Defunción");
+
+          const { count: altas } = await supabase
+            .from("expedientes")
+            .select("*", { count: "exact", head: true })
+            .eq("estado", "Alta");
+
+          document.getElementById("totalCount").textContent = total || 0;
+          document.getElementById("activoCount").textContent = activos || 0;
+          document.getElementById("inactivoCount").textContent = inactivos || 0;
+          document.getElementById("defuncionCount").textContent =
+            defunciones || 0;
+          document.getElementById("altaCount").textContent = altas || 0;
+        } catch (error) {
+          console.error("Error en estadísticas:", error);
+        }
+      }
+
       // ➕ CREAR
       async function crearRegistro(datosForm) {
         try {
-          const { data, error } = await sb
+          const { data, error } = await supabase
             .from("expedientes")
             .insert([datosForm])
             .select();
@@ -978,7 +1048,7 @@
       // ✏️ ACTUALIZAR
       async function actualizarRegistro(id, datosForm) {
         try {
-          const { data, error } = await sb
+          const { data, error } = await supabase
             .from("expedientes")
             .update(datosForm)
             .eq("id", id)
@@ -1001,7 +1071,10 @@
           return;
 
         try {
-          const { error } = await sb.from("expedientes").delete().eq("id", id);
+          const { error } = await supabase
+            .from("expedientes")
+            .delete()
+            .eq("id", id);
 
           if (error) throw error;
 
@@ -1016,62 +1089,23 @@
       // FUNCIONES DE INTERFAZ
       // ============================================================
 
-      // 📊 ESTADÍSTICAS
-      function actualizarEstadisticas() {
-        const total = datos.length;
-        const activos = datos.filter((d) => d.estado === "Activo").length;
-        const inactivos = datos.filter((d) => d.estado === "Inactivo").length;
-        const defunciones = datos.filter(
-          (d) => d.estado === "Defunción",
-        ).length;
-        const altas = datos.filter((d) => d.estado === "Alta").length;
-
-        document.getElementById("totalCount").textContent = total;
-        document.getElementById("activoCount").textContent = activos;
-        document.getElementById("inactivoCount").textContent = inactivos;
-        document.getElementById("defuncionCount").textContent = defunciones;
-        document.getElementById("altaCount").textContent = altas;
-      }
-
       // 🔍 BUSCAR
       function buscar() {
-        const texto = document
+        textoBusqueda = document
           .getElementById("searchInput")
           .value.toLowerCase()
           .trim();
-        const estadoFilter = document.getElementById("estadoFilter").value;
-        const sexoFilter = document.getElementById("sexoFilter").value;
 
-        datosFiltrados = datos.filter((d) => {
-          const matchTexto =
-            !texto ||
-            (d.nombre_paciente || "").toLowerCase().includes(texto) ||
-            (d.expediente || "").toLowerCase().includes(texto) ||
-            (d.servicio || "").toLowerCase().includes(texto);
-
-          const matchEstado = !estadoFilter || d.estado === estadoFilter;
-          const matchSexo = !sexoFilter || d.sexo === sexoFilter;
-
-          return matchTexto && matchEstado && matchSexo;
-        });
+        estadoFiltro = document.getElementById("estadoFilter").value;
+        sexoFiltro = document.getElementById("sexoFilter").value;
 
         paginaActual = 1;
-        mostrarPagina();
+        cargarDatos();
       }
 
       // 📄 MOSTRAR PÁGINA
       function mostrarPagina() {
-        const total = datosFiltrados.length;
-        const totalPaginas = Math.ceil(total / registrosPorPagina) || 1;
-
-        if (paginaActual > totalPaginas) paginaActual = totalPaginas;
-
-        const inicio = (paginaActual - 1) * registrosPorPagina;
-        const fin = Math.min(inicio + registrosPorPagina, total);
-        const paginaDatos = datosFiltrados.slice(inicio, fin);
-
-        renderizarTabla(paginaDatos);
-        renderizarPaginacion(total, totalPaginas);
+        cargarDatos();
       }
 
       // 🎨 RENDER TABLA
@@ -1164,15 +1198,20 @@
       // 🔄 CAMBIAR PÁGINA
       function cambiarPagina(direccion) {
         const totalPaginas =
-          Math.ceil(datosFiltrados.length / registrosPorPagina) || 1;
-        if (direccion === "prev" && paginaActual > 1) paginaActual--;
-        if (direccion === "next" && paginaActual < totalPaginas) paginaActual++;
-        mostrarPagina();
+          Math.ceil(totalRegistros / registrosPorPagina) || 1;
+        if (direccion === "prev" && paginaActual > 1) {
+          paginaActual--;
+          cargarDatos();
+        }
+        if (direccion === "next" && paginaActual < totalPaginas) {
+          paginaActual++;
+          cargarDatos();
+        }
       }
 
       function irPagina(num) {
         paginaActual = num;
-        mostrarPagina();
+        cargarDatos();
       }
 
       // 📊 ORDENAR
@@ -1198,8 +1237,12 @@
       }
 
       function abrirModalEditar(id) {
+        // Buscar el registro en los datos actuales
         const registro = datos.find((r) => r.id === id);
-        if (!registro) return;
+        if (!registro) {
+          mostrarToast("Registro no encontrado", "error");
+          return;
+        }
 
         document.getElementById("modalTitle").textContent = "Editar Expediente";
         document.getElementById("editId").value = id;
@@ -1288,13 +1331,6 @@
       // INICIALIZAR
       // ============================================================
       document.addEventListener("DOMContentLoaded", function () {
-        // Verificar que sb está definido antes de cargar
-        if (typeof sb === "undefined") {
-          console.error("❌ Supabase no está disponible");
-          mostrarToast("Error: Supabase no está disponible", "error");
-          return;
-        }
-
         cargarDatos();
 
         // Cerrar modal con ESC
