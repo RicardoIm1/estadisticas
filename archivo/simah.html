@@ -911,6 +911,7 @@
       let estadoFiltro = "";
       let sexoFiltro = "";
       let totalRegistros = 0;
+      let hayFiltroActivo = false;
 
       // ============================================================
       // SISTEMA DE ESTADO (como el login)
@@ -970,6 +971,9 @@
         setEstado("loading");
 
         try {
+          // Determinar si hay filtros activos
+          hayFiltroActivo = !!(textoBusqueda || estadoFiltro || sexoFiltro);
+
           let query = sb.from("expedientes").select("*", { count: "exact" });
 
           if (textoBusqueda) {
@@ -991,8 +995,18 @@
           const from = (paginaActual - 1) * registrosPorPagina;
           const to = from + registrosPorPagina - 1;
 
+          // 🔥 ORDEN: Si hay filtro → alfabético, si no → por fecha (más reciente primero)
+          let orderField = "nombre_paciente";
+          let orderAscending = true;
+
+          if (!hayFiltroActivo) {
+            // Sin filtro: ordenar por fecha de registro, más reciente primero
+            orderField = "created_at";
+            orderAscending = false;
+          }
+
           const { data, error, count } = await query
-            .order("nombre_paciente", { ascending: true })
+            .order(orderField, { ascending: orderAscending })
             .range(from, to);
 
           if (error) throw error;
