@@ -329,9 +329,18 @@
         border-color: #4a9eff;
       }
 
-      /* ===== BUSCADOR ===== */
-      .buscador {
+      /* ===== BUSCADOR Y FILTROS EN UNA SOLA FILA ===== */
+      .search-filters-row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
         margin: 12px 0 20px;
+        flex-wrap: wrap;
+      }
+
+      .buscador {
+        flex: 2;
+        min-width: 200px;
         position: relative;
       }
 
@@ -364,21 +373,23 @@
         opacity: 0.6;
       }
 
-      /* ===== FILTROS ===== */
       .filtros {
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
-        margin-bottom: 15px;
+        flex: 1;
+        min-width: 200px;
       }
 
       .filtros select {
-        padding: 8px 14px;
-        border-radius: 10px;
+        flex: 1;
+        min-width: 120px;
+        padding: 10px 14px;
+        border-radius: 12px;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        background: rgba(255, 255, 255, 0.06);
+        background: rgba(255, 255, 255, 0.08);
         color: #fff;
-        font-size: 13px;
+        font-size: 14px;
         cursor: pointer;
         outline: none;
         transition: all 0.3s ease;
@@ -387,6 +398,7 @@
       .filtros select:focus {
         border-color: #4a9eff;
         box-shadow: 0 0 0 2px rgba(74, 158, 255, 0.2);
+        background: rgba(255, 255, 255, 0.12);
       }
 
       .filtros select option {
@@ -617,6 +629,26 @@
         .form-row {
           grid-template-columns: 1fr;
         }
+
+        /* En tablets, los filtros se acomodan en 2 filas */
+        .search-filters-row {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .buscador {
+          flex: none;
+          width: 100%;
+        }
+
+        .filtros {
+          flex: none;
+          width: 100%;
+        }
+
+        .filtros select {
+          flex: 1;
+        }
       }
 
       @media (max-width: 600px) {
@@ -651,6 +683,19 @@
           padding: 0.8rem;
           margin: 0.5rem;
         }
+
+        .search-filters-row {
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        .filtros {
+          flex-direction: column;
+        }
+
+        .filtros select {
+          width: 100%;
+        }
       }
 
       /* ===== OCULTAR SCROLL PERO MANTENER FUNCIONALIDAD ===== */
@@ -673,7 +718,7 @@
   <body>
     <div class="glass" id="dashboard">
       <div class="header-simah">
-        <h5>EXPEDIENTES CLÍNICOS RESCATADOS DEL SIMAH</h5>
+        <h5>📋 EXPEDIENTES CLÍNICOS - SUPABASE</h5>
         <div class="header-actions">
           <button class="btn btn-primary" onclick="abrirModal()">
             <i class="fas fa-plus"></i> Nuevo
@@ -710,30 +755,31 @@
         </div>
       </div>
 
-      <!-- 🔍 BUSCADOR Y FILTROS -->
-      <div class="buscador">
-        <input
-          type="text"
-          id="busqueda"
-          placeholder="Buscar por nombre, expediente o servicio…"
-          oninput="buscar()"
-        />
-        <i class="fa-solid fa-magnifying-glass"></i>
-      </div>
-
-      <div class="filtros">
-        <select id="estadoFilter" onchange="buscar()">
-          <option value="">Todos los estados</option>
-          <option value="Activo">Activo</option>
-          <option value="Inactivo">Inactivo</option>
-          <option value="Defunción">Defunción</option>
-          <option value="Alta">Alta</option>
-        </select>
-        <select id="sexoFilter" onchange="buscar()">
-          <option value="">Todos los sexos</option>
-          <option value="M">Masculino</option>
-          <option value="F">Femenino</option>
-        </select>
+      <!-- 🔍 BUSCADOR Y FILTROS EN UNA SOLA FILA -->
+      <div class="search-filters-row">
+        <div class="buscador">
+          <input
+            type="text"
+            id="busqueda"
+            placeholder="Buscar por nombre, expediente o servicio…"
+            oninput="buscar()"
+          />
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+        <div class="filtros">
+          <select id="estadoFilter" onchange="buscar()">
+            <option value="">Todos los estados</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+            <option value="Defunción">Defunción</option>
+            <option value="Alta">Alta</option>
+          </select>
+          <select id="sexoFilter" onchange="buscar()">
+            <option value="">Todos los sexos</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
+        </div>
       </div>
 
       <!-- 🎯 CONTENEDOR GRID PRINCIPAL -->
