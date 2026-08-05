@@ -304,11 +304,6 @@
         cursor: not-allowed;
       }
 
-      .paginacion span {
-        font-weight: 600;
-        color: white;
-      }
-
       .paginacion .page-numbers {
         display: flex;
         gap: 6px;
@@ -335,6 +330,11 @@
         background: #4a9eff;
         color: white;
         border-color: #4a9eff;
+      }
+
+      .pagination-info {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 14px;
       }
 
       /* ===== UNA SOLA FILA: STATS + BUSCADOR + FILTROS ===== */
@@ -909,7 +909,6 @@
       let textoBusqueda = "";
       let estadoFiltro = "";
       let sexoFiltro = "";
-      let totalRegistros = 0;
       let datosCompletos = []; // 🔥 TODOS los datos en memoria
       let datosFiltrados = []; // 🔥 Datos filtrados localmente
 
@@ -934,26 +933,45 @@
       // FUNCIONES CRUD
       // ============================================================
 
-      // 📥 CARGAR TODOS LOS DATOS (UNA SOLA VEZ)
+      // 📥 CARGAR TODOS LOS DATOS (CON PAGINACIÓN - LOTE POR LOTE)
       async function cargarDatosCompletos() {
         setGlassState("loading");
 
         try {
-          // Cargar TODOS los registros de una vez (como la versión original)
-          const { data, error } = await sb
-            .from("expedientes")
-            .select("*")
-            .order("created_at", { ascending: false }); // Más recientes primero
+          let allData = [];
+          let page = 0;
+          const pageSize = 1000;
+          let hasMore = true;
 
-          if (error) throw error;
+          // 🔥 Cargar en lotes de 1000 hasta obtener todos
+          while (hasMore) {
+            const from = page * pageSize;
+            const to = from + pageSize - 1;
 
-          datosCompletos = data || [];
+            const { data, error } = await sb
+              .from("expedientes")
+              .select("*")
+              .order("created_at", { ascending: false })
+              .range(from, to);
+
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+              allData = allData.concat(data);
+              page++;
+              console.log(`📦 Lote ${page}: ${data.length} registros (total: ${allData.length})`);
+            }
+
+            // Si obtenemos menos de pageSize, es el último lote
+            if (!data || data.length < pageSize) {
+              hasMore = false;
+            }
+          }
+
+          datosCompletos = allData;
           datosFiltrados = [...datosCompletos];
-          totalRegistros = datosFiltrados.length;
 
-          console.log(
-            `✅ Cargados ${datosCompletos.length} registros en memoria`,
-          );
+          console.log(`✅ Cargados ${datosCompletos.length} registros en memoria`);
 
           actualizarEstadisticas();
           mostrarPagina();
@@ -973,22 +991,15 @@
       // 📊 ESTADÍSTICAS (desde los datos en memoria)
       function actualizarEstadisticas() {
         const total = datosCompletos.length;
-        const activos = datosCompletos.filter(
-          (d) => d.estado === "Activo",
-        ).length;
-        const inactivos = datosCompletos.filter(
-          (d) => d.estado === "Inactivo",
-        ).length;
-        const defunciones = datosCompletos.filter(
-          (d) => d.estado === "Defunción",
-        ).length;
+        const activos = datosCompletos.filter((d) => d.estado === "Activo").length;
+        const inactivos = datosCompletos.filter((d) => d.estado === "Inactivo").length;
+        const defunciones = datosCompletos.filter((d) => d.estado === "Defunción").length;
         const altas = datosCompletos.filter((d) => d.estado === "Alta").length;
 
         document.getElementById("totalCount").textContent = total || 0;
         document.getElementById("activoCount").textContent = activos || 0;
         document.getElementById("inactivoCount").textContent = inactivos || 0;
-        document.getElementById("defuncionCount").textContent =
-          defunciones || 0;
+        document.getElementById("defuncionCount").textContent = defunciones || 0;
         document.getElementById("altaCount").textContent = altas || 0;
       }
 
@@ -1004,8 +1015,7 @@
         // 🔥 FILTRAR EN MEMORIA (exactamente como la versión original)
         datosFiltrados = datosCompletos.filter((r) => {
           // Buscar en todos los campos
-          const matchTexto =
-            !texto ||
+          const matchTexto = !texto ||
             (r.nombre_paciente || "").toLowerCase().includes(texto) ||
             (r.expediente || "").toLowerCase().includes(texto) ||
             (r.servicio || "").toLowerCase().includes(texto) ||
@@ -1022,17 +1032,12 @@
 
         // 🔥 ORDENAR ALFABÉTICAMENTE (como la versión original)
         datosFiltrados.sort((a, b) =>
-          (a.nombre_paciente || "").localeCompare(
-            b.nombre_paciente || "",
-            "es",
-            {
-              sensitivity: "base",
-            },
-          ),
+          (a.nombre_paciente || "").localeCompare(b.nombre_paciente || "", "es", {
+            sensitivity: "base",
+          })
         );
 
         paginaActual = 1;
-        totalRegistros = datosFiltrados.length;
         mostrarPagina();
       }
 
@@ -1042,16 +1047,14 @@
         const fin = inicio + registrosPorPagina;
         const paginaDatos = datosFiltrados.slice(inicio, fin);
 
-        const totalPaginas =
-          Math.ceil(datosFiltrados.length / registrosPorPagina) || 1;
+        const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina) || 1;
         renderPaginacion(datosFiltrados.length, totalPaginas);
         renderCards(paginaDatos);
       }
 
       // 🔄 CAMBIAR PÁGINA
       function cambiarPagina(direccion) {
-        const totalPaginas =
-          Math.ceil(datosFiltrados.length / registrosPorPagina) || 1;
+        const totalPaginas = Math.ceil(datosFiltrados.length / registrosPorPagina) || 1;
         if (direccion === -1 && paginaActual > 1) {
           paginaActual--;
           mostrarPagina();
@@ -1083,7 +1086,6 @@
           if (error) throw error;
 
           setGlassState("success");
-          // Recargar todos los datos
           await cargarDatosCompletos();
           return data;
         } catch (error) {
@@ -1191,26 +1193,16 @@
         // Actualizar info
         const inicio = (paginaActual - 1) * registrosPorPagina + 1;
         const fin = Math.min(paginaActual * registrosPorPagina, total);
-        document.querySelector(".pagination-info")?.remove();
-
-        // Agregar info de paginación
-        const pagInfo = document.createElement("span");
-        pagInfo.className = "pagination-info";
-        pagInfo.textContent = `Mostrando ${inicio}-${fin} de ${total} registros`;
-        pagInfo.style.color = "rgba(255,255,255,0.5)";
-        pagInfo.style.fontSize = "14px";
-
-        const pagContainer = document.querySelector(".paginacion");
-        const existingInfo = pagContainer.querySelector(".pagination-info");
-        if (existingInfo) existingInfo.remove();
-        pagContainer.insertBefore(pagInfo, pagContainer.firstChild);
+        
+        // Actualizar texto de paginación
+        const pagInfo = document.querySelector(".pagination-info");
+        if (pagInfo) {
+          pagInfo.textContent = `Mostrando ${inicio}-${fin} de ${total} registros`;
+        }
 
         let html = "";
         const maxVisible = 5;
-        let inicioPages = Math.max(
-          1,
-          paginaActual - Math.floor(maxVisible / 2),
-        );
+        let inicioPages = Math.max(1, paginaActual - Math.floor(maxVisible / 2));
         let finPages = Math.min(totalPaginas, inicioPages + maxVisible - 1);
 
         if (finPages - inicioPages + 1 < maxVisible) {
