@@ -905,21 +905,17 @@
     <!-- ⚠️ DESPUÉS TU CÓDIGO QUE USA SUPABASE -->
     <script>
       // ============================================================
-      // CONFIGURACIÓN SUPABASE - SOLO UNA DECLARACIÓN
+      // CONFIGURACIÓN SUPABASE
       // ============================================================
       const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
       const SUPABASE_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-      // ✅ SOLO UNA DECLARACIÓN - CON VERIFICACIÓN
-      // Si ya existe, la reutiliza; si no, la crea
-      if (typeof supabase === "undefined") {
-        var supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      }
+      // ✅ CREAR EL CLIENTE DE SUPABASE - USAR window PARA GLOBAL
+      window.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-      // ❌ ELIMINA CUALQUIER OTRA LÍNEA QUE DIGA:
-      // const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      // var supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      // También asignamos a una variable local para facilitar el uso
+      const sb = window.supabase;
 
       // ============================================================
       // VARIABLES GLOBALES
@@ -940,7 +936,8 @@
         setGlassState("loading");
 
         try {
-          const { data, error } = await supabase
+          // Usamos 'sb' en lugar de 'supabase'
+          const { data, error } = await sb
             .from("expedientes")
             .select("*")
             .order(campoOrden, { ascending: ordenDireccion === "asc" });
@@ -962,7 +959,7 @@
       // ➕ CREAR
       async function crearRegistro(datosForm) {
         try {
-          const { data, error } = await supabase
+          const { data, error } = await sb
             .from("expedientes")
             .insert([datosForm])
             .select();
@@ -981,7 +978,7 @@
       // ✏️ ACTUALIZAR
       async function actualizarRegistro(id, datosForm) {
         try {
-          const { data, error } = await supabase
+          const { data, error } = await sb
             .from("expedientes")
             .update(datosForm)
             .eq("id", id)
@@ -1004,10 +1001,7 @@
           return;
 
         try {
-          const { error } = await supabase
-            .from("expedientes")
-            .delete()
-            .eq("id", id);
+          const { error } = await sb.from("expedientes").delete().eq("id", id);
 
           if (error) throw error;
 
@@ -1294,6 +1288,13 @@
       // INICIALIZAR
       // ============================================================
       document.addEventListener("DOMContentLoaded", function () {
+        // Verificar que sb está definido antes de cargar
+        if (typeof sb === "undefined") {
+          console.error("❌ Supabase no está disponible");
+          mostrarToast("Error: Supabase no está disponible", "error");
+          return;
+        }
+
         cargarDatos();
 
         // Cerrar modal con ESC
