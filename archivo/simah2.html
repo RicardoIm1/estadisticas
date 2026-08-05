@@ -1,0 +1,1311 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CRUD Expedientes - Supabase</title>
+
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <style>
+      /* ===== RESET Y BASE ===== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #0f0f1a;
+        color: #eee;
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      /* ===== GLASS CONTAINER ===== */
+      .glass {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 1400px;
+        margin: 0 auto;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        transition:
+          border-color 0.6s ease,
+          box-shadow 0.6s ease;
+      }
+
+      .glass.loading {
+        border-color: rgba(74, 158, 255, 0.4);
+        box-shadow: 0 8px 32px rgba(74, 158, 255, 0.15);
+      }
+      .glass.success {
+        border-color: rgba(0, 255, 89, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 255, 89, 0.1);
+      }
+      .glass.error {
+        border-color: rgba(255, 50, 50, 0.3);
+        box-shadow: 0 8px 32px rgba(255, 50, 50, 0.1);
+      }
+
+      /* ===== HEADER ===== */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+
+      .header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, #4a9eff, #00ff89);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      /* ===== BOTONES ===== */
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #4a9eff, #2d7dd2);
+        color: white;
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(74, 158, 255, 0.4);
+      }
+
+      .btn-success {
+        background: linear-gradient(135deg, #00ff89, #00cc6a);
+        color: #0f0f1a;
+      }
+      .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(0, 255, 89, 0.4);
+      }
+
+      .btn-danger {
+        background: linear-gradient(135deg, #ff4444, #cc0000);
+        color: white;
+      }
+      .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 50, 50, 0.4);
+      }
+
+      .btn-warning {
+        background: linear-gradient(135deg, #ff9900, #cc7a00);
+        color: white;
+      }
+      .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(255, 153, 0, 0.4);
+      }
+
+      .btn-outline {
+        background: rgba(255, 255, 255, 0.08);
+        color: #eee;
+        border: 1px solid rgba(255, 255, 255, 0.15);
+      }
+      .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.15);
+      }
+
+      .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+      }
+
+      /* ===== BUSCADOR ===== */
+      .search-section {
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        margin-bottom: 25px;
+      }
+
+      .search-box {
+        flex: 1;
+        min-width: 200px;
+        position: relative;
+      }
+
+      .search-box input {
+        width: 100%;
+        padding: 12px 45px 12px 18px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        font-size: 15px;
+        transition: all 0.3s ease;
+      }
+
+      .search-box input:focus {
+        outline: none;
+        border-color: #4a9eff;
+        box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .search-box input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+      }
+
+      .search-box i {
+        position: absolute;
+        right: 15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      .search-filters {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .search-filters select {
+        padding: 12px 18px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        font-size: 14px;
+        cursor: pointer;
+        min-width: 130px;
+      }
+
+      .search-filters select:focus {
+        outline: none;
+        border-color: #4a9eff;
+      }
+
+      .search-filters select option {
+        background: #1a1a2e;
+        color: #fff;
+      }
+
+      /* ===== TABLA ===== */
+      .table-container {
+        overflow-x: auto;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        margin-bottom: 20px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      thead {
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      th {
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        white-space: nowrap;
+        cursor: pointer;
+        user-select: none;
+        transition: color 0.3s ease;
+      }
+
+      th:hover {
+        color: #fff;
+      }
+
+      th i {
+        margin-left: 6px;
+        font-size: 11px;
+      }
+
+      td {
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        vertical-align: middle;
+      }
+
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .estado-badge {
+        display: inline-block;
+        padding: 3px 12px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .estado-activo {
+        background: rgba(0, 255, 89, 0.15);
+        color: #00ff89;
+        border: 1px solid rgba(0, 255, 89, 0.2);
+      }
+      .estado-inactivo {
+        background: rgba(255, 153, 0, 0.15);
+        color: #ff9900;
+        border: 1px solid rgba(255, 153, 0, 0.2);
+      }
+      .estado-defuncion {
+        background: rgba(255, 50, 50, 0.15);
+        color: #ff4444;
+        border: 1px solid rgba(255, 50, 50, 0.2);
+      }
+      .estado-alta {
+        background: rgba(74, 158, 255, 0.15);
+        color: #4a9eff;
+        border: 1px solid rgba(74, 158, 255, 0.2);
+      }
+
+      .acciones {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .acciones .btn {
+        padding: 5px 10px;
+        font-size: 12px;
+      }
+
+      /* ===== PAGINACIÓN ===== */
+      .pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .pagination-info {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 14px;
+      }
+
+      .pagination-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .pagination-controls button {
+        padding: 8px 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #eee;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+      }
+
+      .pagination-controls button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .pagination-controls button:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .pagination-controls .active-page {
+        background: #4a9eff;
+        border-color: #4a9eff;
+        color: white;
+      }
+
+      .pagination-controls .page-number {
+        padding: 8px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #eee;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        min-width: 36px;
+        text-align: center;
+      }
+
+      .pagination-controls .page-number:hover:not(.active-page) {
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      /* ===== MODAL ===== */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal {
+        background: rgba(30, 35, 45, 0.95);
+        border-radius: 20px;
+        padding: 2rem;
+        max-width: 600px;
+        width: 100%;
+        max-height: 90vh;
+        overflow-y: auto;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+        animation: modalIn 0.3s ease;
+      }
+
+      @keyframes modalIn {
+        from {
+          transform: translateY(30px) scale(0.95);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .modal-header h2 {
+        font-size: 1.4rem;
+        color: #fff;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: color 0.3s ease;
+      }
+
+      .modal-close:hover {
+        color: #fff;
+      }
+
+      .modal-body {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .form-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .form-group input,
+      .form-group select {
+        padding: 10px 14px;
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        font-size: 14px;
+        transition: all 0.3s ease;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus {
+        outline: none;
+        border-color: #4a9eff;
+        box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .form-group input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        padding-top: 1rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .modal-actions .btn {
+        flex: 1;
+        justify-content: center;
+      }
+
+      /* ===== ESTADÍSTICAS ===== */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 12px;
+        padding: 15px 20px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        text-align: center;
+      }
+
+      .stat-card .number {
+        font-size: 2rem;
+        font-weight: 700;
+        display: block;
+      }
+
+      .stat-card .label {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .stat-card.activo .number {
+        color: #00ff89;
+      }
+      .stat-card.inactivo .number {
+        color: #ff9900;
+      }
+      .stat-card.defuncion .number {
+        color: #ff4444;
+      }
+      .stat-card.alta .number {
+        color: #4a9eff;
+      }
+      .stat-card.total .number {
+        color: #fff;
+      }
+
+      /* ===== RESPONSIVE ===== */
+      @media (max-width: 768px) {
+        .glass {
+          padding: 1rem;
+        }
+
+        .header h1 {
+          font-size: 1.3rem;
+        }
+
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+
+        .stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .search-section {
+          flex-direction: column;
+        }
+
+        .search-filters {
+          flex-direction: column;
+        }
+
+        .search-filters select {
+          width: 100%;
+        }
+
+        .pagination {
+          flex-direction: column;
+          align-items: stretch;
+          text-align: center;
+        }
+
+        .pagination-controls {
+          justify-content: center;
+          flex-wrap: wrap;
+        }
+
+        .modal {
+          padding: 1.5rem;
+          margin: 10px;
+        }
+
+        td,
+        th {
+          padding: 8px 10px;
+          font-size: 12px;
+        }
+
+        .acciones .btn {
+          font-size: 10px;
+          padding: 4px 8px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .stats {
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+
+        .stat-card {
+          padding: 10px;
+        }
+
+        .stat-card .number {
+          font-size: 1.3rem;
+        }
+
+        .header {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .header-actions {
+          justify-content: stretch;
+        }
+
+        .header-actions .btn {
+          flex: 1;
+          justify-content: center;
+          font-size: 12px;
+          padding: 8px 12px;
+        }
+      }
+
+      /* ===== SCROLLBAR ===== */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.03);
+      }
+
+      /* ===== TOAST ===== */
+      .toast {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        padding: 15px 25px;
+        border-radius: 12px;
+        background: rgba(20, 25, 35, 0.95);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-weight: 500;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.4s ease;
+        z-index: 2000;
+        max-width: 400px;
+        backdrop-filter: blur(10px);
+      }
+
+      .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      .toast.success {
+        border-color: rgba(0, 255, 89, 0.3);
+      }
+      .toast.error {
+        border-color: rgba(255, 50, 50, 0.3);
+      }
+      .toast.info {
+        border-color: rgba(74, 158, 255, 0.3);
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="glass" id="app">
+      <!-- HEADER -->
+      <div class="header">
+        <h1><i class="fas fa-folder-open"></i> Expedientes Clínicos</h1>
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="abrirModal()">
+            <i class="fas fa-plus"></i> Nuevo Expediente
+          </button>
+          <button class="btn btn-outline" onclick="recargarDatos()">
+            <i class="fas fa-sync-alt"></i> Recargar
+          </button>
+        </div>
+      </div>
+
+      <!-- ESTADÍSTICAS -->
+      <div class="stats" id="stats">
+        <div class="stat-card total">
+          <span class="number" id="totalCount">0</span>
+          <span class="label">Total</span>
+        </div>
+        <div class="stat-card activo">
+          <span class="number" id="activoCount">0</span>
+          <span class="label">Activos</span>
+        </div>
+        <div class="stat-card inactivo">
+          <span class="number" id="inactivoCount">0</span>
+          <span class="label">Inactivos</span>
+        </div>
+        <div class="stat-card defuncion">
+          <span class="number" id="defuncionCount">0</span>
+          <span class="label">Defunciones</span>
+        </div>
+        <div class="stat-card alta">
+          <span class="number" id="altaCount">0</span>
+          <span class="label">Altas</span>
+        </div>
+      </div>
+
+      <!-- BUSCADOR -->
+      <div class="search-section">
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar por nombre, expediente, servicio..."
+            oninput="buscar()"
+          />
+          <i class="fas fa-search"></i>
+        </div>
+        <div class="search-filters">
+          <select id="estadoFilter" onchange="buscar()">
+            <option value="">Todos los estados</option>
+            <option value="Activo">Activo</option>
+            <option value="Inactivo">Inactivo</option>
+            <option value="Defunción">Defunción</option>
+            <option value="Alta">Alta</option>
+          </select>
+          <select id="sexoFilter" onchange="buscar()">
+            <option value="">Todos los sexos</option>
+            <option value="M">Masculino</option>
+            <option value="F">Femenino</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- TABLA -->
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th onclick="ordenar('nombre_paciente')">
+                Nombre <i class="fas fa-sort"></i>
+              </th>
+              <th onclick="ordenar('expediente')">
+                Expediente <i class="fas fa-sort"></i>
+              </th>
+              <th onclick="ordenar('servicio')">
+                Servicio <i class="fas fa-sort"></i>
+              </th>
+              <th onclick="ordenar('fecha_registro')">
+                Registro <i class="fas fa-sort"></i>
+              </th>
+              <th onclick="ordenar('estado')">
+                Estado <i class="fas fa-sort"></i>
+              </th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody">
+            <tr>
+              <td
+                colspan="6"
+                style="
+                  text-align: center;
+                  padding: 40px;
+                  color: rgba(255, 255, 255, 0.3);
+                "
+              >
+                <i class="fas fa-spinner fa-spin" style="font-size: 24px"></i
+                ><br />
+                Cargando datos...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- PAGINACIÓN -->
+      <div class="pagination">
+        <div class="pagination-info" id="paginationInfo">
+          Mostrando 0 registros
+        </div>
+        <div class="pagination-controls" id="paginationControls">
+          <button onclick="cambiarPagina('prev')" id="prevBtn" disabled>
+            <i class="fas fa-chevron-left"></i> Anterior
+          </button>
+          <div id="pageNumbers"></div>
+          <button onclick="cambiarPagina('next')" id="nextBtn">
+            Siguiente <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== MODAL ===== -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modalTitle">Nuevo Expediente</h2>
+          <button class="modal-close" onclick="cerrarModal()">&times;</button>
+        </div>
+        <form id="crudForm" onsubmit="guardar(event)">
+          <input type="hidden" id="editId" />
+          <div class="modal-body">
+            <div class="form-group">
+              <label>Nombre del Paciente *</label>
+              <input
+                type="text"
+                id="nombrePaciente"
+                required
+                placeholder="Ej: Juan Pérez García"
+              />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Expediente *</label>
+                <input
+                  type="text"
+                  id="expediente"
+                  required
+                  placeholder="Ej: 24-01-001"
+                />
+              </div>
+              <div class="form-group">
+                <label>Servicio</label>
+                <input
+                  type="text"
+                  id="servicio"
+                  placeholder="Ej: Medicina Interna"
+                />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Fecha de Registro</label>
+                <input type="date" id="fechaRegistro" />
+              </div>
+              <div class="form-group">
+                <label>Fecha de Nacimiento</label>
+                <input type="date" id="fechaNac" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Estado</label>
+                <select id="estado">
+                  <option value="Activo">Activo</option>
+                  <option value="Inactivo">Inactivo</option>
+                  <option value="Defunción">Defunción</option>
+                  <option value="Alta">Alta</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Sexo</label>
+                <select id="sexo">
+                  <option value="">No especificado</option>
+                  <option value="M">Masculino</option>
+                  <option value="F">Femenino</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Teléfono</label>
+              <input type="text" id="telPart" placeholder="Ej: 555-1234" />
+            </div>
+          </div>
+          <div class="modal-actions">
+            <button type="submit" class="btn btn-success">
+              <i class="fas fa-save"></i> Guardar
+            </button>
+            <button
+              type="button"
+              class="btn btn-outline"
+              onclick="cerrarModal()"
+            >
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      // ============================================================
+      // CONFIGURACIÓN SUPABASE
+      // ============================================================
+      const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
+      const SUPABASE_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
+
+      const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+      // ============================================================
+      // VARIABLES GLOBALES
+      // ============================================================
+      let datos = [];
+      let datosFiltrados = [];
+      let paginaActual = 1;
+      const registrosPorPagina = 15;
+      let campoOrden = "nombre_paciente";
+      let ordenDireccion = "asc";
+
+      // ============================================================
+      // FUNCIONES CRUD
+      // ============================================================
+
+      // 📥 CARGAR DATOS
+      async function cargarDatos() {
+        setGlassState("loading");
+
+        try {
+          const { data, error } = await supabase
+            .from("expedientes")
+            .select("*")
+            .order(campoOrden, { ascending: ordenDireccion === "asc" });
+
+          if (error) throw error;
+
+          datos = data || [];
+          datosFiltrados = [...datos];
+          actualizarEstadisticas();
+          mostrarPagina();
+          setGlassState("success");
+        } catch (error) {
+          console.error("Error:", error);
+          setGlassState("error");
+          mostrarToast("Error al cargar datos: " + error.message, "error");
+        }
+      }
+
+      // ➕ CREAR
+      async function crearRegistro(datosForm) {
+        try {
+          const { data, error } = await supabase
+            .from("expedientes")
+            .insert([datosForm])
+            .select();
+
+          if (error) throw error;
+
+          mostrarToast("✅ Expediente creado exitosamente", "success");
+          await cargarDatos();
+          return data;
+        } catch (error) {
+          mostrarToast("❌ Error al crear: " + error.message, "error");
+          throw error;
+        }
+      }
+
+      // ✏️ ACTUALIZAR
+      async function actualizarRegistro(id, datosForm) {
+        try {
+          const { data, error } = await supabase
+            .from("expedientes")
+            .update(datosForm)
+            .eq("id", id)
+            .select();
+
+          if (error) throw error;
+
+          mostrarToast("✅ Expediente actualizado exitosamente", "success");
+          await cargarDatos();
+          return data;
+        } catch (error) {
+          mostrarToast("❌ Error al actualizar: " + error.message, "error");
+          throw error;
+        }
+      }
+
+      // 🗑️ ELIMINAR
+      async function eliminarRegistro(id, nombre) {
+        if (!confirm(`¿Estás seguro de eliminar el expediente de "${nombre}"?`))
+          return;
+
+        try {
+          const { error } = await supabase
+            .from("expedientes")
+            .delete()
+            .eq("id", id);
+
+          if (error) throw error;
+
+          mostrarToast("✅ Expediente eliminado exitosamente", "success");
+          await cargarDatos();
+        } catch (error) {
+          mostrarToast("❌ Error al eliminar: " + error.message, "error");
+        }
+      }
+
+      // ============================================================
+      // FUNCIONES DE INTERFAZ
+      // ============================================================
+
+      // 📊 ESTADÍSTICAS
+      function actualizarEstadisticas() {
+        const total = datos.length;
+        const activos = datos.filter((d) => d.estado === "Activo").length;
+        const inactivos = datos.filter((d) => d.estado === "Inactivo").length;
+        const defunciones = datos.filter(
+          (d) => d.estado === "Defunción",
+        ).length;
+        const altas = datos.filter((d) => d.estado === "Alta").length;
+
+        document.getElementById("totalCount").textContent = total;
+        document.getElementById("activoCount").textContent = activos;
+        document.getElementById("inactivoCount").textContent = inactivos;
+        document.getElementById("defuncionCount").textContent = defunciones;
+        document.getElementById("altaCount").textContent = altas;
+      }
+
+      // 🔍 BUSCAR
+      function buscar() {
+        const texto = document
+          .getElementById("searchInput")
+          .value.toLowerCase()
+          .trim();
+        const estadoFilter = document.getElementById("estadoFilter").value;
+        const sexoFilter = document.getElementById("sexoFilter").value;
+
+        datosFiltrados = datos.filter((d) => {
+          const matchTexto =
+            !texto ||
+            (d.nombre_paciente || "").toLowerCase().includes(texto) ||
+            (d.expediente || "").toLowerCase().includes(texto) ||
+            (d.servicio || "").toLowerCase().includes(texto);
+
+          const matchEstado = !estadoFilter || d.estado === estadoFilter;
+          const matchSexo = !sexoFilter || d.sexo === sexoFilter;
+
+          return matchTexto && matchEstado && matchSexo;
+        });
+
+        paginaActual = 1;
+        mostrarPagina();
+      }
+
+      // 📄 MOSTRAR PÁGINA
+      function mostrarPagina() {
+        const total = datosFiltrados.length;
+        const totalPaginas = Math.ceil(total / registrosPorPagina) || 1;
+
+        if (paginaActual > totalPaginas) paginaActual = totalPaginas;
+
+        const inicio = (paginaActual - 1) * registrosPorPagina;
+        const fin = Math.min(inicio + registrosPorPagina, total);
+        const paginaDatos = datosFiltrados.slice(inicio, fin);
+
+        renderizarTabla(paginaDatos);
+        renderizarPaginacion(total, totalPaginas);
+      }
+
+      // 🎨 RENDER TABLA
+      function renderizarTabla(rows) {
+        const tbody = document.getElementById("tableBody");
+
+        if (!rows || rows.length === 0) {
+          tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align:center; padding:40px; color:rgba(255,255,255,0.3);">
+                            <i class="fas fa-inbox" style="font-size:24px; display:block; margin-bottom:10px;"></i>
+                            No hay registros que coincidan con la búsqueda
+                        </td>
+                    </tr>
+                `;
+          return;
+        }
+
+        tbody.innerHTML = rows
+          .map((r) => {
+            const estadoClass =
+              {
+                Activo: "estado-activo",
+                Inactivo: "estado-inactivo",
+                Defunción: "estado-defuncion",
+                Alta: "estado-alta",
+              }[r.estado] || "";
+
+            return `
+                    <tr>
+                        <td><strong>${r.nombre_paciente || ""}</strong></td>
+                        <td><span style="color:#00ff89; font-weight:600;">${r.expediente || ""}</span></td>
+                        <td>${r.servicio || ""}</td>
+                        <td>${r.fecha_registro || ""}</td>
+                        <td><span class="estado-badge ${estadoClass}">${r.estado || ""}</span></td>
+                        <td>
+                            <div class="acciones">
+                                <button class="btn btn-primary btn-sm" onclick="abrirModalEditar('${r.id}')">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm" onclick="eliminarRegistro('${r.id}','${r.nombre_paciente}')">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+          })
+          .join("");
+      }
+
+      // 📋 RENDER PAGINACIÓN
+      function renderizarPaginacion(total, totalPaginas) {
+        document.getElementById("paginationInfo").textContent =
+          `Mostrando ${Math.min(total, registrosPorPagina)} de ${total} registros`;
+
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        prevBtn.disabled = paginaActual <= 1;
+        nextBtn.disabled = paginaActual >= totalPaginas;
+
+        let html = "";
+        const maxVisible = 5;
+        let inicio = Math.max(1, paginaActual - Math.floor(maxVisible / 2));
+        let fin = Math.min(totalPaginas, inicio + maxVisible - 1);
+
+        if (fin - inicio + 1 < maxVisible) {
+          inicio = Math.max(1, fin - maxVisible + 1);
+        }
+
+        if (inicio > 1) {
+          html += `<span class="page-number" onclick="irPagina(1)">1</span>`;
+          if (inicio > 2)
+            html += `<span style="color:rgba(255,255,255,0.2);">…</span>`;
+        }
+
+        for (let i = inicio; i <= fin; i++) {
+          html += `<span class="page-number ${i === paginaActual ? "active-page" : ""}" onclick="irPagina(${i})">${i}</span>`;
+        }
+
+        if (fin < totalPaginas) {
+          if (fin < totalPaginas - 1)
+            html += `<span style="color:rgba(255,255,255,0.2);">…</span>`;
+          html += `<span class="page-number" onclick="irPagina(${totalPaginas})">${totalPaginas}</span>`;
+        }
+
+        document.getElementById("pageNumbers").innerHTML = html;
+      }
+
+      // 🔄 CAMBIAR PÁGINA
+      function cambiarPagina(direccion) {
+        const totalPaginas =
+          Math.ceil(datosFiltrados.length / registrosPorPagina) || 1;
+        if (direccion === "prev" && paginaActual > 1) paginaActual--;
+        if (direccion === "next" && paginaActual < totalPaginas) paginaActual++;
+        mostrarPagina();
+      }
+
+      function irPagina(num) {
+        paginaActual = num;
+        mostrarPagina();
+      }
+
+      // 📊 ORDENAR
+      function ordenar(campo) {
+        if (campoOrden === campo) {
+          ordenDireccion = ordenDireccion === "asc" ? "desc" : "asc";
+        } else {
+          campoOrden = campo;
+          ordenDireccion = "asc";
+        }
+        cargarDatos();
+      }
+
+      // ============================================================
+      // MODAL CRUD
+      // ============================================================
+
+      function abrirModal() {
+        document.getElementById("modalTitle").textContent = "Nuevo Expediente";
+        document.getElementById("editId").value = "";
+        document.getElementById("crudForm").reset();
+        document.getElementById("modalOverlay").classList.add("active");
+      }
+
+      function abrirModalEditar(id) {
+        const registro = datos.find((r) => r.id === id);
+        if (!registro) return;
+
+        document.getElementById("modalTitle").textContent = "Editar Expediente";
+        document.getElementById("editId").value = id;
+        document.getElementById("nombrePaciente").value =
+          registro.nombre_paciente || "";
+        document.getElementById("expediente").value = registro.expediente || "";
+        document.getElementById("servicio").value = registro.servicio || "";
+        document.getElementById("fechaRegistro").value =
+          registro.fecha_registro || "";
+        document.getElementById("fechaNac").value = registro.fecha_nac || "";
+        document.getElementById("estado").value = registro.estado || "Activo";
+        document.getElementById("sexo").value = registro.sexo || "";
+        document.getElementById("telPart").value = registro.tel_part || "";
+
+        document.getElementById("modalOverlay").classList.add("active");
+      }
+
+      function cerrarModal() {
+        document.getElementById("modalOverlay").classList.remove("active");
+      }
+
+      // 📝 GUARDAR
+      async function guardar(e) {
+        e.preventDefault();
+
+        const id = document.getElementById("editId").value;
+        const datosForm = {
+          nombre_paciente: document
+            .getElementById("nombrePaciente")
+            .value.trim(),
+          expediente: document.getElementById("expediente").value.trim(),
+          servicio: document.getElementById("servicio").value.trim() || null,
+          fecha_registro:
+            document.getElementById("fechaRegistro").value || null,
+          fecha_nac: document.getElementById("fechaNac").value || null,
+          estado: document.getElementById("estado").value,
+          sexo: document.getElementById("sexo").value || null,
+          tel_part: document.getElementById("telPart").value.trim() || null,
+        };
+
+        if (id) {
+          await actualizarRegistro(id, datosForm);
+        } else {
+          await crearRegistro(datosForm);
+        }
+
+        cerrarModal();
+      }
+
+      // ============================================================
+      // UTILIDADES
+      // ============================================================
+
+      function recargarDatos() {
+        cargarDatos();
+        mostrarToast("🔄 Recargando datos...", "info");
+      }
+
+      // 💬 TOAST
+      function mostrarToast(mensaje, tipo = "info") {
+        const toast = document.getElementById("toast");
+        toast.textContent = mensaje;
+        toast.className = "toast " + tipo;
+        setTimeout(() => toast.classList.add("show"), 10);
+
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 3000);
+      }
+
+      // 🎨 GLASS STATE
+      function setGlassState(state) {
+        const glass = document.querySelector(".glass");
+        glass.classList.remove("loading", "success", "error");
+        if (state) {
+          glass.classList.add(state);
+          clearTimeout(window.glassTimeout);
+          window.glassTimeout = setTimeout(() => {
+            glass.classList.remove("loading", "success", "error");
+          }, 3000);
+        }
+      }
+
+      // ============================================================
+      // INICIALIZAR
+      // ============================================================
+      document.addEventListener("DOMContentLoaded", function () {
+        cargarDatos();
+
+        // Cerrar modal con ESC
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") cerrarModal();
+        });
+
+        // Cerrar modal al hacer clic fuera
+        document
+          .getElementById("modalOverlay")
+          .addEventListener("click", function (e) {
+            if (e.target === this) cerrarModal();
+          });
+      });
+    </script>
+  </body>
+</html>
