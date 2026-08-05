@@ -9,7 +9,6 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
     />
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
       /* ===== RESET Y BASE ===== */
@@ -900,20 +899,21 @@
     <!-- ===== TOAST ===== -->
     <div class="toast" id="toast"></div>
 
-    <!-- ⚠️ PRIMERO CARGA LA LIBRERÍA DE SUPABASE -->
+    <!-- ⚠️ SOLO UNA VEZ: CARGA LA LIBRERÍA DE SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- ⚠️ DESPUÉS TU CÓDIGO QUE USA SUPABASE -->
+    <!-- ⚠️ EL CÓDIGO QUE USA SUPABASE - SIN REDECLARAR -->
     <script>
       // ============================================================
-      // CONFIGURACIÓN SUPABASE
+      // CONFIGURACIÓN SUPABASE - USAMOS window.supabase
       // ============================================================
       const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
       const SUPABASE_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-      // ✅ CREAR EL CLIENTE DE SUPABASE
-      const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      // ✅ USAMOS UNA VARIABLE CON NOMBRE DIFERENTE PARA EVITAR CONFLICTOS
+      // La librería ya expone 'supabase' globalmente, pero usamos otro nombre
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
       // ============================================================
       // VARIABLES GLOBALES
@@ -938,9 +938,7 @@
 
         try {
           // Construir la consulta
-          let query = supabase
-            .from("expedientes")
-            .select("*", { count: "exact" });
+          let query = sb.from("expedientes").select("*", { count: "exact" });
 
           // Aplicar filtros directamente en Supabase
           if (textoBusqueda) {
@@ -991,26 +989,26 @@
       async function actualizarEstadisticas() {
         try {
           // Obtener totales por estado
-          const { count: total } = await supabase
+          const { count: total } = await sb
             .from("expedientes")
             .select("*", { count: "exact", head: true });
 
-          const { count: activos } = await supabase
+          const { count: activos } = await sb
             .from("expedientes")
             .select("*", { count: "exact", head: true })
             .eq("estado", "Activo");
 
-          const { count: inactivos } = await supabase
+          const { count: inactivos } = await sb
             .from("expedientes")
             .select("*", { count: "exact", head: true })
             .eq("estado", "Inactivo");
 
-          const { count: defunciones } = await supabase
+          const { count: defunciones } = await sb
             .from("expedientes")
             .select("*", { count: "exact", head: true })
             .eq("estado", "Defunción");
 
-          const { count: altas } = await supabase
+          const { count: altas } = await sb
             .from("expedientes")
             .select("*", { count: "exact", head: true })
             .eq("estado", "Alta");
@@ -1029,7 +1027,7 @@
       // ➕ CREAR
       async function crearRegistro(datosForm) {
         try {
-          const { data, error } = await supabase
+          const { data, error } = await sb
             .from("expedientes")
             .insert([datosForm])
             .select();
@@ -1048,7 +1046,7 @@
       // ✏️ ACTUALIZAR
       async function actualizarRegistro(id, datosForm) {
         try {
-          const { data, error } = await supabase
+          const { data, error } = await sb
             .from("expedientes")
             .update(datosForm)
             .eq("id", id)
@@ -1071,10 +1069,7 @@
           return;
 
         try {
-          const { error } = await supabase
-            .from("expedientes")
-            .delete()
-            .eq("id", id);
+          const { error } = await sb.from("expedientes").delete().eq("id", id);
 
           if (error) throw error;
 
