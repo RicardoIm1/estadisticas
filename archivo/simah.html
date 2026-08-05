@@ -888,10 +888,7 @@
       </div>
     </div>
 
-    <!-- ⚠️ PRIMERO CARGA estadoSistema.js -->
-    <script src="/comun/estadoSistema.js"></script>
-    
-    <!-- ⚠️ LUEGO LA LIBRERÍA DE SUPABASE -->
+    <!-- ⚠️ CARGA LA LIBRERÍA DE SUPABASE PRIMERO -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
@@ -907,9 +904,6 @@
       // ============================================================
       // VARIABLES GLOBALES
       // ============================================================
-      // 🔥 NOTA: 'intensidadUso' ya está declarada en estadoSistema.js
-      // No la declaramos de nuevo aquí
-      
       let paginaActual = 1;
       const registrosPorPagina = 12;
       let textoBusqueda = "";
@@ -919,40 +913,48 @@
       let datosActuales = [];
 
       // ============================================================
-      // FUNCIONES DE ESTADO (usando las de estadoSistema.js)
+      // SISTEMA DE ESTADO (INDEPENDIENTE)
       // ============================================================
-      
-      // Usamos las funciones que ya vienen en estadoSistema.js
-      // setEstado() y iniciarRespiracion() ya están definidas allí
-      
-      // Pero si necesitas sobreescribir setEstado para este contexto,
-      // puedes hacerlo manteniendo la compatibilidad
+      function setGlassState(state) {
+        const glass = document.querySelector(".glass");
+        if (!glass) return;
+
+        glass.classList.remove("loading", "success", "error");
+        if (state) {
+          glass.classList.add(state);
+          clearTimeout(window.glassTimeout);
+          window.glassTimeout = setTimeout(() => {
+            glass.classList.remove("loading", "success", "error");
+          }, 3000);
+        }
+      }
 
       // ============================================================
       // FUNCIONES CRUD
       // ============================================================
 
       async function cargarDatos() {
-        // Usamos setEstado de estadoSistema.js
-        if (typeof setEstado === 'function') {
-          setEstado('loading');
-        }
+        setGlassState("loading");
 
         try {
           let query = sb.from("expedientes").select("*", { count: "exact" });
 
-          // 🔍 BÚSQUEDA EN TODOS LOS CAMPOS
+          // 🔍 BÚSQUEDA EN TODOS LOS CAMPOS (SIN fecha_registro::text)
           if (textoBusqueda) {
-            const textConditions = [
+            // Buscar solo en campos de texto
+            const conditions = [
               `nombre_paciente.ilike.%${textoBusqueda}%`,
               `expediente.ilike.%${textoBusqueda}%`,
               `servicio.ilike.%${textoBusqueda}%`,
               `estado.ilike.%${textoBusqueda}%`,
               `sexo.ilike.%${textoBusqueda}%`,
-              `tel_part.ilike.%${textoBusqueda}%`
+              `tel_part.ilike.%${textoBusqueda}%`,
             ];
-            textConditions.push(`fecha_registro::text.ilike.%${textoBusqueda}%`);
-            query = query.or(textConditions.join(','));
+
+            // Para fecha, usamos cast a texto
+            conditions.push(`fecha_registro::text.ilike.%${textoBusqueda}%`);
+
+            query = query.or(conditions.join(","));
           }
 
           if (estadoFiltro) {
@@ -966,15 +968,30 @@
           const from = (paginaActual - 1) * registrosPorPagina;
           const to = from + registrosPorPagina - 1;
 
+          // 🔥 ORDEN: Sin filtros → por fecha (más reciente primero), con filtros → alfabético
           const hayFiltro = !!(textoBusqueda || estadoFiltro || sexoFiltro);
           const orderField = hayFiltro ? "nombre_paciente" : "created_at";
           const orderAscending = hayFiltro ? true : false;
+
+          console.log("🔍 Buscando:", {
+            textoBusqueda,
+            estadoFiltro,
+            sexoFiltro,
+            hayFiltro,
+          });
 
           const { data, error, count } = await query
             .order(orderField, { ascending: orderAscending })
             .range(from, to);
 
-          if (error) throw error;
+          if (error) {
+            console.error("❌ Error en consulta:", error);
+            throw error;
+          }
+
+          console.log(
+            `✅ Encontrados ${count} registros, mostrando ${data?.length || 0}`,
+          );
 
           datosActuales = data || [];
           totalRegistros = count || 0;
@@ -986,14 +1003,17 @@
             Math.ceil(totalRegistros / registrosPorPagina),
           );
 
-          if (typeof setEstado === 'function') {
-            setEstado('success');
-          }
+          setGlassState("success");
         } catch (error) {
           console.error("Error:", error);
-          if (typeof setEstado === 'function') {
-            setEstado('error');
-          }
+          setGlassState("error");
+          // Mostrar el error en la interfaz
+          document.getElementById("cards").innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding:40px; color:#ff4444;">
+              <i class="fas fa-exclamation-circle" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+              Error al cargar datos: ${error.message}
+            </div>
+          `;
         }
       }
 
@@ -1035,7 +1055,7 @@
       }
 
       async function crearRegistro(datosForm) {
-        if (typeof setEstado === 'function') setEstado('loading');
+        setGlassState("loading");
 
         try {
           const { data, error } = await sb
@@ -1045,18 +1065,18 @@
 
           if (error) throw error;
 
-          if (typeof setEstado === 'function') setEstado('success');
+          setGlassState("success");
           await cargarDatos();
           return data;
         } catch (error) {
-          if (typeof setEstado === 'function') setEstado('error');
+          setGlassState("error");
           console.error("Error al crear:", error);
           throw error;
         }
       }
 
       async function actualizarRegistro(id, datosForm) {
-        if (typeof setEstado === 'function') setEstado('loading');
+        setGlassState("loading");
 
         try {
           const { data, error } = await sb
@@ -1067,11 +1087,11 @@
 
           if (error) throw error;
 
-          if (typeof setEstado === 'function') setEstado('success');
+          setGlassState("success");
           await cargarDatos();
           return data;
         } catch (error) {
-          if (typeof setEstado === 'function') setEstado('error');
+          setGlassState("error");
           console.error("Error al actualizar:", error);
           throw error;
         }
@@ -1081,17 +1101,17 @@
         if (!confirm(`¿Estás seguro de eliminar el expediente de "${nombre}"?`))
           return;
 
-        if (typeof setEstado === 'function') setEstado('loading');
+        setGlassState("loading");
 
         try {
           const { error } = await sb.from("expedientes").delete().eq("id", id);
 
           if (error) throw error;
 
-          if (typeof setEstado === 'function') setEstado('success');
+          setGlassState("success");
           await cargarDatos();
         } catch (error) {
-          if (typeof setEstado === 'function') setEstado('error');
+          setGlassState("error");
           console.error("Error al eliminar:", error);
         }
       }
@@ -1221,7 +1241,7 @@
       function abrirModalEditar(id) {
         const registro = datosActuales.find((r) => r.id === id);
         if (!registro) {
-          if (typeof setEstado === 'function') setEstado('error');
+          setGlassState("error");
           return;
         }
 
@@ -1321,5 +1341,6 @@
     </script>
 
     <script src="/comun/sesion_bk.js"></script>
+    <script src="/comun/estadoSistema.js"></script>
   </body>
 </html>
