@@ -1233,11 +1233,24 @@
 
           if (error) throw error;
 
+          if (data && data.length > 0) {
+            const nuevoRegistro = data[0];
+            // Agregar al principio (más reciente)
+            datosCompletos.unshift(nuevoRegistro);
+            // Actualizar filtrados (si hay filtros activos, se actualiza al buscar)
+            datosFiltrados = [...datosCompletos];
+            // Volver a la página 1 y mostrar
+            paginaActual = 1;
+            mostrarPagina();
+            actualizarEstadisticas();
+          }
+
           setGlassState("success");
-          await cargarDatosCompletos();
+          mostrarToast("✅ Expediente creado exitosamente", "success");
           return data;
         } catch (error) {
           setGlassState("error");
+          mostrarToast("❌ Error al crear: " + error.message, "error");
           console.error("Error al crear:", error);
           throw error;
         }
@@ -1255,11 +1268,29 @@
 
           if (error) throw error;
 
+          if (data && data.length > 0) {
+            const registroActualizado = data[0];
+            // Actualizar en datosCompletos
+            const index = datosCompletos.findIndex((r) => r.id === id);
+            if (index !== -1) {
+              datosCompletos[index] = registroActualizado;
+            }
+            // Actualizar en datosFiltrados
+            const indexFiltrado = datosFiltrados.findIndex((r) => r.id === id);
+            if (indexFiltrado !== -1) {
+              datosFiltrados[indexFiltrado] = registroActualizado;
+            }
+            // Re-renderizar la página actual
+            mostrarPagina();
+            actualizarEstadisticas();
+          }
+
           setGlassState("success");
-          await cargarDatosCompletos();
+          mostrarToast("✅ Expediente actualizado exitosamente", "success");
           return data;
         } catch (error) {
           setGlassState("error");
+          mostrarToast("❌ Error al actualizar: " + error.message, "error");
           console.error("Error al actualizar:", error);
           throw error;
         }
@@ -1276,12 +1307,78 @@
 
           if (error) throw error;
 
+          // Eliminar de datosCompletos
+          datosCompletos = datosCompletos.filter((r) => r.id !== id);
+          // Eliminar de datosFiltrados
+          datosFiltrados = datosFiltrados.filter((r) => r.id !== id);
+
+          // Si la página actual queda vacía, ir a la anterior
+          const totalPaginas =
+            Math.ceil(datosFiltrados.length / registrosPorPagina) || 1;
+          if (paginaActual > totalPaginas) {
+            paginaActual = totalPaginas;
+          }
+
+          mostrarPagina();
+          actualizarEstadisticas();
+
           setGlassState("success");
-          await cargarDatosCompletos();
+          mostrarToast("✅ Expediente eliminado exitosamente", "success");
         } catch (error) {
           setGlassState("error");
+          mostrarToast("❌ Error al eliminar: " + error.message, "error");
           console.error("Error al eliminar:", error);
         }
+      }
+
+      //TOAST'S
+
+      function mostrarToast(mensaje, tipo = "info") {
+        // Crear un toast simple
+        const toast = document.createElement("div");
+        toast.style.cssText = `
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    background: ${tipo === "success" ? "rgba(0,255,89,0.15)" : tipo === "error" ? "rgba(255,50,50,0.15)" : "rgba(74,158,255,0.15)"};
+    border: 1px solid ${tipo === "success" ? "rgba(0,255,89,0.3)" : tipo === "error" ? "rgba(255,50,50,0.3)" : "rgba(74,158,255,0.3)"};
+    color: #fff;
+    font-weight: 500;
+    font-size: 14px;
+    z-index: 2000;
+    max-width: 400px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    animation: slideIn 0.3s ease;
+    font-family: 'Segoe UI', sans-serif;
+  `;
+        toast.textContent = mensaje;
+
+        // Agregar keyframes
+        if (!document.getElementById("toastStyles")) {
+          const style = document.createElement("style");
+          style.id = "toastStyles";
+          style.textContent = `
+      @keyframes slideIn {
+        from { transform: translateY(100px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      @keyframes slideOut {
+        from { transform: translateY(0); opacity: 1; }
+        to { transform: translateY(100px); opacity: 0; }
+      }
+    `;
+          document.head.appendChild(style);
+        }
+
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+          toast.style.animation = "slideOut 0.3s ease forwards";
+          setTimeout(() => toast.remove(), 300);
+        }, 3000);
       }
 
       // ============================================================
