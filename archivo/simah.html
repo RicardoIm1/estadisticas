@@ -623,6 +623,24 @@
         color: rgba(255, 255, 255, 0.3);
       }
 
+      /* 🔥 FIX: Estilos para selects dentro del modal */
+      .modal select {
+        background: rgba(255, 255, 255, 0.06);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .modal select option {
+        background: #1a1a2e;
+        color: #fff;
+        padding: 8px;
+      }
+
+      .modal select:focus {
+        border-color: #4a9eff;
+        box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.2);
+      }
+
       .form-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -898,17 +916,12 @@
                 />
               </div>
             </div>
+            <!-- ⬇️ ELIMINADO: campo fecha_registro (se asigna automáticamente) -->
             <div class="form-row">
-              <div class="form-group">
-                <label>Fecha de Registro</label>
-                <input type="date" id="fechaRegistro" />
-              </div>
               <div class="form-group">
                 <label>Fecha de Nacimiento</label>
                 <input type="date" id="fechaNac" />
               </div>
-            </div>
-            <div class="form-row">
               <div class="form-group">
                 <label>Estado</label>
                 <select id="estado">
@@ -918,6 +931,8 @@
                   <option value="Alta">Alta</option>
                 </select>
               </div>
+            </div>
+            <div class="form-row">
               <div class="form-group">
                 <label>Sexo</label>
                 <select id="sexo">
@@ -926,10 +941,10 @@
                   <option value="F">Femenino</option>
                 </select>
               </div>
-            </div>
-            <div class="form-group">
-              <label>Teléfono</label>
-              <input type="text" id="telPart" placeholder="Ej: 555-1234" />
+              <div class="form-group">
+                <label>Teléfono</label>
+                <input type="text" id="telPart" placeholder="Ej: 555-1234" />
+              </div>
             </div>
           </div>
           <div class="modal-actions">
@@ -1391,8 +1406,7 @@
           registro.nombre_paciente || "";
         document.getElementById("expediente").value = registro.expediente || "";
         document.getElementById("servicio").value = registro.servicio || "";
-        document.getElementById("fechaRegistro").value =
-          registro.fecha_registro || "";
+        // fecha_registro NO se carga (se asigna automáticamente al crear)
         document.getElementById("fechaNac").value = registro.fecha_nac || "";
         document.getElementById("estado").value = registro.estado || "Activo";
         document.getElementById("sexo").value = registro.sexo || "";
@@ -1409,14 +1423,17 @@
         e.preventDefault();
 
         const id = document.getElementById("editId").value;
+
+        // Obtener fecha actual en formato YYYY-MM-DD
+        const fechaActual = new Date().toISOString().split("T")[0];
+
         const datosForm = {
           nombre_paciente: document
             .getElementById("nombrePaciente")
             .value.trim(),
           expediente: document.getElementById("expediente").value.trim(),
           servicio: document.getElementById("servicio").value.trim() || null,
-          fecha_registro:
-            document.getElementById("fechaRegistro").value || null,
+          fecha_registro: fechaActual, // ⬅️ SIEMPRE la fecha actual
           fecha_nac: document.getElementById("fechaNac").value || null,
           estado: document.getElementById("estado").value,
           sexo: document.getElementById("sexo").value || null,
@@ -1424,6 +1441,8 @@
         };
 
         if (id) {
+          // Para editar, NO actualizar fecha_registro
+          delete datosForm.fecha_registro;
           await actualizarRegistro(id, datosForm);
         } else {
           await crearRegistro(datosForm);
