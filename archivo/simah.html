@@ -241,7 +241,7 @@
         color: #fff;
         word-break: break-word;
         line-height: 1.4;
-        padding-right: 50px; /* Espacio para los botones */
+        padding-right: 50px;
       }
 
       .card small {
@@ -471,6 +471,47 @@
       .filtros-mini select option {
         background: #1a1a2e;
         color: #fff;
+      }
+
+      /* ===== SPINNER DE CARGA ===== */
+      .loader-container {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 60px 20px;
+        gap: 20px;
+      }
+
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.1);
+        border-top: 4px solid #4a9eff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loader-text {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 14px;
+        font-family: "Segoe UI", sans-serif;
+      }
+
+      .loader-progress {
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 12px;
+        font-family: "Courier New", monospace;
       }
 
       /* ===== MODAL ===== */
@@ -728,7 +769,7 @@
   <body>
     <div class="glass" id="dashboard">
       <div class="header-simah">
-        <h5>🛟 EXPEDIENTES CLÍNICOS</h5>
+        <h5>📋 EXPEDIENTES CLÍNICOS</h5>
         <div class="header-actions">
           <button class="btn btn-primary" onclick="abrirModal()">
             <i class="fas fa-plus"></i> Nuevo
@@ -797,7 +838,16 @@
 
       <!-- 🎯 CONTENEDOR GRID PRINCIPAL -->
       <div class="grid">
-        <div id="cards" class="cards-grid"></div>
+        <div id="cards" class="cards-grid">
+          <!-- SPINNER DE CARGA -->
+          <div class="loader-container" id="loaderContainer">
+            <div class="spinner"></div>
+            <div class="loader-text">Cargando registros...</div>
+            <div class="loader-progress" id="loadProgress">
+              Preparando datos...
+            </div>
+          </div>
+        </div>
         <div class="paginacion">
           <button onclick="cambiarPagina(-1)" id="prevBtn" disabled>
             ← Anterior
@@ -916,14 +966,11 @@
       // ============================================================
       let paginaActual = 1;
       const registrosPorPagina = 12;
-      let textoBusqueda = "";
-      let estadoFiltro = "";
-      let sexoFiltro = "";
-      let datosCompletos = []; // 🔥 TODOS los datos en memoria
-      let datosFiltrados = []; // 🔥 Datos filtrados localmente
+      let datosCompletos = [];
+      let datosFiltrados = [];
 
       // ============================================================
-      // SISTEMA DE ESTADO (INDEPENDIENTE)
+      // SISTEMA DE ESTADO
       // ============================================================
       function setGlassState(state) {
         const glass = document.querySelector(".glass");
@@ -940,11 +987,38 @@
       }
 
       // ============================================================
+      // SPINNER
+      // ============================================================
+      function mostrarSpinner(mensaje = "Cargando registros...") {
+        const container = document.getElementById("loaderContainer");
+        if (container) {
+          container.style.display = "flex";
+          const text = container.querySelector(".loader-text");
+          if (text) text.textContent = mensaje;
+        }
+      }
+
+      function ocultarSpinner() {
+        const container = document.getElementById("loaderContainer");
+        if (container) {
+          container.style.display = "none";
+        }
+      }
+
+      function actualizarProgresoCarga(mensaje) {
+        const progress = document.getElementById("loadProgress");
+        if (progress) {
+          progress.textContent = mensaje;
+        }
+      }
+
+      // ============================================================
       // FUNCIONES CRUD
       // ============================================================
 
-      // 📥 CARGAR TODOS LOS DATOS (CON PAGINACIÓN - LOTE POR LOTE)
+      // 📥 CARGAR TODOS LOS DATOS (CON PAGINACIÓN)
       async function cargarDatosCompletos() {
+        mostrarSpinner("Cargando todos los registros...");
         setGlassState("loading");
 
         try {
@@ -953,10 +1027,13 @@
           const pageSize = 1000;
           let hasMore = true;
 
-          // 🔥 Cargar en lotes de 1000 hasta obtener todos
           while (hasMore) {
             const from = page * pageSize;
             const to = from + pageSize - 1;
+
+            actualizarProgresoCarga(
+              `Cargando lote ${page + 1}... (${allData.length} registros)`,
+            );
 
             const { data, error } = await sb
               .from("expedientes")
@@ -974,7 +1051,6 @@
               );
             }
 
-            // Si obtenemos menos de pageSize, es el último lote
             if (!data || data.length < pageSize) {
               hasMore = false;
             }
@@ -988,11 +1064,13 @@
           );
 
           actualizarEstadisticas();
+          ocultarSpinner();
           mostrarPagina();
           setGlassState("success");
         } catch (error) {
           console.error("Error:", error);
           setGlassState("error");
+          ocultarSpinner();
           document.getElementById("cards").innerHTML = `
             <div style="grid-column:1/-1; text-align:center; padding:40px; color:#ff4444;">
               <i class="fas fa-exclamation-circle" style="font-size:32px; display:block; margin-bottom:10px;"></i>
@@ -1002,29 +1080,45 @@
         }
       }
 
-      // 📊 ESTADÍSTICAS (desde los datos en memoria)
-      function actualizarEstadisticas() {
-        const total = datosCompletos.length;
-        const activos = datosCompletos.filter(
-          (d) => d.estado === "Activo",
-        ).length;
-        const inactivos = datosCompletos.filter(
-          (d) => d.estado === "Inactivo",
-        ).length;
-        const defunciones = datosCompletos.filter(
-          (d) => d.estado === "Defunción",
-        ).length;
-        const altas = datosCompletos.filter((d) => d.estado === "Alta").length;
+      // 📊 ESTADÍSTICAS
+      async function actualizarEstadisticas() {
+        try {
+          const { count: total } = await sb
+            .from("expedientes")
+            .select("*", { count: "exact", head: true });
 
-        document.getElementById("totalCount").textContent = total || 0;
-        document.getElementById("activoCount").textContent = activos || 0;
-        document.getElementById("inactivoCount").textContent = inactivos || 0;
-        document.getElementById("defuncionCount").textContent =
-          defunciones || 0;
-        document.getElementById("altaCount").textContent = altas || 0;
+          const { count: activos } = await sb
+            .from("expedientes")
+            .select("*", { count: "exact", head: true })
+            .ilike("estado", "Activo");
+
+          const { count: inactivos } = await sb
+            .from("expedientes")
+            .select("*", { count: "exact", head: true })
+            .ilike("estado", "Inactivo");
+
+          const { count: defunciones } = await sb
+            .from("expedientes")
+            .select("*", { count: "exact", head: true })
+            .ilike("estado", "Defunción");
+
+          const { count: altas } = await sb
+            .from("expedientes")
+            .select("*", { count: "exact", head: true })
+            .ilike("estado", "Alta");
+
+          document.getElementById("totalCount").textContent = total || 0;
+          document.getElementById("activoCount").textContent = activos || 0;
+          document.getElementById("inactivoCount").textContent = inactivos || 0;
+          document.getElementById("defuncionCount").textContent =
+            defunciones || 0;
+          document.getElementById("altaCount").textContent = altas || 0;
+        } catch (error) {
+          console.error("Error en estadísticas:", error);
+        }
       }
 
-      // 🔍 BÚSQUEDA EN MEMORIA (COMO LA VERSIÓN ORIGINAL)
+      // 🔍 BÚSQUEDA
       function buscar() {
         const texto = document
           .getElementById("busqueda")
@@ -1033,38 +1127,49 @@
         const estado = document.getElementById("estadoFilter").value;
         const sexo = document.getElementById("sexoFilter").value;
 
-        // 🔥 FILTRAR EN MEMORIA (exactamente como la versión original)
-        datosFiltrados = datosCompletos.filter((r) => {
-          // Buscar en todos los campos
-          const matchTexto =
-            !texto ||
-            (r.nombre_paciente || "").toLowerCase().includes(texto) ||
-            (r.expediente || "").toLowerCase().includes(texto) ||
-            (r.servicio || "").toLowerCase().includes(texto) ||
-            (r.estado || "").toLowerCase().includes(texto) ||
-            (r.sexo || "").toLowerCase().includes(texto) ||
-            (r.fecha_registro || "").toLowerCase().includes(texto) ||
-            (r.tel_part || "").toLowerCase().includes(texto);
+        const hayFiltro = texto || estado || sexo;
 
-          const matchEstado = !estado || r.estado === estado;
-          const matchSexo = !sexo || r.sexo === sexo;
+        mostrarSpinner("Filtrando resultados...");
 
-          return matchTexto && matchEstado && matchSexo;
-        });
+        setTimeout(() => {
+          if (!hayFiltro) {
+            // Sin filtros: mantener orden original (más reciente primero)
+            datosFiltrados = [...datosCompletos];
+          } else {
+            // Con filtros: filtrar y ordenar alfabéticamente
+            datosFiltrados = datosCompletos.filter((r) => {
+              const matchTexto =
+                !texto ||
+                (r.nombre_paciente || "").toLowerCase().includes(texto) ||
+                (r.expediente || "").toLowerCase().includes(texto) ||
+                (r.servicio || "").toLowerCase().includes(texto) ||
+                (r.estado || "").toLowerCase().includes(texto) ||
+                (r.sexo || "").toLowerCase().includes(texto) ||
+                (r.fecha_registro || "").toLowerCase().includes(texto) ||
+                (r.tel_part || "").toLowerCase().includes(texto);
 
-        // 🔥 ORDENAR ALFABÉTICAMENTE (como la versión original)
-        datosFiltrados.sort((a, b) =>
-          (a.nombre_paciente || "").localeCompare(
-            b.nombre_paciente || "",
-            "es",
-            {
-              sensitivity: "base",
-            },
-          ),
-        );
+              const matchEstado = !estado || r.estado === estado;
+              const matchSexo = !sexo || r.sexo === sexo;
 
-        paginaActual = 1;
-        mostrarPagina();
+              return matchTexto && matchEstado && matchSexo;
+            });
+
+            // ORDENAR ALFABÉTICAMENTE cuando hay búsqueda o filtros
+            datosFiltrados.sort((a, b) =>
+              (a.nombre_paciente || "").localeCompare(
+                b.nombre_paciente || "",
+                "es",
+                {
+                  sensitivity: "base",
+                },
+              ),
+            );
+          }
+
+          paginaActual = 1;
+          ocultarSpinner();
+          mostrarPagina();
+        }, 300);
       }
 
       // 📄 MOSTRAR PÁGINA
@@ -1185,10 +1290,14 @@
         rows.forEach((r) => {
           const estado = r.estado || "";
           let estadoClass = "";
-          if (estado === "Defunción") estadoClass = "estado-defuncion";
-          else if (estado === "Activo") estadoClass = "estado-activo";
-          else if (estado === "Inactivo") estadoClass = "estado-inactivo";
-          else if (estado === "Alta") estadoClass = "estado-alta";
+          if (estado === "Defunción" || estado === "DEFUNCION")
+            estadoClass = "estado-defuncion";
+          else if (estado === "Activo" || estado === "ACTIVO")
+            estadoClass = "estado-activo";
+          else if (estado === "Inactivo" || estado === "INACTIVO")
+            estadoClass = "estado-inactivo";
+          else if (estado === "Alta" || estado === "ALTA")
+            estadoClass = "estado-alta";
 
           cont.innerHTML += `
           <div class="card">
@@ -1222,7 +1331,6 @@
         const inicio = (paginaActual - 1) * registrosPorPagina + 1;
         const fin = Math.min(paginaActual * registrosPorPagina, total);
 
-        // Actualizar texto de paginación
         const pagInfo = document.querySelector(".pagination-info");
         if (pagInfo) {
           pagInfo.textContent = `Mostrando ${inicio}-${fin} de ${total} registros`;
