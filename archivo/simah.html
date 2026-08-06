@@ -189,7 +189,7 @@
         height: auto;
         display: flex;
         flex-direction: column;
-        gap: 2px;
+        gap: 4px;
         cursor: pointer;
       }
 
@@ -1435,11 +1435,11 @@
 
         if (!rows || rows.length === 0) {
           cont.innerHTML = `
-      <div style="grid-column:1/-1; text-align:center; padding:40px; color:rgba(255,255,255,0.3);">
-        <i class="fas fa-inbox" style="font-size:32px; display:block; margin-bottom:10px;"></i>
-        No hay registros que coincidan con la búsqueda
-      </div>
-    `;
+          <div style="grid-column:1/-1; text-align:center; padding:40px; color:rgba(255,255,255,0.3);">
+            <i class="fas fa-inbox" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+            No hay registros que coincidan con la búsqueda
+          </div>
+        `;
           return;
         }
 
@@ -1456,35 +1456,63 @@
             estadoClass = "estado-alta";
 
           cont.innerHTML += `
-      <div class="card" onclick="abrirModalEditar('${r.id}')">
-        <div style="font-size:15px; font-weight:700; color:#fff; margin-bottom:6px; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:6px;">
-          ${r.nombre_paciente || "—"}
-        </div>
-        <div style="display:grid; grid-template-columns:80px 1fr; gap:1px 8px; font-size:13px;">
-          <span style="color:rgba(255,255,255,0.5);">Expediente</span>
-          <span style="color:#00ff89; font-weight:600;">${r.expediente || "—"}</span>
-          
-          <span style="color:rgba(255,255,255,0.5);">Servicio</span>
-          <span style="color:rgba(255,255,255,0.8);">${r.servicio || "—"}</span>
-          
-          <span style="color:rgba(255,255,255,0.5);">Registro</span>
-          <span style="color:rgba(255,255,255,0.8);">${r.fecha_registro || "—"}</span>
-          
-          <span style="color:rgba(255,255,255,0.5);">Estado</span>
-          <span class="${estadoClass}">${estado || "—"}</span>
-          
-          <span style="color:rgba(255,255,255,0.5);">Sexo</span>
-          <span style="color:rgba(255,255,255,0.8);">${r.sexo || "—"}</span>
-          
-          <span style="color:rgba(255,255,255,0.5);">Fecha Nac.</span>
-          <span style="color:rgba(255,255,255,0.8);">${r.fecha_nac || "—"}</span>
-          
-          <span style="color:rgba(255,255,255,0.5);">Teléfono</span>
-          <span style="color:rgba(255,255,255,0.8);">${r.tel_part || "—"}</span>
-        </div>
-      </div>
-    `;
+          <div class="card" onclick="abrirModalEditar('${r.id}')">
+            <span><b>${r.nombre_paciente || ""}</b></span>
+            <small><strong>Expediente:</strong> <span class="expediente-verde">${r.expediente || ""}</span></small>
+            <small><strong>Servicio:</strong> ${r.servicio || "—"}</small>
+            <small><strong>Fecha Registro:</strong> ${r.fecha_registro || "—"}</small>
+            <small><strong>Estado:</strong> <span class="${estadoClass}">${estado || "—"}</span></small>
+            <small><strong>Sexo:</strong> ${r.sexo || "—"}</small>
+            <small><strong>Fecha Nac.:</strong> ${r.fecha_nac || "—"}</small>
+            <small><strong>Teléfono:</strong> ${r.tel_part || "—"}</small>
+          </div>
+        `;
         });
+      }
+
+      function renderPaginacion(total, totalPaginas) {
+        const prevBtn = document.getElementById("prevBtn");
+        const nextBtn = document.getElementById("nextBtn");
+        prevBtn.disabled = paginaActual <= 1;
+        nextBtn.disabled = paginaActual >= totalPaginas;
+
+        const inicio = (paginaActual - 1) * registrosPorPagina + 1;
+        const fin = Math.min(paginaActual * registrosPorPagina, total);
+
+        const pagInfo = document.querySelector(".pagination-info");
+        if (pagInfo) {
+          pagInfo.textContent = `Mostrando ${inicio}-${fin} de ${total} registros`;
+        }
+
+        let html = "";
+        const maxVisible = 5;
+        let inicioPages = Math.max(
+          1,
+          paginaActual - Math.floor(maxVisible / 2),
+        );
+        let finPages = Math.min(totalPaginas, inicioPages + maxVisible - 1);
+
+        if (finPages - inicioPages + 1 < maxVisible) {
+          inicioPages = Math.max(1, finPages - maxVisible + 1);
+        }
+
+        if (inicioPages > 1) {
+          html += `<span class="page-number" onclick="irPagina(1)">1</span>`;
+          if (inicioPages > 2)
+            html += `<span style="color:rgba(255,255,255,0.2);">…</span>`;
+        }
+
+        for (let i = inicioPages; i <= finPages; i++) {
+          html += `<span class="page-number ${i === paginaActual ? "active" : ""}" onclick="irPagina(${i})">${i}</span>`;
+        }
+
+        if (finPages < totalPaginas) {
+          if (finPages < totalPaginas - 1)
+            html += `<span style="color:rgba(255,255,255,0.2);">…</span>`;
+          html += `<span class="page-number" onclick="irPagina(${totalPaginas})">${totalPaginas}</span>`;
+        }
+
+        document.getElementById("pageNumbers").innerHTML = html;
       }
 
       // ============================================================
