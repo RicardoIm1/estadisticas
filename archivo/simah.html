@@ -804,7 +804,7 @@
   <body>
     <div class="glass" id="dashboard">
       <div class="header-simah">
-        <h5>EXPEDIENTES CLÍNICOS</h5>
+        <h5>📋 EXPEDIENTES CLÍNICOS</h5>
         <div class="header-actions">
           <button class="btn btn-primary" onclick="abrirModal()">
             <i class="fas fa-plus"></i> Nuevo
@@ -988,6 +988,52 @@
       let datosFiltrados = [];
 
       // ============================================================
+      // CACHE EN LOCALSTORAGE
+      // ============================================================
+      function guardarCache(datos) {
+        try {
+          const cacheData = {
+            timestamp: Date.now(),
+            registros: datos,
+            total: datos.length,
+          };
+          localStorage.setItem("expedientes_cache", JSON.stringify(cacheData));
+          console.log(`💾 Cache guardado: ${datos.length} registros`);
+        } catch (error) {
+          console.error("Error guardando cache:", error);
+        }
+      }
+
+      function cargarCache() {
+        try {
+          const cached = localStorage.getItem("expedientes_cache");
+          if (!cached) return null;
+
+          const data = JSON.parse(cached);
+          const edad = (Date.now() - data.timestamp) / (1000 * 60 * 60);
+
+          console.log(
+            `📦 Cache encontrado: ${data.registros.length} registros (${edad.toFixed(1)} horas)`,
+          );
+
+          if (edad > 24) {
+            console.log("⏰ Cache expirado (>24 horas)");
+            return null;
+          }
+
+          return data.registros;
+        } catch (error) {
+          console.error("Error cargando cache:", error);
+          return null;
+        }
+      }
+
+      function limpiarCache() {
+        localStorage.removeItem("expedientes_cache");
+        console.log("🗑️ Cache eliminado");
+      }
+
+      // ============================================================
       // SISTEMA DE ESTADO
       // ============================================================
       function setGlassState(state) {
@@ -1052,8 +1098,29 @@
       // FUNCIONES CRUD
       // ============================================================
 
-      // 📥 CARGAR TODOS LOS DATOS (CON PAGINACIÓN)
-      async function cargarDatosCompletos() {
+      // 📥 CARGAR TODOS LOS DATOS (CON CACHE)
+      async function cargarDatosCompletos(forzarRecarga = false) {
+        // Intentar cargar desde cache primero
+        if (!forzarRecarga) {
+          const cacheData = cargarCache();
+          if (cacheData && cacheData.length > 0) {
+            datosCompletos = cacheData;
+            datosFiltrados = [...datosCompletos];
+
+            actualizarEstadisticas();
+            ocultarSpinner();
+            mostrarPagina();
+            setGlassState("success");
+
+            console.log(
+              `✅ Cargados ${datosCompletos.length} registros desde CACHE`,
+            );
+            verificarActualizacionesEnBackground();
+            return;
+          }
+        }
+
+        // Si no hay cache o se fuerza recarga, descargar de Supabase
         mostrarSpinner("Cargando todos los registros...");
         setGlassState("loading");
 
@@ -1092,10 +1159,17 @@
           datosCompletos = allData;
           datosFiltrados = [...datosCompletos];
 
+          // Guardar en cache
+          guardarCache(datosCompletos);
+
           actualizarEstadisticas();
           ocultarSpinner();
           mostrarPagina();
           setGlassState("success");
+
+          console.log(
+            `✅ Cargados ${datosCompletos.length} registros desde Supabase`,
+          );
         } catch (error) {
           console.error("Error:", error);
           setGlassState("error");
@@ -1106,6 +1180,27 @@
               Error al cargar datos: ${error.message}
             </div>
           `;
+        }
+      }
+
+      // 🔄 VERIFICAR ACTUALIZACIONES EN BACKGROUND
+      async function verificarActualizacionesEnBackground() {
+        try {
+          const { count, error } = await sb
+            .from("expedientes")
+            .select("*", { count: "exact", head: true });
+
+          if (error) throw error;
+
+          if (count > datosCompletos.length) {
+            const diff = count - datosCompletos.length;
+            mostrarToast(
+              `📊 ${diff} registro(s) nuevo(s) disponible(s). Haz clic en "Recargar" para actualizar.`,
+              "info",
+            );
+          }
+        } catch (error) {
+          console.error("Error verificando actualizaciones:", error);
         }
       }
 
@@ -1242,6 +1337,7 @@
             const nuevoRegistro = data[0];
             datosCompletos.unshift(nuevoRegistro);
             datosFiltrados = [...datosCompletos];
+            guardarCache(datosCompletos);
             paginaActual = 1;
             mostrarPagina();
             actualizarEstadisticas();
@@ -1280,6 +1376,7 @@
             if (indexFiltrado !== -1) {
               datosFiltrados[indexFiltrado] = registroActualizado;
             }
+            guardarCache(datosCompletos);
             mostrarPagina();
             actualizarEstadisticas();
           }
@@ -1308,6 +1405,7 @@
 
           datosCompletos = datosCompletos.filter((r) => r.id !== id);
           datosFiltrados = datosFiltrados.filter((r) => r.id !== id);
+          guardarCache(datosCompletos);
 
           const totalPaginas =
             Math.ceil(datosFiltrados.length / registrosPorPagina) || 1;
@@ -1483,8 +1581,9 @@
       }
 
       function recargarDatos() {
-        cargarDatosCompletos();
-        mostrarToast("🔄 Recargando datos...", "info");
+        limpiarCache();
+        cargarDatosCompletos(true);
+        mostrarToast("🔄 Recargando datos desde Supabase...", "info");
       }
 
       // ============================================================
