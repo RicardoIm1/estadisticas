@@ -1558,6 +1558,32 @@
         const id = document.getElementById("editId").value;
         const fechaActual = new Date().toISOString().split("T")[0];
 
+        // 🔥 Obtener el usuario logueado desde el DOM
+        const userInfo = document.getElementById("user-info");
+        let usuarioActual = "Sistema";
+
+        if (userInfo) {
+          // Intentar obtener el nombre del usuario
+          const userText = userInfo.textContent || userInfo.innerText || "";
+          // Si tiene formato "Usuario: Ricardo" o similar
+          const match =
+            userText.match(/Usuario:\s*([^\s]+)/i) ||
+            userText.match(/Bienvenido\s*([^\s]+)/i);
+          if (match) {
+            usuarioActual = match[1].trim();
+          } else if (userText.trim()) {
+            usuarioActual = userText.trim();
+          }
+        }
+
+        // Si no se encontró en el DOM, intentar desde localStorage
+        if (usuarioActual === "Sistema") {
+          const usuarioStorage = localStorage.getItem("usuario");
+          if (usuarioStorage) {
+            usuarioActual = usuarioStorage;
+          }
+        }
+
         const datosForm = {
           nombre_paciente: document
             .getElementById("nombrePaciente")
@@ -1569,10 +1595,12 @@
           estado: document.getElementById("estado").value,
           sexo: document.getElementById("sexo").value || null,
           tel_part: document.getElementById("telPart").value.trim() || null,
+          usuario_registro: usuarioActual, // 🔥 Campo agregado
         };
 
         if (id) {
           delete datosForm.fecha_registro;
+          delete datosForm.usuario_registro; // No actualizar en edición
           await actualizarRegistro(id, datosForm);
         } else {
           await crearRegistro(datosForm);
