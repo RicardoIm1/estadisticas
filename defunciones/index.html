@@ -1153,16 +1153,25 @@
           },
         });
       }
-      
-      function abrirGrafica() {
-        const modal = document.getElementById("modalGrafica");
-        modal.classList.add("active");
-        document.body.style.overflow = "hidden";
 
-        // Crear la gráfica con un pequeño retraso para que el modal se renderice
-        setTimeout(() => {
-          crearGrafica();
-        }, 100);
+      function abrirGrafica() {
+        const modal = document.getElementById("modalGrafica"); // Assuming this is your modal ID
+
+        // 1. Show the modal
+        const modalInstance = new bootstrap.Modal(modal);
+        modalInstance.show();
+
+        // 2. Attach an event listener to create the chart AFTER it is fully shown
+        modal.addEventListener(
+          "shown.bs.modal",
+          function () {
+            crearGrafica();
+
+            // Remove the listener after it runs once so it doesn't stack on subsequent opens
+            modal.removeEventListener("shown.bs.modal", this);
+          },
+          { once: true },
+        );
       }
 
       function cerrarGrafica() {
