@@ -1,1359 +1,1129 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Defunciones Generales</title>
-    <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon" />
-    <link rel="icon" href="../img/favicon.ico" type="image/x-icon" />
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
-    />
-    <link href="/main_css/estilos.css" rel="stylesheet" />
-    <link href="/main_css/estilos_original.css" rel="stylesheet" />
-    <link href="/defunciones/estilos.css" rel="stylesheet" />
-    <link href="/main_css/tabla-wrapper.css" rel="stylesheet" />
-    <!-- Chart.js para gráficas -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Antes de tu script, agrega Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  </head>
 
-  <style>
-    #tabla-registros td:nth-child(2) {
-      white-space: normal;
-      word-break: break-word;
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Defunciones Generales</title>
+  <link rel="shortcut icon" href="../img/favicon.ico" type="image/x-icon">
+  <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="/main_css/estilos.css" rel="stylesheet">
+  <link href="/main_css/estilos_original.css" rel="stylesheet">
+  <link href="/defunciones/estilos.css" rel="stylesheet">
+  <link href="/main_css/tabla-wrapper.css" rel="stylesheet">
+  <!-- Chart.js para gráficas -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<style>
+  #tabla-registros td:nth-child(2) {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* Iframe oculto para enviar formularios */
+  #form-iframe {
+    display: none;
+    width: 0;
+    height: 0;
+    border: none;
+  }
+
+  /* Estilos para el modal de gráfica */
+  .modal-grafica-backdrop {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+  }
+
+  .modal-grafica-backdrop.active {
+    display: flex;
+  }
+
+  .modal-grafica {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 800px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: slideUp 0.4s ease;
+    position: relative;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
     }
-
-    /* Iframe oculto para enviar formularios */
-    #form-iframe {
-      display: none;
-      width: 0;
-      height: 0;
-      border: none;
+    to {
+      opacity: 1;
     }
+  }
 
-    /* Estilos para el modal de gráfica */
-    .modal-grafica-backdrop {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 9999;
-      justify-content: center;
-      align-items: center;
-      animation: fadeIn 0.3s ease;
+  @keyframes slideUp {
+    from {
+      transform: translateY(30px) scale(0.95);
+      opacity: 0;
     }
-
-    .modal-grafica-backdrop.active {
-      display: flex;
+    to {
+      transform: translateY(0) scale(1);
+      opacity: 1;
     }
+  }
 
+  .modal-grafica-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-grafica-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #2d3436;
+  }
+
+  .modal-grafica-header h2 i {
+    color: #e17055;
+    margin-right: 10px;
+  }
+
+  .btn-cerrar-grafica {
+    background: none;
+    border: none;
+    font-size: 1.8rem;
+    color: #636e72;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+    border-radius: 8px;
+  }
+
+  .btn-cerrar-grafica:hover {
+    background: #ff7675;
+    color: white;
+    transform: rotate(90deg);
+  }
+
+  .grafica-container {
+    position: relative;
+    height: 400px;
+  }
+
+  .grafica-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .grafica-leyenda {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 12px;
+  }
+
+  .leyenda-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .leyenda-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+
+  .leyenda-color.mujeres {
+    background: #fd79a8;
+  }
+
+  .leyenda-color.hombres {
+    background: #0984e3;
+  }
+
+  .btn-grafica {
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 500;
+    box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
+  }
+
+  .btn-grafica:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(108, 92, 231, 0.5);
+  }
+
+  .btn-grafica i {
+    font-size: 1.1rem;
+  }
+
+  /* Botón de gráfica en el header */
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
     .modal-grafica {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border-radius: 20px;
-      padding: 30px;
-      max-width: 800px;
-      width: 90%;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      animation: slideUp 0.4s ease;
-      position: relative;
+      padding: 20px;
+      width: 95%;
     }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-      }
-      to {
-        opacity: 1;
-      }
-    }
-
-    @keyframes slideUp {
-      from {
-        transform: translateY(30px) scale(0.95);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-      }
-    }
-
-    .modal-grafica-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      padding-bottom: 15px;
-      border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-    }
-
     .modal-grafica-header h2 {
-      margin: 0;
-      font-size: 1.5rem;
-      color: #2d3436;
+      font-size: 1.2rem;
     }
-
-    .modal-grafica-header h2 i {
-      color: #e17055;
-      margin-right: 10px;
-    }
-
-    .btn-cerrar-grafica {
-      background: none;
-      border: none;
-      font-size: 1.8rem;
-      color: #636e72;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      padding: 5px 10px;
-      border-radius: 8px;
-    }
-
-    .btn-cerrar-grafica:hover {
-      background: #ff7675;
-      color: white;
-      transform: rotate(90deg);
-    }
-
     .grafica-container {
-      position: relative;
-      height: 400px;
+      height: 300px;
     }
+  }
+</style>
 
-    .grafica-container canvas {
-      width: 100% !important;
-      height: 100% !important;
-    }
-
-    .grafica-leyenda {
-      display: flex;
-      justify-content: center;
-      gap: 30px;
-      margin-top: 20px;
-      padding: 15px;
-      background: rgba(0, 0, 0, 0.05);
-      border-radius: 12px;
-    }
-
-    .leyenda-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.9rem;
-      font-weight: 500;
-    }
-
-    .leyenda-color {
-      width: 20px;
-      height: 20px;
-      border-radius: 4px;
-    }
-
-    .leyenda-color.mujeres {
-      background: #fd79a8;
-    }
-
-    .leyenda-color.hombres {
-      background: #0984e3;
-    }
-
-    .btn-grafica {
-      background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 12px;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 500;
-      box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
-    }
-
-    .btn-grafica:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(108, 92, 231, 0.5);
-    }
-
-    .btn-grafica i {
-      font-size: 1.1rem;
-    }
-
-    /* Botón de gráfica en el header */
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      .modal-grafica {
-        padding: 20px;
-        width: 95%;
-      }
-      .modal-grafica-header h2 {
-        font-size: 1.2rem;
-      }
-      .grafica-container {
-        height: 300px;
-      }
-    }
-
-    /* Asegurar que el modal esté centrado */
-    .modal-dialog {
-      display: flex;
-      align-items: center;
-      min-height: calc(100% - 1rem);
-    }
-
-    .modal-dialog-centered {
-      min-height: calc(100% - 1rem);
-    }
-
-    .modal-content {
-      width: 100%;
-    }
-
-    /* Asegurar que el canvas tenga el tamaño correcto */
-    #graficaDefunciones {
-      width: 100% !important;
-      height: 100% !important;
-    }
-  </style>
-
-  <body>
-    <div class="glass" id="dashboard">
-      <h5>Defunciones Generales</h5>
-      <div class="header">
-        <div class="logo">
-          <a href="/">
-            <img src="/img/logo-hrpv.png" alt="Logo" width="120"
-          /></a>
-        </div>
-        <div class="buscador-wrapper">
-          <input
-            type="text"
-            id="buscador"
-            placeholder="🔍 Buscar por cualquier campo..."
-            class="input-busqueda"
-          />
-        </div>
-        <div class="header-actions">
-          <button class="btn-grafica" id="btnAbrirGrafica">
-            <i class="fas fa-chart-bar"></i> Estadísticas
-          </button>
-          <button
-            class="btn-informe"
-            onclick="window.location.href = '/defunciones/infdef.html'"
-            style="
-              background: linear-gradient(135deg, #1a3a6a, #2a5a8a);
-              color: white;
-              border: none;
-              padding: 10px 20px;
-              border-radius: 12px;
-              font-size: 0.9rem;
-              cursor: pointer;
-              transition: all 0.3s ease;
-              display: flex;
-              align-items: center;
-              gap: 8px;
-              font-weight: 500;
-              box-shadow: 0 4px 15px rgba(26, 58, 106, 0.4);
-            "
-            onmouseover="
-              this.style.transform = 'translateY(-2px)';
-              this.style.boxShadow = '0 8px 25px rgba(26, 58, 106, 0.5)';
-            "
-            onmouseout="
-              this.style.transform = 'translateY(0)';
-              this.style.boxShadow = '0 4px 15px rgba(26, 58, 106, 0.4)';
-            "
-          >
-            <i class="fas fa-file-pdf"></i> Informe PDF
-          </button>
-          <div class="usuario">
-            <i class="fas fa-user-circle"></i>
-            <span id="user-info"></span>
-            <button onclick="cerrarSesion()" class="btn-salir-ultra">
-              Salir
-            </button>
-          </div>
-        </div>
+<body>
+  <div class="glass" id="dashboard">
+    <h5>Defunciones Generales</h5>
+    <div class="header">
+      <div class="logo">
+        <a href="/"> <img src="/img/logo-hrpv.png" alt="Logo" width="120"></a>
       </div>
-
-      <div class="contenedor-flex">
-        <form id="crud-form" class="formulario">
-          <input type="hidden" id="id" />
-
-          <div class="bloque">
-            <label for="folio"><i class="fas fa-file-alt"></i> Folio</label>
-            <input id="folio" placeholder="Ingrese el folio" />
-          </div>
-
-          <div class="bloque">
-            <label for="nombre"><i class="fas fa-user"></i> Nombre *</label>
-            <input id="nombre" required placeholder="Nombre completo" />
-          </div>
-
-          <div class="bloque">
-            <label for="fechaDefuncion"
-              ><i class="fas fa-calendar-alt"></i> Fecha de Defunción</label
-            >
-            <input id="fechaDefuncion" type="date" />
-          </div>
-
-          <div class="bloque-horizontal">
-            <div class="bloque">
-              <label for="area"
-                ><i class="fas fa-map-marker-alt"></i> Área</label
-              >
-              <input id="area" placeholder="Área" />
-            </div>
-            <div class="bloque">
-              <label for="edad"
-                ><i class="fas fa-birthday-cake"></i> Edad</label
-              >
-              <input id="edad" type="number" placeholder="Edad" />
-            </div>
-            <div class="bloque">
-              <label for="sexo"><i class="fas fa-venus-mars"></i> Sexo</label>
-              <select id="sexo">
-                <option value="">Seleccione</option>
-                <option value="Masculino">Masculino</option>
-                <option value="Femenino">Femenino</option>
-                <option value="Intersexual">Intersexual</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="bloque">
-            <label for="diagnostico"
-              ><i class="fas fa-stethoscope"></i> Diagnóstico</label
-            >
-            <textarea
-              id="diagnostico"
-              placeholder="Diagnóstico principal"
-              rows="3"
-            ></textarea>
-          </div>
-
-          <div class="bloque">
-            <label for="observaciones"
-              ><i class="fas fa-clipboard-list"></i> Observaciones</label
-            >
-            <textarea
-              id="observaciones"
-              placeholder="Observaciones adicionales"
-              rows="3"
-            ></textarea>
-          </div>
-
-          <div class="bloque-horizontal">
-            <div class="bloque">
-              <label for="expediente"
-                ><i class="fas fa-folder"></i> Expediente</label
-              >
-              <input id="expediente" placeholder="N° de expediente" />
-            </div>
-            <div class="bloque">
-              <label for="medico"><i class="fas fa-user-md"></i> Médico</label>
-              <input id="medico" placeholder="Médico tratante" />
-            </div>
-          </div>
-
-          <div class="botones">
-            <button type="submit" id="btn-guardar">
-              <i class="fas fa-save"></i> Guardar
-            </button>
-            <button type="button" id="btn-limpiar">
-              <i class="fas fa-broom"></i> Limpiar
-            </button>
-            <button type="button" id="btn-cancelar" style="display: none">
-              <i class="fas fa-times"></i> Cancelar
-            </button>
-          </div>
-        </form>
-
-        <div class="tabla-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th class="columna-pequena">N°</th>
-                <th class="columna-mediana">Folio</th>
-                <th class="columna-grande">Nombre</th>
-                <th class="columna-mediana">Fecha</th>
-                <th class="columna-mediana">Área</th>
-                <th class="columna-grande">Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tabla-registros">
-              <!-- Estado de carga -->
-              <tr>
-                <td colspan="6" style="text-align: center; padding: 2rem">
-                  Cargando registros...
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          <footer>
-            <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
-          </footer>
-        </div>
-
-        <!-- Modal para confirmar eliminación -->
-        <div class="modal-backdrop" id="modalEliminar">
-          <div class="modal">
-            <h3>
-              <i class="fas fa-exclamation-triangle"></i> ¿Confirmar
-              eliminación?
-            </h3>
-            <p>
-              Esta acción no se puede deshacer. ¿Está seguro de que desea
-              eliminar este registro?
-            </p>
-            <div class="modal-buttons">
-              <button class="btn-confirm" id="btnConfirmarEliminar">
-                <i class="fas fa-trash"></i> Eliminar
-              </button>
-              <button class="btn-cancel" id="btnCancelarEliminar">
-                <i class="fas fa-times"></i> Cancelar
-              </button>
-            </div>
-          </div>
-        </div>
+      <div class="buscador-wrapper">
+        <input type="text" id="buscador" placeholder="🔍 Buscar por cualquier campo..." class="input-busqueda">
       </div>
-    </div>
-    <!-- end .glass -->
-
-    <!-- Modal para la gráfica -->
-    <div
-      class="modal fade"
-      id="modalGrafica"
-      tabindex="-1"
-      aria-labelledby="modalGraficaLabel"
-      aria-hidden="true"
-    >
-      <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="modalGraficaLabel">
-              Defunciones Mensuales por Sexo
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body">
-            <div style="position: relative; height: 400px; width: 100%">
-              <canvas id="graficaDefunciones"></canvas>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button
-              type="button"
-              class="btn btn-secondary"
-              data-bs-dismiss="modal"
-            >
-              Cerrar
-            </button>
-          </div>
+      <div class="header-actions">
+        <button class="btn-grafica" id="btnAbrirGrafica">
+          <i class="fas fa-chart-bar"></i> Estadísticas
+        </button>
+        <div class="usuario">
+          <i class="fas fa-user-circle"></i>
+          <span id="user-info"></span>
+          <button onclick="cerrarSesion()" class="btn-salir-ultra">
+            Salir
+          </button>
         </div>
       </div>
     </div>
 
-    <!-- Iframe oculto para enviar formularios -->
-    <iframe id="form-iframe" name="form-iframe"></iframe>
+    <div class="contenedor-flex">
+      <form id="crud-form" class="formulario">
+        <input type="hidden" id="id">
 
-    <script>
-      // Footer dinámico
-      document.getElementById("footerText").innerHTML =
-        `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+        <div class="bloque">
+          <label for="folio"><i class="fas fa-file-alt"></i> Folio</label>
+          <input id="folio" placeholder="Ingrese el folio">
+        </div>
 
-      // ========== FUNCIÓN PARA FORMATEAR FECHAS ==========
-      function formatearFecha(fechaString) {
-        if (!fechaString) return "-";
+        <div class="bloque">
+          <label for="nombre"><i class="fas fa-user"></i> Nombre *</label>
+          <input id="nombre" required placeholder="Nombre completo">
+        </div>
 
-        try {
-          // Si ya es una fecha válida en formato simple
-          if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
-            const fecha = new Date(fechaString + "T00:00:00");
-            return fecha.toLocaleDateString("es-ES", {
-              day: "2-digit",
-              month: "2-digit",
-              year: "numeric",
-            });
-          }
+        <div class="bloque">
+          <label for="fechaDefuncion"><i class="fas fa-calendar-alt"></i> Fecha de Defunción</label>
+          <input id="fechaDefuncion" type="date">
+        </div>
 
-          // Si viene con hora (formato completo)
-          const fecha = new Date(fechaString);
+        <div class="bloque-horizontal">
+          <div class="bloque">
+            <label for="area"><i class="fas fa-map-marker-alt"></i> Área</label>
+            <input id="area" placeholder="Área">
+          </div>
+          <div class="bloque">
+            <label for="edad"><i class="fas fa-birthday-cake"></i> Edad</label>
+            <input id="edad" type="number" placeholder="Edad">
+          </div>
+          <div class="bloque">
+            <label for="sexo"><i class="fas fa-venus-mars"></i> Sexo</label>
+            <select id="sexo">
+              <option value="">Seleccione</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Femenino">Femenino</option>
+              <option value="Intersexual">Intersexual</option>
+            </select>
+          </div>
+        </div>
 
-          // Verificar si es una fecha válida
-          if (isNaN(fecha.getTime())) {
-            return "-";
-          }
+        <div class="bloque">
+          <label for="diagnostico"><i class="fas fa-stethoscope"></i> Diagnóstico</label>
+          <textarea id="diagnostico" placeholder="Diagnóstico principal" rows="3"></textarea>
+        </div>
 
-          // Formatear a DD/MM/YYYY
-          return fecha.toLocaleDateString("es-ES", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
+        <div class="bloque">
+          <label for="observaciones"><i class="fas fa-clipboard-list"></i> Observaciones</label>
+          <textarea id="observaciones" placeholder="Observaciones adicionales" rows="3"></textarea>
+        </div>
+
+        <div class="bloque-horizontal">
+          <div class="bloque">
+            <label for="expediente"><i class="fas fa-folder"></i> Expediente</label>
+            <input id="expediente" placeholder="N° de expediente">
+          </div>
+          <div class="bloque">
+            <label for="medico"><i class="fas fa-user-md"></i> Médico</label>
+            <input id="medico" placeholder="Médico tratante">
+          </div>
+        </div>
+
+        <div class="botones">
+          <button type="submit" id="btn-guardar"><i class="fas fa-save"></i> Guardar</button>
+          <button type="button" id="btn-limpiar"><i class="fas fa-broom"></i> Limpiar</button>
+          <button type="button" id="btn-cancelar" style="display:none;"><i class="fas fa-times"></i> Cancelar</button>
+        </div>
+      </form>
+
+      <div class="tabla-wrapper">
+
+        <table>
+          <thead>
+            <tr>
+              <th class="columna-pequena">N°</th>
+              <th class="columna-mediana">Folio</th>
+              <th class="columna-grande">Nombre</th>
+              <th class="columna-mediana">Fecha</th>
+              <th class="columna-mediana">Área</th>
+              <th class="columna-grande">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-registros">
+            <!-- Estado de carga -->
+            <tr>
+              <td colspan="6" style="text-align:center; padding: 2rem;">Cargando registros...</td>
+            </tr>
+          </tbody>
+        </table>
+        <footer>
+          <p id="footerText">Hecho con ❤️ por Ricardo · 2023</p>
+        </footer>
+      </div>
+
+      <!-- Modal para confirmar eliminación -->
+      <div class="modal-backdrop" id="modalEliminar">
+        <div class="modal">
+          <h3><i class="fas fa-exclamation-triangle"></i> ¿Confirmar eliminación?</h3>
+          <p>Esta acción no se puede deshacer. ¿Está seguro de que desea eliminar este registro?</p>
+          <div class="modal-buttons">
+            <button class="btn-confirm" id="btnConfirmarEliminar"><i class="fas fa-trash"></i> Eliminar</button>
+            <button class="btn-cancel" id="btnCancelarEliminar"><i class="fas fa-times"></i> Cancelar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> <!-- end .glass -->
+
+  <!-- MODAL PARA GRÁFICA DE DEFUNCIONES -->
+  <div class="modal-grafica-backdrop" id="modalGrafica">
+    <div class="modal-grafica">
+      <div class="modal-grafica-header">
+        <h2><i class="fas fa-chart-bar"></i> Defunciones por Mes y Sexo</h2>
+        <button class="btn-cerrar-grafica" id="btnCerrarGrafica" title="Cerrar">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="grafica-container">
+        <canvas id="graficaDefunciones"></canvas>
+      </div>
+      <!-- <div class="grafica-leyenda">
+        <div class="leyenda-item">
+          <div class="leyenda-color mujeres"></div>
+          <span>Mujeres</span>
+        </div>
+        <div class="leyenda-item">
+          <div class="leyenda-color hombres"></div>
+          <span>Hombres</span>
+        </div>
+      </div> -->
+    </div>
+  </div>
+
+  <!-- Iframe oculto para enviar formularios -->
+  <iframe id="form-iframe" name="form-iframe"></iframe>
+
+  <script>
+    // Footer dinámico
+    document.getElementById('footerText').innerHTML =
+      `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+
+    // ========== FUNCIÓN PARA FORMATEAR FECHAS ==========
+    function formatearFecha(fechaString) {
+      if (!fechaString) return '-';
+
+      try {
+        // Si ya es una fecha válida en formato simple
+        if (/^\d{4}-\d{2}-\d{2}$/.test(fechaString)) {
+          const fecha = new Date(fechaString + 'T00:00:00');
+          return fecha.toLocaleDateString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
           });
-        } catch (error) {
-          console.error("Error formateando fecha:", fechaString, error);
-          return "-";
-        }
-      }
-
-      // ========== estadoSistema.js ==========
-      function setEstado(estado) {
-        const dashboard = document.querySelector(".glass");
-
-        if (!dashboard) {
-          console.warn("⚠️ No se encontró el contenedor .glass");
-          return;
         }
 
-        dashboard.style.transition =
-          "background 0.5s ease, box-shadow 0.8s ease, border 0.5s ease";
-        dashboard.classList.remove("loading", "success", "error");
+        // Si viene con hora (formato completo)
+        const fecha = new Date(fechaString);
 
-        switch (estado) {
-          case "loading":
-            dashboard.classList.add("loading");
-            break;
-          case "success":
-            dashboard.classList.add("success");
-            break;
-          case "error":
-            dashboard.classList.add("error");
-            break;
+        // Verificar si es una fecha válida
+        if (isNaN(fecha.getTime())) {
+          return '-';
         }
 
-        // 🔄 Restaurar a cristalino en 5 s
-        setTimeout(() => {
-          dashboard.style.transition =
-            "background 5s ease, box-shadow 5s ease, border 5s ease";
-          dashboard.classList.remove("loading", "success", "error");
-        }, 5000);
-      }
-
-      // ========== app.js ==========
-      const GAS_URL =
-        "https://script.google.com/macros/s/AKfycbzTd3NQZuEKXIrIjI9qTRBolbeB9RlJ0d0RETuPunYQqE2Xz4860uiwAqGKiXXg3mfK/exec";
-
-      // Variables globales
-      let idParaEliminar = null;
-      let chartInstance = null;
-
-      // Función para cargar datos
-      async function cargarRegistros() {
-        try {
-          console.log("🔄 Cargando registros...");
-          setEstado("loading");
-
-          const response = await fetch(GAS_URL);
-          const text = await response.text();
-          const data = JSON.parse(text);
-
-          if (data.success) {
-            // Ordenar por ID antes de mostrar
-            if (data.rows && data.rows.length > 0) {
-              data.rows.sort((a, b) => parseInt(b.id) - parseInt(a.id));
-            }
-            mostrarTabla(data.rows);
-            // Guardar registros globalmente para la gráfica
-            window.registrosGlobales = data.rows || [];
-            setEstado("success");
-          } else {
-            throw new Error(data.error || "Error del servidor");
-          }
-        } catch (error) {
-          console.error("❌ Error:", error);
-          setEstado("error");
-          document.getElementById("tabla-registros").innerHTML =
-            '<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #ff6b6b;">Error cargando datos</td></tr>';
-        }
-      }
-
-      // FUNCIÓN MODIFICADA: Mostrar tabla con orden por FECHA descendente y luego por FOLIO
-      function mostrarTabla(registros) {
-        const tbody = document.getElementById("tabla-registros");
-        tbody.innerHTML = "";
-
-        if (!registros || registros.length === 0) {
-          tbody.innerHTML =
-            '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No hay registros</td></tr>';
-          return;
-        }
-
-        // Ordenar registros por FECHA descendente (más reciente primero) y luego por FOLIO
-        const registrosOrdenados = [...registros].sort((a, b) => {
-          // Primero ordenar por fecha (descendente)
-          const fechaA = a.fechaDefuncion
-            ? new Date(a.fechaDefuncion)
-            : new Date(0);
-          const fechaB = b.fechaDefuncion
-            ? new Date(b.fechaDefuncion)
-            : new Date(0);
-
-          // Si las fechas son diferentes, ordenar por fecha (más reciente primero)
-          if (fechaA.getTime() !== fechaB.getTime()) {
-            return fechaB.getTime() - fechaA.getTime();
-          }
-
-          // Si las fechas son iguales, ordenar por folio (ascendente)
-          const folioA = a.folio || "";
-          const folioB = b.folio || "";
-
-          // Extraer el número del folio
-          const numA = extraerNumeroFolio(folioA);
-          const numB = extraerNumeroFolio(folioB);
-
-          // Si ambos tienen números válidos, ordenar numéricamente
-          if (numA !== null && numB !== null) {
-            return numA - numB;
-          }
-
-          // Si no, ordenar alfabéticamente
-          return String(folioA).localeCompare(String(folioB));
+        // Formatear a DD/MM/YYYY
+        return fecha.toLocaleDateString('es-ES', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
         });
+      } catch (error) {
+        console.error('Error formateando fecha:', fechaString, error);
+        return '-';
+      }
+    }
 
-        registrosOrdenados.forEach((registro, index) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${registro.folio || "-"}</td>
-            <td>${registro.nombre || ""}</td>
-            <td>${formatearFecha(registro.fechaDefuncion)}</td>
-            <td>${registro.area || ""}</td>
-            <td>
-              <div class="acciones-tabla">
-                <button class="btn-editar" onclick="editar('${registro.id}')" title="Editar registro">
-                  <i class="fas fa-edit"></i>
-                </button>
-                <button class="btn-eliminar" onclick="solicitarEliminar('${registro.id}')" title="Eliminar registro">
-                  <i class="fas fa-trash"></i>
-                </button>
-              </div>
-            </td>
-          `;
-          tbody.appendChild(tr);
-        });
+    // ========== estadoSistema.js ==========
+    function setEstado(estado) {
+      const dashboard = document.querySelector('.glass');
+
+      if (!dashboard) {
+        console.warn('⚠️ No se encontró el contenedor .glass');
+        return;
       }
 
-      // Función auxiliar para extraer el número del folio (CORREGIDA)
-      function extraerNumeroFolio(folio) {
-        // Si es null, undefined o vacío, retornar null
-        if (folio === null || folio === undefined || folio === "") {
-          return null;
+      dashboard.style.transition = 'background 0.5s ease, box-shadow 0.8s ease, border 0.5s ease';
+      dashboard.classList.remove('loading', 'success', 'error');
+
+      switch (estado) {
+        case 'loading':
+          dashboard.classList.add('loading');
+          break;
+        case 'success':
+          dashboard.classList.add('success');
+          break;
+        case 'error':
+          dashboard.classList.add('error');
+          break;
+      }
+
+      // 🔄 Restaurar a cristalino en 5 s
+      setTimeout(() => {
+        dashboard.style.transition = 'background 5s ease, box-shadow 5s ease, border 5s ease';
+        dashboard.classList.remove('loading', 'success', 'error');
+      }, 5000);
+    }
+
+    // ========== app.js ==========
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbzTd3NQZuEKXIrIjI9qTRBolbeB9RlJ0d0RETuPunYQqE2Xz4860uiwAqGKiXXg3mfK/exec";
+
+    // Variables globales
+    let idParaEliminar = null;
+    let chartInstance = null;
+
+    // Función para cargar datos
+    async function cargarRegistros() {
+      try {
+        console.log('🔄 Cargando registros...');
+        setEstado('loading');
+
+        const response = await fetch(GAS_URL);
+        const text = await response.text();
+        const data = JSON.parse(text);
+
+        if (data.success) {
+          // Ordenar por ID antes de mostrar
+          if (data.rows && data.rows.length > 0) {
+            data.rows.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+          }
+          mostrarTabla(data.rows);
+          // Guardar registros globalmente para la gráfica
+          window.registrosGlobales = data.rows || [];
+          setEstado('success');
+        } else {
+          throw new Error(data.error || 'Error del servidor');
+        }
+      } catch (error) {
+        console.error('❌ Error:', error);
+        setEstado('error');
+        document.getElementById('tabla-registros').innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #ff6b6b;">Error cargando datos</td></tr>';
+      }
+    }
+
+    // FUNCIÓN MODIFICADA: Mostrar tabla con orden por FECHA descendente y luego por FOLIO
+    function mostrarTabla(registros) {
+      const tbody = document.getElementById('tabla-registros');
+      tbody.innerHTML = '';
+
+      if (!registros || registros.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No hay registros</td></tr>';
+        return;
+      }
+
+      // Ordenar registros por FECHA descendente (más reciente primero) y luego por FOLIO
+      const registrosOrdenados = [...registros].sort((a, b) => {
+        // Primero ordenar por fecha (descendente)
+        const fechaA = a.fechaDefuncion ? new Date(a.fechaDefuncion) : new Date(0);
+        const fechaB = b.fechaDefuncion ? new Date(b.fechaDefuncion) : new Date(0);
+
+        // Si las fechas son diferentes, ordenar por fecha (más reciente primero)
+        if (fechaA.getTime() !== fechaB.getTime()) {
+          return fechaB.getTime() - fechaA.getTime();
         }
 
-        // Convertir a string por si acaso
-        const folioStr = String(folio);
+        // Si las fechas son iguales, ordenar por folio (ascendente)
+        const folioA = a.folio || '';
+        const folioB = b.folio || '';
 
-        // Buscar el último número en el folio
-        const match = folioStr.match(/\d+$/);
-        if (match) {
-          return parseInt(match[0], 10);
+        // Extraer el número del folio
+        const numA = extraerNumeroFolio(folioA);
+        const numB = extraerNumeroFolio(folioB);
+
+        // Si ambos tienen números válidos, ordenar numéricamente
+        if (numA !== null && numB !== null) {
+          return numA - numB;
         }
 
-        // Si no encuentra número al final, intentar extraer todos los números
-        const todosNumeros = folioStr.match(/\d+/g);
-        if (todosNumeros) {
-          // Tomar el último grupo de números (generalmente es el número secuencial)
-          return parseInt(todosNumeros[todosNumeros.length - 1], 10);
-        }
+        // Si no, ordenar alfabéticamente
+        return String(folioA).localeCompare(String(folioB));
+      });
 
+      registrosOrdenados.forEach((registro, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${registro.folio || '-'}</td>
+      <td>${registro.nombre || ''}</td>
+      <td>${formatearFecha(registro.fechaDefuncion)}</td>
+      <td>${registro.area || ''}</td>
+      <td>
+        <div class="acciones-tabla">
+          <button class="btn-editar" onclick="editar('${registro.id}')" title="Editar registro">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button class="btn-eliminar" onclick="solicitarEliminar('${registro.id}')" title="Eliminar registro">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+      </td>
+    `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Función auxiliar para extraer el número del folio (CORREGIDA)
+    function extraerNumeroFolio(folio) {
+      // Si es null, undefined o vacío, retornar null
+      if (folio === null || folio === undefined || folio === '') {
         return null;
       }
 
-      // NUEVA FUNCIÓN: Agregar registro al top sin recargar
-      function agregarRegistroAlTop(registro) {
-        const tbody = document.getElementById("tabla-registros");
+      // Convertir a string por si acaso
+      const folioStr = String(folio);
 
-        // Si hay un mensaje de "No hay registros" o "Cargando...", limpiarlo
-        if (
-          tbody.children.length === 1 &&
-          (tbody.children[0].textContent.includes("No hay registros") ||
-            tbody.children[0].textContent.includes("Cargando"))
-        ) {
-          tbody.innerHTML = "";
-        }
-
-        // Buscar la posición correcta según el orden (fecha descendente, folio ascendente)
-        let posicionInsertar = 0;
-        const filas = tbody.querySelectorAll("tr");
-
-        for (let i = 0; i < filas.length; i++) {
-          const fila = filas[i];
-          const fechaFila = fila.querySelector("td:nth-child(4)").textContent;
-          const folioFila = fila.querySelector("td:nth-child(2)").textContent;
-
-          // Convertir fecha de DD/MM/YYYY a objeto Date para comparar
-          const partes = fechaFila.split("/");
-          const fechaObj =
-            partes.length === 3
-              ? new Date(partes[2], partes[1] - 1, partes[0])
-              : new Date(0);
-          const fechaNuevo = registro.fechaDefuncion
-            ? new Date(registro.fechaDefuncion)
-            : new Date(0);
-
-          // Comparar fechas
-          if (fechaObj.getTime() < fechaNuevo.getTime()) {
-            posicionInsertar = i;
-            break;
-          } else if (fechaObj.getTime() === fechaNuevo.getTime()) {
-            // Si misma fecha, comparar por folio (numéricamente)
-            const numFila = extraerNumeroFolio(folioFila);
-            const numNuevo = extraerNumeroFolio(registro.folio);
-
-            if (numFila !== null && numNuevo !== null) {
-              if (numFila > numNuevo) {
-                posicionInsertar = i;
-                break;
-              }
-            } else {
-              // Si no se pueden extraer números, comparar alfabéticamente
-              const folioFilaStr = String(folioFila || "");
-              const folioNuevoStr = String(registro.folio || "");
-              if (folioFilaStr.localeCompare(folioNuevoStr) > 0) {
-                posicionInsertar = i;
-                break;
-              }
-            }
-          }
-
-          posicionInsertar = i + 1;
-        }
-
-        // Crear nueva fila
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${posicionInsertar + 1}</td>
-          <td>${registro.folio || "-"}</td>
-          <td>${registro.nombre || ""}</td>
-          <td>${formatearFecha(registro.fechaDefuncion)}</td>
-          <td>${registro.area || ""}</td>
-          <td>
-            <div class="acciones-tabla">
-              <button class="btn-editar" onclick="editar('${registro.id}')" title="Editar registro">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="btn-eliminar" onclick="solicitarEliminar('${registro.id}')" title="Eliminar registro">
-                <i class="fas fa-trash"></i>
-              </button>
-            </div>
-          </td>
-        `;
-
-        // Insertar en la posición correcta
-        if (posicionInsertar === 0) {
-          tbody.insertBefore(tr, tbody.firstChild);
-        } else if (posicionInsertar >= filas.length) {
-          tbody.appendChild(tr);
-        } else {
-          tbody.insertBefore(tr, filas[posicionInsertar]);
-        }
-
-        // Renumerar todas las filas
-        const filasActualizadas = tbody.querySelectorAll("tr");
-        filasActualizadas.forEach((fila, index) => {
-          fila.querySelector("td:first-child").textContent = index + 1;
-        });
+      // Buscar el último número en el folio
+      const match = folioStr.match(/\d+$/);
+      if (match) {
+        return parseInt(match[0], 10);
       }
 
-      // FUNCIÓN MODIFICADA: Guardar registro optimizado
-      async function guardar(e) {
-        e.preventDefault();
+      // Si no encuentra número al final, intentar extraer todos los números
+      const todosNumeros = folioStr.match(/\d+/g);
+      if (todosNumeros) {
+        // Tomar el último grupo de números (generalmente es el número secuencial)
+        return parseInt(todosNumeros[todosNumeros.length - 1], 10);
+      }
 
-        const id = document.getElementById("id").value;
-        const datos = {
-          folio: document.getElementById("folio").value,
-          nombre: document.getElementById("nombre").value,
-          fechaDefuncion: document.getElementById("fechaDefuncion").value,
-          area: document.getElementById("area").value,
-          edad: document.getElementById("edad").value,
-          sexo: document.getElementById("sexo").value,
-          diagnostico: document.getElementById("diagnostico").value,
-          expediente: document.getElementById("expediente").value,
-          medico: document.getElementById("medico").value,
-          observaciones: document.getElementById("observaciones").value,
-        };
+      return null;
+    }
 
-        if (!datos.nombre) {
-          setEstado("error");
-          alert("❌ El nombre es obligatorio");
-          return;
+    // NUEVA FUNCIÓN: Agregar registro al top sin recargar
+    function agregarRegistroAlTop(registro) {
+      const tbody = document.getElementById('tabla-registros');
+
+      // Si hay un mensaje de "No hay registros" o "Cargando...", limpiarlo
+      if (tbody.children.length === 1 &&
+        (tbody.children[0].textContent.includes('No hay registros') ||
+          tbody.children[0].textContent.includes('Cargando'))) {
+        tbody.innerHTML = '';
+      }
+
+      // Buscar la posición correcta según el orden (fecha descendente, folio ascendente)
+      let posicionInsertar = 0;
+      const filas = tbody.querySelectorAll('tr');
+
+      for (let i = 0; i < filas.length; i++) {
+        const fila = filas[i];
+        const fechaFila = fila.querySelector('td:nth-child(4)').textContent;
+        const folioFila = fila.querySelector('td:nth-child(2)').textContent;
+
+        // Convertir fecha de DD/MM/YYYY a objeto Date para comparar
+        const partes = fechaFila.split('/');
+        const fechaObj = partes.length === 3 ? new Date(partes[2], partes[1] - 1, partes[0]) : new Date(0);
+        const fechaNuevo = registro.fechaDefuncion ? new Date(registro.fechaDefuncion) : new Date(0);
+
+        // Comparar fechas
+        if (fechaObj.getTime() < fechaNuevo.getTime()) {
+          posicionInsertar = i;
+          break;
+        } else if (fechaObj.getTime() === fechaNuevo.getTime()) {
+          // Si misma fecha, comparar por folio (numéricamente)
+          const numFila = extraerNumeroFolio(folioFila);
+          const numNuevo = extraerNumeroFolio(registro.folio);
+
+          if (numFila !== null && numNuevo !== null) {
+            if (numFila > numNuevo) {
+              posicionInsertar = i;
+              break;
+            }
+          } else {
+            // Si no se pueden extraer números, comparar alfabéticamente
+            const folioFilaStr = String(folioFila || '');
+            const folioNuevoStr = String(registro.folio || '');
+            if (folioFilaStr.localeCompare(folioNuevoStr) > 0) {
+              posicionInsertar = i;
+              break;
+            }
+          }
         }
 
-        console.log("💾 Enviando datos:", datos);
-        setEstado("loading");
+        posicionInsertar = i + 1;
+      }
+
+      // Crear nueva fila
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+    <td>${posicionInsertar + 1}</td>
+    <td>${registro.folio || '-'}</td>
+    <td>${registro.nombre || ''}</td>
+    <td>${formatearFecha(registro.fechaDefuncion)}</td>
+    <td>${registro.area || ''}</td>
+    <td>
+      <div class="acciones-tabla">
+        <button class="btn-editar" onclick="editar('${registro.id}')" title="Editar registro">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-eliminar" onclick="solicitarEliminar('${registro.id}')" title="Eliminar registro">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </td>
+  `;
+
+      // Insertar en la posición correcta
+      if (posicionInsertar === 0) {
+        tbody.insertBefore(tr, tbody.firstChild);
+      } else if (posicionInsertar >= filas.length) {
+        tbody.appendChild(tr);
+      } else {
+        tbody.insertBefore(tr, filas[posicionInsertar]);
+      }
+
+      // Renumerar todas las filas
+      const filasActualizadas = tbody.querySelectorAll('tr');
+      filasActualizadas.forEach((fila, index) => {
+        fila.querySelector('td:first-child').textContent = index + 1;
+      });
+    }
+
+    // FUNCIÓN MODIFICADA: Guardar registro optimizado
+    async function guardar(e) {
+      e.preventDefault();
+
+      const id = document.getElementById('id').value;
+      const datos = {
+        folio: document.getElementById('folio').value,
+        nombre: document.getElementById('nombre').value,
+        fechaDefuncion: document.getElementById('fechaDefuncion').value,
+        area: document.getElementById('area').value,
+        edad: document.getElementById('edad').value,
+        sexo: document.getElementById('sexo').value,
+        diagnostico: document.getElementById('diagnostico').value,
+        expediente: document.getElementById('expediente').value,
+        medico: document.getElementById('medico').value,
+        observaciones: document.getElementById('observaciones').value
+      };
+
+      if (!datos.nombre) {
+        setEstado('error');
+        alert('❌ El nombre es obligatorio');
+        return;
+      }
+
+      console.log('💾 Enviando datos:', datos);
+      setEstado('loading');
+
+      // Crear formulario dinámico
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = GAS_URL;
+      form.target = 'form-iframe';
+      form.style.display = 'none';
+
+      // Agregar campos
+      const campos = {
+        action: id ? 'updateData' : 'createData',
+        ...datos
+      };
+
+      if (id) campos.id = id;
+
+      Object.keys(campos).forEach(key => {
+        const input = document.createElement('input');
+        input.name = key;
+        input.value = campos[key] || '';
+        form.appendChild(input);
+      });
+
+      // Agregar formulario al body y enviar
+      document.body.appendChild(form);
+      form.submit();
+
+      // Optimización: recargar solo si es necesario
+      setTimeout(() => {
+        document.body.removeChild(form);
+        setEstado('success');
+        limpiarForm();
+
+        // Si es un nuevo registro, solo añadir al principio sin recargar todo
+        if (!id) {
+          // Crear un objeto con los datos del nuevo registro
+          const nuevoRegistro = {
+            id: Date.now().toString(), // ID temporal
+            folio: datos.folio || '-',
+            nombre: datos.nombre,
+            fechaDefuncion: datos.fechaDefuncion || '',
+            area: datos.area || '',
+            edad: datos.edad || '',
+            sexo: datos.sexo || '',
+            diagnostico: datos.diagnostico || '',
+            expediente: datos.expediente || '',
+            medico: datos.medico || '',
+            observaciones: datos.observaciones || ''
+          };
+
+          // Añadir al principio de la tabla
+          agregarRegistroAlTop(nuevoRegistro);
+          // Actualizar registros globales para la gráfica
+          if (window.registrosGlobales) {
+            window.registrosGlobales.push(nuevoRegistro);
+          }
+        } else {
+          // Si es edición, recargar todo para actualizar
+          cargarRegistros();
+        }
+      }, 1500);
+    }
+
+    // FUNCIÓN MODIFICADA: Eliminar registro optimizado
+    async function eliminarConfirmado() {
+      if (!idParaEliminar) return;
+
+      try {
+        setEstado('loading');
 
         // Crear formulario dinámico
-        const form = document.createElement("form");
-        form.method = "POST";
+        const form = document.createElement('form');
+        form.method = 'POST';
         form.action = GAS_URL;
-        form.target = "form-iframe";
-        form.style.display = "none";
+        form.target = 'form-iframe';
+        form.style.display = 'none';
 
-        // Agregar campos
-        const campos = {
-          action: id ? "updateData" : "createData",
-          ...datos,
-        };
+        const inputAction = document.createElement('input');
+        inputAction.name = 'action';
+        inputAction.value = 'deleteData';
+        form.appendChild(inputAction);
 
-        if (id) campos.id = id;
-
-        Object.keys(campos).forEach((key) => {
-          const input = document.createElement("input");
-          input.name = key;
-          input.value = campos[key] || "";
-          form.appendChild(input);
-        });
+        const inputId = document.createElement('input');
+        inputId.name = 'id';
+        inputId.value = idParaEliminar;
+        form.appendChild(inputId);
 
         // Agregar formulario al body y enviar
         document.body.appendChild(form);
         form.submit();
 
-        // Optimización: recargar solo si es necesario
+        // Esperar un momento para que se procese
         setTimeout(() => {
           document.body.removeChild(form);
-          setEstado("success");
-          limpiarForm();
+          setEstado('success');
+          cerrarModal();
 
-          // Si es un nuevo registro, solo añadir al principio sin recargar todo
-          if (!id) {
-            // Crear un objeto con los datos del nuevo registro
-            const nuevoRegistro = {
-              id: Date.now().toString(), // ID temporal
-              folio: datos.folio || "-",
-              nombre: datos.nombre,
-              fechaDefuncion: datos.fechaDefuncion || "",
-              area: datos.area || "",
-              edad: datos.edad || "",
-              sexo: datos.sexo || "",
-              diagnostico: datos.diagnostico || "",
-              expediente: datos.expediente || "",
-              medico: datos.medico || "",
-              observaciones: datos.observaciones || "",
-            };
-
-            // Añadir al principio de la tabla
-            agregarRegistroAlTop(nuevoRegistro);
-            // Actualizar registros globales para la gráfica
-            if (window.registrosGlobales) {
-              window.registrosGlobales.push(nuevoRegistro);
+          // Eliminar la fila del DOM sin recargar todo
+          const filas = document.querySelectorAll('#tabla-registros tr');
+          filas.forEach((fila) => {
+            const botonEliminar = fila.querySelector('.btn-eliminar');
+            if (botonEliminar) {
+              const onclickAttr = botonEliminar.getAttribute('onclick');
+              if (onclickAttr && onclickAttr.includes(idParaEliminar)) {
+                fila.remove();
+                // Renumerar filas restantes
+                const filasRestantes = document.querySelectorAll('#tabla-registros tr');
+                filasRestantes.forEach((f, i) => {
+                  const firstTd = f.querySelector('td:first-child');
+                  if (firstTd) {
+                    firstTd.textContent = i + 1;
+                  }
+                });
+              }
             }
-          } else {
-            // Si es edición, recargar todo para actualizar
-            cargarRegistros();
+          });
+          
+          // Actualizar registros globales para la gráfica
+          if (window.registrosGlobales) {
+            window.registrosGlobales = window.registrosGlobales.filter(r => r.id !== idParaEliminar);
           }
         }, 1500);
+
+      } catch (error) {
+        console.error('❌ Error eliminando:', error);
+        setEstado('error');
+        alert('❌ Error eliminando: ' + error.message);
+        cerrarModal();
       }
+    }
 
-      // FUNCIÓN MODIFICADA: Eliminar registro optimizado
-      async function eliminarConfirmado() {
-        if (!idParaEliminar) return;
+    // Función para solicitar eliminación
+    function solicitarEliminar(id) {
+      idParaEliminar = id;
+      const modal = document.getElementById('modalEliminar');
+      const modalContent = modal.querySelector('.modal');
 
-        try {
-          setEstado("loading");
+      modal.style.display = 'flex';
+      setTimeout(() => {
+        modalContent.classList.add('show');
+      }, 10);
+    }
 
-          // Crear formulario dinámico
-          const form = document.createElement("form");
-          form.method = "POST";
-          form.action = GAS_URL;
-          form.target = "form-iframe";
-          form.style.display = "none";
+    function cerrarModal() {
+      const modal = document.getElementById('modalEliminar');
+      const modalContent = modal.querySelector('.modal');
 
-          const inputAction = document.createElement("input");
-          inputAction.name = "action";
-          inputAction.value = "deleteData";
-          form.appendChild(inputAction);
+      modalContent.classList.remove('show');
+      setTimeout(() => {
+        modal.style.display = 'none';
+        idParaEliminar = null;
+      }, 300);
+    }
 
-          const inputId = document.createElement("input");
-          inputId.name = "id";
-          inputId.value = idParaEliminar;
-          form.appendChild(inputId);
+    // Editar registro
+    async function editar(id) {
+      try {
+        setEstado('loading');
 
-          // Agregar formulario al body y enviar
-          document.body.appendChild(form);
-          form.submit();
+        const response = await fetch(GAS_URL);
+        const data = await response.json();
 
-          // Esperar un momento para que se procese
-          setTimeout(() => {
-            document.body.removeChild(form);
-            setEstado("success");
-            cerrarModal();
+        if (data.success) {
+          const registro = data.rows.find(r => r.id === id);
+          if (registro) {
+            document.getElementById('id').value = registro.id;
+            document.getElementById('folio').value = registro.folio || '';
+            document.getElementById('nombre').value = registro.nombre || '';
 
-            // Eliminar la fila del DOM sin recargar todo
-            const filas = document.querySelectorAll("#tabla-registros tr");
-            filas.forEach((fila) => {
-              const botonEliminar = fila.querySelector(".btn-eliminar");
-              if (botonEliminar) {
-                const onclickAttr = botonEliminar.getAttribute("onclick");
-                if (onclickAttr && onclickAttr.includes(idParaEliminar)) {
-                  fila.remove();
-                  // Renumerar filas restantes
-                  const filasRestantes = document.querySelectorAll(
-                    "#tabla-registros tr",
-                  );
-                  filasRestantes.forEach((f, i) => {
-                    const firstTd = f.querySelector("td:first-child");
-                    if (firstTd) {
-                      firstTd.textContent = i + 1;
-                    }
-                  });
+            // Formatear la fecha para el input date (necesita formato YYYY-MM-DD)
+            if (registro.fechaDefuncion) {
+              const fecha = new Date(registro.fechaDefuncion);
+              if (!isNaN(fecha.getTime())) {
+                document.getElementById('fechaDefuncion').value = fecha.toISOString().split('T')[0];
+              } else {
+                document.getElementById('fechaDefuncion').value = '';
+              }
+            } else {
+              document.getElementById('fechaDefuncion').value = '';
+            }
+
+            document.getElementById('area').value = registro.area || '';
+            document.getElementById('edad').value = registro.edad || '';
+            document.getElementById('sexo').value = registro.sexo || '';
+            document.getElementById('diagnostico').value = registro.diagnostico || '';
+            document.getElementById('expediente').value = registro.expediente || '';
+            document.getElementById('medico').value = registro.medico || '';
+            document.getElementById('observaciones').value = registro.observaciones || '';
+
+            // Cambiar texto del botón
+            document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-sync-alt"></i> Actualizar';
+            document.getElementById('btn-cancelar').style.display = 'block';
+
+            setEstado('success');
+            document.querySelector('.formulario').scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      } catch (error) {
+        setEstado('error');
+        alert('❌ Error cargando registro para editar');
+      }
+    }
+
+    // Cancelar edición
+    function cancelarEdicion() {
+      limpiarForm();
+      setEstado('success');
+    }
+
+    // Limpiar formulario
+    function limpiarForm() {
+      document.getElementById('crud-form').reset();
+      document.getElementById('id').value = '';
+      document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-save"></i> Guardar';
+      document.getElementById('btn-cancelar').style.display = 'none';
+      setEstado('success');
+    }
+
+    // ========== FUNCIONES PARA LA GRÁFICA ==========
+    function generarDatosGrafica(registros) {
+      // Agrupar por mes y sexo
+      const datosPorMes = {};
+      
+      registros.forEach(registro => {
+        if (!registro.fechaDefuncion) return;
+        
+        const fecha = new Date(registro.fechaDefuncion);
+        if (isNaN(fecha.getTime())) return;
+        
+        const mesKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+        const mesLabel = fecha.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        
+        if (!datosPorMes[mesKey]) {
+          datosPorMes[mesKey] = {
+            label: mesLabel,
+            mujeres: 0,
+            hombres: 0
+          };
+        }
+        
+        const sexo = registro.sexo || '';
+        if (sexo === 'Femenino') {
+          datosPorMes[mesKey].mujeres++;
+        } else if (sexo === 'Masculino') {
+          datosPorMes[mesKey].hombres++;
+        }
+      });
+      
+      // Ordenar por fecha
+      const mesesOrdenados = Object.keys(datosPorMes).sort();
+      
+      return {
+        labels: mesesOrdenados.map(key => datosPorMes[key].label),
+        mujeres: mesesOrdenados.map(key => datosPorMes[key].mujeres),
+        hombres: mesesOrdenados.map(key => datosPorMes[key].hombres)
+      };
+    }
+
+    function crearGrafica() {
+      const ctx = document.getElementById('graficaDefunciones').getContext('2d');
+      
+      // Destruir gráfica anterior si existe
+      if (chartInstance) {
+        chartInstance.destroy();
+      }
+      
+      const registros = window.registrosGlobales || [];
+      const datos = generarDatosGrafica(registros);
+      
+      chartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: datos.labels,
+          datasets: [
+            {
+              label: 'Mujeres',
+              data: datos.mujeres,
+              backgroundColor: 'rgba(253, 121, 168, 0.8)',
+              borderColor: 'rgba(253, 121, 168, 1)',
+              borderWidth: 2,
+              borderRadius: 4
+            },
+            {
+              label: 'Hombres',
+              data: datos.hombres,
+              backgroundColor: 'rgba(9, 132, 227, 0.8)',
+              borderColor: 'rgba(9, 132, 227, 1)',
+              borderWidth: 2,
+              borderRadius: 4
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  let label = context.dataset.label || '';
+                  let value = context.parsed.y || 0;
+                  return label + ': ' + value + ' defunciones';
                 }
               }
-            });
-
-            // Actualizar registros globales para la gráfica
-            if (window.registrosGlobales) {
-              window.registrosGlobales = window.registrosGlobales.filter(
-                (r) => r.id !== idParaEliminar,
-              );
             }
-          }, 1500);
-        } catch (error) {
-          console.error("❌ Error eliminando:", error);
-          setEstado("error");
-          alert("❌ Error eliminando: " + error.message);
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                stepSize: 1
+              },
+              grid: {
+                color: 'rgba(0, 0, 0, 0.05)'
+              }
+            },
+            x: {
+              grid: {
+                display: false
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function abrirGrafica() {
+      const modal = document.getElementById('modalGrafica');
+      modal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+      // Crear la gráfica con un pequeño retraso para que el modal se renderice
+      setTimeout(() => {
+        crearGrafica();
+      }, 100);
+    }
+
+    function cerrarGrafica() {
+      const modal = document.getElementById('modalGrafica');
+      modal.classList.remove('active');
+      document.body.style.overflow = '';
+      
+      // Destruir gráfica al cerrar
+      if (chartInstance) {
+        chartInstance.destroy();
+        chartInstance = null;
+      }
+    }
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', function () {
+      console.log('🚀 Iniciando aplicación...');
+
+      document.getElementById('crud-form').addEventListener('submit', guardar);
+      document.getElementById('btn-limpiar').addEventListener('click', limpiarForm);
+      document.getElementById('btn-cancelar').addEventListener('click', cancelarEdicion);
+      document.getElementById('btnConfirmarEliminar').addEventListener('click', eliminarConfirmado);
+      document.getElementById('btnCancelarEliminar').addEventListener('click', cerrarModal);
+      
+      // Eventos para la gráfica
+      document.getElementById('btnAbrirGrafica').addEventListener('click', abrirGrafica);
+      document.getElementById('btnCerrarGrafica').addEventListener('click', cerrarGrafica);
+      
+      // Cerrar modal de gráfica al hacer clic fuera
+      document.getElementById('modalGrafica').addEventListener('click', function (e) {
+        if (e.target === this) {
+          cerrarGrafica();
+        }
+      });
+
+      // Cerrar modal de eliminación al hacer clic fuera
+      document.getElementById('modalEliminar').addEventListener('click', function (e) {
+        if (e.target === this) {
           cerrarModal();
         }
-      }
-
-      // Función para solicitar eliminación
-      function solicitarEliminar(id) {
-        idParaEliminar = id;
-        const modal = document.getElementById("modalEliminar");
-        const modalContent = modal.querySelector(".modal");
-
-        modal.style.display = "flex";
-        setTimeout(() => {
-          modalContent.classList.add("show");
-        }, 10);
-      }
-
-      function cerrarModal() {
-        const modal = document.getElementById("modalEliminar");
-        const modalContent = modal.querySelector(".modal");
-
-        modalContent.classList.remove("show");
-        setTimeout(() => {
-          modal.style.display = "none";
-          idParaEliminar = null;
-        }, 300);
-      }
-
-      // Editar registro
-      async function editar(id) {
-        try {
-          setEstado("loading");
-
-          const response = await fetch(GAS_URL);
-          const data = await response.json();
-
-          if (data.success) {
-            const registro = data.rows.find((r) => r.id === id);
-            if (registro) {
-              document.getElementById("id").value = registro.id;
-              document.getElementById("folio").value = registro.folio || "";
-              document.getElementById("nombre").value = registro.nombre || "";
-
-              // Formatear la fecha para el input date (necesita formato YYYY-MM-DD)
-              if (registro.fechaDefuncion) {
-                const fecha = new Date(registro.fechaDefuncion);
-                if (!isNaN(fecha.getTime())) {
-                  document.getElementById("fechaDefuncion").value = fecha
-                    .toISOString()
-                    .split("T")[0];
-                } else {
-                  document.getElementById("fechaDefuncion").value = "";
-                }
-              } else {
-                document.getElementById("fechaDefuncion").value = "";
-              }
-
-              document.getElementById("area").value = registro.area || "";
-              document.getElementById("edad").value = registro.edad || "";
-              document.getElementById("sexo").value = registro.sexo || "";
-              document.getElementById("diagnostico").value =
-                registro.diagnostico || "";
-              document.getElementById("expediente").value =
-                registro.expediente || "";
-              document.getElementById("medico").value = registro.medico || "";
-              document.getElementById("observaciones").value =
-                registro.observaciones || "";
-
-              // Cambiar texto del botón
-              document.getElementById("btn-guardar").innerHTML =
-                '<i class="fas fa-sync-alt"></i> Actualizar';
-              document.getElementById("btn-cancelar").style.display = "block";
-
-              setEstado("success");
-              document
-                .querySelector(".formulario")
-                .scrollIntoView({ behavior: "smooth" });
-            }
-          }
-        } catch (error) {
-          setEstado("error");
-          alert("❌ Error cargando registro para editar");
-        }
-      }
-
-      // Cancelar edición
-      function cancelarEdicion() {
-        limpiarForm();
-        setEstado("success");
-      }
-
-      // Limpiar formulario
-      function limpiarForm() {
-        document.getElementById("crud-form").reset();
-        document.getElementById("id").value = "";
-        document.getElementById("btn-guardar").innerHTML =
-          '<i class="fas fa-save"></i> Guardar';
-        document.getElementById("btn-cancelar").style.display = "none";
-        setEstado("success");
-      }
-
-      // ========== FUNCIONES PARA LA GRÁFICA ==========
-      function generarDatosGrafica(registros) {
-        // Agrupar por mes y sexo
-        const meses = {};
-        const mesesOrden = [
-          "Enero",
-          "Febrero",
-          "Marzo",
-          "Abril",
-          "Mayo",
-          "Junio",
-          "Julio",
-          "Agosto",
-          "Septiembre",
-          "Octubre",
-          "Noviembre",
-          "Diciembre",
-        ];
-
-        // Inicializar meses
-        mesesOrden.forEach((mes) => {
-          meses[mes] = { hombres: 0, mujeres: 0 };
-        });
-
-        // Procesar registros
-        registros.forEach((registro) => {
-          if (registro.fechaDefuncion) {
-            const fecha = new Date(registro.fechaDefuncion);
-            const mesIndex = fecha.getMonth();
-            const mes = mesesOrden[mesIndex];
-
-            if (registro.sexo === "Masculino") {
-              meses[mes].hombres++;
-            } else if (registro.sexo === "Femenino") {
-              meses[mes].mujeres++;
-            }
-          }
-        });
-
-        // Preparar datos para la gráfica
-        const labels = mesesOrden;
-        const hombres = labels.map((mes) => meses[mes].hombres);
-        const mujeres = labels.map((mes) => meses[mes].mujeres);
-
-        return { labels, hombres, mujeres };
-      }
-
-      function crearGrafica() {
-        const canvas = document.getElementById("graficaDefunciones");
-        if (!canvas) {
-          console.error("Canvas no encontrado");
-          return;
-        }
-
-        const ctx = canvas.getContext("2d");
-
-        if (chartInstance) {
-          chartInstance.destroy();
-          chartInstance = null;
-        }
-
-        const registros = window.registrosGlobales || [];
-        const datos = generarDatosGrafica(registros);
-
-        chartInstance = new Chart(ctx, {
-          type: "bar",
-          data: {
-            labels: datos.labels,
-            datasets: [
-              {
-                label: "Hombres",
-                data: datos.hombres,
-                backgroundColor: "#0984e3",
-                borderColor: "#0984e3",
-                borderWidth: 1,
-                borderRadius: 0,
-              },
-              {
-                label: "Mujeres",
-                data: datos.mujeres,
-                backgroundColor: "#fd79a8",
-                borderColor: "#fd79a8",
-                borderWidth: 1,
-                borderRadius: 0,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: {
-                display: true,
-                position: "top",
-                labels: {
-                  font: { size: 13, weight: "600" },
-                  padding: 20,
-                  usePointStyle: true,
-                  pointStyle: "circle",
-                },
-              },
-              tooltip: {
-                backgroundColor: "rgba(255,255,255,0.95)",
-                titleColor: "#1a2a44",
-                bodyColor: "#1a2a44",
-                borderColor: "#dce6f0",
-                borderWidth: 1,
-                cornerRadius: 8,
-                padding: 12,
-                callbacks: {
-                  title: function (tooltipItems) {
-                    return tooltipItems[0].label;
-                  },
-                  label: function (context) {
-                    return (
-                      context.dataset.label +
-                      ": " +
-                      context.parsed.y +
-                      " defunciones"
-                    );
-                  },
-                  footer: function (tooltipItems) {
-                    let total = 0;
-                    tooltipItems.forEach((item) => (total += item.parsed.y));
-                    return "Total: " + total + " defunciones";
-                  },
-                },
-              },
-            },
-            scales: {
-              x: {
-                grid: { display: false },
-                ticks: {
-                  font: { size: 11, weight: "500" },
-                  maxRotation: 45,
-                  minRotation: 0,
-                },
-              },
-              y: {
-                beginAtZero: true,
-                stacked: true, // CRUCIAL: apila las barras
-                ticks: {
-                  stepSize: 1,
-                  font: { size: 11 },
-                },
-                grid: { color: "rgba(0, 0, 0, 0.08)" },
-              },
-            },
-            // Configuración para apilar las barras correctamente
-            datasets: {
-              bar: {
-                stack: "stack1", // Mismo stack para ambos
-                barPercentage: 0.7, // Ancho de la barra
-                categoryPercentage: 0.8, // Espacio entre categorías
-              },
-            },
-          },
-        });
-      }
-
-      function abrirGrafica() {
-        // Usar Bootstrap 5 para abrir el modal correctamente
-        const modalElement = document.getElementById("modalGrafica");
-
-        // Verificar si ya existe una instancia del modal
-        let modal = bootstrap.Modal.getInstance(modalElement);
-        if (!modal) {
-          modal = new bootstrap.Modal(modalElement, {
-            backdrop: true,
-            keyboard: true,
-            focus: true,
-          });
-        }
-
-        // Evento para cuando el modal se muestra completamente
-        modalElement.addEventListener(
-          "shown.bs.modal",
-          function () {
-            // Esperar un poco para que el canvas se renderice
-            setTimeout(() => {
-              crearGrafica();
-            }, 100);
-          },
-          { once: true },
-        ); // Solo ejecutar una vez
-
-        modal.show();
-      }
-
-      // Función para cerrar el modal
-      function cerrarGrafica() {
-        const modalElement = document.getElementById("modalGrafica");
-        const modal = bootstrap.Modal.getInstance(modalElement);
-        if (modal) {
-          modal.hide();
-        }
-      }
-
-      // Limpiar gráfica al cerrar el modal
-      document.addEventListener("DOMContentLoaded", function () {
-        const modalElement = document.getElementById("modalGrafica");
-        if (modalElement) {
-          modalElement.addEventListener("hidden.bs.modal", function () {
-            if (chartInstance) {
-              chartInstance.destroy();
-              chartInstance = null;
-            }
-          });
-        }
       });
 
-      // Inicialización
-      document.addEventListener("DOMContentLoaded", function () {
-        console.log("🚀 Iniciando aplicación...");
+      // Cargar datos
+      cargarRegistros();
+    });
 
-        document
-          .getElementById("crud-form")
-          .addEventListener("submit", guardar);
-        document
-          .getElementById("btn-limpiar")
-          .addEventListener("click", limpiarForm);
-        document
-          .getElementById("btn-cancelar")
-          .addEventListener("click", cancelarEdicion);
-        document
-          .getElementById("btnConfirmarEliminar")
-          .addEventListener("click", eliminarConfirmado);
-        document
-          .getElementById("btnCancelarEliminar")
-          .addEventListener("click", cerrarModal);
+    // Funciones globales para los botones
+    window.editar = editar;
+    window.solicitarEliminar = solicitarEliminar;
+    window.abrirGrafica = abrirGrafica;
+    window.cerrarGrafica = cerrarGrafica;
 
-        // Eventos para la gráfica
-        document
-          .getElementById("btnAbrirGrafica")
-          .addEventListener("click", abrirGrafica);
+  </script>
 
-        // Cerrar modal de gráfica al hacer clic fuera
-        document
-          .getElementById("modalGrafica")
-          .addEventListener("click", function (e) {
-            if (e.target === this) {
-              cerrarGrafica();
-            }
-          });
+  <script>
+    // Verificar si el usuario está logueado
+    function verificarAutenticacion() {
+      const usuario = localStorage.getItem('usuario');
+      const rol = localStorage.getItem('rol');
 
-        // Cerrar modal de eliminación al hacer clic fuera
-        document
-          .getElementById("modalEliminar")
-          .addEventListener("click", function (e) {
-            if (e.target === this) {
-              cerrarModal();
-            }
-          });
-
-        // Cargar datos
-        cargarRegistros();
-      });
-
-      // Funciones globales para los botones
-      window.editar = editar;
-      window.solicitarEliminar = solicitarEliminar;
-      window.abrirGrafica = abrirGrafica;
-      window.cerrarGrafica = cerrarGrafica;
-    </script>
-
-    <script>
-      // Verificar si el usuario está logueado
-      function verificarAutenticacion() {
-        const usuario = localStorage.getItem("usuario");
-        const rol = localStorage.getItem("rol");
-
-        if (!usuario) {
-          window.location.href = "/login.html";
-          return;
-        }
-
-        // Mostrar información del usuario
-        console.log("Usuario:", usuario, "Rol:", rol);
-
-        // Mostrar en la interfaz
-        const userElement = document.getElementById("user-info");
-        if (userElement) {
-          userElement.innerHTML = `${usuario} (${rol})`;
-        }
+      if (!usuario) {
+        window.location.href = '/login.html';
+        return;
       }
 
-      // Cerrar sesión
-      function cerrarSesion() {
-        localStorage.removeItem("usuario");
-        localStorage.removeItem("rol");
-        localStorage.removeItem("loginTime");
-        window.location.href = "index.html";
+      // Mostrar información del usuario
+      console.log('Usuario:', usuario, 'Rol:', rol);
+
+      // Mostrar en la interfaz
+      const userElement = document.getElementById('user-info');
+      if (userElement) {
+        userElement.innerHTML = `${usuario} (${rol})`;
       }
+    }
 
-      // Verificar al cargar la página
-      window.addEventListener("load", verificarAutenticacion);
-    </script>
+    // Cerrar sesión
+    function cerrarSesion() {
+      localStorage.removeItem('usuario');
+      localStorage.removeItem('rol');
+      localStorage.removeItem('loginTime');
+      window.location.href = 'index.html';
+    }
 
-    <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const buscador = document.getElementById("buscador");
-        const filas = document.getElementById("tabla-registros");
+    // Verificar al cargar la página
+    window.addEventListener('load', verificarAutenticacion);
+  </script>
 
-        if (!buscador || !filas) return;
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const buscador = document.getElementById("buscador");
+      const filas = document.getElementById("tabla-registros");
 
-        buscador.addEventListener("keyup", function () {
-          const valor = this.value.toLowerCase().trim();
-          const registros = filas.querySelectorAll("tr");
+      if (!buscador || !filas) return;
 
-          registros.forEach((fila) => {
-            const textoFila = fila.textContent.toLowerCase();
-            fila.style.display = textoFila.includes(valor) ? "" : "none";
-          });
+      buscador.addEventListener("keyup", function () {
+        const valor = this.value.toLowerCase().trim();
+        const registros = filas.querySelectorAll("tr");
+
+        registros.forEach(fila => {
+          const textoFila = fila.textContent.toLowerCase();
+          fila.style.display = textoFila.includes(valor) ? "" : "none";
         });
       });
-    </script>
-  </body>
+    });
+  </script>
+
+</body>
+
 </html>
