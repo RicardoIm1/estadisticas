@@ -1155,23 +1155,33 @@
       }
 
       function abrirGrafica() {
-        const modal = document.getElementById("modalGrafica"); // Assuming this is your modal ID
+        const modal = document.getElementById("modalGrafica"); // Make sure this ID matches your HTML
 
-        // 1. Show the modal
-        const modalInstance = new bootstrap.Modal(modal);
-        modalInstance.show();
+        // 1. Add the 'show' and 'active' classes manually (like Bootstrap does)
+        modal.classList.add("show");
+        modal.style.display = "block";
+        document.body.classList.add("modal-open");
 
-        // 2. Attach an event listener to create the chart AFTER it is fully shown
-        modal.addEventListener(
-          "shown.bs.modal",
-          function () {
-            crearGrafica();
+        // 2. Use a slightly longer setTimeout to account for the opening animation
+        // 300ms is usually enough for the modal to fully render its width
+        setTimeout(() => {
+          crearGrafica();
+        }, 300);
+      }
 
-            // Remove the listener after it runs once so it doesn't stack on subsequent opens
-            modal.removeEventListener("shown.bs.modal", this);
-          },
-          { once: true },
-        );
+      function cerrarGrafica() {
+        const modal = document.getElementById("modalGrafica");
+
+        // Remove the classes
+        modal.classList.remove("show");
+        modal.style.display = "none";
+        document.body.classList.remove("modal-open");
+
+        // Destroy chart to prevent duplicates
+        if (chartInstance) {
+          chartInstance.destroy();
+          chartInstance = null;
+        }
       }
 
       function cerrarGrafica() {
