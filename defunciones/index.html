@@ -1006,9 +1006,8 @@
         setEstado("success");
       }
 
-      // ========== FUNCIONES PARA LA GRÁFICA (VERSIÓN APILADA) ==========
+      // ========== FUNCIONES PARA LA GRÁFICA (BARRAS CONTIGUAS) ==========
       function generarDatosGrafica(registros) {
-        // Agrupar por mes y sexo
         const datosPorMes = {};
 
         registros.forEach((registro) => {
@@ -1039,7 +1038,6 @@
           }
         });
 
-        // Ordenar por fecha
         const mesesOrdenados = Object.keys(datosPorMes).sort();
 
         return {
@@ -1054,7 +1052,6 @@
           .getElementById("graficaDefunciones")
           .getContext("2d");
 
-        // Destruir gráfica anterior si existe
         if (chartInstance) {
           chartInstance.destroy();
         }
@@ -1070,17 +1067,17 @@
               {
                 label: "Hombres",
                 data: datos.hombres,
-                backgroundColor: "#0984e3", // Azul
+                backgroundColor: "#0984e3",
                 borderColor: "#0984e3",
-                borderWidth: 1,
-                borderRadius: 0, // Sin redondeo para que se vea bien apilado
+                borderWidth: 0,
+                borderRadius: 0,
               },
               {
                 label: "Mujeres",
                 data: datos.mujeres,
-                backgroundColor: "#fd79a8", // Rosa
+                backgroundColor: "#fd79a8",
                 borderColor: "#fd79a8",
-                borderWidth: 1,
+                borderWidth: 0,
                 borderRadius: 0,
               },
             ],
@@ -1088,28 +1085,17 @@
           options: {
             responsive: true,
             maintainAspectRatio: false,
+            barPercentage: 1.0,
+            categoryPercentage: 1.0,
             plugins: {
               legend: {
                 display: true,
                 position: "top",
                 labels: {
-                  font: {
-                    size: 13,
-                    weight: "600",
-                  },
+                  font: { size: 13, weight: "600" },
                   padding: 20,
                   usePointStyle: true,
                   pointStyle: "circle",
-                  generateLabels: function (chart) {
-                    const data = chart.data;
-                    return data.datasets.map((dataset, i) => ({
-                      text: dataset.label,
-                      fillStyle: dataset.backgroundColor,
-                      strokeStyle: dataset.borderColor,
-                      hidden: !chart.getDatasetMeta(i).hidden,
-                      index: i,
-                    }));
-                  },
                 },
               },
               tooltip: {
@@ -1125,16 +1111,16 @@
                     return tooltipItems[0].label;
                   },
                   label: function (context) {
-                    let label = context.dataset.label || "";
-                    let value = context.parsed.y || 0;
-                    return label + ": " + value + " defunciones";
+                    return (
+                      context.dataset.label +
+                      ": " +
+                      context.parsed.y +
+                      " defunciones"
+                    );
                   },
                   footer: function (tooltipItems) {
-                    // Calcular total del mes
                     let total = 0;
-                    tooltipItems.forEach((item) => {
-                      total += item.parsed.y;
-                    });
+                    tooltipItems.forEach((item) => (total += item.parsed.y));
                     return "Total: " + total + " defunciones";
                   },
                 },
@@ -1142,42 +1128,32 @@
             },
             scales: {
               x: {
-                grid: {
-                  display: false,
-                },
+                grid: { display: false },
                 ticks: {
-                  font: {
-                    size: 10,
-                    weight: "500",
-                  },
+                  font: { size: 10, weight: "500" },
                   maxRotation: 45,
                   minRotation: 0,
                 },
               },
               y: {
                 beginAtZero: true,
-                stacked: true, // ¡IMPORTANTE! Para que se apilen
+                stacked: true,
                 ticks: {
                   stepSize: 1,
-                  font: {
-                    size: 11,
-                  },
+                  font: { size: 11 },
                 },
-                grid: {
-                  color: "rgba(0, 0, 0, 0.08)",
-                },
+                grid: { color: "rgba(0, 0, 0, 0.08)" },
               },
             },
-            // Configuración específica para barras apiladas
             datasets: {
               bar: {
-                stack: "stack1", // Agrupa todos los datasets en la misma pila
+                stack: "stack1",
               },
             },
           },
         });
       }
-
+      
       function abrirGrafica() {
         const modal = document.getElementById("modalGrafica");
         modal.classList.add("active");
