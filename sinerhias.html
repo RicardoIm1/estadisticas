@@ -1182,11 +1182,11 @@
 
           if (!result.data || result.data.length === 0) {
             cardsContainer.innerHTML = `
-              <div class="empty-state">
-                <span class="icon">📭</span>
-                No hay registros en esta hoja
-              </div>
-            `;
+        <div class="empty-state">
+          <span class="icon">📭</span>
+          No hay registros en esta hoja
+        </div>
+      `;
             state.data = [];
             state.headers = [];
           } else {
@@ -1197,8 +1197,11 @@
           state.currentTab = sheetName;
           const tabLabel =
             TABS.find((t) => t.id === sheetName)?.label || sheetName;
+          const columnCount = state.headers.length;
+          const rowCount = state.data.length;
+
           sheetNameDisplay.textContent = tabLabel;
-          rowCountDisplay.textContent = state.data.length;
+          rowCountDisplay.textContent = `${rowCount} registros · ${columnCount} columnas`;
 
           if (state.data.length > 0) {
             renderCards();
@@ -1207,24 +1210,24 @@
         } catch (error) {
           console.error("Error loading data:", error);
           cardsContainer.innerHTML = `
-            <div class="empty-state">
-              <span class="icon">⚠️</span>
-              <strong>Error al cargar datos</strong>
-              <br><br>
-              <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
-                ${error.message}
-              </div>
-              <br>
-              <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
-            </div>
-          `;
+      <div class="empty-state">
+        <span class="icon">⚠️</span>
+        <strong>Error al cargar datos</strong>
+        <br><br>
+        <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
+          ${error.message}
+        </div>
+        <br>
+        <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
+      </div>
+    `;
         } finally {
           state.isLoading = false;
         }
       }
 
       // ============================================
-      // RENDER CARDS - SIN HEADER NI BOTONES
+      // RENDER CARDS
       // ============================================
       function renderCards() {
         if (state.data.length === 0) {
@@ -1236,6 +1239,16 @@
     `;
           return;
         }
+
+        // Actualizar el info con la cantidad de columnas
+        const columnCount = state.headers.length;
+        const rowCount = state.data.length;
+        const tabLabel =
+          TABS.find((t) => t.id === state.currentTab)?.label ||
+          state.currentTab;
+
+        sheetNameDisplay.textContent = tabLabel;
+        rowCountDisplay.textContent = `${rowCount} registros · ${columnCount} columnas`;
 
         let html = '<div class="cards-grid">';
 
