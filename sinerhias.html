@@ -2087,7 +2087,7 @@
       let searchResultsData = [];
 
       // ============================================
-      // FUNCIÓN PRINCIPAL DE BÚSQUEDA - ¡FALTABA ESTA!
+      // FUNCIÓN PRINCIPAL DE BÚSQUEDA
       // ============================================
       async function performSearch(query) {
         searchTerm = query.trim().toLowerCase();
@@ -2159,6 +2159,92 @@
         renderSearchResults(allResults);
       }
 
+      // ============================================
+      // RENDERIZAR RESULTADOS DE BÚSQUEDA
+      // ============================================
+      function renderSearchResults(results) {
+        if (results.length === 0) {
+          cardsContainer.innerHTML = `
+            <div class="empty-state">
+              <span class="icon">🔍</span>
+              <strong>No se encontraron resultados</strong>
+              <br><br>
+              <div style="color: #666; font-size: 0.9rem;">
+                No hay coincidencias para "<strong>${searchTerm}</strong>" en ninguna sección
+              </div>
+              <br>
+              <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+                🧹 Limpiar búsqueda
+              </button>
+            </div>
+          `;
+          return;
+        }
+
+        let html = `
+          <div class="search-results-header">
+            <span>🔍 Resultados de búsqueda en todas las secciones</span>
+            <span class="search-result-count">${results.length} coincidencias</span>
+          </div>
+          <div class="search-results-list">
+        `;
+
+        results.forEach((result) => {
+          const row = result.row;
+          const rowIndex = result.index;
+          const sheetLabel = result.sheetLabel;
+          const matchedFields = result.matchedFields;
+
+          const summary = matchedFields
+            .map(
+              (f) =>
+                `<span class="search-match-field">${f.header}: <strong>${highlightText(f.value, searchTerm)}</strong></span>`,
+            )
+            .join(" ");
+
+          // Obtener los headers de esta sección
+          const resultHeaders = Object.keys(row);
+
+          html += `
+            <div class="search-result-item" onclick="openSearchResult('${result.sheet}', ${rowIndex})">
+              <div class="search-result-number">#${rowIndex + 1}</div>
+              <div class="search-result-content">
+                <div class="search-result-sheet">📂 ${sheetLabel}</div>
+                <div class="search-result-summary">${summary}</div>
+                <div class="search-result-preview">
+                  ${resultHeaders
+                    .slice(0, 3)
+                    .map(
+                      (h) =>
+                        `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
+                    )
+                    .join(" ")}
+                  ${resultHeaders.length > 3 ? `<span class="search-result-more">+${resultHeaders.length - 3} más</span>` : ""}
+                </div>
+              </div>
+              <div class="search-result-action">👁️ Ver</div>
+            </div>
+          `;
+        });
+
+        html += `
+          </div>
+          <div class="search-results-footer">
+            <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+              🧹 Limpiar búsqueda
+            </button>
+            <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
+              📋 Mostrar todos
+            </button>
+          </div>
+        `;
+
+        cardsContainer.innerHTML = html;
+      }
+
+      // ============================================
+      // CONFIGURAR BÚSQUEDA (EVENTOS)
+      // ============================================
       function setupSearch() {
         const searchInput = document.getElementById("searchInput");
         const searchClear = document.getElementById("searchClear");
@@ -2169,7 +2255,7 @@
           clearTimeout(searchTimeout);
           searchTimeout = setTimeout(() => {
             performSearch(this.value);
-          }, 300); // Aumentado a 300ms para mejor rendimiento
+          }, 300);
         });
 
         // Limpiar búsqueda
@@ -2209,37 +2295,22 @@
       }
 
       // ============================================
-      // NOTA: Elimina la función duplicada openSearchResult
-      // Conserva solo esta versión que recibe sheetId e index
+      // ABRIR RESULTADO
       // ============================================
       function openSearchResult(sheetId, index) {
-        // Cambiar a la pestaña correcta
         const tab = TABS.find((t) => t.id === sheetId);
         if (tab) {
-          // Actualizar el estado y cargar la pestaña
           state.currentTab = sheetId;
           loadData(sheetId).then(() => {
-            // Abrir el modal con el registro
             openEditModal(index);
-            // Cerrar la búsqueda
             clearSearch();
           });
         }
       }
 
-      function showAllResults() {
-        const searchInput = document.getElementById("searchInput");
-        const searchClear = document.getElementById("searchClear");
-        const searchResults = document.getElementById("searchResults");
-        searchInput.value = "";
-        searchClear.classList.remove("visible");
-        searchResults.textContent = "";
-        searchResults.classList.remove("highlight");
-        searchResultsData = [];
-        searchTerm = "";
-        renderCards();
-      }
-
+      // ============================================
+      // LIMPIAR BÚSQUEDA
+      // ============================================
       function clearSearch() {
         const searchInput = document.getElementById("searchInput");
         const searchClear = document.getElementById("searchClear");
@@ -2253,6 +2324,16 @@
         renderCards();
       }
 
+      // ============================================
+      // MOSTRAR TODOS LOS REGISTROS
+      // ============================================
+      function showAllResults() {
+        clearSearch();
+      }
+
+      // ============================================
+      // RESALTAR TEXTO
+      // ============================================
       function highlightText(text, query) {
         if (!text || !query) return text || "—";
         const regex = new RegExp(
