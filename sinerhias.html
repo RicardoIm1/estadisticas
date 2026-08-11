@@ -2086,6 +2086,79 @@
       let searchTerm = "";
       let searchResultsData = [];
 
+      // ============================================
+      // FUNCIÓN PRINCIPAL DE BÚSQUEDA - ¡FALTABA ESTA!
+      // ============================================
+      async function performSearch(query) {
+        searchTerm = query.trim().toLowerCase();
+        const searchClear = document.getElementById("searchClear");
+        const searchResults = document.getElementById("searchResults");
+
+        if (searchTerm.length > 0) {
+          searchClear.classList.add("visible");
+        } else {
+          searchClear.classList.remove("visible");
+        }
+
+        if (searchTerm.length === 0) {
+          searchResults.textContent = "";
+          searchResults.classList.remove("highlight");
+          searchResultsData = [];
+          renderCards();
+          return;
+        }
+
+        // Buscar en TODAS las secciones
+        const allResults = [];
+
+        // Recorrer todas las pestañas
+        for (const tab of TABS) {
+          try {
+            // Cargar datos de cada sección
+            const result = await apiRequest("read", tab.id);
+            const data = result.data || [];
+            const headers = result.headers || [];
+
+            data.forEach((row, rowIndex) => {
+              let found = false;
+              const matchedFields = [];
+
+              headers.forEach((header) => {
+                const value = String(row[header] || "").toLowerCase();
+                if (value.includes(searchTerm)) {
+                  found = true;
+                  matchedFields.push({
+                    header: header,
+                    value: row[header] || "",
+                    match: value,
+                  });
+                }
+              });
+
+              if (found) {
+                allResults.push({
+                  sheet: tab.id,
+                  sheetLabel: tab.label,
+                  index: rowIndex,
+                  row: row,
+                  matchedFields: matchedFields,
+                });
+              }
+            });
+          } catch (error) {
+            console.warn(`Error al buscar en ${tab.label}:`, error);
+          }
+        }
+
+        searchResultsData = allResults;
+        const total = allResults.length;
+        searchResults.textContent = total > 0 ? `${total} encontrados` : "0";
+        searchResults.classList.toggle("highlight", total > 0);
+
+        // Renderizar resultados
+        renderSearchResults(allResults);
+      }
+
       function setupSearch() {
         const searchInput = document.getElementById("searchInput");
         const searchClear = document.getElementById("searchClear");
