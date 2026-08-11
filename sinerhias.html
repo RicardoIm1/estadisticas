@@ -2165,84 +2165,83 @@
       function renderSearchResults(results) {
         if (results.length === 0) {
           cardsContainer.innerHTML = `
-            <div class="empty-state">
-              <span class="icon">🔍</span>
-              <strong>No se encontraron resultados</strong>
-              <br><br>
-              <div style="color: #666; font-size: 0.9rem;">
-                No hay coincidencias para "<strong>${searchTerm}</strong>" en ninguna sección
-              </div>
-              <br>
-              <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
-                🧹 Limpiar búsqueda
-              </button>
-            </div>
-          `;
+      <div class="empty-state">
+        <span class="icon">🔍</span>
+        <strong>No se encontraron resultados</strong>
+        <br><br>
+        <div style="color: #666; font-size: 0.9rem;">
+          No hay headers que coincidan con "<strong>${searchTerm}</strong>"
+        </div>
+        <br>
+        <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+          🧹 Limpiar búsqueda
+        </button>
+      </div>
+    `;
           return;
         }
 
         let html = `
-          <div class="search-results-header">
-            <span>🔍 Resultados de búsqueda en todas las secciones</span>
-            <span class="search-result-count">${results.length} coincidencias</span>
-          </div>
-          <div class="search-results-list">
-        `;
+    <div class="search-results-header">
+      <span>🔍 Headers encontrados</span>
+      <span class="search-result-count">${results.length} coincidencias</span>
+    </div>
+    <div class="search-results-list">
+  `;
 
         results.forEach((result) => {
           const row = result.row;
-          const rowIndex = result.index;
           const sheetLabel = result.sheetLabel;
           const matchedFields = result.matchedFields;
 
           const summary = matchedFields
             .map(
               (f) =>
-                `<span class="search-match-field">${f.header}: <strong>${highlightText(f.value, searchTerm)}</strong></span>`,
+                `<span class="search-match-field">📌 ${f.header}: <strong>${highlightText(f.header, searchTerm)}</strong></span>`,
             )
             .join(" ");
 
           const resultHeaders = Object.keys(row);
 
           html += `
-            <div class="search-result-item" onclick="openSearchResult('${result.sheet}', ${rowIndex})">
-              <div class="search-result-number">#${rowIndex + 1}</div>
-              <div class="search-result-content">
-                <div class="search-result-sheet">📂 ${sheetLabel}</div>
-                <div class="search-result-summary">${summary}</div>
-                <div class="search-result-preview">
-                  ${resultHeaders
-                    .slice(0, 3)
-                    .map(
-                      (h) =>
-                        `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
-                    )
-                    .join(" ")}
-                  ${resultHeaders.length > 3 ? `<span class="search-result-more">+${resultHeaders.length - 3} más</span>` : ""}
-                </div>
-              </div>
-              <div class="search-result-action">👁️ Ver</div>
-            </div>
-          `;
+      <div class="search-result-item" onclick="openSearchResult('${result.sheet}', 0)">
+        <div class="search-result-number">📋</div>
+        <div class="search-result-content">
+          <div class="search-result-sheet">📂 ${sheetLabel}</div>
+          <div class="search-result-summary">${summary}</div>
+          <div class="search-result-preview">
+            ${resultHeaders
+              .slice(0, 3)
+              .map(
+                (h) =>
+                  `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
+              )
+              .join(" ")}
+            ${resultHeaders.length > 3 ? `<span class="search-result-more">+${resultHeaders.length - 3} más</span>` : ""}
+          </div>
+        </div>
+        <div class="search-result-action">👁️ Ver</div>
+      </div>
+    `;
         });
 
         html += `
-          </div>
-          <div class="search-results-footer">
-            <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
-              🧹 Limpiar búsqueda
-            </button>
-            <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
-              📋 Mostrar todos
-            </button>
-          </div>
-        `;
+    </div>
+    <div class="search-results-footer">
+      <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+        🧹 Limpiar búsqueda
+      </button>
+      <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
+        📋 Mostrar todos
+      </button>
+    </div>
+  `;
 
         cardsContainer.innerHTML = html;
       }
 
       // ============================================
-      // FUNCIÓN PRINCIPAL DE BÚSQUEDA - CON DEBUG
+      // FUNCIÓN PRINCIPAL DE BÚSQUEDA - BUSCA EN HEADERS
       // ============================================
       function performSearch(query) {
         searchTerm = query.trim().toLowerCase();
@@ -2263,48 +2262,46 @@
           return;
         }
 
-        console.log(`🔍 Buscando: "${searchTerm}"`);
+        console.log(`🔍 Buscando headers que contengan: "${searchTerm}"`);
 
         const allResults = [];
 
         for (const tab of TABS) {
           const cached = allDataCache[tab.id];
-          if (!cached || !cached.data || cached.data.length === 0) {
-            console.log(`⚠️ ${tab.label}: sin datos en caché`);
+          if (!cached || !cached.headers || cached.headers.length === 0) {
+            console.log(`⚠️ ${tab.label}: sin headers en caché`);
             continue;
           }
 
-          const data = cached.data;
-          const headers = cached.headers || Object.keys(data[0] || {});
+          const headers = cached.headers;
+          const data = cached.data || [];
 
-          console.log(`🔎 Buscando en ${tab.label} (${data.length} registros)`);
+          console.log(
+            `🔎 Buscando en headers de ${tab.label} (${headers.length} headers)`,
+          );
 
-          data.forEach((row, rowIndex) => {
-            let found = false;
-            const matchedFields = [];
+          // Buscar en los HEADERS
+          headers.forEach((header) => {
+            if (header.toLowerCase().includes(searchTerm)) {
+              console.log(
+                `  ✅ Encontrado header en ${tab.label}: "${header}"`,
+              );
 
-            headers.forEach((header) => {
-              const value = String(row[header] || "").toLowerCase();
-              if (value.includes(searchTerm)) {
-                found = true;
-                matchedFields.push({
-                  header: header,
-                  value: row[header] || "",
-                  match: value,
-                });
-                console.log(
-                  `  ✅ Encontrado en ${tab.label} -> ${header}: "${row[header]}"`,
-                );
-              }
-            });
-
-            if (found) {
+              // Crear un resultado con el primer registro de esa sección o un registro vacío
+              const sampleRow = data.length > 0 ? data[0] : {};
               allResults.push({
                 sheet: tab.id,
                 sheetLabel: tab.label,
-                index: rowIndex,
-                row: row,
-                matchedFields: matchedFields,
+                index: 0,
+                row: sampleRow,
+                matchedFields: [
+                  {
+                    header: header,
+                    value: "HEADER",
+                    match: header,
+                  },
+                ],
+                headerMatch: true,
               });
             }
           });
@@ -2319,7 +2316,6 @@
 
         renderSearchResults(allResults);
       }
-
       // ============================================
       // CONFIGURAR BÚSQUEDA (EVENTOS)
       // ============================================
