@@ -2193,6 +2193,7 @@
           const row = result.row;
           const sheetLabel = result.sheetLabel;
           const matchedFields = result.matchedFields;
+          const header = matchedFields[0]?.header; // Obtener el header que coincidió
 
           const summary = matchedFields
             .map(
@@ -2204,7 +2205,7 @@
           const resultHeaders = Object.keys(row);
 
           html += `
-      <div class="search-result-item" onclick="openSearchResult('${result.sheet}', 0)">
+      <div class="search-result-item" onclick="openSearchResult('${result.sheet}', 0, '${header}')">
         <div class="search-result-number">📋</div>
         <div class="search-result-content">
           <div class="search-result-sheet">📂 ${sheetLabel}</div>
@@ -2220,7 +2221,7 @@
             ${resultHeaders.length > 3 ? `<span class="search-result-more">+${resultHeaders.length - 3} más</span>` : ""}
           </div>
         </div>
-        <div class="search-result-action">👁️ Ver</div>
+        <div class="search-result-action">✏️ Editar campo</div>
       </div>
     `;
         });
@@ -2239,7 +2240,6 @@
 
         cardsContainer.innerHTML = html;
       }
-
       // ============================================
       // FUNCIÓN PRINCIPAL DE BÚSQUEDA - BUSCA EN HEADERS
       // ============================================
@@ -2364,19 +2364,7 @@
         });
       }
 
-      // ============================================
-      // ABRIR RESULTADO
-      // ============================================
-      function openSearchResult(sheetId, index) {
-        const tab = TABS.find((t) => t.id === sheetId);
-        if (tab) {
-          state.currentTab = sheetId;
-          loadData(sheetId).then(() => {
-            openEditModal(index);
-            clearSearch();
-          });
-        }
-      }
+      openSearchResult;
 
       // ============================================
       // LIMPIAR BÚSQUEDA
