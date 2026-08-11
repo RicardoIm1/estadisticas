@@ -753,7 +753,7 @@
     </div>
 
     <!-- ============================================
-    JAVASCRIPT - LÓGICA COMPLETA (VERSIÓN JSONP)
+    JAVASCRIPT - LÓGICA COMPLETA (VERSIÓN JSONP PARA VERCEL)
     ============================================ -->
     <script>
       // ============================================
@@ -809,7 +809,7 @@
       const modalClose = document.getElementById("modalClose");
 
       // ============================================
-      // FUNCIONES DE API (usando JSONP)
+      // FUNCIONES DE API (usando JSONP para Vercel)
       // ============================================
 
       function apiRequest(action, sheet, data = null, rowIndex = null) {
@@ -852,7 +852,11 @@
                 document.body.removeChild(script);
               }
               document.getElementById("statusText").textContent = "❌ Error";
-              reject(new Error("Error al cargar los datos"));
+              reject(
+                new Error(
+                  "Error al cargar los datos. Verifica la URL del API.",
+                ),
+              );
             };
 
             // Timeout por si no responde
@@ -876,8 +880,7 @@
             return;
           }
 
-          // Para POST requests (create, update, delete) - usamos un iframe o fetch con modo no-cors
-          // La opción más simple es usar fetch con mode: 'no-cors'
+          // Para POST requests (create, update, delete) - usamos fetch con modo no-cors
           if (
             action === "create" ||
             action === "update" ||
@@ -892,7 +895,7 @@
               params.append("rowIndex", rowIndex);
             }
 
-            // Para POST, usamos fetch con modo no-cors (no leerá la respuesta, pero enviará los datos)
+            // Para POST, usamos fetch con modo no-cors
             fetch(`${API_URL}?${params.toString()}`, {
               method: "POST",
               mode: "no-cors",
@@ -904,7 +907,6 @@
               .then(() => {
                 document.getElementById("statusText").textContent =
                   "✅ Conectado";
-                // Como no podemos leer la respuesta con no-cors, asumimos éxito
                 resolve({ success: true, message: "Operación completada" });
               })
               .catch((error) => {
@@ -1167,7 +1169,8 @@
       // ============================================
       function init() {
         try {
-          console.log("🔍 Inicializando con JSONP...");
+          console.log("🔍 Inicializando con JSONP para Vercel...");
+          console.log("📡 API URL:", API_URL);
           renderSidebar();
           loadData("ORDEN 1");
 
