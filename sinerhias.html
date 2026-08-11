@@ -702,29 +702,6 @@
           0 0 0 2px rgba(26, 115, 232, 0.1);
       }
 
-      .card-field .field-select {
-        width: 100%;
-        padding: 4px 8px;
-        border: none;
-        border-radius: 8px;
-        font-size: 0.85rem;
-        background: #e0e5ec;
-        box-shadow:
-          inset 2px 2px 6px rgba(163, 177, 198, 0.5),
-          inset -2px -2px 6px rgba(255, 255, 255, 0.7);
-        color: #2c3e50;
-        outline: none;
-        font-weight: 600;
-        cursor: pointer;
-        margin-top: 2px;
-      }
-
-      .card-field .field-select:focus {
-        box-shadow:
-          inset 3px 3px 8px rgba(26, 115, 232, 0.2),
-          inset -3px -3px 8px rgba(255, 255, 255, 0.8);
-      }
-
       .card-field .field-actions {
         display: flex;
         gap: 4px;
@@ -805,7 +782,6 @@
         flex-direction: column;
         gap: 14px;
         padding: 4px 0 12px 0;
-        margin: 1.3rem;
       }
 
       .search-result-item {
@@ -835,17 +811,17 @@
       }
 
       .search-result-number {
-        font-size: 0.8rem; /* ← UN POCO MÁS GRANDE */
+        font-size: 0.8rem;
         font-weight: 700;
         color: #7f8c8d;
         background: #e0e5ec;
-        padding: 6px 16px; /* ← MÁS PADDING */
+        padding: 6px 16px;
         border-radius: 20px;
         box-shadow:
           inset 2px 2px 4px rgba(163, 177, 198, 0.5),
           inset -2px -2px 4px rgba(255, 255, 255, 0.7);
         flex-shrink: 0;
-        min-width: 60px; /* ← ANCHO MÍNIMO PARA QUE SE VEA COMPLETO */
+        min-width: 60px;
         text-align: center;
       }
 
@@ -1932,11 +1908,6 @@
             const fieldId = `field_${rowIndex}_${header.replace(/\s+/g, "_")}`;
             const isEditing =
               state.editingFields[`${rowIndex}_${header}`] || false;
-            const isBoolean =
-              typeof value === "string" &&
-              (value.toUpperCase() === "SI" ||
-                value.toUpperCase() === "NO" ||
-                value === "");
 
             html += `
               <div class="card-field ${isEditing ? "editing" : ""}" 
@@ -1947,21 +1918,12 @@
             `;
 
             if (isEditing) {
-              if (isBoolean) {
-                html += `
-                  <select class="field-select" id="${fieldId}" data-row="${rowIndex}" data-header="${header}">
-                    <option value="">Seleccionar</option>
-                    <option value="SI" ${value.toUpperCase() === "SI" ? "selected" : ""}>SI</option>
-                    <option value="NO" ${value.toUpperCase() === "NO" ? "selected" : ""}>NO</option>
-                  </select>
-                `;
-              } else {
-                html += `
-                  <input class="field-input" id="${fieldId}" type="text" value="${value}" 
-                         data-row="${rowIndex}" data-header="${header}" 
-                         onkeydown="if(event.key==='Enter') saveFieldEdit(${rowIndex}, '${header}')" />
-                `;
-              }
+              // SIEMPRE INPUT - sin importar si es booleano o no
+              html += `
+                <input class="field-input" id="${fieldId}" type="text" value="${value}" 
+                       data-row="${rowIndex}" data-header="${header}" 
+                       onkeydown="if(event.key==='Enter') saveFieldEdit(${rowIndex}, '${header}')" />
+              `;
               html += `
                 <div class="field-actions">
                   <button class="save-btn" onclick="event.stopPropagation(); saveFieldEdit(${rowIndex}, '${header}')">💾</button>
@@ -1995,7 +1957,7 @@
         renderCards();
         setTimeout(() => {
           const input = document.querySelector(
-            `input[data-row="${rowIndex}"][data-header="${header}"], select[data-row="${rowIndex}"][data-header="${header}"]`,
+            `input[data-row="${rowIndex}"][data-header="${header}"]`,
           );
           if (input) input.focus();
         }, 50);
