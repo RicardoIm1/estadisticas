@@ -937,6 +937,22 @@
       }
 
       /* ============================================
+   RESULTADOS DE BÚSQUEDA - SECCIÓN
+   ============================================ */
+      .search-result-sheet {
+        font-size: 0.65rem;
+        color: #1a73e8;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 2px;
+        background: rgba(26, 115, 232, 0.08);
+        padding: 1px 8px;
+        border-radius: 10px;
+        display: inline-block;
+      }
+
+      /* ============================================
    MODAL
    ============================================ */
       .modal-overlay {
@@ -2064,56 +2080,10 @@
       }
 
       // ============================================
-      // BUSCADOR SUPER PODEROSO
+      // BUSCADOR SUPER PODEROSO - TODAS LAS SECCIONES
       // ============================================
-      let searchTimeout = null;
-      let searchTerm = "";
-      let searchResultsData = [];
 
-      function setupSearch() {
-        const searchInput = document.getElementById("searchInput");
-        const searchClear = document.getElementById("searchClear");
-        const searchResults = document.getElementById("searchResults");
-
-        searchInput.addEventListener("input", function () {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => {
-            performSearch(this.value);
-          }, 150);
-        });
-
-        searchClear.addEventListener("click", function () {
-          searchInput.value = "";
-          searchClear.classList.remove("visible");
-          searchResults.textContent = "";
-          searchResults.classList.remove("highlight");
-          searchResultsData = [];
-          performSearch("");
-          searchInput.focus();
-        });
-
-        document.addEventListener("keydown", function (e) {
-          if ((e.ctrlKey || e.metaKey) && e.key === "f") {
-            e.preventDefault();
-            searchInput.focus();
-            searchInput.select();
-          }
-        });
-
-        searchInput.addEventListener("keydown", function (e) {
-          if (e.key === "Escape") {
-            this.value = "";
-            searchClear.classList.remove("visible");
-            searchResults.textContent = "";
-            searchResults.classList.remove("highlight");
-            searchResultsData = [];
-            performSearch("");
-            this.blur();
-          }
-        });
-      }
-
-      function performSearch(query) {
+      async function performSearch(query) {
         searchTerm = query.trim().toLowerCase();
         const searchClear = document.getElementById("searchClear");
         const searchResults = document.getElementById("searchResults");
@@ -2132,71 +2102,88 @@
           return;
         }
 
-        const results = [];
-        state.data.forEach((row, rowIndex) => {
-          let found = false;
-          const matchedFields = [];
+        // Buscar en TODAS las secciones
+        const allResults = [];
 
-          state.headers.forEach((header) => {
-            const value = String(row[header] || "").toLowerCase();
-            if (value.includes(searchTerm)) {
-              found = true;
-              matchedFields.push({
-                header: header,
-                value: row[header] || "",
-                match: value,
+        // Recorrer todas las pestañas
+        for (const tab of TABS) {
+          try {
+            // Cargar datos de cada sección
+            const result = await apiRequest("read", tab.id);
+            const data = result.data || [];
+            const headers = result.headers || [];
+
+            data.forEach((row, rowIndex) => {
+              let found = false;
+              const matchedFields = [];
+
+              headers.forEach((header) => {
+                const value = String(row[header] || "").toLowerCase();
+                if (value.includes(searchTerm)) {
+                  found = true;
+                  matchedFields.push({
+                    header: header,
+                    value: row[header] || "",
+                    match: value,
+                  });
+                }
               });
-            }
-          });
 
-          if (found) {
-            results.push({
-              index: rowIndex,
-              row: row,
-              matchedFields: matchedFields,
+              if (found) {
+                allResults.push({
+                  sheet: tab.id,
+                  sheetLabel: tab.label,
+                  index: rowIndex,
+                  row: row,
+                  matchedFields: matchedFields,
+                });
+              }
             });
+          } catch (error) {
+            console.warn(`Error al buscar en ${tab.label}:`, error);
           }
-        });
+        }
 
-        searchResultsData = results;
-        const total = state.data.length;
-        const found = results.length;
-        searchResults.textContent = found > 0 ? `${found}/${total}` : "0";
-        searchResults.classList.toggle("highlight", found > 0);
+        searchResultsData = allResults;
+        const total = allResults.length;
+        searchResults.textContent = total > 0 ? `${total} encontrados` : "0";
+        searchResults.classList.toggle("highlight", total > 0);
 
-        renderSearchResults(results);
+        // Renderizar resultados
+        renderSearchResults(allResults);
       }
 
       function renderSearchResults(results) {
         if (results.length === 0) {
           cardsContainer.innerHTML = `
-            <div class="empty-state">
-              <span class="icon">🔍</span>
-              <strong>No se encontraron resultados</strong>
-              <br><br>
-              <div style="color: #666; font-size: 0.9rem;">
-                No hay coincidencias para "<strong>${searchTerm}</strong>"
-              </div>
-              <br>
-              <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
-                🧹 Limpiar búsqueda
-              </button>
-            </div>
-          `;
+      <div class="empty-state">
+        <span class="icon">🔍</span>
+        <strong>No se encontraron resultados</strong>
+        <br><br>
+        <div style="color: #666; font-size: 0.9rem;">
+          No hay coincidencias para "<strong>${searchTerm}</strong>" en ninguna sección
+        </div>
+        <br>
+        <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+          🧹 Limpiar búsqueda
+        </button>
+      </div>
+    `;
           return;
         }
 
         let html = `
-          <div class="search-results-header">
-            <span>🔍 Resultados de búsqueda</span>
-            <span class="search-result-count">${results.length} coincidencias</span>
-          </div>
-          <div class="search-results-list">
-        `;
+    <div class="search-results-header">
+      <span>🔍 Resultados de búsqueda en todas las secciones</span>
+      <span class="search-result-count">${results.length} coincidencias</span>
+    </div>
+    <div class="search-results-list">
+  `;
 
         results.forEach((result) => {
           const row = result.row;
           const rowIndex = result.index;
+          const sheetLabel = result.sheetLabel;
           const matchedFields = result.matchedFields;
 
           const summary = matchedFields
@@ -2207,39 +2194,55 @@
             .join(" ");
 
           html += `
-            <div class="search-result-item" onclick="openSearchResult(${rowIndex})">
-              <div class="search-result-number">#${rowIndex + 1}</div>
-              <div class="search-result-content">
-                <div class="search-result-summary">${summary}</div>
-                <div class="search-result-preview">
-                  ${state.headers
-                    .slice(0, 3)
-                    .map(
-                      (h) =>
-                        `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
-                    )
-                    .join(" ")}
-                  ${state.headers.length > 3 ? `<span class="search-result-more">+${state.headers.length - 3} más</span>` : ""}
-                </div>
-              </div>
-              <div class="search-result-action">👁️ Ver</div>
-            </div>
-          `;
+      <div class="search-result-item" onclick="openSearchResult('${result.sheet}', ${rowIndex})">
+        <div class="search-result-number">#${rowIndex + 1}</div>
+        <div class="search-result-content">
+          <div class="search-result-sheet">📂 ${sheetLabel}</div>
+          <div class="search-result-summary">${summary}</div>
+          <div class="search-result-preview">
+            ${state.headers
+              .slice(0, 3)
+              .map(
+                (h) =>
+                  `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
+              )
+              .join(" ")}
+            ${state.headers.length > 3 ? `<span class="search-result-more">+${state.headers.length - 3} más</span>` : ""}
+          </div>
+        </div>
+        <div class="search-result-action">👁️ Ver</div>
+      </div>
+    `;
         });
 
         html += `
-          </div>
-          <div class="search-results-footer">
-            <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
-              🧹 Limpiar búsqueda
-            </button>
-            <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
-              📋 Mostrar todos
-            </button>
-          </div>
-        `;
+    </div>
+    <div class="search-results-footer">
+      <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+        🧹 Limpiar búsqueda
+      </button>
+      <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
+        📋 Mostrar todos
+      </button>
+    </div>
+  `;
 
         cardsContainer.innerHTML = html;
+      }
+
+      function openSearchResult(sheetId, index) {
+        // Cambiar a la pestaña correcta
+        const tab = TABS.find((t) => t.id === sheetId);
+        if (tab) {
+          // Actualizar el estado y cargar la pestaña
+          state.currentTab = sheetId;
+          loadData(sheetId).then(() => {
+            // Abrir el modal con el registro
+            openEditModal(index);
+            // Cerrar la búsqueda
+            clearSearch();
+          });
+        }
       }
 
       function openSearchResult(index) {
