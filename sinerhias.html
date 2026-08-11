@@ -1972,10 +1972,11 @@
       document.addEventListener("DOMContentLoaded", init);
 
       // ============================================
-      // BUSCADOR SUPER PODEROSO
+      // BUSCADOR SUPER PODEROSO CON LISTA DE RESULTADOS
       // ============================================
       let searchTimeout = null;
       let searchTerm = "";
+      let searchResultsData = [];
 
       function setupSearch() {
         const searchInput = document.getElementById("searchInput");
@@ -1996,6 +1997,7 @@
           searchClear.classList.remove("visible");
           searchResults.textContent = "";
           searchResults.classList.remove("highlight");
+          searchResultsData = [];
           performSearch("");
           searchInput.focus();
         });
@@ -2016,6 +2018,7 @@
             searchClear.classList.remove("visible");
             searchResults.textContent = "";
             searchResults.classList.remove("highlight");
+            searchResultsData = [];
             performSearch("");
             this.blur();
           }
@@ -2027,7 +2030,6 @@
         const searchClear = document.getElementById("searchClear");
         const searchResults = document.getElementById("searchResults");
 
-        // Mostrar/ocultar botón de limpiar
         if (searchTerm.length > 0) {
           searchClear.classList.add("visible");
         } else {
@@ -2037,7 +2039,7 @@
         if (searchTerm.length === 0) {
           searchResults.textContent = "";
           searchResults.classList.remove("highlight");
-          // Mostrar todos los registros
+          searchResultsData = [];
           renderCards();
           return;
         }
@@ -2069,17 +2071,17 @@
           }
         });
 
-        // Actualizar contador
+        searchResultsData = results;
         const total = state.data.length;
         const found = results.length;
         searchResults.textContent = found > 0 ? `${found}/${total}` : "0";
         searchResults.classList.toggle("highlight", found > 0);
 
-        // Renderizar resultados filtrados
-        renderFilteredCards(results);
+        // Renderizar lista de resultados
+        renderSearchResults(results);
       }
 
-      function renderFilteredCards(results) {
+      function renderSearchResults(results) {
         if (results.length === 0) {
           cardsContainer.innerHTML = `
       <div class="empty-state">
@@ -2098,94 +2100,79 @@
           return;
         }
 
-        let html = '<div class="cards-grid">';
+        let html = `
+    <div class="search-results-header">
+      <span>🔍 Resultados de búsqueda</span>
+      <span class="search-result-count">${results.length} coincidencias</span>
+    </div>
+    <div class="search-results-list">
+  `;
 
-        results.forEach((result) => {
+        results.forEach((result, idx) => {
           const row = result.row;
           const rowIndex = result.index;
-          const matchedHeaders = result.matchedFields.map((f) => f.header);
+          const matchedFields = result.matchedFields;
+
+          // Mostrar un resumen de los campos que coinciden
+          const summary = matchedFields
+            .map(
+              (f) =>
+                `<span class="search-match-field">${f.header}: <strong>${highlightText(f.value, searchTerm)}</strong></span>`,
+            )
+            .join(" ");
 
           html += `
-      <div class="card-item" data-row="${rowIndex}">
-        <div class="card-body">
-    `;
-
-          state.headers.forEach((header) => {
-            const value = row[header] || "";
-            const isMatched = matchedHeaders.includes(header);
-            const fieldId = `field_${rowIndex}_${header.replace(/\s+/g, "_")}`;
-            const isEditing =
-              state.editingFields[`${rowIndex}_${header}`] || false;
-            const isBoolean =
-              typeof value === "string" &&
-              (value.toUpperCase() === "SI" ||
-                value.toUpperCase() === "NO" ||
-                value === "");
-
-            html += `
-        <div class="card-field ${isEditing ? "editing" : ""} ${isMatched ? "matched" : ""}" 
-             data-row="${rowIndex}" 
-             data-header="${header}"
-             onclick="if(!this.classList.contains('editing')) startFieldEdit(${rowIndex}, '${header}')">
-          <span class="field-label">${header}</span>
-      `;
-
-            if (isEditing) {
-              if (isBoolean) {
-                html += `
-            <select class="field-select" id="${fieldId}" data-row="${rowIndex}" data-header="${header}">
-              <option value="">Seleccionar</option>
-              <option value="SI" ${value.toUpperCase() === "SI" ? "selected" : ""}>SI</option>
-              <option value="NO" ${value.toUpperCase() === "NO" ? "selected" : ""}>NO</option>
-            </select>
-          `;
-              } else {
-                html += `
-            <input class="field-input" id="${fieldId}" type="text" value="${value}" 
-                   data-row="${rowIndex}" data-header="${header}" 
-                   onkeydown="if(event.key==='Enter') saveFieldEdit(${rowIndex}, '${header}')" />
-          `;
-              }
-              html += `
-          <div class="field-actions">
-            <button class="save-btn" onclick="event.stopPropagation(); saveFieldEdit(${rowIndex}, '${header}')">💾</button>
-            <button class="cancel-btn" onclick="event.stopPropagation(); cancelFieldEdit(${rowIndex}, '${header}')">✕</button>
+      <div class="search-result-item" onclick="openSearchResult(${rowIndex})">
+        <div class="search-result-number">#${rowIndex + 1}</div>
+        <div class="search-result-content">
+          <div class="search-result-summary">${summary}</div>
+          <div class="search-result-preview">
+            ${state.headers
+              .slice(0, 3)
+              .map(
+                (h) =>
+                  `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
+              )
+              .join(" ")}
+            ${state.headers.length > 3 ? `<span class="search-result-more">+${state.headers.length - 3} más</span>` : ""}
           </div>
-        `;
-            } else {
-              // Resaltar coincidencias
-              if (isMatched && searchTerm.length > 0) {
-                const highlighted = highlightText(value, searchTerm);
-                html += `
-            <span class="field-value ${value ? "" : "empty"}">${highlighted}</span>
-          `;
-              } else {
-                html += `
-            <span class="field-value ${value ? "" : "empty"}">${value || "—"}</span>
-          `;
-              }
-            }
-
-            html += `</div>`;
-          });
-
-          html += `
         </div>
+        <div class="search-result-action">👁️ Ver</div>
       </div>
     `;
         });
 
-        html += "</div>";
+        html += `
+    </div>
+    <div class="search-results-footer">
+      <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+        🧹 Limpiar búsqueda
+      </button>
+      <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
+        📋 Mostrar todos
+      </button>
+    </div>
+  `;
+
         cardsContainer.innerHTML = html;
       }
 
-      function highlightText(text, query) {
-        if (!text || !query) return text || "—";
-        const regex = new RegExp(
-          `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-          "gi",
-        );
-        return text.replace(regex, '<span class="highlight-match">$1</span>');
+      function openSearchResult(index) {
+        // Abrir el modal con el registro completo
+        openEditModal(index);
+      }
+
+      function showAllResults() {
+        const searchInput = document.getElementById("searchInput");
+        const searchClear = document.getElementById("searchClear");
+        const searchResults = document.getElementById("searchResults");
+        searchInput.value = "";
+        searchClear.classList.remove("visible");
+        searchResults.textContent = "";
+        searchResults.classList.remove("highlight");
+        searchResultsData = [];
+        searchTerm = "";
+        renderCards();
       }
 
       function clearSearch() {
@@ -2196,47 +2183,269 @@
         searchClear.classList.remove("visible");
         searchResults.textContent = "";
         searchResults.classList.remove("highlight");
+        searchResultsData = [];
         searchTerm = "";
         renderCards();
       }
 
-      // Añadir al init()
-      function init() {
-        try {
-          console.log("🔍 Inicializando conexión a base de datos...");
-          console.log(`📡 API URL: ${API_URL}`);
+      function highlightText(text, query) {
+        if (!text || !query) return text || "—";
+        const regex = new RegExp(
+          `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
+          "gi",
+        );
+        return text.replace(regex, '<span class="highlight-match">$1</span>');
+      }
+    </script>
+    <style>
+      /* ============================================
+   RESULTADOS DE BÚSQUEDA - LISTA
+   ============================================ */
+      .search-results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+        border-radius: 16px;
+        background: #e0e5ec;
+        box-shadow:
+          inset 2px 2px 4px rgba(163, 177, 198, 0.4),
+          inset -2px -2px 4px rgba(255, 255, 255, 0.6);
+        font-weight: 600;
+        color: #2c3e50;
+      }
 
-          if (API_URL.includes("TU_URL_AQUI")) {
-            console.warn(
-              "⚠️ Debes actualizar API_URL con la URL de tu implementación de Apps Script",
-            );
-            cardsContainer.innerHTML = `
-        <div class="empty-state">
-          <span class="icon">⚙️</span>
-          <strong>Configuración pendiente</strong>
-          <br><br>
-          <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
-            Debes actualizar la variable <code>API_URL</code> con la URL de tu implementación de Google Apps Script.
-            <br><br>
-            <strong>Paso 1:</strong> Despliega tu Apps Script como aplicación web<br>
-            <strong>Paso 2:</strong> Copia la URL generada<br>
-            <strong>Paso 3:</strong> Reemplaza <code>TU_URL_AQUI</code> en el código
-          </div>
-        </div>
-      `;
-            return;
-          }
+      .search-result-count {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        background: #e0e5ec;
+        padding: 4px 14px;
+        border-radius: 20px;
+        box-shadow:
+          inset 2px 2px 4px rgba(163, 177, 198, 0.5),
+          inset -2px -2px 4px rgba(255, 255, 255, 0.7);
+      }
 
-          renderSidebar();
-          loadData("ORDEN 1");
-          setupSearch();
-        } catch (error) {
-          console.error("❌ Error:", error);
+      .search-results-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0 12px 0;
+      }
+
+      .search-result-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 18px;
+        border-radius: 16px;
+        background: #e0e5ec;
+        box-shadow:
+          4px 4px 8px rgba(163, 177, 198, 0.5),
+          -4px -4px 8px rgba(255, 255, 255, 0.7);
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .search-result-item:hover {
+        transform: translateX(4px);
+        box-shadow:
+          6px 6px 12px rgba(163, 177, 198, 0.6),
+          -6px -6px 12px rgba(255, 255, 255, 0.8);
+        background: rgba(26, 115, 232, 0.03);
+      }
+
+      .search-result-item:active {
+        transform: scale(0.98);
+      }
+
+      .search-result-number {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #7f8c8d;
+        background: #e0e5ec;
+        padding: 4px 12px;
+        border-radius: 20px;
+        box-shadow:
+          inset 2px 2px 4px rgba(163, 177, 198, 0.5),
+          inset -2px -2px 4px rgba(255, 255, 255, 0.7);
+        flex-shrink: 0;
+      }
+
+      .search-result-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .search-result-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: #2c3e50;
+      }
+
+      .search-match-field {
+        background: rgba(26, 115, 232, 0.06);
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        border-left: 2px solid rgba(26, 115, 232, 0.2);
+      }
+
+      .search-match-field .highlight-match {
+        background: #ffeb3b;
+        color: #1a1a1a;
+        padding: 0 2px;
+        border-radius: 2px;
+        font-weight: 700;
+        box-shadow: 0 0 8px rgba(255, 235, 59, 0.3);
+      }
+
+      .search-result-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+        font-size: 0.7rem;
+        color: #7f8c8d;
+      }
+
+      .search-result-preview-item {
+        background: #e0e5ec;
+        padding: 2px 10px;
+        border-radius: 12px;
+        box-shadow:
+          inset 1px 1px 3px rgba(163, 177, 198, 0.4),
+          inset -1px -1px 3px rgba(255, 255, 255, 0.6);
+      }
+
+      .search-result-more {
+        color: #1a73e8;
+        font-weight: 600;
+        font-size: 0.65rem;
+      }
+
+      .search-result-action {
+        font-size: 0.8rem;
+        color: #1a73e8;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 20px;
+        background: #e0e5ec;
+        box-shadow:
+          2px 2px 4px rgba(163, 177, 198, 0.4),
+          -2px -2px 4px rgba(255, 255, 255, 0.6);
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+      }
+
+      .search-result-item:hover .search-result-action {
+        box-shadow:
+          3px 3px 6px rgba(26, 115, 232, 0.2),
+          -3px -3px 6px rgba(255, 255, 255, 0.6);
+        color: #1557b0;
+      }
+
+      .search-results-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        padding-top: 12px;
+        border-top: 2px solid rgba(163, 177, 198, 0.15);
+        margin-top: 4px;
+      }
+
+      .search-results-footer .btn-neo {
+        display: inline-flex !important;
+        padding: 8px 20px;
+        font-size: 0.8rem;
+      }
+
+      /* ============================================
+   RESPONSIVE - RESULTADOS DE BÚSQUEDA
+   ============================================ */
+      @media (max-width: 768px) {
+        .search-result-item {
+          flex-wrap: wrap;
+          gap: 8px;
+          padding: 10px 14px;
+        }
+
+        .search-result-number {
+          font-size: 0.6rem;
+          padding: 2px 10px;
+        }
+
+        .search-result-summary {
+          font-size: 0.75rem;
+        }
+
+        .search-match-field {
+          font-size: 0.7rem;
+          padding: 1px 6px;
+        }
+
+        .search-result-preview {
+          font-size: 0.6rem;
+          gap: 4px;
+        }
+
+        .search-result-preview-item {
+          padding: 1px 8px;
+        }
+
+        .search-result-action {
+          font-size: 0.7rem;
+          padding: 4px 12px;
+        }
+
+        .search-results-footer {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .search-results-footer .btn-neo {
+          justify-content: center;
         }
       }
 
-      // Exponer funciones globales
-      window.clearSearch = clearSearch;
-    </script>
+      @media (max-width: 480px) {
+        .search-result-item {
+          padding: 8px 12px;
+          gap: 6px;
+        }
+
+        .search-result-summary {
+          font-size: 0.7rem;
+          gap: 4px;
+        }
+
+        .search-match-field {
+          font-size: 0.65rem;
+          padding: 1px 4px;
+        }
+
+        .search-result-preview {
+          display: none;
+        }
+
+        .search-result-action {
+          font-size: 0.65rem;
+          padding: 3px 10px;
+        }
+
+        .search-results-header {
+          font-size: 0.8rem;
+          padding: 8px 12px;
+        }
+
+        .search-result-count {
+          font-size: 0.65rem;
+          padding: 2px 10px;
+        }
+      }
+    </style>
   </body>
 </html>
