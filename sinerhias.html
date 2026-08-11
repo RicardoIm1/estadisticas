@@ -753,7 +753,7 @@
     </div>
 
     <!-- ============================================
-    JAVASCRIPT - LÓGICA COMPLETA (VERSIÓN FETCH)
+    JAVASCRIPT - LÓGICA COMPLETA (VERSIÓN JSONP)
     ============================================ -->
     <script>
       // ============================================
@@ -809,54 +809,114 @@
       const modalClose = document.getElementById("modalClose");
 
       // ============================================
-      // FUNCIONES DE API (usando Fetch)
+      // FUNCIONES DE API (usando JSONP)
       // ============================================
 
-      async function apiRequest(action, sheet, data = null, rowIndex = null) {
-        try {
+      function apiRequest(action, sheet, data = null, rowIndex = null) {
+        return new Promise((resolve, reject) => {
           document.getElementById("statusText").textContent = "⏳ Cargando...";
 
-          const params = new URLSearchParams({
-            action: action,
-            sheet: sheet,
-          });
+          // Para GET requests (read) - usamos JSONP
+          if (action === "read") {
+            const callbackName =
+              "callback_" +
+              Date.now() +
+              "_" +
+              Math.random().toString(36).substr(2, 9);
 
-          if (rowIndex !== null) {
-            params.append("rowIndex", rowIndex);
+            // Crear el script tag
+            const script = document.createElement("script");
+            const url = `${API_URL}?action=${action}&sheet=${encodeURIComponent(sheet)}&callback=${callbackName}`;
+
+            // Función global para el callback
+            window[callbackName] = function (result) {
+              delete window[callbackName];
+              if (document.body.contains(script)) {
+                document.body.removeChild(script);
+              }
+
+              document.getElementById("statusText").textContent =
+                "✅ Conectado";
+
+              if (result.success === false || result.error) {
+                reject(new Error(result.error || "Error en la operación"));
+              } else {
+                resolve(result);
+              }
+            };
+
+            script.src = url;
+            script.onerror = function () {
+              delete window[callbackName];
+              if (document.body.contains(script)) {
+                document.body.removeChild(script);
+              }
+              document.getElementById("statusText").textContent = "❌ Error";
+              reject(new Error("Error al cargar los datos"));
+            };
+
+            // Timeout por si no responde
+            const timeout = setTimeout(() => {
+              delete window[callbackName];
+              if (document.body.contains(script)) {
+                document.body.removeChild(script);
+              }
+              document.getElementById("statusText").textContent = "❌ Timeout";
+              reject(new Error("Timeout al cargar los datos"));
+            }, 30000);
+
+            // Si el callback se ejecuta, limpiamos el timeout
+            const originalCallback = window[callbackName];
+            window[callbackName] = function (result) {
+              clearTimeout(timeout);
+              originalCallback(result);
+            };
+
+            document.body.appendChild(script);
+            return;
           }
 
-          let options = {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          };
+          // Para POST requests (create, update, delete) - usamos un iframe o fetch con modo no-cors
+          // La opción más simple es usar fetch con mode: 'no-cors'
+          if (
+            action === "create" ||
+            action === "update" ||
+            action === "delete"
+          ) {
+            const params = new URLSearchParams({
+              action: action,
+              sheet: sheet,
+            });
 
-          if (data) {
-            options.method = "POST";
-            options.body = JSON.stringify(data);
+            if (rowIndex !== null) {
+              params.append("rowIndex", rowIndex);
+            }
+
+            // Para POST, usamos fetch con modo no-cors (no leerá la respuesta, pero enviará los datos)
+            fetch(`${API_URL}?${params.toString()}`, {
+              method: "POST",
+              mode: "no-cors",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(data),
+            })
+              .then(() => {
+                document.getElementById("statusText").textContent =
+                  "✅ Conectado";
+                // Como no podemos leer la respuesta con no-cors, asumimos éxito
+                resolve({ success: true, message: "Operación completada" });
+              })
+              .catch((error) => {
+                document.getElementById("statusText").textContent = "❌ Error";
+                reject(new Error(error.message));
+              });
+
+            return;
           }
 
-          const url = `${API_URL}?${params.toString()}`;
-          const response = await fetch(url, options);
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const result = await response.json();
-
-          document.getElementById("statusText").textContent = "✅ Conectado";
-
-          if (result.success === false || result.error) {
-            throw new Error(result.error || "Error en la operación");
-          }
-
-          return result;
-        } catch (error) {
-          document.getElementById("statusText").textContent = "❌ Error";
-          throw new Error(error.message || "Error de comunicación");
-        }
+          reject(new Error("Acción no válida"));
+        });
       }
 
       // ============================================
@@ -882,6 +942,7 @@
           renderTable();
           updateActiveTab(sheetName);
         } catch (error) {
+          console.error("Error loading data:", error);
           tableContainer.innerHTML = `
           <div class="empty-state">
             <span class="icon">⚠️</span>
@@ -1106,7 +1167,7 @@
       // ============================================
       function init() {
         try {
-          console.log("🔍 Inicializando con Fetch API...");
+          console.log("🔍 Inicializando con JSONP...");
           renderSidebar();
           loadData("ORDEN 1");
 
