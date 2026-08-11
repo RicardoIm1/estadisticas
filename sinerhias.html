@@ -238,52 +238,40 @@
       }
 
       /* ============================================
-   CARDS - VERSIÓN MULTICOLUMNA (4-5 columnas)
+   CARDS - GRID EXTERNO (varias columnas de cards)
    ============================================ */
       .cards-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
         gap: 20px;
         padding: 10px 0;
       }
 
-      /* Para pantallas grandes - 5 columnas */
       @media (min-width: 1600px) {
         .cards-grid {
-          grid-template-columns: repeat(5, 1fr);
+          grid-template-columns: repeat(4, 1fr);
           gap: 24px;
         }
       }
 
-      /* Para pantallas medianas-grandes - 4 columnas */
       @media (min-width: 1200px) and (max-width: 1599px) {
         .cards-grid {
-          grid-template-columns: repeat(4, 1fr);
+          grid-template-columns: repeat(3, 1fr);
           gap: 22px;
         }
       }
 
-      /* Para tablets - 3 columnas */
       @media (min-width: 768px) and (max-width: 1199px) {
         .cards-grid {
-          grid-template-columns: repeat(3, 1fr);
+          grid-template-columns: repeat(2, 1fr);
           gap: 18px;
         }
       }
 
-      /* Para móviles grandes - 2 columnas */
-      @media (min-width: 480px) and (max-width: 767px) {
-        .cards-grid {
-          grid-template-columns: repeat(2, 1fr);
-          gap: 14px;
-        }
-      }
-
-      /* Para móviles pequeños - 1 columna */
-      @media (max-width: 479px) {
+      @media (max-width: 767px) {
         .cards-grid {
           grid-template-columns: 1fr;
-          gap: 12px;
+          gap: 14px;
         }
       }
 
@@ -369,13 +357,52 @@
           -2px -2px 4px rgba(255, 255, 255, 0.7);
       }
 
+      /* ============================================
+   CARD BODY - GRID INTERNO (varias columnas dentro de la card)
+   ============================================ */
       .card-body {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
         flex: 1;
       }
 
+      /* Si hay un número impar de campos, el último ocupa ambas columnas */
+      .card-body .card-field:last-child:nth-child(odd) {
+        grid-column: 1 / -1;
+      }
+
+      /* Para pantallas grandes - 3 columnas dentro de la card */
+      @media (min-width: 1400px) {
+        .card-body {
+          grid-template-columns: 1fr 1fr 1fr;
+          gap: 8px;
+        }
+        /* Con 3 columnas, si sobra 1, ocupa toda la fila */
+        .card-body .card-field:last-child:nth-child(3n + 1) {
+          grid-column: 1 / -1;
+        }
+      }
+
+      /* Para tablets - 2 columnas dentro de la card */
+      @media (min-width: 768px) and (max-width: 1199px) {
+        .card-body {
+          grid-template-columns: 1fr 1fr;
+          gap: 6px;
+        }
+      }
+
+      /* Para móviles - 1 columna dentro de la card */
+      @media (max-width: 767px) {
+        .card-body {
+          grid-template-columns: 1fr;
+          gap: 6px;
+        }
+      }
+
+      /* ============================================
+   CARD FIELD - Estilos individuales
+   ============================================ */
       .card-field {
         display: flex;
         align-items: center;
@@ -390,6 +417,8 @@
         cursor: pointer;
         min-height: 36px;
         border-left: 3px solid transparent;
+        width: 100%;
+        overflow: hidden;
       }
 
       .card-field:hover {
@@ -407,6 +436,8 @@
           0 0 0 2px rgba(26, 115, 232, 0.15);
         background: rgba(26, 115, 232, 0.04);
         border-left-color: #1a73e8;
+        grid-column: 1 / -1 !important;
+        /* En edición ocupa toda la fila */
       }
 
       .card-field .field-label {
@@ -415,7 +446,7 @@
         color: #7f8c8d;
         text-transform: uppercase;
         letter-spacing: 0.6px;
-        min-width: 60px;
+        min-width: 50px;
         flex-shrink: 0;
         padding: 1px 0;
       }
@@ -452,7 +483,7 @@
         color: #2c3e50;
         outline: none;
         font-weight: 500;
-        min-width: 80px;
+        min-width: 60px;
         transition: all 0.3s ease;
       }
 
@@ -477,7 +508,7 @@
         outline: none;
         font-weight: 500;
         cursor: pointer;
-        min-width: 80px;
+        min-width: 60px;
       }
 
       .card-field .field-select:focus {
