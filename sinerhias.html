@@ -57,33 +57,135 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        gap: 16px;
         margin-bottom: 20px;
-        padding: 16px 24px;
+        padding: 12px 24px;
         border-radius: 30px;
         background: #e0e5ec;
         box-shadow:
           inset 2px 2px 5px rgba(163, 177, 198, 0.6),
           inset -5px -5px 10px rgba(255, 255, 255, 0.7);
         flex-shrink: 0;
+        flex-wrap: wrap;
       }
 
       .header h1 {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
         font-weight: 700;
         color: #2c3e50;
         letter-spacing: -0.5px;
+        flex-shrink: 0;
+      }
+
+      .header-center {
+        flex: 1;
+        min-width: 200px;
+        max-width: 600px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .search-container {
+        position: relative;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        background: #e0e5ec;
+        border-radius: 50px;
+        padding: 0 16px;
+        box-shadow:
+          inset 3px 3px 8px rgba(163, 177, 198, 0.5),
+          inset -3px -3px 8px rgba(255, 255, 255, 0.7);
+        transition: all 0.3s ease;
+      }
+
+      .search-container:focus-within {
+        box-shadow:
+          inset 3px 3px 8px rgba(26, 115, 232, 0.15),
+          inset -3px -3px 8px rgba(255, 255, 255, 0.8),
+          0 0 0 2px rgba(26, 115, 232, 0.1);
+      }
+
+      .search-icon {
+        font-size: 1rem;
+        color: #7f8c8d;
+        margin-right: 10px;
+        flex-shrink: 0;
+      }
+
+      .search-input {
+        flex: 1;
+        padding: 10px 8px;
+        border: none;
+        background: transparent;
+        font-size: 0.95rem;
+        color: #2c3e50;
+        outline: none;
+        min-width: 100px;
+        font-weight: 500;
+      }
+
+      .search-input::placeholder {
+        color: #b0b8c8;
+        font-weight: 400;
+      }
+
+      .search-clear {
+        display: none;
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 50%;
+        cursor: pointer;
+        background: #e0e5ec;
+        color: #7f8c8d;
+        font-size: 0.8rem;
+        box-shadow:
+          inset 2px 2px 4px rgba(163, 177, 198, 0.4),
+          inset -2px -2px 4px rgba(255, 255, 255, 0.6);
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        margin-left: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .search-clear.visible {
+        display: flex;
+      }
+
+      .search-clear:hover {
+        color: #e74c3c;
+        transform: scale(1.05);
+      }
+
+      .search-results {
+        font-size: 0.7rem;
+        color: #7f8c8d;
+        font-weight: 600;
+        margin-left: 10px;
+        white-space: nowrap;
+        flex-shrink: 0;
+        min-width: 40px;
+        text-align: right;
+      }
+
+      .search-results.highlight {
+        color: #1a73e8;
       }
 
       .header .badge {
-        padding: 8px 20px;
+        padding: 6px 16px;
         border-radius: 50px;
         background: #e0e5ec;
         box-shadow:
           3px 3px 6px rgba(163, 177, 198, 0.6),
           -3px -3px 6px rgba(255, 255, 255, 0.7);
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         color: #2c3e50;
         font-weight: 600;
+        flex-shrink: 0;
       }
 
       /* ============================================
@@ -201,13 +303,11 @@
       /* ============================================
    SIDEBAR - SCROLL HORIZONTAL EN MÓVILES
    ============================================ */
-
-      /* Para tablets y móviles */
       @media (max-width: 992px) {
         .sidebar {
           flex: 0 0 auto;
           width: 100%;
-          max-height: 56px;
+          max-height: 60px;
           min-height: unset;
           height: auto;
           display: flex;
@@ -219,20 +319,6 @@
           align-items: center;
           scrollbar-width: thin;
           -webkit-overflow-scrolling: touch;
-        }
-
-        .sidebar::-webkit-scrollbar {
-          height: 4px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-          background: #e0e5ec;
-          border-radius: 10px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-          background: #b0b8c8;
-          border-radius: 10px;
         }
 
         .sidebar-title {
@@ -247,6 +333,10 @@
           margin-bottom: 0;
           white-space: nowrap;
           border-radius: 20px;
+          overflow: visible;
+          text-overflow: clip;
+          min-width: 80px;
+          text-align: center;
         }
 
         .sidebar .tab-btn .tab-number {
@@ -257,12 +347,23 @@
           margin-right: 6px;
         }
 
-        /* Ocultar scrollbar en Firefox */
-        .sidebar {
-          scrollbar-width: thin;
+        .sidebar .tab-btn.active {
+          min-width: 120px;
+          padding: 6px 20px;
+          font-size: 0.8rem;
+          background: #e0e5ec;
+          box-shadow:
+            inset 3px 3px 6px rgba(163, 177, 198, 0.6),
+            inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+          color: #1a73e8;
         }
 
-        /* Ocultar scrollbar en Chrome/Safari */
+        .sidebar .tab-btn.active .tab-number {
+          background: #1a73e8;
+          color: white;
+          box-shadow: none;
+        }
+
         .sidebar::-webkit-scrollbar {
           height: 3px;
         }
@@ -277,10 +378,9 @@
         }
       }
 
-      /* Para móviles pequeños */
       @media (max-width: 480px) {
         .sidebar {
-          max-height: 46px;
+          max-height: 50px;
           padding: 6px 10px;
           gap: 6px;
         }
@@ -288,7 +388,13 @@
         .sidebar .tab-btn {
           padding: 4px 12px;
           font-size: 0.65rem;
-          border-radius: 16px;
+          min-width: 60px;
+        }
+
+        .sidebar .tab-btn.active {
+          min-width: 100px;
+          padding: 5px 16px;
+          font-size: 0.75rem;
         }
 
         .sidebar .tab-btn .tab-number {
@@ -300,10 +406,9 @@
         }
       }
 
-      /* Para móviles muy pequeños */
       @media (max-width: 380px) {
         .sidebar {
-          max-height: 40px;
+          max-height: 44px;
           padding: 4px 8px;
           gap: 4px;
         }
@@ -311,7 +416,13 @@
         .sidebar .tab-btn {
           padding: 3px 10px;
           font-size: 0.6rem;
-          border-radius: 14px;
+          min-width: 50px;
+        }
+
+        .sidebar .tab-btn.active {
+          min-width: 80px;
+          padding: 4px 14px;
+          font-size: 0.7rem;
         }
 
         .sidebar .tab-btn .tab-number {
@@ -446,7 +557,6 @@
           -10px -10px 20px rgba(255, 255, 255, 0.8);
       }
 
-      /* Ocultar header completamente */
       .card-header {
         display: none !important;
       }
@@ -475,7 +585,6 @@
         grid-column: 3 / -1;
       }
 
-      /* Tablets - 2 columnas dentro de la card */
       @media (min-width: 768px) and (max-width: 1199px) {
         .card-body {
           grid-template-columns: 1fr 1fr;
@@ -486,7 +595,6 @@
         }
       }
 
-      /* Móviles - 1 columna dentro de la card */
       @media (max-width: 767px) {
         .card-body {
           grid-template-columns: 1fr;
@@ -496,9 +604,6 @@
 
       /* ============================================
    CARD FIELD
-   ============================================ */
-      /* ============================================
-   CARD FIELD - MUESTRA ETIQUETA + VALOR
    ============================================ */
       .card-field {
         display: flex;
@@ -564,7 +669,15 @@
         font-weight: 400;
       }
 
-      /* Inputs en modo edición - ocupan todo el ancho */
+      .card-field .field-value .highlight-match {
+        background: #ffeb3b;
+        color: #1a1a1a;
+        padding: 0 2px;
+        border-radius: 3px;
+        font-weight: 700;
+        box-shadow: 0 0 8px rgba(255, 235, 59, 0.3);
+      }
+
       .card-field .field-input {
         width: 100%;
         padding: 4px 8px;
@@ -612,7 +725,6 @@
           inset -3px -3px 8px rgba(255, 255, 255, 0.8);
       }
 
-      /* Botones de acción dentro del campo */
       .card-field .field-actions {
         display: flex;
         gap: 4px;
@@ -657,6 +769,171 @@
 
       .card-field .cancel-btn:hover {
         color: #e74c3c;
+      }
+
+      /* ============================================
+   RESULTADOS DE BÚSQUEDA - LISTA
+   ============================================ */
+      .search-results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        margin-bottom: 12px;
+        border-radius: 16px;
+        background: #e0e5ec;
+        box-shadow:
+          inset 2px 2px 4px rgba(163, 177, 198, 0.4),
+          inset -2px -2px 4px rgba(255, 255, 255, 0.6);
+        font-weight: 600;
+        color: #2c3e50;
+      }
+
+      .search-result-count {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+        background: #e0e5ec;
+        padding: 4px 14px;
+        border-radius: 20px;
+        box-shadow:
+          inset 2px 2px 4px rgba(163, 177, 198, 0.5),
+          inset -2px -2px 4px rgba(255, 255, 255, 0.7);
+      }
+
+      .search-results-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        padding: 4px 0 12px 0;
+      }
+
+      .search-result-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px 18px;
+        border-radius: 16px;
+        background: #e0e5ec;
+        box-shadow:
+          4px 4px 8px rgba(163, 177, 198, 0.5),
+          -4px -4px 8px rgba(255, 255, 255, 0.7);
+        transition: all 0.3s ease;
+        cursor: pointer;
+      }
+
+      .search-result-item:hover {
+        transform: translateX(4px);
+        box-shadow:
+          6px 6px 12px rgba(163, 177, 198, 0.6),
+          -6px -6px 12px rgba(255, 255, 255, 0.8);
+        background: rgba(26, 115, 232, 0.03);
+      }
+
+      .search-result-item:active {
+        transform: scale(0.98);
+      }
+
+      .search-result-number {
+        font-size: 0.7rem;
+        font-weight: 700;
+        color: #7f8c8d;
+        background: #e0e5ec;
+        padding: 4px 12px;
+        border-radius: 20px;
+        box-shadow:
+          inset 2px 2px 4px rgba(163, 177, 198, 0.5),
+          inset -2px -2px 4px rgba(255, 255, 255, 0.7);
+        flex-shrink: 0;
+      }
+
+      .search-result-content {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .search-result-summary {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        font-size: 0.85rem;
+        color: #2c3e50;
+      }
+
+      .search-match-field {
+        background: rgba(26, 115, 232, 0.06);
+        padding: 2px 8px;
+        border-radius: 8px;
+        font-size: 0.8rem;
+        border-left: 2px solid rgba(26, 115, 232, 0.2);
+      }
+
+      .search-match-field .highlight-match {
+        background: #ffeb3b;
+        color: #1a1a1a;
+        padding: 0 2px;
+        border-radius: 2px;
+        font-weight: 700;
+        box-shadow: 0 0 8px rgba(255, 235, 59, 0.3);
+      }
+
+      .search-result-preview {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 4px;
+        font-size: 0.7rem;
+        color: #7f8c8d;
+      }
+
+      .search-result-preview-item {
+        background: #e0e5ec;
+        padding: 2px 10px;
+        border-radius: 12px;
+        box-shadow:
+          inset 1px 1px 3px rgba(163, 177, 198, 0.4),
+          inset -1px -1px 3px rgba(255, 255, 255, 0.6);
+      }
+
+      .search-result-more {
+        color: #1a73e8;
+        font-weight: 600;
+        font-size: 0.65rem;
+      }
+
+      .search-result-action {
+        font-size: 0.8rem;
+        color: #1a73e8;
+        font-weight: 600;
+        padding: 6px 14px;
+        border-radius: 20px;
+        background: #e0e5ec;
+        box-shadow:
+          2px 2px 4px rgba(163, 177, 198, 0.4),
+          -2px -2px 4px rgba(255, 255, 255, 0.6);
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+      }
+
+      .search-result-item:hover .search-result-action {
+        box-shadow:
+          3px 3px 6px rgba(26, 115, 232, 0.2),
+          -3px -3px 6px rgba(255, 255, 255, 0.6);
+        color: #1557b0;
+      }
+
+      .search-results-footer {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        padding-top: 12px;
+        border-top: 2px solid rgba(163, 177, 198, 0.15);
+        margin-top: 4px;
+      }
+
+      .search-results-footer .btn-neo {
+        display: inline-flex !important;
+        padding: 8px 20px;
+        font-size: 0.8rem;
       }
 
       /* ============================================
@@ -917,7 +1194,42 @@
       /* ============================================
    RESPONSIVE
    ============================================ */
-      @media (max-width: 992px) {
+      @media (max-width: 768px) {
+        .header {
+          flex-direction: column;
+          gap: 10px;
+          text-align: center;
+          padding: 12px 16px;
+        }
+
+        .header h1 {
+          font-size: 1.2rem;
+        }
+
+        .header-center {
+          max-width: 100%;
+          width: 100%;
+        }
+
+        .search-container {
+          padding: 0 12px;
+        }
+
+        .search-input {
+          font-size: 0.85rem;
+          padding: 8px 6px;
+        }
+
+        .search-results {
+          font-size: 0.65rem;
+          min-width: 30px;
+        }
+
+        .header .badge {
+          font-size: 0.7rem;
+          padding: 4px 12px;
+        }
+
         .container {
           padding: 16px 18px;
           height: calc(100vh - 24px);
@@ -964,10 +1276,6 @@
           padding: 14px 16px;
         }
 
-        .header h1 {
-          font-size: 1.3rem;
-        }
-
         .card-item {
           padding: 14px 16px 12px 16px;
         }
@@ -975,9 +1283,52 @@
         .card-body {
           grid-template-columns: 1fr 1fr;
         }
+
+        .search-result-item {
+          flex-wrap: wrap;
+          gap: 8px;
+          padding: 10px 14px;
+        }
+
+        .search-result-number {
+          font-size: 0.6rem;
+          padding: 2px 10px;
+        }
+
+        .search-result-summary {
+          font-size: 0.75rem;
+        }
+
+        .search-match-field {
+          font-size: 0.7rem;
+          padding: 1px 6px;
+        }
+
+        .search-result-preview {
+          font-size: 0.6rem;
+          gap: 4px;
+        }
+
+        .search-result-preview-item {
+          padding: 1px 8px;
+        }
+
+        .search-result-action {
+          font-size: 0.7rem;
+          padding: 4px 12px;
+        }
+
+        .search-results-footer {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .search-results-footer .btn-neo {
+          justify-content: center;
+        }
       }
 
-      @media (max-width: 768px) {
+      @media (max-width: 480px) {
         body {
           padding: 10px;
         }
@@ -1004,6 +1355,35 @@
         .header .badge {
           font-size: 0.75rem;
           padding: 4px 14px;
+        }
+
+        .header h1 {
+          font-size: 1rem;
+        }
+
+        .search-container {
+          padding: 0 10px;
+        }
+
+        .search-input {
+          font-size: 0.8rem;
+          padding: 6px 4px;
+        }
+
+        .search-icon {
+          font-size: 0.8rem;
+          margin-right: 6px;
+        }
+
+        .search-results {
+          font-size: 0.6rem;
+          min-width: 25px;
+        }
+
+        .search-clear {
+          width: 24px;
+          height: 24px;
+          font-size: 0.7rem;
         }
 
         .content-area {
@@ -1066,411 +1446,39 @@
         .btn-neo {
           display: none !important;
         }
-      }
 
-      @media (max-width: 480px) {
-        body {
-          padding: 6px;
-        }
-
-        .container {
-          padding: 8px 10px;
-          height: calc(100vh - 12px);
-          max-height: calc(100vh - 12px);
-          border-radius: 20px;
-        }
-
-        .header h1 {
-          font-size: 0.95rem;
-        }
-
-        .content-area {
-          padding: 8px 10px;
-          border-radius: 16px;
-        }
-
-        .card-item {
-          padding: 10px 12px 8px 12px;
-          border-radius: 14px;
-        }
-
-        .card-field {
-          padding: 4px 8px;
-          min-height: 26px;
-          border-radius: 8px;
-          gap: 4px;
-        }
-
-        .card-field .field-label {
-          min-width: 35px;
-          font-size: 0.45rem;
-          letter-spacing: 0.3px;
-        }
-
-        .card-field .field-value {
-          font-size: 0.7rem;
-        }
-
-        .sidebar .tab-btn {
-          font-size: 0.55rem;
-          padding: 3px 8px;
-        }
-
-        .btn-neo {
-          display: none !important;
-        }
-      }
-    </style>
-    <style>
-      /* ============================================
-   SIDEBAR - TABS CON TEXTO COMPLETO EN MÓVILES
-   ============================================ */
-
-      @media (max-width: 992px) {
-        .sidebar {
-          flex: 0 0 auto;
-          width: 100%;
-          max-height: 60px;
-          min-height: unset;
-          height: auto;
-          display: flex;
-          flex-wrap: nowrap;
-          overflow-x: auto;
-          overflow-y: hidden;
-          gap: 8px;
-          padding: 10px 14px;
-          align-items: center;
-          scrollbar-width: thin;
-          -webkit-overflow-scrolling: touch;
-        }
-
-        .sidebar-title {
-          display: none;
-        }
-
-        .sidebar .tab-btn {
-          flex: 0 0 auto;
-          width: auto;
-          padding: 6px 16px;
-          font-size: 0.75rem;
-          margin-bottom: 0;
-          white-space: nowrap;
-          border-radius: 20px;
-          overflow: visible;
-          text-overflow: clip;
-          min-width: 80px;
-          text-align: center;
-        }
-
-        .sidebar .tab-btn .tab-number {
-          width: 20px;
-          height: 20px;
-          line-height: 20px;
-          font-size: 0.6rem;
-          margin-right: 6px;
-        }
-
-        /* Tab activo más grande */
-        .sidebar .tab-btn.active {
-          min-width: 120px;
-          padding: 6px 20px;
-          font-size: 0.8rem;
-          background: #e0e5ec;
-          box-shadow:
-            inset 3px 3px 6px rgba(163, 177, 198, 0.6),
-            inset -3px -3px 6px rgba(255, 255, 255, 0.7);
-          color: #1a73e8;
-        }
-
-        .sidebar .tab-btn.active .tab-number {
-          background: #1a73e8;
-          color: white;
-          box-shadow: none;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .sidebar {
-          max-height: 50px;
-          padding: 6px 10px;
+        .search-result-item {
+          padding: 8px 12px;
           gap: 6px;
         }
 
-        .sidebar .tab-btn {
-          padding: 4px 12px;
-          font-size: 0.65rem;
-          min-width: 60px;
-        }
-
-        .sidebar .tab-btn.active {
-          min-width: 100px;
-          padding: 5px 16px;
-          font-size: 0.75rem;
-        }
-
-        .sidebar .tab-btn .tab-number {
-          width: 18px;
-          height: 18px;
-          line-height: 18px;
-          font-size: 0.55rem;
-          margin-right: 4px;
-        }
-      }
-
-      @media (max-width: 380px) {
-        .sidebar {
-          max-height: 44px;
-          padding: 4px 8px;
+        .search-result-summary {
+          font-size: 0.7rem;
           gap: 4px;
         }
 
-        .sidebar .tab-btn {
-          padding: 3px 10px;
-          font-size: 0.6rem;
-          min-width: 50px;
-        }
-
-        .sidebar .tab-btn.active {
-          min-width: 80px;
-          padding: 4px 14px;
-          font-size: 0.7rem;
-        }
-
-        .sidebar .tab-btn .tab-number {
-          width: 16px;
-          height: 16px;
-          line-height: 16px;
-          font-size: 0.5rem;
-          margin-right: 3px;
-        }
-      }
-
-      /* ============================================
-   HEADER - CON BUSCADOR
-   ============================================ */
-      .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        margin-bottom: 20px;
-        padding: 12px 24px;
-        border-radius: 30px;
-        background: #e0e5ec;
-        box-shadow:
-          inset 2px 2px 5px rgba(163, 177, 198, 0.6),
-          inset -5px -5px 10px rgba(255, 255, 255, 0.7);
-        flex-shrink: 0;
-        flex-wrap: wrap;
-      }
-
-      .header h1 {
-        font-size: 1.6rem;
-        font-weight: 700;
-        color: #2c3e50;
-        letter-spacing: -0.5px;
-        flex-shrink: 0;
-      }
-
-      .header-center {
-        flex: 1;
-        min-width: 200px;
-        max-width: 600px;
-        display: flex;
-        justify-content: center;
-      }
-
-      .search-container {
-        position: relative;
-        width: 100%;
-        display: flex;
-        align-items: center;
-        background: #e0e5ec;
-        border-radius: 50px;
-        padding: 0 16px;
-        box-shadow:
-          inset 3px 3px 8px rgba(163, 177, 198, 0.5),
-          inset -3px -3px 8px rgba(255, 255, 255, 0.7);
-        transition: all 0.3s ease;
-      }
-
-      .search-container:focus-within {
-        box-shadow:
-          inset 3px 3px 8px rgba(26, 115, 232, 0.15),
-          inset -3px -3px 8px rgba(255, 255, 255, 0.8),
-          0 0 0 2px rgba(26, 115, 232, 0.1);
-      }
-
-      .search-icon {
-        font-size: 1rem;
-        color: #7f8c8d;
-        margin-right: 10px;
-        flex-shrink: 0;
-      }
-
-      .search-input {
-        flex: 1;
-        padding: 10px 8px;
-        border: none;
-        background: transparent;
-        font-size: 0.95rem;
-        color: #2c3e50;
-        outline: none;
-        min-width: 100px;
-        font-weight: 500;
-      }
-
-      .search-input::placeholder {
-        color: #b0b8c8;
-        font-weight: 400;
-      }
-
-      .search-clear {
-        display: none;
-        width: 28px;
-        height: 28px;
-        border: none;
-        border-radius: 50%;
-        cursor: pointer;
-        background: #e0e5ec;
-        color: #7f8c8d;
-        font-size: 0.8rem;
-        box-shadow:
-          inset 2px 2px 4px rgba(163, 177, 198, 0.4),
-          inset -2px -2px 4px rgba(255, 255, 255, 0.6);
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-        margin-left: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .search-clear.visible {
-        display: flex;
-      }
-
-      .search-clear:hover {
-        color: #e74c3c;
-        transform: scale(1.05);
-      }
-
-      .search-results {
-        font-size: 0.7rem;
-        color: #7f8c8d;
-        font-weight: 600;
-        margin-left: 10px;
-        white-space: nowrap;
-        flex-shrink: 0;
-        min-width: 40px;
-        text-align: right;
-      }
-
-      .search-results.highlight {
-        color: #1a73e8;
-      }
-
-      .header .badge {
-        padding: 6px 16px;
-        border-radius: 50px;
-        background: #e0e5ec;
-        box-shadow:
-          3px 3px 6px rgba(163, 177, 198, 0.6),
-          -3px -3px 6px rgba(255, 255, 255, 0.7);
-        font-size: 0.8rem;
-        color: #2c3e50;
-        font-weight: 600;
-        flex-shrink: 0;
-      }
-
-      /* ============================================
-   RESALTADO DE COINCIDENCIAS
-   ============================================ */
-      .card-field .field-value .highlight-match {
-        background: #f1c40f;
-        color: #2c3e50;
-        padding: 0 2px;
-        border-radius: 3px;
-        font-weight: 700;
-      }
-
-      .card-field .field-value .highlight-match {
-        background: #ffeb3b;
-        color: #1a1a1a;
-        padding: 0 2px;
-        border-radius: 3px;
-        font-weight: 700;
-        box-shadow: 0 0 8px rgba(255, 235, 59, 0.3);
-      }
-
-      /* ============================================
-   RESPONSIVE HEADER
-   ============================================ */
-      @media (max-width: 768px) {
-        .header {
-          flex-direction: column;
-          gap: 10px;
-          text-align: center;
-          padding: 12px 16px;
-        }
-
-        .header h1 {
-          font-size: 1.2rem;
-        }
-
-        .header-center {
-          max-width: 100%;
-          width: 100%;
-        }
-
-        .search-container {
-          padding: 0 12px;
-        }
-
-        .search-input {
-          font-size: 0.85rem;
-          padding: 8px 6px;
-        }
-
-        .search-results {
+        .search-match-field {
           font-size: 0.65rem;
-          min-width: 30px;
+          padding: 1px 4px;
         }
 
-        .header .badge {
-          font-size: 0.7rem;
-          padding: 4px 12px;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .header h1 {
-          font-size: 1rem;
+        .search-result-preview {
+          display: none;
         }
 
-        .search-container {
-          padding: 0 10px;
+        .search-result-action {
+          font-size: 0.65rem;
+          padding: 3px 10px;
         }
 
-        .search-input {
+        .search-results-header {
           font-size: 0.8rem;
-          padding: 6px 4px;
+          padding: 8px 12px;
         }
 
-        .search-icon {
-          font-size: 0.8rem;
-          margin-right: 6px;
-        }
-
-        .search-results {
-          font-size: 0.6rem;
-          min-width: 25px;
-        }
-
-        .search-clear {
-          width: 24px;
-          height: 24px;
-          font-size: 0.7rem;
+        .search-result-count {
+          font-size: 0.65rem;
+          padding: 2px 10px;
         }
       }
     </style>
@@ -1524,6 +1532,29 @@
       </div>
     </div>
 
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modalTitle">📝 Agregar Registro</h2>
+          <button class="modal-close" id="modalClose">✕</button>
+        </div>
+        <form id="modalForm">
+          <div class="form-scroll" id="formScroll">
+            <div class="form-grid" id="formFields"></div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-neo" id="btnCancel">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-neo primary" id="btnSave">
+              💾 Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <script>
       // ============================================
       // CONFIGURACIÓN - ACTUALIZA CON TU URL
@@ -1569,6 +1600,14 @@
       const sheetNameDisplay = document.getElementById("sheetNameDisplay");
       const rowCountDisplay = document.getElementById("rowCountDisplay");
       const statusText = document.getElementById("statusText");
+      const modalOverlay = document.getElementById("modalOverlay");
+      const modalTitle = document.getElementById("modalTitle");
+      const modalForm = document.getElementById("modalForm");
+      const formFields = document.getElementById("formFields");
+      const formScroll = document.getElementById("formScroll");
+      const btnCancel = document.getElementById("btnCancel");
+      const btnSave = document.getElementById("btnSave");
+      const modalClose = document.getElementById("modalClose");
 
       // ============================================
       // API - CONEXIÓN REAL A BASE DE DATOS
@@ -1679,11 +1718,11 @@
 
           if (!result.data || result.data.length === 0) {
             cardsContainer.innerHTML = `
-        <div class="empty-state">
-          <span class="icon">📭</span>
-          No hay registros en esta hoja
-        </div>
-      `;
+              <div class="empty-state">
+                <span class="icon">📭</span>
+                No hay registros en esta hoja
+              </div>
+            `;
             state.data = [];
             state.headers = [];
           } else {
@@ -1707,17 +1746,17 @@
         } catch (error) {
           console.error("Error loading data:", error);
           cardsContainer.innerHTML = `
-      <div class="empty-state">
-        <span class="icon">⚠️</span>
-        <strong>Error al cargar datos</strong>
-        <br><br>
-        <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
-          ${error.message}
-        </div>
-        <br>
-        <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
-      </div>
-    `;
+            <div class="empty-state">
+              <span class="icon">⚠️</span>
+              <strong>Error al cargar datos</strong>
+              <br><br>
+              <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
+                ${error.message}
+              </div>
+              <br>
+              <button class="btn-neo" onclick="loadData('${sheetName}')">🔄 Reintentar</button>
+            </div>
+          `;
         } finally {
           state.isLoading = false;
         }
@@ -1729,15 +1768,14 @@
       function renderCards() {
         if (state.data.length === 0) {
           cardsContainer.innerHTML = `
-      <div class="empty-state">
-        <span class="icon">📭</span>
-        No hay registros
-      </div>
-    `;
+            <div class="empty-state">
+              <span class="icon">📭</span>
+              No hay registros
+            </div>
+          `;
           return;
         }
 
-        // Actualizar el info con la cantidad de columnas
         const columnCount = state.headers.length;
         const rowCount = state.data.length;
         const tabLabel =
@@ -1751,9 +1789,9 @@
 
         state.data.forEach((row, rowIndex) => {
           html += `
-      <div class="card-item" data-row="${rowIndex}">
-        <div class="card-body">
-    `;
+            <div class="card-item" data-row="${rowIndex}">
+              <div class="card-body">
+          `;
 
           state.headers.forEach((header) => {
             const value = row[header] || "";
@@ -1767,48 +1805,48 @@
                 value === "");
 
             html += `
-        <div class="card-field ${isEditing ? "editing" : ""}" 
-             data-row="${rowIndex}" 
-             data-header="${header}"
-             onclick="if(!this.classList.contains('editing')) startFieldEdit(${rowIndex}, '${header}')">
-          <span class="field-label">${header}</span>
-      `;
+              <div class="card-field ${isEditing ? "editing" : ""}" 
+                   data-row="${rowIndex}" 
+                   data-header="${header}"
+                   onclick="if(!this.classList.contains('editing')) startFieldEdit(${rowIndex}, '${header}')">
+                <span class="field-label">${header}</span>
+            `;
 
             if (isEditing) {
               if (isBoolean) {
                 html += `
-            <select class="field-select" id="${fieldId}" data-row="${rowIndex}" data-header="${header}">
-              <option value="">Seleccionar</option>
-              <option value="SI" ${value.toUpperCase() === "SI" ? "selected" : ""}>SI</option>
-              <option value="NO" ${value.toUpperCase() === "NO" ? "selected" : ""}>NO</option>
-            </select>
-          `;
+                  <select class="field-select" id="${fieldId}" data-row="${rowIndex}" data-header="${header}">
+                    <option value="">Seleccionar</option>
+                    <option value="SI" ${value.toUpperCase() === "SI" ? "selected" : ""}>SI</option>
+                    <option value="NO" ${value.toUpperCase() === "NO" ? "selected" : ""}>NO</option>
+                  </select>
+                `;
               } else {
                 html += `
-            <input class="field-input" id="${fieldId}" type="text" value="${value}" 
-                   data-row="${rowIndex}" data-header="${header}" 
-                   onkeydown="if(event.key==='Enter') saveFieldEdit(${rowIndex}, '${header}')" />
-          `;
+                  <input class="field-input" id="${fieldId}" type="text" value="${value}" 
+                         data-row="${rowIndex}" data-header="${header}" 
+                         onkeydown="if(event.key==='Enter') saveFieldEdit(${rowIndex}, '${header}')" />
+                `;
               }
               html += `
-          <div class="field-actions">
-            <button class="save-btn" onclick="event.stopPropagation(); saveFieldEdit(${rowIndex}, '${header}')">💾</button>
-            <button class="cancel-btn" onclick="event.stopPropagation(); cancelFieldEdit(${rowIndex}, '${header}')">✕</button>
-          </div>
-        `;
+                <div class="field-actions">
+                  <button class="save-btn" onclick="event.stopPropagation(); saveFieldEdit(${rowIndex}, '${header}')">💾</button>
+                  <button class="cancel-btn" onclick="event.stopPropagation(); cancelFieldEdit(${rowIndex}, '${header}')">✕</button>
+                </div>
+              `;
             } else {
               html += `
-          <span class="field-value ${value ? "" : "empty"}">${value || "—"}</span>
-        `;
+                <span class="field-value ${value ? "" : "empty"}">${value || "—"}</span>
+              `;
             }
 
             html += `</div>`;
           });
 
           html += `
-        </div>
-      </div>
-    `;
+              </div>
+            </div>
+          `;
         });
 
         html += "</div>";
@@ -1902,6 +1940,107 @@
       }
 
       // ============================================
+      // MODAL
+      // ============================================
+      function openEditModal(index) {
+        state.isEditing = true;
+        state.editRowIndex = index;
+        modalTitle.textContent = "✏️ Editar Registro Completo";
+        const rowData = state.data[index] || {};
+        renderFormFields(rowData);
+        modalOverlay.classList.add("active");
+        formScroll.scrollTop = 0;
+      }
+
+      function closeModal() {
+        modalOverlay.classList.remove("active");
+      }
+
+      function renderFormFields(rowData) {
+        const allHeaders = state.headers;
+        if (allHeaders.length === 0) {
+          formFields.innerHTML =
+            '<p style="color:#666;">No hay campos disponibles</p>';
+          return;
+        }
+
+        let html = "";
+        allHeaders.forEach((header) => {
+          const value =
+            rowData[header] !== undefined && rowData[header] !== null
+              ? rowData[header]
+              : "";
+          const isBoolean =
+            typeof value === "string" &&
+            (value.toUpperCase() === "SI" ||
+              value.toUpperCase() === "NO" ||
+              value === "");
+
+          html += `
+            <div class="form-group">
+              <label for="field_${header.replace(/\s+/g, "_")}">${header}</label>
+              ${
+                isBoolean
+                  ? `
+                <select id="field_${header.replace(/\s+/g, "_")}" name="${header}">
+                  <option value="">Seleccionar</option>
+                  <option value="SI" ${value.toUpperCase() === "SI" ? "selected" : ""}>SI</option>
+                  <option value="NO" ${value.toUpperCase() === "NO" ? "selected" : ""}>NO</option>
+                </select>
+              `
+                  : `
+                <input type="text" id="field_${header.replace(/\s+/g, "_")}" name="${header}" value="${value}" />
+              `
+              }
+            </div>
+          `;
+        });
+
+        formFields.innerHTML = html;
+      }
+
+      function collectFormData() {
+        const formData = {};
+        const inputs = formFields.querySelectorAll("input, select, textarea");
+        inputs.forEach((input) => {
+          formData[input.name] = input.value;
+        });
+        return formData;
+      }
+
+      async function handleSave(event) {
+        event.preventDefault();
+        const formData = collectFormData();
+
+        const hasValue = Object.values(formData).some(
+          (v) => v && v.trim() !== "",
+        );
+        if (!hasValue) {
+          showToast("⚠️ Ingresa al menos un valor", "error");
+          return;
+        }
+
+        try {
+          if (state.isEditing && state.editRowIndex !== null) {
+            await apiRequest(
+              "update",
+              state.currentTab,
+              formData,
+              state.editRowIndex,
+            );
+          } else {
+            await apiRequest("create", state.currentTab, formData);
+          }
+
+          closeModal();
+          await loadData(state.currentTab);
+          showToast("✅ Registro guardado");
+        } catch (error) {
+          showToast(`❌ ${error.message}`, "error");
+        }
+      }
+
+      // ============================================
       // TOAST
       // ============================================
       function showToast(message, type = "success") {
@@ -1925,54 +2064,7 @@
       }
 
       // ============================================
-      // INICIALIZACIÓN
-      // ============================================
-      function init() {
-        try {
-          console.log("🔍 Inicializando conexión a base de datos...");
-          console.log(`📡 API URL: ${API_URL}`);
-
-          if (API_URL.includes("TU_URL_AQUI")) {
-            console.warn(
-              "⚠️ Debes actualizar API_URL con la URL de tu implementación de Apps Script",
-            );
-            cardsContainer.innerHTML = `
-              <div class="empty-state">
-                <span class="icon">⚙️</span>
-                <strong>Configuración pendiente</strong>
-                <br><br>
-                <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
-                  Debes actualizar la variable <code>API_URL</code> con la URL de tu implementación de Google Apps Script.
-                  <br><br>
-                  <strong>Paso 1:</strong> Despliega tu Apps Script como aplicación web<br>
-                  <strong>Paso 2:</strong> Copia la URL generada<br>
-                  <strong>Paso 3:</strong> Reemplaza <code>TU_URL_AQUI</code> en el código
-                </div>
-              </div>
-            `;
-            return;
-          }
-
-          renderSidebar();
-          loadData("ORDEN 1");
-        } catch (error) {
-          console.error("❌ Error:", error);
-        }
-      }
-
-      // Exponer funciones globales
-      window.loadData = loadData;
-      window.init = init;
-      window.startFieldEdit = startFieldEdit;
-      window.cancelFieldEdit = cancelFieldEdit;
-      window.saveFieldEdit = saveFieldEdit;
-      window.showToast = showToast;
-
-      // Iniciar
-      document.addEventListener("DOMContentLoaded", init);
-
-      // ============================================
-      // BUSCADOR SUPER PODEROSO CON LISTA DE RESULTADOS
+      // BUSCADOR SUPER PODEROSO
       // ============================================
       let searchTimeout = null;
       let searchTerm = "";
@@ -1983,7 +2075,6 @@
         const searchClear = document.getElementById("searchClear");
         const searchResults = document.getElementById("searchResults");
 
-        // Búsqueda en tiempo real
         searchInput.addEventListener("input", function () {
           clearTimeout(searchTimeout);
           searchTimeout = setTimeout(() => {
@@ -1991,7 +2082,6 @@
           }, 150);
         });
 
-        // Limpiar búsqueda
         searchClear.addEventListener("click", function () {
           searchInput.value = "";
           searchClear.classList.remove("visible");
@@ -2002,7 +2092,6 @@
           searchInput.focus();
         });
 
-        // Atajo de teclado: Ctrl+F o Cmd+F
         document.addEventListener("keydown", function (e) {
           if ((e.ctrlKey || e.metaKey) && e.key === "f") {
             e.preventDefault();
@@ -2011,7 +2100,6 @@
           }
         });
 
-        // Escape para limpiar
         searchInput.addEventListener("keydown", function (e) {
           if (e.key === "Escape") {
             this.value = "";
@@ -2044,7 +2132,6 @@
           return;
         }
 
-        // Filtrar y buscar
         const results = [];
         state.data.forEach((row, rowIndex) => {
           let found = false;
@@ -2077,43 +2164,41 @@
         searchResults.textContent = found > 0 ? `${found}/${total}` : "0";
         searchResults.classList.toggle("highlight", found > 0);
 
-        // Renderizar lista de resultados
         renderSearchResults(results);
       }
 
       function renderSearchResults(results) {
         if (results.length === 0) {
           cardsContainer.innerHTML = `
-      <div class="empty-state">
-        <span class="icon">🔍</span>
-        <strong>No se encontraron resultados</strong>
-        <br><br>
-        <div style="color: #666; font-size: 0.9rem;">
-          No hay coincidencias para "<strong>${searchTerm}</strong>"
-        </div>
-        <br>
-        <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
-          🧹 Limpiar búsqueda
-        </button>
-      </div>
-    `;
+            <div class="empty-state">
+              <span class="icon">🔍</span>
+              <strong>No se encontraron resultados</strong>
+              <br><br>
+              <div style="color: #666; font-size: 0.9rem;">
+                No hay coincidencias para "<strong>${searchTerm}</strong>"
+              </div>
+              <br>
+              <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+                🧹 Limpiar búsqueda
+              </button>
+            </div>
+          `;
           return;
         }
 
         let html = `
-    <div class="search-results-header">
-      <span>🔍 Resultados de búsqueda</span>
-      <span class="search-result-count">${results.length} coincidencias</span>
-    </div>
-    <div class="search-results-list">
-  `;
+          <div class="search-results-header">
+            <span>🔍 Resultados de búsqueda</span>
+            <span class="search-result-count">${results.length} coincidencias</span>
+          </div>
+          <div class="search-results-list">
+        `;
 
-        results.forEach((result, idx) => {
+        results.forEach((result) => {
           const row = result.row;
           const rowIndex = result.index;
           const matchedFields = result.matchedFields;
 
-          // Mostrar un resumen de los campos que coinciden
           const summary = matchedFields
             .map(
               (f) =>
@@ -2122,43 +2207,42 @@
             .join(" ");
 
           html += `
-      <div class="search-result-item" onclick="openSearchResult(${rowIndex})">
-        <div class="search-result-number">#${rowIndex + 1}</div>
-        <div class="search-result-content">
-          <div class="search-result-summary">${summary}</div>
-          <div class="search-result-preview">
-            ${state.headers
-              .slice(0, 3)
-              .map(
-                (h) =>
-                  `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
-              )
-              .join(" ")}
-            ${state.headers.length > 3 ? `<span class="search-result-more">+${state.headers.length - 3} más</span>` : ""}
-          </div>
-        </div>
-        <div class="search-result-action">👁️ Ver</div>
-      </div>
-    `;
+            <div class="search-result-item" onclick="openSearchResult(${rowIndex})">
+              <div class="search-result-number">#${rowIndex + 1}</div>
+              <div class="search-result-content">
+                <div class="search-result-summary">${summary}</div>
+                <div class="search-result-preview">
+                  ${state.headers
+                    .slice(0, 3)
+                    .map(
+                      (h) =>
+                        `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
+                    )
+                    .join(" ")}
+                  ${state.headers.length > 3 ? `<span class="search-result-more">+${state.headers.length - 3} más</span>` : ""}
+                </div>
+              </div>
+              <div class="search-result-action">👁️ Ver</div>
+            </div>
+          `;
         });
 
         html += `
-    </div>
-    <div class="search-results-footer">
-      <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
-        🧹 Limpiar búsqueda
-      </button>
-      <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
-        📋 Mostrar todos
-      </button>
-    </div>
-  `;
+          </div>
+          <div class="search-results-footer">
+            <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+              🧹 Limpiar búsqueda
+            </button>
+            <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
+              📋 Mostrar todos
+            </button>
+          </div>
+        `;
 
         cardsContainer.innerHTML = html;
       }
 
       function openSearchResult(index) {
-        // Abrir el modal con el registro completo
         openEditModal(index);
       }
 
@@ -2196,256 +2280,67 @@
         );
         return text.replace(regex, '<span class="highlight-match">$1</span>');
       }
+
+      // ============================================
+      // INICIALIZACIÓN
+      // ============================================
+      function init() {
+        try {
+          console.log("🔍 Inicializando conexión a base de datos...");
+          console.log(`📡 API URL: ${API_URL}`);
+
+          if (API_URL.includes("TU_URL_AQUI")) {
+            console.warn(
+              "⚠️ Debes actualizar API_URL con la URL de tu implementación de Apps Script",
+            );
+            cardsContainer.innerHTML = `
+              <div class="empty-state">
+                <span class="icon">⚙️</span>
+                <strong>Configuración pendiente</strong>
+                <br><br>
+                <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
+                  Debes actualizar la variable <code>API_URL</code> con la URL de tu implementación de Google Apps Script.
+                  <br><br>
+                  <strong>Paso 1:</strong> Despliega tu Apps Script como aplicación web<br>
+                  <strong>Paso 2:</strong> Copia la URL generada<br>
+                  <strong>Paso 3:</strong> Reemplaza <code>TU_URL_AQUI</code> en el código
+                </div>
+              </div>
+            `;
+            return;
+          }
+
+          renderSidebar();
+          loadData("ORDEN 1");
+          setupSearch();
+
+          // Event listeners del modal
+          btnCancel.addEventListener("click", closeModal);
+          modalClose.addEventListener("click", closeModal);
+          modalForm.addEventListener("submit", handleSave);
+          modalOverlay.addEventListener("click", (e) => {
+            if (e.target === modalOverlay) closeModal();
+          });
+        } catch (error) {
+          console.error("❌ Error:", error);
+        }
+      }
+
+      // Exponer funciones globales
+      window.loadData = loadData;
+      window.init = init;
+      window.startFieldEdit = startFieldEdit;
+      window.cancelFieldEdit = cancelFieldEdit;
+      window.saveFieldEdit = saveFieldEdit;
+      window.showToast = showToast;
+      window.openEditModal = openEditModal;
+      window.closeModal = closeModal;
+      window.clearSearch = clearSearch;
+      window.showAllResults = showAllResults;
+      window.openSearchResult = openSearchResult;
+
+      // Iniciar
+      document.addEventListener("DOMContentLoaded", init);
     </script>
-    <style>
-      /* ============================================
-   RESULTADOS DE BÚSQUEDA - LISTA
-   ============================================ */
-      .search-results-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 12px 16px;
-        margin-bottom: 12px;
-        border-radius: 16px;
-        background: #e0e5ec;
-        box-shadow:
-          inset 2px 2px 4px rgba(163, 177, 198, 0.4),
-          inset -2px -2px 4px rgba(255, 255, 255, 0.6);
-        font-weight: 600;
-        color: #2c3e50;
-      }
-
-      .search-result-count {
-        font-size: 0.8rem;
-        color: #7f8c8d;
-        background: #e0e5ec;
-        padding: 4px 14px;
-        border-radius: 20px;
-        box-shadow:
-          inset 2px 2px 4px rgba(163, 177, 198, 0.5),
-          inset -2px -2px 4px rgba(255, 255, 255, 0.7);
-      }
-
-      .search-results-list {
-        display: flex;
-        flex-direction: column;
-        gap: 10px;
-        padding: 4px 0 12px 0;
-      }
-
-      .search-result-item {
-        display: flex;
-        align-items: center;
-        gap: 14px;
-        padding: 12px 18px;
-        border-radius: 16px;
-        background: #e0e5ec;
-        box-shadow:
-          4px 4px 8px rgba(163, 177, 198, 0.5),
-          -4px -4px 8px rgba(255, 255, 255, 0.7);
-        transition: all 0.3s ease;
-        cursor: pointer;
-      }
-
-      .search-result-item:hover {
-        transform: translateX(4px);
-        box-shadow:
-          6px 6px 12px rgba(163, 177, 198, 0.6),
-          -6px -6px 12px rgba(255, 255, 255, 0.8);
-        background: rgba(26, 115, 232, 0.03);
-      }
-
-      .search-result-item:active {
-        transform: scale(0.98);
-      }
-
-      .search-result-number {
-        font-size: 0.7rem;
-        font-weight: 700;
-        color: #7f8c8d;
-        background: #e0e5ec;
-        padding: 4px 12px;
-        border-radius: 20px;
-        box-shadow:
-          inset 2px 2px 4px rgba(163, 177, 198, 0.5),
-          inset -2px -2px 4px rgba(255, 255, 255, 0.7);
-        flex-shrink: 0;
-      }
-
-      .search-result-content {
-        flex: 1;
-        min-width: 0;
-      }
-
-      .search-result-summary {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        font-size: 0.85rem;
-        color: #2c3e50;
-      }
-
-      .search-match-field {
-        background: rgba(26, 115, 232, 0.06);
-        padding: 2px 8px;
-        border-radius: 8px;
-        font-size: 0.8rem;
-        border-left: 2px solid rgba(26, 115, 232, 0.2);
-      }
-
-      .search-match-field .highlight-match {
-        background: #ffeb3b;
-        color: #1a1a1a;
-        padding: 0 2px;
-        border-radius: 2px;
-        font-weight: 700;
-        box-shadow: 0 0 8px rgba(255, 235, 59, 0.3);
-      }
-
-      .search-result-preview {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 4px;
-        font-size: 0.7rem;
-        color: #7f8c8d;
-      }
-
-      .search-result-preview-item {
-        background: #e0e5ec;
-        padding: 2px 10px;
-        border-radius: 12px;
-        box-shadow:
-          inset 1px 1px 3px rgba(163, 177, 198, 0.4),
-          inset -1px -1px 3px rgba(255, 255, 255, 0.6);
-      }
-
-      .search-result-more {
-        color: #1a73e8;
-        font-weight: 600;
-        font-size: 0.65rem;
-      }
-
-      .search-result-action {
-        font-size: 0.8rem;
-        color: #1a73e8;
-        font-weight: 600;
-        padding: 6px 14px;
-        border-radius: 20px;
-        background: #e0e5ec;
-        box-shadow:
-          2px 2px 4px rgba(163, 177, 198, 0.4),
-          -2px -2px 4px rgba(255, 255, 255, 0.6);
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-      }
-
-      .search-result-item:hover .search-result-action {
-        box-shadow:
-          3px 3px 6px rgba(26, 115, 232, 0.2),
-          -3px -3px 6px rgba(255, 255, 255, 0.6);
-        color: #1557b0;
-      }
-
-      .search-results-footer {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        padding-top: 12px;
-        border-top: 2px solid rgba(163, 177, 198, 0.15);
-        margin-top: 4px;
-      }
-
-      .search-results-footer .btn-neo {
-        display: inline-flex !important;
-        padding: 8px 20px;
-        font-size: 0.8rem;
-      }
-
-      /* ============================================
-   RESPONSIVE - RESULTADOS DE BÚSQUEDA
-   ============================================ */
-      @media (max-width: 768px) {
-        .search-result-item {
-          flex-wrap: wrap;
-          gap: 8px;
-          padding: 10px 14px;
-        }
-
-        .search-result-number {
-          font-size: 0.6rem;
-          padding: 2px 10px;
-        }
-
-        .search-result-summary {
-          font-size: 0.75rem;
-        }
-
-        .search-match-field {
-          font-size: 0.7rem;
-          padding: 1px 6px;
-        }
-
-        .search-result-preview {
-          font-size: 0.6rem;
-          gap: 4px;
-        }
-
-        .search-result-preview-item {
-          padding: 1px 8px;
-        }
-
-        .search-result-action {
-          font-size: 0.7rem;
-          padding: 4px 12px;
-        }
-
-        .search-results-footer {
-          flex-direction: column;
-          align-items: stretch;
-        }
-
-        .search-results-footer .btn-neo {
-          justify-content: center;
-        }
-      }
-
-      @media (max-width: 480px) {
-        .search-result-item {
-          padding: 8px 12px;
-          gap: 6px;
-        }
-
-        .search-result-summary {
-          font-size: 0.7rem;
-          gap: 4px;
-        }
-
-        .search-match-field {
-          font-size: 0.65rem;
-          padding: 1px 4px;
-        }
-
-        .search-result-preview {
-          display: none;
-        }
-
-        .search-result-action {
-          font-size: 0.65rem;
-          padding: 3px 10px;
-        }
-
-        .search-results-header {
-          font-size: 0.8rem;
-          padding: 8px 12px;
-        }
-
-        .search-result-count {
-          font-size: 0.65rem;
-          padding: 2px 10px;
-        }
-      }
-    </style>
   </body>
 </html>
