@@ -2206,8 +2206,62 @@
         cardsContainer.innerHTML = html;
       }
 
+      async function loadAllSections() {
+        if (isLoadingAll) return;
+        isLoadingAll = true;
+
+        console.log("📦 Cargando todas las secciones...");
+        statusText.textContent = "⏳ Cargando todas las secciones...";
+
+        // Mostrar mensaje de carga
+        cardsContainer.innerHTML = `
+    <div class="loading" style="padding: 80px 20px;">
+      <span style="font-size: 2rem;">📦</span>
+      <br><br>
+      Cargando todas las secciones...
+      <br>
+      <small style="color: #95a5a6; font-size: 0.8rem;">Esto puede tomar unos segundos</small>
+    </div>
+  `;
+
+        // Crear un array de promesas para cargar todas las secciones en paralelo
+        const promises = TABS.map(async (tab) => {
+          try {
+            const result = await apiRequest("read", tab.id);
+            allDataCache[tab.id] = {
+              data: result.data || [],
+              headers: result.headers || [],
+            };
+            console.log(
+              `✅ ${tab.label}: ${allDataCache[tab.id].data.length} registros`,
+            );
+            return { success: true, tab: tab.id };
+          } catch (error) {
+            console.warn(`❌ Error en ${tab.label}:`, error);
+            allDataCache[tab.id] = { data: [], headers: [] };
+            return { success: false, tab: tab.id };
+          }
+        });
+
+        // Esperar a que todas las promesas terminen
+        await Promise.all(promises);
+
+        isLoadingAll = false;
+        statusText.textContent = "✅ Conectado";
+        console.log("📦 ¡Todas las secciones cargadas!");
+
+        // Mostrar cuántos registros en total
+        let totalRegistros = 0;
+        for (const tab of TABS) {
+          totalRegistros += allDataCache[tab.id]?.data?.length || 0;
+        }
+        console.log(
+          `📊 Total: ${totalRegistros} registros en ${TABS.length} secciones`,
+        );
+      }
+
       // ============================================
-      // FUNCIÓN PRINCIPAL DE BÚSQUEDA (USA CACHÉ)
+      // FUNCIÓN PRINCIPAL DE BÚSQUEDA - CON DEBUG
       // ============================================
       function performSearch(query) {
         searchTerm = query.trim().toLowerCase();
@@ -2228,15 +2282,22 @@
           return;
         }
 
+        console.log(`🔍 Buscando: "${searchTerm}"`);
+
         // Buscar en TODAS las secciones usando el caché
         const allResults = [];
 
         for (const tab of TABS) {
           const cached = allDataCache[tab.id];
-          if (!cached || !cached.data || cached.data.length === 0) continue;
+          if (!cached || !cached.data || cached.data.length === 0) {
+            console.log(`⚠️ ${tab.label}: sin datos en caché`);
+            continue;
+          }
 
           const data = cached.data;
           const headers = cached.headers || Object.keys(data[0] || {});
+
+          console.log(`🔎 Buscando en ${tab.label} (${data.length} registros)`);
 
           data.forEach((row, rowIndex) => {
             let found = false;
@@ -2251,6 +2312,9 @@
                   value: row[header] || "",
                   match: value,
                 });
+                console.log(
+                  `  ✅ Encontrado en ${tab.label} -> ${header}: "${row[header]}"`,
+                );
               }
             });
 
@@ -2265,6 +2329,8 @@
             }
           });
         }
+
+        console.log(`📊 Resultados: ${allResults.length} coincidencias`);
 
         searchResultsData = allResults;
         const total = allResults.length;
@@ -2372,7 +2438,7 @@
       }
 
       // ============================================
-      // INICIALIZACIÓN
+      // INICIALIZACIÓN - MODIFICADA
       // ============================================
       function init() {
         try {
@@ -2380,23 +2446,17 @@
           console.log(`📡 API URL: ${API_URL}`);
 
           if (API_URL.includes("TU_URL_AQUI")) {
-            console.warn(
-              "⚠️ Debes actualizar API_URL con la URL de tu implementación de Apps Script",
-            );
+            console.warn("⚠️ Debes actualizar API_URL...");
             cardsContainer.innerHTML = `
-              <div class="empty-state">
-                <span class="icon">⚙️</span>
-                <strong>Configuración pendiente</strong>
-                <br><br>
-                <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
-                  Debes actualizar la variable <code>API_URL</code> con la URL de tu implementación de Google Apps Script.
-                  <br><br>
-                  <strong>Paso 1:</strong> Despliega tu Apps Script como aplicación web<br>
-                  <strong>Paso 2:</strong> Copia la URL generada<br>
-                  <strong>Paso 3:</strong> Reemplaza <code>TU_URL_AQUI</code> en el código
-                </div>
-              </div>
-            `;
+        <div class="empty-state">
+          <span class="icon">⚙️</span>
+          <strong>Configuración pendiente</strong>
+          <br><br>
+          <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
+            Debes actualizar la variable <code>API_URL</code>
+          </div>
+        </div>
+      `;
             return;
           }
 
@@ -2419,6 +2479,21 @@
         } catch (error) {
           console.error("❌ Error:", error);
         }
+      }
+
+      // ============================================
+      // FUNCIÓN PARA RECARGAR TODAS LAS SECCIONES
+      // ============================================
+      function reloadAllSections() {
+        allDataCache = {};
+        loadAllSections().then(() => {
+          showToast("✅ Todas las secciones recargadas");
+          // Si hay búsqueda activa, volver a buscar
+          const searchInput = document.getElementById("searchInput");
+          if (searchInput.value) {
+            performSearch(searchInput.value);
+          }
+        });
       }
 
       // Exponer funciones globales
