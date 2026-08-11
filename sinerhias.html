@@ -953,7 +953,7 @@
       }
 
       /* ============================================
-   MODAL GRANDE (Completo)
+   MODAL PEQUEÑO - PARA EDICIÓN DE CAMPO ÚNICO
    ============================================ */
       .modal-overlay {
         display: none;
@@ -978,7 +978,7 @@
         background: #e0e5ec;
         border-radius: 40px;
         padding: 35px;
-        max-width: 900px;
+        max-width: 500px;
         width: 100%;
         max-height: 85vh;
         overflow-y: auto;
@@ -988,37 +988,29 @@
         animation: modalIn 0.3s ease;
       }
 
-      /* ============================================
-   MODAL PEQUEÑO - PARA EDICIÓN DE CAMPO ÚNICO
-   ============================================ */
-      .modal-small {
-        max-width: 500px !important;
-        padding: 25px 30px !important;
+      .modal .modal-header h2 {
+        font-size: 1.1rem;
       }
 
-      .modal-small .modal-header h2 {
-        font-size: 1.1rem !important;
+      .modal .form-grid {
+        grid-template-columns: 1fr;
+        gap: 8px;
       }
 
-      .modal-small .form-grid {
-        grid-template-columns: 1fr !important;
-        gap: 8px !important;
+      .modal .form-group label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #2c3e50;
       }
 
-      .modal-small .form-group label {
-        font-size: 0.85rem !important;
-        font-weight: 700 !important;
-        color: #2c3e50 !important;
+      .modal .form-group input {
+        font-size: 1rem;
+        padding: 10px 14px;
       }
 
-      .modal-small .form-group input {
-        font-size: 1rem !important;
-        padding: 10px 14px !important;
-      }
-
-      .modal-small .modal-footer {
-        margin-top: 12px !important;
-        padding-top: 10px !important;
+      .modal .modal-footer {
+        margin-top: 12px;
+        padding-top: 10px;
       }
 
       @keyframes modalIn {
@@ -1376,7 +1368,7 @@
           justify-content: center;
         }
 
-        .modal-small {
+        .modal {
           max-width: 95% !important;
           padding: 20px !important;
         }
@@ -1535,7 +1527,7 @@
           padding: 2px 10px;
         }
 
-        .modal-small {
+        .modal {
           padding: 16px !important;
           border-radius: 24px !important;
         }
@@ -1591,32 +1583,9 @@
       </div>
     </div>
 
-    <!-- MODAL GRANDE (Completo) -->
-    <div class="modal-overlay" id="modalOverlay">
-      <div class="modal">
-        <div class="modal-header">
-          <h2 id="modalTitle">📝 Agregar Registro</h2>
-          <button class="modal-close" id="modalClose">✕</button>
-        </div>
-        <form id="modalForm">
-          <div class="form-scroll" id="formScroll">
-            <div class="form-grid" id="formFields"></div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn-neo" id="btnCancel">
-              Cancelar
-            </button>
-            <button type="submit" class="btn-neo primary" id="btnSave">
-              💾 Guardar
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-
     <!-- MODAL PEQUEÑO (Edición de campo único) -->
     <div class="modal-overlay" id="fieldModalOverlay">
-      <div class="modal modal-small">
+      <div class="modal">
         <div class="modal-header">
           <h2 id="fieldModalTitle">✏️ Editar Campo</h2>
           <button class="modal-close" id="fieldModalClose">✕</button>
@@ -1675,8 +1644,6 @@
         headers: [],
         isLoading: false,
         editingFields: {},
-        isEditing: false,
-        editRowIndex: null,
       };
 
       // ============================================
@@ -1693,16 +1660,6 @@
       const sheetNameDisplay = document.getElementById("sheetNameDisplay");
       const rowCountDisplay = document.getElementById("rowCountDisplay");
       const statusText = document.getElementById("statusText");
-
-      // Modal grande
-      const modalOverlay = document.getElementById("modalOverlay");
-      const modalTitle = document.getElementById("modalTitle");
-      const modalForm = document.getElementById("modalForm");
-      const formFields = document.getElementById("formFields");
-      const formScroll = document.getElementById("formScroll");
-      const btnCancel = document.getElementById("btnCancel");
-      const btnSave = document.getElementById("btnSave");
-      const modalClose = document.getElementById("modalClose");
 
       // Modal pequeño
       const fieldModalOverlay = document.getElementById("fieldModalOverlay");
@@ -2188,107 +2145,6 @@
       }
 
       // ============================================
-      // MODAL GRANDE (Completo)
-      // ============================================
-      function openEditModal(index) {
-        state.isEditing = true;
-        state.editRowIndex = index;
-        modalTitle.textContent = "✏️ Editar Registro Completo";
-        const rowData = state.data[index] || {};
-        renderFormFields(rowData);
-        modalOverlay.classList.add("active");
-        formScroll.scrollTop = 0;
-      }
-
-      function closeModal() {
-        modalOverlay.classList.remove("active");
-      }
-
-      function renderFormFields(rowData) {
-        const allHeaders = state.headers;
-        if (allHeaders.length === 0) {
-          formFields.innerHTML =
-            '<p style="color:#666;">No hay campos disponibles</p>';
-          return;
-        }
-
-        let html = "";
-        allHeaders.forEach((header) => {
-          const value =
-            rowData[header] !== undefined && rowData[header] !== null
-              ? rowData[header]
-              : "";
-          const isBoolean =
-            typeof value === "string" &&
-            (value.toUpperCase() === "SI" ||
-              value.toUpperCase() === "NO" ||
-              value === "");
-
-          html += `
-            <div class="form-group">
-              <label for="field_${header.replace(/\s+/g, "_")}">${header}</label>
-              ${
-                isBoolean
-                  ? `
-                <select id="field_${header.replace(/\s+/g, "_")}" name="${header}">
-                  <option value="">Seleccionar</option>
-                  <option value="SI" ${value.toUpperCase() === "SI" ? "selected" : ""}>SI</option>
-                  <option value="NO" ${value.toUpperCase() === "NO" ? "selected" : ""}>NO</option>
-                </select>
-              `
-                  : `
-                <input type="text" id="field_${header.replace(/\s+/g, "_")}" name="${header}" value="${value}" />
-              `
-              }
-            </div>
-          `;
-        });
-
-        formFields.innerHTML = html;
-      }
-
-      function collectFormData() {
-        const formData = {};
-        const inputs = formFields.querySelectorAll("input, select, textarea");
-        inputs.forEach((input) => {
-          formData[input.name] = input.value;
-        });
-        return formData;
-      }
-
-      async function handleSave(event) {
-        event.preventDefault();
-        const formData = collectFormData();
-
-        const hasValue = Object.values(formData).some(
-          (v) => v && v.trim() !== "",
-        );
-        if (!hasValue) {
-          showToast("⚠️ Ingresa al menos un valor", "error");
-          return;
-        }
-
-        try {
-          if (state.isEditing && state.editRowIndex !== null) {
-            await apiRequest(
-              "update",
-              state.currentTab,
-              formData,
-              state.editRowIndex,
-            );
-          } else {
-            await apiRequest("create", state.currentTab, formData);
-          }
-
-          closeModal();
-          await loadData(state.currentTab);
-          showToast("✅ Registro guardado");
-        } catch (error) {
-          showToast(`❌ ${error.message}`, "error");
-        }
-      }
-
-      // ============================================
       // TOAST
       // ============================================
       function showToast(message, type = "success") {
@@ -2521,7 +2377,7 @@
       }
 
       // ============================================
-      // ABRIR RESULTADO - USA MODAL PEQUEÑO
+      // ABRIR RESULTADO - SOLO MODAL PEQUEÑO
       // ============================================
       function openSearchResult(sheetId, index, header) {
         const tab = TABS.find((t) => t.id === sheetId);
@@ -2529,13 +2385,8 @@
           // Abrir el modal pequeño para editar el campo específico
           openFieldModal(sheetId, index, header);
           clearSearch();
-        } else if (tab) {
-          // Fallback: abrir el modal completo
-          state.currentTab = sheetId;
-          loadData(sheetId).then(() => {
-            openEditModal(index);
-            clearSearch();
-          });
+        } else {
+          showToast("⚠️ No se pudo abrir el campo", "error");
         }
       }
 
@@ -2619,14 +2470,6 @@
 
           setupSearch();
 
-          // Event listeners modal grande
-          btnCancel.addEventListener("click", closeModal);
-          modalClose.addEventListener("click", closeModal);
-          modalForm.addEventListener("submit", handleSave);
-          modalOverlay.addEventListener("click", (e) => {
-            if (e.target === modalOverlay) closeModal();
-          });
-
           // Event listeners modal pequeño
           fieldModalClose.addEventListener("click", closeFieldModal);
           fieldModalCancel.addEventListener("click", closeFieldModal);
@@ -2646,8 +2489,6 @@
       window.cancelFieldEdit = cancelFieldEdit;
       window.saveFieldEdit = saveFieldEdit;
       window.showToast = showToast;
-      window.openEditModal = openEditModal;
-      window.closeModal = closeModal;
       window.clearSearch = clearSearch;
       window.showAllResults = showAllResults;
       window.openSearchResult = openSearchResult;
