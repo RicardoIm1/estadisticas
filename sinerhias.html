@@ -1128,7 +1128,7 @@
   <body>
     <div class="container">
       <header class="header">
-        <h1> Hospital Regional PV - SINERHIAS</h1>
+        <h1>Hospital Regional PV - SINERHIAS</h1>
         <div class="badge">🟢 <span id="statusText">Conectado</span></div>
       </header>
 
@@ -1780,5 +1780,516 @@
       // Iniciar
       document.addEventListener("DOMContentLoaded", init);
     </script>
+
+    <style>
+      /* ============================================
+   CONTENEDOR PRINCIPAL - ALTURA FIJA CON SCROLL
+   ============================================ */
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+
+      body {
+        min-height: 100vh;
+        background: #e0e5ec;
+        padding: 16px;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        overflow: hidden;
+      }
+
+      .container {
+        width: 100%;
+        max-width: 1440px;
+        height: calc(100vh - 32px); /* Altura total menos padding de body */
+        max-height: calc(100vh - 32px);
+        background: #e0e5ec;
+        border-radius: 40px;
+        padding: 24px 28px;
+        box-shadow:
+          9px 9px 16px rgba(163, 177, 198, 0.6),
+          -9px -9px 16px rgba(255, 255, 255, 0.8);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* ============================================
+   HEADER - FIJO EN LA PARTE SUPERIOR
+   ============================================ */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding: 16px 24px;
+        border-radius: 30px;
+        background: #e0e5ec;
+        box-shadow:
+          inset 2px 2px 5px rgba(163, 177, 198, 0.6),
+          inset -5px -5px 10px rgba(255, 255, 255, 0.7);
+        flex-shrink: 0;
+      }
+
+      /* ============================================
+   MAIN LAYOUT - OCUPA EL ESPACIO RESTANTE
+   ============================================ */
+      .main-layout {
+        display: flex;
+        gap: 20px;
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      /* ============================================
+   SIDEBAR - ALTURA COMPLETA CON SCROLL
+   ============================================ */
+      .sidebar {
+        flex: 0 0 220px;
+        min-width: 180px;
+        background: #e0e5ec;
+        border-radius: 30px;
+        padding: 15px;
+        box-shadow:
+          inset 2px 2px 5px rgba(163, 177, 198, 0.5),
+          inset -5px -5px 10px rgba(255, 255, 255, 0.7);
+        overflow-y: auto;
+        height: 100%;
+        flex-shrink: 0;
+      }
+
+      .sidebar::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      .sidebar::-webkit-scrollbar-track {
+        background: #e0e5ec;
+        border-radius: 10px;
+      }
+
+      .sidebar::-webkit-scrollbar-thumb {
+        background: #b0b8c8;
+        border-radius: 10px;
+      }
+
+      /* ============================================
+   CONTENT AREA - OCUPA TODO EL ESPACIO RESTANTE CON SCROLL
+   ============================================ */
+      .content-area {
+        flex: 1;
+        min-width: 0;
+        background: #e0e5ec;
+        border-radius: 30px;
+        padding: 20px 24px;
+        box-shadow:
+          inset 3px 3px 8px rgba(163, 177, 198, 0.5),
+          inset -3px -3px 8px rgba(255, 255, 255, 0.7);
+        min-height: 0;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      /* ============================================
+   TOOLBAR - FIJA
+   ============================================ */
+      .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 0 4px;
+        width: 100%;
+        flex-shrink: 0;
+      }
+
+      /* ============================================
+   TABLA WRAPPER - SCROLLABLE
+   ============================================ */
+      .table-wrapper {
+        width: 100%;
+        border-radius: 20px;
+        background: transparent;
+        padding: 0;
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      .table-wrapper::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .table-wrapper::-webkit-scrollbar-track {
+        background: #e0e5ec;
+        border-radius: 10px;
+      }
+
+      .table-wrapper::-webkit-scrollbar-thumb {
+        background: #b0b8c8;
+        border-radius: 10px;
+      }
+
+      .table-wrapper::-webkit-scrollbar-thumb:hover {
+        background: #9aa3b5;
+      }
+
+      #cardsContainer {
+        width: 100%;
+        min-height: 100%;
+      }
+
+      /* ============================================
+   CARDS GRID - 1 SOLA COLUMNA
+   ============================================ */
+      .cards-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 4px 0 8px 0;
+        width: 100%;
+      }
+
+      /* ============================================
+   CARD ITEM - MÁS COMPACTO
+   ============================================ */
+      .card-item {
+        background: #e0e5ec;
+        border-radius: 24px;
+        padding: 18px 22px 16px 22px;
+        box-shadow:
+          8px 8px 16px rgba(163, 177, 198, 0.6),
+          -8px -8px 16px rgba(255, 255, 255, 0.7);
+        transition: all 0.3s ease;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .card-item:hover {
+        transform: translateY(-2px);
+        box-shadow:
+          10px 10px 20px rgba(163, 177, 198, 0.7),
+          -10px -10px 20px rgba(255, 255, 255, 0.8);
+      }
+
+      /* ============================================
+   CARD BODY - 4 COLUMNAS
+   ============================================ */
+      .card-body {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        flex: 1;
+        align-content: start;
+        width: 100%;
+      }
+
+      /* Si hay un número impar de campos, el último ocupa el espacio disponible */
+      .card-body .card-field:last-child:nth-child(4n + 1) {
+        grid-column: 1 / -1;
+      }
+
+      .card-body .card-field:last-child:nth-child(4n + 2) {
+        grid-column: 2 / -1;
+      }
+
+      .card-body .card-field:last-child:nth-child(4n + 3) {
+        grid-column: 3 / -1;
+      }
+
+      /* Tablets - 2 columnas dentro de la card */
+      @media (min-width: 768px) and (max-width: 1199px) {
+        .card-body {
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+        }
+        .card-body .card-field:last-child:nth-child(odd) {
+          grid-column: 1 / -1;
+        }
+      }
+
+      /* Móviles - 1 columna dentro de la card */
+      @media (max-width: 767px) {
+        .card-body {
+          grid-template-columns: 1fr;
+          gap: 6px;
+        }
+      }
+
+      /* ============================================
+   CARD FIELD - COMPACTO
+   ============================================ */
+      .card-field {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        border-radius: 12px;
+        background: #e0e5ec;
+        box-shadow:
+          inset 1px 1px 3px rgba(163, 177, 198, 0.4),
+          inset -1px -1px 3px rgba(255, 255, 255, 0.6);
+        transition: all 0.3s ease;
+        cursor: pointer;
+        min-height: 34px;
+        border-left: 2px solid transparent;
+        width: 100%;
+        overflow: hidden;
+      }
+
+      .card-field .field-label {
+        font-size: 0.55rem;
+        font-weight: 700;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-width: 50px;
+        flex-shrink: 0;
+        padding: 1px 0;
+      }
+
+      .card-field .field-value {
+        flex: 1;
+        font-size: 0.8rem;
+        color: #2c3e50;
+        font-weight: 500;
+        word-break: break-word;
+        padding: 1px 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* ============================================
+   RESPONSIVE
+   ============================================ */
+      @media (max-width: 992px) {
+        .container {
+          padding: 16px 18px;
+          height: calc(100vh - 24px);
+          max-height: calc(100vh - 24px);
+          border-radius: 30px;
+        }
+
+        .main-layout {
+          flex-direction: column;
+          gap: 14px;
+        }
+
+        .sidebar {
+          flex: 0 0 auto;
+          width: 100%;
+          max-height: 100px;
+          min-height: unset;
+          height: auto;
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+          padding: 10px 14px;
+          overflow-y: auto;
+        }
+
+        .sidebar-title {
+          width: 100%;
+          padding: 4px 8px;
+          margin-bottom: 4px;
+        }
+
+        .sidebar .tab-btn {
+          flex: 0 0 auto;
+          width: auto;
+          padding: 5px 12px;
+          font-size: 0.7rem;
+          margin-bottom: 0;
+          white-space: nowrap;
+        }
+
+        .content-area {
+          flex: 1;
+          min-height: 0;
+          padding: 14px 16px;
+        }
+
+        .header h1 {
+          font-size: 1.3rem;
+        }
+
+        .card-item {
+          padding: 14px 16px 12px 16px;
+        }
+
+        .card-body {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 10px;
+        }
+
+        .container {
+          padding: 12px 14px;
+          height: calc(100vh - 20px);
+          max-height: calc(100vh - 20px);
+          border-radius: 24px;
+        }
+
+        .header {
+          flex-direction: column;
+          gap: 8px;
+          text-align: center;
+          padding: 12px 16px;
+          margin-bottom: 14px;
+        }
+
+        .header h1 {
+          font-size: 1.1rem;
+        }
+
+        .header .badge {
+          font-size: 0.75rem;
+          padding: 4px 14px;
+        }
+
+        .content-area {
+          padding: 12px;
+          border-radius: 20px;
+        }
+
+        .toolbar {
+          flex-direction: column;
+          align-items: stretch;
+          gap: 10px;
+          margin-bottom: 12px;
+        }
+
+        .toolbar .info {
+          text-align: center;
+          font-size: 0.8rem;
+          padding: 6px 12px;
+        }
+
+        .btn-neo {
+          justify-content: center;
+          padding: 8px 16px;
+          font-size: 0.75rem;
+        }
+
+        .card-body {
+          grid-template-columns: 1fr;
+          gap: 6px;
+        }
+
+        .card-item {
+          padding: 12px 14px 10px 14px;
+          border-radius: 18px;
+        }
+
+        .card-field {
+          padding: 5px 10px;
+          min-height: 30px;
+          gap: 6px;
+        }
+
+        .card-field .field-label {
+          min-width: 40px;
+          font-size: 0.5rem;
+        }
+
+        .card-field .field-value {
+          font-size: 0.75rem;
+        }
+
+        .sidebar {
+          max-height: 80px;
+          padding: 8px 12px;
+        }
+
+        .sidebar .tab-btn {
+          font-size: 0.65rem;
+          padding: 4px 10px;
+        }
+
+        .sidebar .tab-btn .tab-number {
+          display: none;
+        }
+      }
+
+      @media (max-width: 480px) {
+        body {
+          padding: 6px;
+        }
+
+        .container {
+          padding: 8px 10px;
+          height: calc(100vh - 12px);
+          max-height: calc(100vh - 12px);
+          border-radius: 20px;
+        }
+
+        .header h1 {
+          font-size: 0.95rem;
+        }
+
+        .content-area {
+          padding: 8px 10px;
+          border-radius: 16px;
+        }
+
+        .card-item {
+          padding: 10px 12px 8px 12px;
+          border-radius: 14px;
+        }
+
+        .card-field {
+          padding: 4px 8px;
+          min-height: 26px;
+          border-radius: 8px;
+          gap: 4px;
+        }
+
+        .card-field .field-label {
+          min-width: 35px;
+          font-size: 0.45rem;
+          letter-spacing: 0.3px;
+        }
+
+        .card-field .field-value {
+          font-size: 0.7rem;
+        }
+
+        .card-header {
+          margin-bottom: 8px;
+          padding-bottom: 8px;
+        }
+
+        .card-number {
+          font-size: 0.55rem;
+          padding: 3px 10px;
+        }
+
+        .card-actions .btn-icon {
+          width: 28px;
+          height: 28px;
+          font-size: 0.65rem;
+        }
+
+        .sidebar .tab-btn {
+          font-size: 0.55rem;
+          padding: 3px 8px;
+        }
+      }
+    </style>
   </body>
 </html>
