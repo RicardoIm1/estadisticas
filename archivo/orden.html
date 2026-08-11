@@ -1,0 +1,1309 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orden del Expediente Clínico</title>
+    <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon" />
+    <link rel="icon" href="/img/favicon.ico" type="image/x-icon" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
+    <link href="/main_css/estilos.css" rel="stylesheet" />
+    <style>
+      /* ===== SCROLLBAR SUTIL ===== */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 10px;
+        transition: background 0.3s ease;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.03);
+      }
+
+      /* ===== GLASS CON ANIMACIÓN DE BORDE Y SOMBRA ===== */
+      .glass {
+        /* Fondo cristalino original - SIN CAMBIOS */
+        background: rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border-radius: 16px;
+        padding: 1rem;
+        margin: 1rem;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        /* Transición suave para cambios de estado */
+        transition:
+          border-color 0.8s ease,
+          box-shadow 0.8s ease;
+      }
+
+      /* Estados del glass (solo borde y sombra cambian) */
+      .glass.loading {
+        border-color: rgba(74, 158, 255, 0.4);
+        box-shadow: 0 8px 32px rgba(74, 158, 255, 0.15);
+      }
+
+      .glass.success {
+        border-color: rgba(0, 255, 89, 0.3);
+        box-shadow: 0 8px 32px rgba(0, 255, 89, 0.1);
+      }
+
+      .glass.error {
+        border-color: rgba(255, 50, 50, 0.3);
+        box-shadow: 0 8px 32px rgba(255, 50, 50, 0.1);
+      }
+
+      /* ===== CONTENIDO DEL GLASS (completamente estático) ===== */
+      .glass * {
+        animation: none !important;
+        transition: none !important;
+      }
+
+      /* EXCEPCIÓN: solo permitimos hover en celdas y elementos interactivos */
+      .celda {
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease,
+          background 0.2s ease !important;
+        animation: none !important;
+      }
+
+      .celda:hover {
+        transform: translateY(-3px) scale(1.02);
+        background: rgba(255, 255, 255, 0.18);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      }
+
+      /* ===== MEJORAS DE LEGIBILIDAD EN CELDAS ===== */
+      .celda {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        padding: 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+        will-change: transform, box-shadow;
+        text-align: left;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        height: auto;
+        min-height: 150px;
+        overflow: visible;
+        word-wrap: break-word;
+        hyphens: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        gap: 6px;
+      }
+
+      #egresos {
+        background-color: rgba(40, 167, 69, 0.2);
+      }
+
+      .celda h3 {
+        font-size: 0.85rem;
+        margin-bottom: 0.2rem;
+        color: white;
+        word-break: break-word;
+        line-height: 1.3;
+      }
+
+      .celda p {
+        opacity: 0.85;
+        font-size: 0.7rem;
+        color: rgb(249, 253, 251);
+        line-height: 1.2;
+        margin-bottom: 0.2rem;
+        word-break: break-word;
+      }
+
+      .celda .icon {
+        display: block;
+        font-size: 1.4rem;
+        margin-bottom: 0.2rem;
+        color: #ffdd00;
+      }
+
+      .celda-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 4px;
+        padding: 2px 0;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+
+      .celda-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 6px;
+        color: #00ff89;
+        font-weight: 700;
+        font-size: 14px;
+        flex-shrink: 0;
+        background: rgba(0, 255, 89, 0.15);
+        text-shadow: 0 0 10px rgba(0, 255, 89, 0.2);
+      }
+
+      .celda-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0;
+        line-height: 1.3;
+        flex: 1;
+        min-width: 60px;
+        word-break: break-word;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        letter-spacing: 0.3px;
+      }
+
+      .celda-status-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-top: 4px;
+        align-self: flex-start;
+        width: 100%;
+      }
+
+      .celda-status {
+        display: inline-block;
+        padding: 2px 10px;
+        border-radius: 10px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        white-space: nowrap;
+        letter-spacing: 0.5px;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+      }
+
+      .celda-content {
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.85);
+        line-height: 1.3;
+        margin-bottom: 0.3rem;
+        word-break: break-word;
+      }
+
+      .celda a {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        text-decoration: none;
+        color: transparent;
+      }
+
+      .celda {
+        position: relative;
+      }
+
+      /* Estados con mejor contraste */
+      .status-required {
+        background: rgba(255, 50, 50, 0.25);
+        color: #ff6b6b;
+        border: 1px solid rgba(255, 50, 50, 0.2);
+      }
+
+      .status-pending {
+        background: rgba(255, 153, 0, 0.25);
+        color: #ffb84d;
+        border: 1px solid rgba(255, 153, 0, 0.2);
+      }
+
+      .status-complete {
+        background: rgba(0, 255, 89, 0.25);
+        color: #4dff8a;
+        border: 1px solid rgba(0, 255, 89, 0.2);
+      }
+
+      /* ===== BUSCADOR ===== */
+      .search-container {
+        display: flex;
+        justify-content: center;
+        padding: 0.8rem 1rem 0.2rem 1rem;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .search-box {
+        display: flex;
+        align-items: center;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 30px;
+        padding: 0.4rem 0.8rem;
+        width: 100%;
+        max-width: 500px;
+        backdrop-filter: blur(4px);
+        transition: all 0.3s ease;
+      }
+
+      .search-box:focus-within {
+        border-color: #4a9eff;
+        box-shadow: 0 0 0 3px rgba(74, 158, 255, 0.3);
+        background: rgba(255, 255, 255, 0.12);
+      }
+
+      .search-box i {
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 1rem;
+        margin-right: 8px;
+      }
+
+      .search-box input {
+        background: transparent;
+        border: none;
+        outline: none;
+        color: white;
+        font-size: 0.95rem;
+        padding: 6px 0;
+        width: 100%;
+        font-family: inherit;
+      }
+
+      .search-box input::placeholder {
+        color: rgba(255, 255, 255, 0.4);
+        font-weight: 300;
+      }
+
+      .search-box .clear-btn {
+        background: none;
+        border: none;
+        color: rgba(255, 255, 255, 0.4);
+        cursor: pointer;
+        font-size: 1rem;
+        padding: 0 4px;
+        display: none;
+      }
+
+      .search-box .clear-btn.visible {
+        display: block;
+      }
+
+      .search-box .clear-btn:hover {
+        color: white;
+      }
+
+      .no-results {
+        color: rgba(255, 255, 255, 0.6);
+        text-align: center;
+        padding: 2rem 1rem;
+        font-size: 1rem;
+        grid-column: 1 / -1;
+        display: none;
+      }
+
+      /* ===== Modal ===== */
+      .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(5px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        opacity: 0;
+        visibility: hidden;
+        transition:
+          opacity 0.3s ease,
+          visibility 0.3s ease;
+      }
+
+      .modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      .modal-container {
+        width: 90%;
+        height: 85%;
+        max-width: 1200px;
+        background: rgba(20, 25, 35, 0.95);
+        border-radius: 16px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        transform: translateY(20px);
+        transition: transform 0.3s ease;
+      }
+
+      .modal-overlay.active .modal-container {
+        transform: translateY(0);
+      }
+
+      .modal-header {
+        padding: 1.2rem 1.5rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-shrink: 0;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .modal-title {
+        font-size: 1.1rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        word-break: break-word;
+      }
+
+      .document-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        background: #4a9eff;
+        border-radius: 50%;
+        font-weight: bold;
+        font-size: 0.9rem;
+        flex-shrink: 0;
+      }
+
+      .modal-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .modal-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.8rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.2s ease;
+      }
+
+      .modal-btn.print {
+        background: linear-gradient(135deg, #4a9eff, #2d7dd2);
+        color: white;
+      }
+
+      .modal-btn.print:hover {
+        background: linear-gradient(135deg, #2d7dd2, #1a5fa3);
+        transform: translateY(-1px);
+      }
+
+      .modal-btn.close {
+        background: rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .modal-btn.close:hover {
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+      }
+
+      .modal-content {
+        flex: 1;
+        position: relative;
+        overflow: auto;
+        padding: 0;
+      }
+
+      .loading-spinner {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: rgba(20, 25, 35, 0.9);
+        z-index: 10;
+        gap: 15px;
+      }
+
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        border-top: 3px solid #4a9eff;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .loading-spinner span {
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 0.95rem;
+      }
+
+      .document-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        background: white;
+        display: none;
+      }
+
+      /* ===== CELDA ID ===== */
+      .celda-id {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #00ff89;
+        margin: 0 8px 0 0;
+        min-width: 30px;
+        background: rgba(0, 255, 137, 0.15);
+        padding: 2px 10px;
+        border-radius: 6px;
+        display: inline-block;
+        flex-shrink: 0;
+        border: 1px solid rgba(0, 255, 137, 0.15);
+      }
+
+      /* ===== CELDA CÓDIGO ===== */
+      .celda-codigo {
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: #ffdd00;
+        margin: 2px 0 4px 0;
+        padding: 2px 12px;
+        background: rgba(255, 221, 0, 0.1);
+        border-radius: 12px;
+        display: inline-block;
+        border: 1px solid rgba(255, 221, 0, 0.12);
+        letter-spacing: 0.5px;
+        align-self: flex-start;
+      }
+
+      /* ===== GRID ===== */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      /* ===== Ajustes ultra pequeños (≤360px) ===== */
+      @media (max-width: 360px) {
+        .grid {
+          grid-template-columns: 1fr;
+          padding: 0.5rem;
+          gap: 0.6rem;
+        }
+
+        .celda {
+          padding: 0.6rem;
+          min-height: 120px;
+        }
+
+        .celda-title {
+          font-size: 0.8rem;
+        }
+
+        .celda-id {
+          font-size: 0.9rem;
+          padding: 1px 8px;
+        }
+
+        .celda-codigo {
+          font-size: 0.6rem;
+          padding: 1px 10px;
+        }
+
+        .celda-status {
+          font-size: 0.6rem;
+          padding: 1px 8px;
+        }
+
+        .search-box input {
+          font-size: 0.85rem;
+        }
+
+        .modal-title {
+          font-size: 0.95rem;
+        }
+
+        .modal-header {
+          padding: 0.8rem 1rem;
+        }
+
+        .modal-btn {
+          font-size: 0.7rem;
+          padding: 4px 10px;
+        }
+
+        .celda-header {
+          gap: 4px;
+        }
+
+        .celda-status-wrapper {
+          gap: 3px;
+        }
+      }
+
+      /* ===== Ajustes para pantallas entre 361px y 480px ===== */
+      @media (min-width: 361px) and (max-width: 480px) {
+        .grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 0.6rem;
+          padding: 0.6rem;
+        }
+
+        .celda {
+          min-height: 130px;
+          padding: 0.8rem;
+        }
+
+        .celda-title {
+          font-size: 0.8rem;
+        }
+
+        .celda-id {
+          font-size: 0.95rem;
+          padding: 1px 8px;
+        }
+
+        .celda-codigo {
+          font-size: 0.6rem;
+          padding: 1px 10px;
+        }
+
+        .celda-status {
+          font-size: 0.6rem;
+          padding: 1px 8px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="glass" id="dashboard">
+      <h5>Orden del Expediente Clínico</h5>
+      <div id="header"></div>
+
+      <!-- ===== BUSCADOR ===== -->
+      <div class="search-container">
+        <div class="search-box">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Buscar por número, título, estado..."
+            autocomplete="off"
+          />
+          <button
+            class="clear-btn"
+            id="clearSearchBtn"
+            aria-label="Limpiar búsqueda"
+          >
+            <i class="fas fa-times-circle"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid" id="gridContainer">
+        <!-- Las celdas se generan dinámicamente con JavaScript -->
+      </div>
+
+      <div class="no-results" id="noResults">
+        <i
+          class="fas fa-search"
+          style="font-size: 1.5rem; display: block; margin-bottom: 8px"
+        ></i>
+        No se encontraron documentos con esos criterios.
+      </div>
+
+      <div id="footer"></div>
+    </div>
+
+    <!-- Modal para mostrar documentos -->
+    <div class="modal-overlay" id="documentModal">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h2 class="modal-title">
+            <span class="document-number" id="modalDocNumber">1</span>
+            <span id="modalDocTitle">HOJA FRONTAL</span>
+          </h2>
+          <div class="modal-actions">
+            <button class="modal-btn print" id="printBtn">
+              <i class="fas fa-print"></i> Imprimir
+            </button>
+            <button class="modal-btn close" id="closeModalBtn">
+              <i class="fas fa-times"></i> Cerrar
+            </button>
+          </div>
+        </div>
+        <div class="modal-content">
+          <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner"></div>
+            <span>Cargando documento...</span>
+          </div>
+          <iframe
+            class="document-frame"
+            id="documentFrame"
+            allow="autoplay"
+          ></iframe>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ============================================================
+      // CONTROL DE ESTADOS DEL GLASS
+      // ============================================================
+      const glass = document.querySelector(".glass");
+
+      function setGlassState(state) {
+        // Remover estados anteriores
+        glass.classList.remove("loading", "success", "error");
+
+        if (state) {
+          glass.classList.add(state);
+        }
+
+        // Después de 3 segundos, volver a estado normal
+        clearTimeout(window.glassTimeout);
+        window.glassTimeout = setTimeout(() => {
+          glass.classList.remove("loading", "success", "error");
+        }, 3000);
+      }
+
+      // ============================================================
+      // DATOS DE LAS CELDAS
+      // ============================================================
+      const documentos = [
+        {
+          id: "1",
+          codigo: "HFR-001",
+          title: "HOJA FRONTAL",
+          url: "https://drive.google.com/file/d/1MheW50uCAqh4V1aoVpj8FMdIRo89H3T6/preview?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "2",
+          codigo: "HC-002",
+          title: "HISTORIA CLÍNICA",
+          url: "https://drive.google.com/file/d/16o2PZXWOi7eVpsaKFw7gzpLGWQemZUsE/preview?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "2A",
+          codigo: "HCRN-003",
+          title: "HISTORIA CLÍNICA RN",
+          url: "https://drive.google.com/file/d/1azZpZrNUyyilcxNOwVH_Sjxc2p2w6qje/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "3",
+          codigo: "PTG-004",
+          title: "PARTOGRAMA",
+          url: "https://drive.google.com/file/d/1ktaV24X06t514QAI2pnCAu2Zj8u71ShA/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "4",
+          codigo: "NU-005",
+          title: "NOTA DE URGENCIAS (INGRESO Y EVOLUCIÓN)",
+          url: "https://drive.google.com/file/d/1g8qJ88OyZ9zTAdSaDtB50T4TtN8KKMfe/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "5",
+          codigo: "NIH-006",
+          title: "NOTA DE INGRESO AL HOSPITAL",
+          url: "https://drive.google.com/file/d/1M8vQ9gFWehKT5Do7Z3lylXOo5zNYO0Jz/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "6",
+          codigo: "NE-007",
+          title: "NOTA DE EVOLUCIÓN",
+          url: "https://drive.google.com/file/d/13AsHwgM6N2CinfdFeqIRrUXieFx_nxry/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+          extraStatus: "Diario",
+          extraStatusClass: "status-complete",
+        },
+        {
+          id: "6A",
+          codigo: "NEP-008",
+          title: "NOTA DE EVOLUCIÓN PEDIÁTRICA",
+          url: "https://drive.google.com/file/d/1B3U4mTIUhA55F2vqKEpzmrx7h8LI6Ks_/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "7",
+          codigo: "NRT-009",
+          title: "NOTA DE REFERENCIA/TRASLADO",
+          url: "",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "8",
+          codigo: "NIC-010",
+          title: "NOTA INTERCONSULTA",
+          url: "https://drive.google.com/file/d/1-J9hEWgVYSAJhoWnSsZ0u2bMnocHPPB_/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "9",
+          codigo: "NVN-011",
+          title: "NOTA DE VALORACION NUTRICIONAL Y OTRAS",
+          url: "https://drive.google.com/file/d/17STnZYRVJsKFH4Q_dla_tmzaWTUNLT21/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "10",
+          codigo: "NPO-012",
+          title: "NOTA PREOPERATORIA",
+          url: "https://drive.google.com/file/d/1hywMxLcf9Xkn1J8ZZOM0c1I6mw1Qqg_3/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "11",
+          codigo: "VPO-013",
+          title: "VALORACION PREOPERATORIA",
+          url: "https://drive.google.com/file/d/1NxPo1tpkJifXNQo6vPWnfjK9PQt_05xJ/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "12",
+          codigo: "NPA-014",
+          title: "NOTA PRE ANESTÉSICA",
+          url: "https://drive.google.com/file/d/1iBM76bN3TueUZ7HWaG-TPIm37yZ3b2QT/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "12A",
+          codigo: "RAN-015",
+          title: "REGISTRO DE ANESTESIA-NOTA POST ANESTÉSICA",
+          url: "https://drive.google.com/file/d/1iBM76bN3TueUZ7HWaG-TPIm37yZ3b2QT/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "13",
+          codigo: "LVS-016",
+          title: "LISTA DE VERIFICACIÓN DE LA SEGURIDAD DE LA CIRUGIA",
+          url: "",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "14",
+          codigo: "NE-017",
+          title: "NOTA DE EGRESO",
+          url: "https://drive.google.com/file/d/1OQCzkiFXLGjZos1HG_9sZVvVjKHD4D8j/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "14A",
+          codigo: "RC-018",
+          title: "RESUMEN CLÍNICO",
+          url: "https://drive.google.com/file/d/1tmtm3dOOA4wIvwyFtrmlIb22sHjyhI11/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "14B",
+          codigo: "NEAC-019",
+          title: "NOTA DE EGRESO ALOJAMIENTO CONJUNTO",
+          url: "https://drive.google.com/file/d/1ZWHXlcXp-YAmDyWw2JcIvusZjJPj5gAy/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "15",
+          codigo: "LAB-020",
+          title: "LABORATORIALES",
+          url: "https://drive.google.com/file/d/1lYZlAHHTzWB0yDYqC82SeHwbgIsNogmx/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "16",
+          codigo: "PEG-021",
+          title: "PARA PEGAR LOS ESTUDIOS DE GABINETE",
+          url: "https://drive.google.com/file/d/1lYZlAHHTzWB0yDYqC82SeHwbgIsNogmx/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "17",
+          codigo: "SINBA-SEUL-14-P-DGIS",
+          title: "HOJA DE HOSPITALIZACIÓN",
+          url: "https://drive.google.com/file/d/191TnKV5UmZyLk-qwTq0PaQY0szdljaRx/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "18",
+          codigo: "NRE-022",
+          title: "NOTA Y REGISTRO DE ENFERMERIA",
+          url: "",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "19",
+          codigo: "VDP-023",
+          title: "VIGILANCIA DIARIA PREVENCIÓN IAAS",
+          url: "",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "20",
+          codigo: "REQ-024",
+          title: "REGISTRO DE ENFERMERÍA QUIRÓFANOS Y RECUPERACIÓN",
+          url: "",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "21",
+          codigo: "IMO-025",
+          title: "INDICACIONES MÉDICAS EN ORDEN CRONOLÓGICO ASCENDENTE",
+          url: "https://drive.google.com/file/d/1c8B_xW7o1hc4Bxi0MOKY3LnM1yxQ-e1n/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+          extraStatus: "Diario",
+          extraStatusClass: "status-complete",
+        },
+        {
+          id: "22",
+          codigo: "RTH-026",
+          title: "REGISTRO DE TRANSFUSIONES DE HEMODERIVADOS",
+          url: "",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "23",
+          codigo: "NTS-027",
+          title: "NOTA DE TRABAJO SOCIAL",
+          url: "",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "24",
+          codigo: "CCI-028",
+          title: "CARTA(S) DE CONSENTIMIENTO INFORMADO",
+          url: "https://drive.google.com/file/d/1q28YCv9oiJBjVJtw6eEl6QZv06MrA7Wd/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "25",
+          codigo: "EV-029",
+          title: "EGRESO VOLUNTARIO",
+          url: "https://drive.google.com/file/d/1VXzpeg9Yc42DPGLWFC7HbtlgDN9GJjeu/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "26",
+          codigo: "NMP-030",
+          title: "NOTIFICACIÓN AL MINISTERIO PÚBLICO",
+          url: "",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "27",
+          codigo: "NDM-031",
+          title: "NOTA DE DEFUNCIÓN Y MUERTE FETAL",
+          url: "",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "28",
+          codigo: "FRN-032",
+          title: "FORMATO DE RECTIFICACIÓN DE NOMBRE DEL PACIENTE",
+          url: "https://drive.google.com/file/d/1OSigei6xksCQXoGj-0YDaCVxE5NjhdLD/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "29",
+          codigo: "ACM-033",
+          title: "ACTIVACIÓN DE CÓDIGO MATER",
+          url: "https://drive.google.com/file/d/1Q9Or0GRM_zDZv20p7Qo1tzqJL91b96KE/view?usp=sharing/preview",
+          status: "Condicional",
+          statusClass: "status-pending",
+        },
+        {
+          id: "30",
+          codigo: "CIC-034",
+          title: "CURP, INE COMPROBANTE DE DOMICILIO, CARTA DE RESIDENTE",
+          url: "",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "31",
+          codigo: "HCH-035",
+          title: "HOJA DE CONSUMO HOSPITAL Y URGENCIAS",
+          url: "",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+        {
+          id: "32",
+          codigo: "HU-036",
+          title: "HOJA DE URGENCIAS",
+          url: "https://drive.google.com/file/d/1XsHxMAaUv_J9reJpmRAIle4ZRFSJ3B3h/view?usp=sharing/preview",
+          status: "Requerido",
+          statusClass: "status-required",
+        },
+      ];
+
+      // ============================================================
+      // FUNCIONES PARA GENERAR CELDAS Y BUSCAR
+      // ============================================================
+      const grid = document.getElementById("gridContainer");
+      const searchInput = document.getElementById("searchInput");
+      const clearBtn = document.getElementById("clearSearchBtn");
+      const noResults = document.getElementById("noResults");
+
+      function renderCeldas(filter = "") {
+        const filterLower = filter.toLowerCase().trim();
+        let hasResults = false;
+
+        grid.innerHTML = "";
+
+        documentos.forEach((doc) => {
+          const searchableText =
+            `${doc.id} ${doc.codigo || ""} ${doc.title} ${doc.status} ${doc.extraStatus || ""}`.toLowerCase();
+
+          if (filterLower && !searchableText.includes(filterLower)) {
+            return;
+          }
+
+          hasResults = true;
+
+          const celda = document.createElement("div");
+          celda.className = "celda";
+          if (doc.extraId === "egresos") {
+            celda.id = "egresos";
+          }
+          celda.setAttribute("data-document-id", doc.id);
+          celda.setAttribute("data-title", doc.title);
+          celda.setAttribute("data-url", doc.url || "");
+
+          // ===== HEADER CON ID Y TÍTULO =====
+          const header = document.createElement("div");
+          header.className = "celda-header";
+
+          // ID
+          const idH3 = document.createElement("h3");
+          idH3.className = "celda-id";
+          idH3.textContent = doc.id;
+
+          // Título
+          const title = document.createElement("h3");
+          title.className = "celda-title";
+          title.textContent = doc.title;
+
+          header.appendChild(idH3);
+          header.appendChild(title);
+
+          // ===== CÓDIGO DEL DOCUMENTO =====
+          const codigoH3 = document.createElement("h3");
+          codigoH3.className = "celda-codigo";
+          codigoH3.textContent = doc.codigo || "Sin código";
+
+          // ===== STATUS WRAPPER =====
+          const statusWrapper = document.createElement("div");
+          statusWrapper.className = "celda-status-wrapper";
+
+          const statusSpan = document.createElement("span");
+          statusSpan.className = `celda-status ${doc.statusClass}`;
+          statusSpan.textContent = doc.status;
+
+          statusWrapper.appendChild(statusSpan);
+
+          if (doc.extraStatus) {
+            const extraSpan = document.createElement("span");
+            extraSpan.className = `celda-status ${doc.extraStatusClass}`;
+            extraSpan.textContent = doc.extraStatus;
+            statusWrapper.appendChild(extraSpan);
+          }
+
+          // ===== ARMAR LA CELDA =====
+          celda.appendChild(header);
+          celda.appendChild(codigoH3);
+          celda.appendChild(statusWrapper);
+
+          celda.addEventListener("click", function (e) {
+            if (e.target.tagName === "A" || e.target.closest("a")) return;
+            openModal(this);
+          });
+
+          grid.appendChild(celda);
+        });
+
+        if (filterLower && !hasResults) {
+          noResults.style.display = "block";
+        } else {
+          noResults.style.display = "none";
+        }
+      }
+
+      // ============================================================
+      // FUNCIONES DEL MODAL
+      // ============================================================
+      let currentDocumentUrl = "";
+
+      function openModal(celda) {
+        const docId = celda.getAttribute("data-document-id");
+        const docTitle = celda.getAttribute("data-title");
+        const docUrl = celda.getAttribute("data-url");
+
+        const modal = document.getElementById("documentModal");
+        const modalDocNumber = document.getElementById("modalDocNumber");
+        const modalDocTitle = document.getElementById("modalDocTitle");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+        const documentFrame = document.getElementById("documentFrame");
+
+        modalDocNumber.textContent = docId;
+        modalDocTitle.textContent = docTitle;
+
+        if (docUrl) {
+          currentDocumentUrl = docUrl;
+          loadingSpinner.style.display = "flex";
+          documentFrame.style.display = "none";
+
+          // Mostrar estado de carga en el glass
+          setGlassState("loading");
+
+          documentFrame.onload = function () {
+            loadingSpinner.style.display = "none";
+            documentFrame.style.display = "block";
+            setGlassState("success");
+          };
+
+          documentFrame.onerror = function () {
+            loadingSpinner.style.display = "none";
+            setGlassState("error");
+            const errorHTML = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <style>
+                body { font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f5f5f5; color: #333; }
+                .error-container { text-align: center; padding: 30px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 500px; }
+                .error-icon { font-size: 48px; color: #ff4444; margin-bottom: 20px; }
+                .btn { display: inline-block; margin-top: 20px; padding: 10px 20px; background: #4a9eff; color: white; text-decoration: none; border-radius: 5px; border: none; cursor: pointer; }
+                .btn:hover { background: #2d7dd2; }
+              </style>
+            </head>
+            <body>
+              <div class="error-container">
+                <div class="error-icon">🔒</div>
+                <h2>Acceso restringido</h2>
+                <p>Este documento no está disponible para visualización directa.</p>
+                <p>Por favor, haz clic en el botón para abrirlo en Google Drive.</p>
+                <button class="btn" onclick="window.open('${currentDocumentUrl.replace("/preview", "/view")}', '_blank')">
+                  Abrir en Google Drive
+                </button>
+              </div>
+            </body>
+            </html>
+          `;
+            documentFrame.srcdoc = errorHTML;
+            documentFrame.style.display = "block";
+          };
+
+          documentFrame.src = getAlternativeViewerUrl(docUrl);
+
+          setTimeout(() => {
+            modal.classList.add("active");
+            document.body.style.overflow = "hidden";
+          }, 10);
+        } else {
+          setGlassState("error");
+          alert(
+            `📋 Documento #${docId}: ${docTitle}\n\nEstoy trabajando para mostrarte el PDF de este documento.`,
+          );
+        }
+      }
+
+      function closeModal() {
+        const modal = document.getElementById("documentModal");
+        const documentFrame = document.getElementById("documentFrame");
+        const loadingSpinner = document.getElementById("loadingSpinner");
+
+        modal.classList.remove("active");
+        document.body.style.overflow = "";
+        setTimeout(() => {
+          documentFrame.src = "";
+          documentFrame.style.display = "none";
+          loadingSpinner.style.display = "flex";
+          // Resetear estado del glass
+          setGlassState(null);
+        }, 300);
+      }
+
+      function printDocument() {
+        if (currentDocumentUrl) {
+          const viewUrl = currentDocumentUrl.replace("/preview", "/view");
+          const printWindow = window.open(viewUrl, "_blank");
+          if (!printWindow) {
+            alert(
+              'Por favor, permite ventanas emergentes para imprimir. O haz clic derecho en el enlace y selecciona "Abrir en nueva pestaña".',
+            );
+            const tempLink = document.createElement("a");
+            tempLink.href = viewUrl;
+            tempLink.target = "_blank";
+            tempLink.style.display = "none";
+            document.body.appendChild(tempLink);
+            tempLink.click();
+            document.body.removeChild(tempLink);
+          }
+        }
+      }
+
+      function getAlternativeViewerUrl(driveUrl) {
+        const match = driveUrl.match(/\/d\/([^\/]+)/);
+        if (match && match[1]) {
+          const fileId = match[1];
+          return `https://drive.google.com/file/d/${fileId}/preview`;
+        }
+        return driveUrl;
+      }
+
+      // ============================================================
+      // EVENTOS Y DOMContentLoaded
+      // ============================================================
+      document.addEventListener("DOMContentLoaded", function () {
+        renderCeldas();
+
+        searchInput.addEventListener("input", function () {
+          const value = this.value;
+          renderCeldas(value);
+          clearBtn.classList.toggle("visible", value.length > 0);
+        });
+
+        clearBtn.addEventListener("click", function () {
+          searchInput.value = "";
+          renderCeldas("");
+          clearBtn.classList.remove("visible");
+          searchInput.focus();
+        });
+
+        document
+          .getElementById("closeModalBtn")
+          .addEventListener("click", closeModal);
+        document
+          .getElementById("printBtn")
+          .addEventListener("click", printDocument);
+
+        document
+          .getElementById("documentModal")
+          .addEventListener("click", function (e) {
+            if (e.target === this) closeModal();
+          });
+
+        document.addEventListener("keydown", function (e) {
+          if (
+            e.key === "Escape" &&
+            document
+              .getElementById("documentModal")
+              .classList.contains("active")
+          ) {
+            closeModal();
+          }
+        });
+
+        // Cargar header y footer
+        fetch("/comun/header-archivo.html")
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById("header").innerHTML = html;
+            const s = document.createElement("script");
+            s.src = "/comun/sesion_bk.js";
+            s.onload = () => {
+              console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
+              if (typeof verificarAutenticacion === "function")
+                verificarAutenticacion();
+            };
+            document.body.appendChild(s);
+          });
+
+        fetch("/comun/footer.html")
+          .then((r) => r.text())
+          .then((html) => {
+            document.getElementById("footer").innerHTML = html;
+            const footer = document.getElementById("footerText");
+            if (footer) {
+              footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
+            }
+          });
+      });
+    </script>
+    <script src="/comun/estadoSistema.js"></script>
+    <script src="/comun/sesion_bk.js"></script>
+  </body>
+</html>
