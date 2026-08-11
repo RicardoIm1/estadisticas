@@ -2085,11 +2085,117 @@
       let searchTimeout = null;
       let searchTerm = "";
       let searchResultsData = [];
+      let allDataCache = {}; // Cache para almacenar datos de todas las secciones
+
+      // ============================================
+      // CARGAR TODAS LAS SECCIONES AL INICIO
+      // ============================================
+      async function loadAllSections() {
+        console.log("📦 Cargando todas las secciones...");
+        for (const tab of TABS) {
+          try {
+            const result = await apiRequest("read", tab.id);
+            allDataCache[tab.id] = {
+              data: result.data || [],
+              headers: result.headers || [],
+            };
+            console.log(
+              `✅ Cargada: ${tab.label} (${allDataCache[tab.id].data.length} registros)`,
+            );
+          } catch (error) {
+            console.warn(`❌ Error al cargar ${tab.label}:`, error);
+            allDataCache[tab.id] = { data: [], headers: [] };
+          }
+        }
+        console.log("📦 Todas las secciones cargadas!");
+      }
+
+      // ============================================
+      // RENDERIZAR RESULTADOS DE BÚSQUEDA
+      // ============================================
+      function renderSearchResults(results) {
+        if (results.length === 0) {
+          cardsContainer.innerHTML = `
+      <div class="empty-state">
+        <span class="icon">🔍</span>
+        <strong>No se encontraron resultados</strong>
+        <br><br>
+        <div style="color: #666; font-size: 0.9rem;">
+          No hay coincidencias para "<strong>${searchTerm}</strong>" en ninguna sección
+        </div>
+        <br>
+        <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+          🧹 Limpiar búsqueda
+        </button>
+      </div>
+    `;
+          return;
+        }
+
+        let html = `
+    <div class="search-results-header">
+      <span>🔍 Resultados de búsqueda en todas las secciones</span>
+      <span class="search-result-count">${results.length} coincidencias</span>
+    </div>
+    <div class="search-results-list">
+  `;
+
+        results.forEach((result) => {
+          const row = result.row;
+          const rowIndex = result.index;
+          const sheetLabel = result.sheetLabel;
+          const matchedFields = result.matchedFields;
+
+          const summary = matchedFields
+            .map(
+              (f) =>
+                `<span class="search-match-field">${f.header}: <strong>${highlightText(f.value, searchTerm)}</strong></span>`,
+            )
+            .join(" ");
+
+          const resultHeaders = Object.keys(row);
+
+          html += `
+      <div class="search-result-item" onclick="openSearchResult('${result.sheet}', ${rowIndex})">
+        <div class="search-result-number">#${rowIndex + 1}</div>
+        <div class="search-result-content">
+          <div class="search-result-sheet">📂 ${sheetLabel}</div>
+          <div class="search-result-summary">${summary}</div>
+          <div class="search-result-preview">
+            ${resultHeaders
+              .slice(0, 3)
+              .map(
+                (h) =>
+                  `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
+              )
+              .join(" ")}
+            ${resultHeaders.length > 3 ? `<span class="search-result-more">+${resultHeaders.length - 3} más</span>` : ""}
+          </div>
+        </div>
+        <div class="search-result-action">👁️ Ver</div>
+      </div>
+    `;
+        });
+
+        html += `
+    </div>
+    <div class="search-results-footer">
+      <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+        🧹 Limpiar búsqueda
+      </button>
+      <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
+        📋 Mostrar todos
+      </button>
+    </div>
+  `;
+
+        cardsContainer.innerHTML = html;
+      }
 
       // ============================================
       // FUNCIÓN PRINCIPAL DE BÚSQUEDA
       // ============================================
-      async function performSearch(query) {
+      function performSearch(query) {
         searchTerm = query.trim().toLowerCase();
         const searchClear = document.getElementById("searchClear");
         const searchResults = document.getElementById("searchResults");
@@ -2108,46 +2214,42 @@
           return;
         }
 
-        // Buscar en TODAS las secciones
+        // Buscar en TODAS las secciones usando el caché
         const allResults = [];
 
-        // Recorrer todas las pestañas
         for (const tab of TABS) {
-          try {
-            // Cargar datos de cada sección
-            const result = await apiRequest("read", tab.id);
-            const data = result.data || [];
-            const headers = result.headers || [];
+          const cached = allDataCache[tab.id];
+          if (!cached || !cached.data || cached.data.length === 0) continue;
 
-            data.forEach((row, rowIndex) => {
-              let found = false;
-              const matchedFields = [];
+          const data = cached.data;
+          const headers = cached.headers || Object.keys(data[0] || {});
 
-              headers.forEach((header) => {
-                const value = String(row[header] || "").toLowerCase();
-                if (value.includes(searchTerm)) {
-                  found = true;
-                  matchedFields.push({
-                    header: header,
-                    value: row[header] || "",
-                    match: value,
-                  });
-                }
-              });
+          data.forEach((row, rowIndex) => {
+            let found = false;
+            const matchedFields = [];
 
-              if (found) {
-                allResults.push({
-                  sheet: tab.id,
-                  sheetLabel: tab.label,
-                  index: rowIndex,
-                  row: row,
-                  matchedFields: matchedFields,
+            headers.forEach((header) => {
+              const value = String(row[header] || "").toLowerCase();
+              if (value.includes(searchTerm)) {
+                found = true;
+                matchedFields.push({
+                  header: header,
+                  value: row[header] || "",
+                  match: value,
                 });
               }
             });
-          } catch (error) {
-            console.warn(`Error al buscar en ${tab.label}:`, error);
-          }
+
+            if (found) {
+              allResults.push({
+                sheet: tab.id,
+                sheetLabel: tab.label,
+                index: rowIndex,
+                row: row,
+                matchedFields: matchedFields,
+              });
+            }
+          });
         }
 
         searchResultsData = allResults;
@@ -2155,196 +2257,11 @@
         searchResults.textContent = total > 0 ? `${total} encontrados` : "0";
         searchResults.classList.toggle("highlight", total > 0);
 
-        // Renderizar resultados
         renderSearchResults(allResults);
       }
 
       // ============================================
-      // RENDERIZAR RESULTADOS DE BÚSQUEDA
-      // ============================================
-      function renderSearchResults(results) {
-        if (results.length === 0) {
-          cardsContainer.innerHTML = `
-            <div class="empty-state">
-              <span class="icon">🔍</span>
-              <strong>No se encontraron resultados</strong>
-              <br><br>
-              <div style="color: #666; font-size: 0.9rem;">
-                No hay coincidencias para "<strong>${searchTerm}</strong>" en ninguna sección
-              </div>
-              <br>
-              <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
-                🧹 Limpiar búsqueda
-              </button>
-            </div>
-          `;
-          return;
-        }
-
-        let html = `
-          <div class="search-results-header">
-            <span>🔍 Resultados de búsqueda en todas las secciones</span>
-            <span class="search-result-count">${results.length} coincidencias</span>
-          </div>
-          <div class="search-results-list">
-        `;
-
-        results.forEach((result) => {
-          const row = result.row;
-          const rowIndex = result.index;
-          const sheetLabel = result.sheetLabel;
-          const matchedFields = result.matchedFields;
-
-          const summary = matchedFields
-            .map(
-              (f) =>
-                `<span class="search-match-field">${f.header}: <strong>${highlightText(f.value, searchTerm)}</strong></span>`,
-            )
-            .join(" ");
-
-          // Obtener los headers de esta sección
-          const resultHeaders = Object.keys(row);
-
-          html += `
-            <div class="search-result-item" onclick="openSearchResult('${result.sheet}', ${rowIndex})">
-              <div class="search-result-number">#${rowIndex + 1}</div>
-              <div class="search-result-content">
-                <div class="search-result-sheet">📂 ${sheetLabel}</div>
-                <div class="search-result-summary">${summary}</div>
-                <div class="search-result-preview">
-                  ${resultHeaders
-                    .slice(0, 3)
-                    .map(
-                      (h) =>
-                        `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
-                    )
-                    .join(" ")}
-                  ${resultHeaders.length > 3 ? `<span class="search-result-more">+${resultHeaders.length - 3} más</span>` : ""}
-                </div>
-              </div>
-              <div class="search-result-action">👁️ Ver</div>
-            </div>
-          `;
-        });
-
-        html += `
-          </div>
-          <div class="search-results-footer">
-            <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
-              🧹 Limpiar búsqueda
-            </button>
-            <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
-              📋 Mostrar todos
-            </button>
-          </div>
-        `;
-
-        cardsContainer.innerHTML = html;
-      }
-
-      // ============================================
-      // CONFIGURAR BÚSQUEDA (EVENTOS)
-      // ============================================
-      function setupSearch() {
-        const searchInput = document.getElementById("searchInput");
-        const searchClear = document.getElementById("searchClear");
-        const searchResults = document.getElementById("searchResults");
-
-        // Búsqueda en tiempo real
-        searchInput.addEventListener("input", function () {
-          clearTimeout(searchTimeout);
-          searchTimeout = setTimeout(() => {
-            performSearch(this.value);
-          }, 300);
-        });
-
-        // Limpiar búsqueda
-        searchClear.addEventListener("click", function () {
-          searchInput.value = "";
-          searchClear.classList.remove("visible");
-          searchResults.textContent = "";
-          searchResults.classList.remove("highlight");
-          searchResultsData = [];
-          searchTerm = "";
-          renderCards();
-          searchInput.focus();
-        });
-
-        // Atajo de teclado: Ctrl+F o Cmd+F
-        document.addEventListener("keydown", function (e) {
-          if ((e.ctrlKey || e.metaKey) && e.key === "f") {
-            e.preventDefault();
-            searchInput.focus();
-            searchInput.select();
-          }
-        });
-
-        // Escape para limpiar
-        searchInput.addEventListener("keydown", function (e) {
-          if (e.key === "Escape") {
-            this.value = "";
-            searchClear.classList.remove("visible");
-            searchResults.textContent = "";
-            searchResults.classList.remove("highlight");
-            searchResultsData = [];
-            searchTerm = "";
-            renderCards();
-            this.blur();
-          }
-        });
-      }
-
-      // ============================================
-      // ABRIR RESULTADO
-      // ============================================
-      function openSearchResult(sheetId, index) {
-        const tab = TABS.find((t) => t.id === sheetId);
-        if (tab) {
-          state.currentTab = sheetId;
-          loadData(sheetId).then(() => {
-            openEditModal(index);
-            clearSearch();
-          });
-        }
-      }
-
-      // ============================================
-      // LIMPIAR BÚSQUEDA
-      // ============================================
-      function clearSearch() {
-        const searchInput = document.getElementById("searchInput");
-        const searchClear = document.getElementById("searchClear");
-        const searchResults = document.getElementById("searchResults");
-        searchInput.value = "";
-        searchClear.classList.remove("visible");
-        searchResults.textContent = "";
-        searchResults.classList.remove("highlight");
-        searchResultsData = [];
-        searchTerm = "";
-        renderCards();
-      }
-
-      // ============================================
-      // MOSTRAR TODOS LOS REGISTROS
-      // ============================================
-      function showAllResults() {
-        clearSearch();
-      }
-
-      // ============================================
-      // RESALTAR TEXTO
-      // ============================================
-      function highlightText(text, query) {
-        if (!text || !query) return text || "—";
-        const regex = new RegExp(
-          `(${query.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`,
-          "gi",
-        );
-        return text.replace(regex, '<span class="highlight-match">$1</span>');
-      }
-
-      // ============================================
-      // INICIALIZACIÓN
+      // INICIALIZACIÓN - MODIFICADA
       // ============================================
       function init() {
         try {
@@ -2352,31 +2269,30 @@
           console.log(`📡 API URL: ${API_URL}`);
 
           if (API_URL.includes("TU_URL_AQUI")) {
-            console.warn(
-              "⚠️ Debes actualizar API_URL con la URL de tu implementación de Apps Script",
-            );
+            console.warn("⚠️ Debes actualizar API_URL...");
             cardsContainer.innerHTML = `
-              <div class="empty-state">
-                <span class="icon">⚙️</span>
-                <strong>Configuración pendiente</strong>
-                <br><br>
-                <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
-                  Debes actualizar la variable <code>API_URL</code> con la URL de tu implementación de Google Apps Script.
-                  <br><br>
-                  <strong>Paso 1:</strong> Despliega tu Apps Script como aplicación web<br>
-                  <strong>Paso 2:</strong> Copia la URL generada<br>
-                  <strong>Paso 3:</strong> Reemplaza <code>TU_URL_AQUI</code> en el código
-                </div>
-              </div>
-            `;
+        <div class="empty-state">
+          <span class="icon">⚙️</span>
+          <strong>Configuración pendiente</strong>
+          <br><br>
+          <div style="color: #666; font-size: 0.9rem; max-width: 500px; margin: 0 auto;">
+            Debes actualizar la variable <code>API_URL</code>
+          </div>
+        </div>
+      `;
             return;
           }
 
           renderSidebar();
-          loadData("ORDEN 1");
+
+          // Cargar TODAS las secciones primero
+          loadAllSections().then(() => {
+            // Luego cargar la sección por defecto
+            loadData("ORDEN 1");
+          });
+
           setupSearch();
 
-          // Event listeners del modal
           btnCancel.addEventListener("click", closeModal);
           modalClose.addEventListener("click", closeModal);
           modalForm.addEventListener("submit", handleSave);
@@ -2387,22 +2303,6 @@
           console.error("❌ Error:", error);
         }
       }
-
-      // Exponer funciones globales
-      window.loadData = loadData;
-      window.init = init;
-      window.startFieldEdit = startFieldEdit;
-      window.cancelFieldEdit = cancelFieldEdit;
-      window.saveFieldEdit = saveFieldEdit;
-      window.showToast = showToast;
-      window.openEditModal = openEditModal;
-      window.closeModal = closeModal;
-      window.clearSearch = clearSearch;
-      window.showAllResults = showAllResults;
-      window.openSearchResult = openSearchResult;
-
-      // Iniciar
-      document.addEventListener("DOMContentLoaded", init);
     </script>
   </body>
 </html>
