@@ -953,7 +953,7 @@
       }
 
       /* ============================================
-   MODAL
+   MODAL GRANDE (Completo)
    ============================================ */
       .modal-overlay {
         display: none;
@@ -986,6 +986,39 @@
           15px 15px 30px rgba(163, 177, 198, 0.7),
           -15px -15px 30px rgba(255, 255, 255, 0.8);
         animation: modalIn 0.3s ease;
+      }
+
+      /* ============================================
+   MODAL PEQUEÑO - PARA EDICIÓN DE CAMPO ÚNICO
+   ============================================ */
+      .modal-small {
+        max-width: 500px !important;
+        padding: 25px 30px !important;
+      }
+
+      .modal-small .modal-header h2 {
+        font-size: 1.1rem !important;
+      }
+
+      .modal-small .form-grid {
+        grid-template-columns: 1fr !important;
+        gap: 8px !important;
+      }
+
+      .modal-small .form-group label {
+        font-size: 0.85rem !important;
+        font-weight: 700 !important;
+        color: #2c3e50 !important;
+      }
+
+      .modal-small .form-group input {
+        font-size: 1rem !important;
+        padding: 10px 14px !important;
+      }
+
+      .modal-small .modal-footer {
+        margin-top: 12px !important;
+        padding-top: 10px !important;
       }
 
       @keyframes modalIn {
@@ -1342,6 +1375,11 @@
         .search-results-footer .btn-neo {
           justify-content: center;
         }
+
+        .modal-small {
+          max-width: 95% !important;
+          padding: 20px !important;
+        }
       }
 
       @media (max-width: 480px) {
@@ -1496,6 +1534,11 @@
           font-size: 0.65rem;
           padding: 2px 10px;
         }
+
+        .modal-small {
+          padding: 16px !important;
+          border-radius: 24px !important;
+        }
       }
     </style>
   </head>
@@ -1548,7 +1591,7 @@
       </div>
     </div>
 
-    <!-- MODAL -->
+    <!-- MODAL GRANDE (Completo) -->
     <div class="modal-overlay" id="modalOverlay">
       <div class="modal">
         <div class="modal-header">
@@ -1564,6 +1607,34 @@
               Cancelar
             </button>
             <button type="submit" class="btn-neo primary" id="btnSave">
+              💾 Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL PEQUEÑO (Edición de campo único) -->
+    <div class="modal-overlay" id="fieldModalOverlay">
+      <div class="modal modal-small">
+        <div class="modal-header">
+          <h2 id="fieldModalTitle">✏️ Editar Campo</h2>
+          <button class="modal-close" id="fieldModalClose">✕</button>
+        </div>
+        <form id="fieldModalForm">
+          <div class="form-scroll" id="fieldModalScroll">
+            <div class="form-grid" id="fieldModalFields">
+              <div class="form-group">
+                <label id="fieldModalLabel">Campo</label>
+                <input type="text" id="fieldModalInput" />
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-neo" id="fieldModalCancel">
+              Cancelar
+            </button>
+            <button type="submit" class="btn-neo primary" id="fieldModalSave">
               💾 Guardar
             </button>
           </div>
@@ -1622,6 +1693,8 @@
       const sheetNameDisplay = document.getElementById("sheetNameDisplay");
       const rowCountDisplay = document.getElementById("rowCountDisplay");
       const statusText = document.getElementById("statusText");
+
+      // Modal grande
       const modalOverlay = document.getElementById("modalOverlay");
       const modalTitle = document.getElementById("modalTitle");
       const modalForm = document.getElementById("modalForm");
@@ -1630,6 +1703,23 @@
       const btnCancel = document.getElementById("btnCancel");
       const btnSave = document.getElementById("btnSave");
       const modalClose = document.getElementById("modalClose");
+
+      // Modal pequeño
+      const fieldModalOverlay = document.getElementById("fieldModalOverlay");
+      const fieldModalTitle = document.getElementById("fieldModalTitle");
+      const fieldModalLabel = document.getElementById("fieldModalLabel");
+      const fieldModalInput = document.getElementById("fieldModalInput");
+      const fieldModalForm = document.getElementById("fieldModalForm");
+      const fieldModalClose = document.getElementById("fieldModalClose");
+      const fieldModalCancel = document.getElementById("fieldModalCancel");
+      const fieldModalSave = document.getElementById("fieldModalSave");
+
+      let fieldModalData = {
+        sheetId: null,
+        index: null,
+        header: null,
+        currentValue: null,
+      };
 
       // ============================================
       // API - CONEXIÓN REAL A BASE DE DATOS
@@ -1735,7 +1825,6 @@
         console.log("📦 Cargando todas las secciones...");
         statusText.textContent = "⏳ Cargando todas las secciones...";
 
-        // Mostrar mensaje de carga
         cardsContainer.innerHTML = `
           <div class="loading" style="padding: 80px 20px;">
             <span style="font-size: 2rem;">📦</span>
@@ -1746,7 +1835,6 @@
           </div>
         `;
 
-        // Crear un array de promesas para cargar todas las secciones en paralelo
         const promises = TABS.map(async (tab) => {
           try {
             const result = await apiRequest("read", tab.id);
@@ -1765,14 +1853,12 @@
           }
         });
 
-        // Esperar a que todas las promesas terminen
         await Promise.all(promises);
 
         isLoadingAll = false;
         statusText.textContent = "✅ Conectado";
         console.log("📦 ¡Todas las secciones cargadas!");
 
-        // Mostrar cuántos registros en total
         let totalRegistros = 0;
         for (const tab of TABS) {
           totalRegistros += allDataCache[tab.id]?.data?.length || 0;
@@ -1793,7 +1879,6 @@
           '<div class="loading">Cargando datos...</div>';
 
         try {
-          // Usar caché si está disponible
           let result;
           if (allDataCache[sheetName]) {
             result = allDataCache[sheetName];
@@ -1943,7 +2028,7 @@
       }
 
       // ============================================
-      // EDICIÓN DE CAMPO INDIVIDUAL
+      // EDICIÓN DE CAMPO INDIVIDUAL (en línea)
       // ============================================
       function startFieldEdit(rowIndex, header) {
         state.editingFields[`${rowIndex}_${header}`] = true;
@@ -1995,6 +2080,80 @@
       }
 
       // ============================================
+      // MODAL PEQUEÑO - ABRIR, CERRAR, GUARDAR
+      // ============================================
+      function openFieldModal(sheetId, index, header) {
+        fieldModalData.sheetId = sheetId;
+        fieldModalData.index = index;
+        fieldModalData.header = header;
+
+        const cached = allDataCache[sheetId];
+        if (cached && cached.data && cached.data[index]) {
+          const currentValue = cached.data[index][header] || "";
+          fieldModalData.currentValue = currentValue;
+          fieldModalLabel.textContent = header;
+          fieldModalInput.value = currentValue;
+          fieldModalTitle.textContent = `✏️ Editar "${header}"`;
+        }
+
+        fieldModalOverlay.classList.add("active");
+        setTimeout(() => fieldModalInput.focus(), 100);
+        fieldModalInput.select();
+      }
+
+      function closeFieldModal() {
+        fieldModalOverlay.classList.remove("active");
+        fieldModalData = {
+          sheetId: null,
+          index: null,
+          header: null,
+          currentValue: null,
+        };
+      }
+
+      async function saveFieldFromModal(event) {
+        event.preventDefault();
+
+        const newValue = fieldModalInput.value.trim();
+        const { sheetId, index, header, currentValue } = fieldModalData;
+
+        if (newValue === currentValue) {
+          closeFieldModal();
+          return;
+        }
+
+        if (!newValue) {
+          showToast("⚠️ El campo no puede estar vacío", "error");
+          return;
+        }
+
+        try {
+          // Actualizar en caché
+          if (allDataCache[sheetId] && allDataCache[sheetId].data[index]) {
+            allDataCache[sheetId].data[index][header] = newValue;
+          }
+
+          // Si es la sección actual, actualizar state.data
+          if (state.currentTab === sheetId && state.data[index]) {
+            state.data[index][header] = newValue;
+          }
+
+          // Guardar en API
+          const rowData = allDataCache[sheetId].data[index];
+          await apiRequest("update", sheetId, rowData, index);
+
+          closeFieldModal();
+          showToast(`✅ "${header}" actualizado correctamente`);
+
+          if (state.currentTab === sheetId) {
+            renderCards();
+          }
+        } catch (error) {
+          showToast(`❌ ${error.message}`, "error");
+        }
+      }
+
+      // ============================================
       // SIDEBAR
       // ============================================
       function renderSidebar() {
@@ -2029,7 +2188,7 @@
       }
 
       // ============================================
-      // MODAL
+      // MODAL GRANDE (Completo)
       // ============================================
       function openEditModal(index) {
         state.isEditing = true;
@@ -2153,47 +2312,40 @@
       }
 
       // ============================================
-      // BUSCADOR SUPER PODEROSO - TODAS LAS SECCIONES
-      // ============================================
-      let searchTimeout = null;
-      let searchTerm = "";
-      let searchResultsData = [];
-
-      // ============================================
-      // RENDERIZAR RESULTADOS DE BÚSQUEDA
+      // BUSCADOR - RENDERIZAR RESULTADOS
       // ============================================
       function renderSearchResults(results) {
         if (results.length === 0) {
           cardsContainer.innerHTML = `
-      <div class="empty-state">
-        <span class="icon">🔍</span>
-        <strong>No se encontraron resultados</strong>
-        <br><br>
-        <div style="color: #666; font-size: 0.9rem;">
-          No hay headers que coincidan con "<strong>${searchTerm}</strong>"
-        </div>
-        <br>
-        <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
-          🧹 Limpiar búsqueda
-        </button>
-      </div>
-    `;
+            <div class="empty-state">
+              <span class="icon">🔍</span>
+              <strong>No se encontraron resultados</strong>
+              <br><br>
+              <div style="color: #666; font-size: 0.9rem;">
+                No hay headers que coincidan con "<strong>${searchTerm}</strong>"
+              </div>
+              <br>
+              <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+                🧹 Limpiar búsqueda
+              </button>
+            </div>
+          `;
           return;
         }
 
         let html = `
-    <div class="search-results-header">
-      <span>🔍 Headers encontrados</span>
-      <span class="search-result-count">${results.length} coincidencias</span>
-    </div>
-    <div class="search-results-list">
-  `;
+          <div class="search-results-header">
+            <span>🔍 Headers encontrados</span>
+            <span class="search-result-count">${results.length} coincidencias</span>
+          </div>
+          <div class="search-results-list">
+        `;
 
         results.forEach((result) => {
           const row = result.row;
           const sheetLabel = result.sheetLabel;
           const matchedFields = result.matchedFields;
-          const header = matchedFields[0]?.header; // Obtener el header que coincidió
+          const header = matchedFields[0]?.header;
 
           const summary = matchedFields
             .map(
@@ -2205,44 +2357,49 @@
           const resultHeaders = Object.keys(row);
 
           html += `
-      <div class="search-result-item" onclick="openSearchResult('${result.sheet}', 0, '${header}')">
-        <div class="search-result-number">📋</div>
-        <div class="search-result-content">
-          <div class="search-result-sheet">📂 ${sheetLabel}</div>
-          <div class="search-result-summary">${summary}</div>
-          <div class="search-result-preview">
-            ${resultHeaders
-              .slice(0, 3)
-              .map(
-                (h) =>
-                  `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
-              )
-              .join(" ")}
-            ${resultHeaders.length > 3 ? `<span class="search-result-more">+${resultHeaders.length - 3} más</span>` : ""}
-          </div>
-        </div>
-        <div class="search-result-action">✏️ Editar campo</div>
-      </div>
-    `;
+            <div class="search-result-item" onclick="openSearchResult('${result.sheet}', 0, '${header}')">
+              <div class="search-result-number">📋</div>
+              <div class="search-result-content">
+                <div class="search-result-sheet">📂 ${sheetLabel}</div>
+                <div class="search-result-summary">${summary}</div>
+                <div class="search-result-preview">
+                  ${resultHeaders
+                    .slice(0, 3)
+                    .map(
+                      (h) =>
+                        `<span class="search-result-preview-item">${h}: ${row[h] || "—"}</span>`,
+                    )
+                    .join(" ")}
+                  ${resultHeaders.length > 3 ? `<span class="search-result-more">+${resultHeaders.length - 3} más</span>` : ""}
+                </div>
+              </div>
+              <div class="search-result-action">✏️ Editar campo</div>
+            </div>
+          `;
         });
 
         html += `
-    </div>
-    <div class="search-results-footer">
-      <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
-        🧹 Limpiar búsqueda
-      </button>
-      <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
-        📋 Mostrar todos
-      </button>
-    </div>
-  `;
+          </div>
+          <div class="search-results-footer">
+            <button class="btn-neo" onclick="clearSearch()" style="display:inline-flex !important;">
+              🧹 Limpiar búsqueda
+            </button>
+            <button class="btn-neo primary" onclick="showAllResults()" style="display:inline-flex !important;">
+              📋 Mostrar todos
+            </button>
+          </div>
+        `;
 
         cardsContainer.innerHTML = html;
       }
+
       // ============================================
       // FUNCIÓN PRINCIPAL DE BÚSQUEDA - BUSCA EN HEADERS
       // ============================================
+      let searchTimeout = null;
+      let searchTerm = "";
+      let searchResultsData = [];
+
       function performSearch(query) {
         searchTerm = query.trim().toLowerCase();
         const searchClear = document.getElementById("searchClear");
@@ -2280,14 +2437,12 @@
             `🔎 Buscando en headers de ${tab.label} (${headers.length} headers)`,
           );
 
-          // Buscar en los HEADERS
           headers.forEach((header) => {
             if (header.toLowerCase().includes(searchTerm)) {
               console.log(
                 `  ✅ Encontrado header en ${tab.label}: "${header}"`,
               );
 
-              // Crear un resultado con el primer registro de esa sección o un registro vacío
               const sampleRow = data.length > 0 ? data[0] : {};
               allResults.push({
                 sheet: tab.id,
@@ -2316,6 +2471,7 @@
 
         renderSearchResults(allResults);
       }
+
       // ============================================
       // CONFIGURAR BÚSQUEDA (EVENTOS)
       // ============================================
@@ -2364,7 +2520,24 @@
         });
       }
 
-      openSearchResult;
+      // ============================================
+      // ABRIR RESULTADO - USA MODAL PEQUEÑO
+      // ============================================
+      function openSearchResult(sheetId, index, header) {
+        const tab = TABS.find((t) => t.id === sheetId);
+        if (tab && header) {
+          // Abrir el modal pequeño para editar el campo específico
+          openFieldModal(sheetId, index, header);
+          clearSearch();
+        } else if (tab) {
+          // Fallback: abrir el modal completo
+          state.currentTab = sheetId;
+          loadData(sheetId).then(() => {
+            openEditModal(index);
+            clearSearch();
+          });
+        }
+      }
 
       // ============================================
       // LIMPIAR BÚSQUEDA
@@ -2416,7 +2589,7 @@
       }
 
       // ============================================
-      // INICIALIZACIÓN - MODIFICADA
+      // INICIALIZACIÓN
       // ============================================
       function init() {
         try {
@@ -2440,19 +2613,26 @@
 
           renderSidebar();
 
-          // Cargar TODAS las secciones primero
           loadAllSections().then(() => {
-            // Luego cargar la sección por defecto
             loadData("ORDEN 1");
           });
 
           setupSearch();
 
+          // Event listeners modal grande
           btnCancel.addEventListener("click", closeModal);
           modalClose.addEventListener("click", closeModal);
           modalForm.addEventListener("submit", handleSave);
           modalOverlay.addEventListener("click", (e) => {
             if (e.target === modalOverlay) closeModal();
+          });
+
+          // Event listeners modal pequeño
+          fieldModalClose.addEventListener("click", closeFieldModal);
+          fieldModalCancel.addEventListener("click", closeFieldModal);
+          fieldModalForm.addEventListener("submit", saveFieldFromModal);
+          fieldModalOverlay.addEventListener("click", (e) => {
+            if (e.target === fieldModalOverlay) closeFieldModal();
           });
         } catch (error) {
           console.error("❌ Error:", error);
