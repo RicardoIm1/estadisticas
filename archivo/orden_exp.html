@@ -38,11 +38,11 @@
       * {
         scrollbar-width: thin;
         scrollbar-color: rgba(255, 255, 255, 0.12) rgba(255, 255, 255, 0.03);
+        box-sizing: border-box;
       }
 
-      /* ===== GLASS CON ANIMACIÓN DE BORDE Y SOMBRA ===== */
+      /* ===== GLASS CON ANIMACIÓN DE FONDO SUAVE ===== */
       .glass {
-        /* Fondo cristalino original - SIN CAMBIOS */
         background: rgba(255, 255, 255, 0.05) !important;
         backdrop-filter: blur(10px) !important;
         -webkit-backdrop-filter: blur(10px) !important;
@@ -51,41 +51,70 @@
         margin: 1rem;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         border: 1px solid rgba(255, 255, 255, 0.1);
-        /* Transición suave para cambios de estado */
         transition:
-          border-color 0.8s ease,
-          box-shadow 0.8s ease;
+          background 1.2s ease,
+          box-shadow 1.2s ease,
+          border-color 1.2s ease;
       }
 
-      /* Estados del glass (solo borde y sombra cambian) */
+      /* Estados del glass */
       .glass.loading {
-        border-color: rgba(74, 158, 255, 0.4);
-        box-shadow: 0 8px 32px rgba(74, 158, 255, 0.15);
+        background: rgba(74, 158, 255, 0.35) !important;
+        border-color: rgba(74, 158, 255, 0.6);
+        box-shadow: 0 8px 32px rgba(74, 158, 255, 0.3);
       }
 
       .glass.success {
-        border-color: rgba(0, 255, 89, 0.3);
-        box-shadow: 0 8px 32px rgba(0, 255, 89, 0.1);
+        background: rgba(0, 255, 89, 0.25) !important;
+        border-color: rgba(0, 255, 89, 0.4);
+        box-shadow: 0 8px 32px rgba(0, 255, 89, 0.2);
       }
 
       .glass.error {
-        border-color: rgba(255, 50, 50, 0.3);
-        box-shadow: 0 8px 32px rgba(255, 50, 50, 0.1);
+        background: rgba(255, 50, 50, 0.35) !important;
+        border-color: rgba(255, 50, 50, 0.5);
+        box-shadow: 0 8px 32px rgba(255, 50, 50, 0.25);
       }
 
-      /* ===== CONTENIDO DEL GLASS (completamente estático) ===== */
       .glass * {
         animation: none !important;
         transition: none !important;
       }
 
-      /* EXCEPCIÓN: solo permitimos hover en celdas y elementos interactivos */
+      /* ===== GRID ===== */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.5rem;
+        padding: 1rem;
+        width: 100%;
+      }
+
+      /* ===== CELDAS ===== */
       .celda {
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        padding: 0.8rem 1rem 1.2rem 1rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+        text-align: left;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        height: auto;
+        min-height: 100px;
+        overflow: visible;
+        word-wrap: break-word;
+        hyphens: auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        gap: 4px;
         transition:
           transform 0.2s ease,
           box-shadow 0.2s ease,
           background 0.2s ease !important;
         animation: none !important;
+        width: 100%;
       }
 
       .celda:hover {
@@ -94,94 +123,57 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
       }
 
-      /* ===== MEJORAS DE LEGIBILIDAD EN CELDAS ===== */
-      .celda {
-        background: rgba(255, 255, 255, 0.12);
-        border-radius: 12px;
-        padding: 0.8rem;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        cursor: pointer;
-        will-change: transform, box-shadow;
-        text-align: left;
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start; /* Cambiado de 'space-between' a 'flex-start' */
-        height: auto; /* Altura automática */
-        min-height: 130px; /* Aumentado de 90px a 130px */
-        overflow: visible; /* Cambiado de 'hidden' a 'visible' */
-        word-wrap: break-word;
-        hyphens: auto;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        gap: 4px; /* Espacio entre elementos */
-      }
-
       #egresos {
         background-color: rgba(40, 167, 69, 0.2);
       }
 
-      .celda h3 {
-        font-size: 0.95rem;
-        margin-bottom: 0.2rem;
-        color: white;
-        word-break: break-word;
-        line-height: 1.2;
+      /* ===== NÚMERO (ID) - GRANDE DE FONDO ===== */
+      .celda-numero {
+        position: absolute;
+        font-size: 4.5rem;
+        font-weight: 900;
+        color: rgba(77, 255, 138, 0.12);
+        margin: 0;
+        letter-spacing: 0px;
+        /* bottom: -8px; */
+        bottom: 8px;
+        right: 8px;
+        line-height: 1;
+        pointer-events: none;
+        user-select: none;
+        z-index: 0;
+        text-shadow: 0 0 30px rgba(77, 255, 138, 0.05);
+        font-family: "Arial Black", "Impact", sans-serif;
       }
 
-      .celda p {
-        opacity: 0.85;
-        font-size: 0.8rem;
-        color: rgb(249, 253, 251);
-        line-height: 1.3;
-        margin-bottom: 0.3rem;
-        word-break: break-word;
+      /* Asegurar que el contenido de la celda esté por encima */
+      .celda > *:not(.celda-numero) {
+        position: relative;
+        z-index: 1;
       }
 
-      .celda .icon {
-        display: block;
-        font-size: 1.4rem;
-        margin-bottom: 0.2rem;
-        color: #ffdd00;
-      }
-
-      .celda-header {
-        display: flex;
-        align-items: flex-start;
-        gap: 6px;
-        margin-bottom: 0.3rem;
-        padding: 2px 0;
-        flex-wrap: wrap;
-      }
-
-      .celda-icon {
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 6px;
-        color: #00ff89;
-        font-weight: 700;
-        font-size: 14px;
-        flex-shrink: 0;
-        background: rgba(0, 255, 89, 0.15);
-        text-shadow: 0 0 10px rgba(0, 255, 89, 0.2);
-      }
-
+      /* ===== TÍTULO ===== */
       .celda-title {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         font-weight: 700;
         color: #ffffff;
         margin: 0;
-        line-height: 1.2;
-        flex: 1;
-        min-width: 60px;
+        line-height: 1.3;
         word-break: break-word;
         text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        letter-spacing: 0.3px;
       }
 
+      /* ===== CÓDIGO - VERDE ELÉCTRICO ===== */
+      .celda-codigo {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #4dff8a;
+        margin: 2px 0 0 0;
+        letter-spacing: 0.5px;
+        text-shadow: 0 0 10px rgba(77, 255, 138, 0.2);
+      }
+
+      /* ===== STATUS ===== */
       .celda-status-wrapper {
         display: flex;
         flex-wrap: wrap;
@@ -195,35 +187,13 @@
         display: inline-block;
         padding: 2px 10px;
         border-radius: 10px;
-        font-size: 0.7rem;
-        font-weight: 600;
+        font-size: 0.6rem;
+        font-weight: 700;
         text-transform: uppercase;
-        white-space: nowrap;
         letter-spacing: 0.5px;
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
       }
 
-      .celda-content {
-        font-size: 0.75rem;
-        color: rgba(255, 255, 255, 0.85);
-        line-height: 1.3;
-        margin-bottom: 0.3rem;
-        word-break: break-word;
-      }
-
-      .celda a {
-        position: absolute;
-        inset: 0;
-        z-index: 1;
-        text-decoration: none;
-        color: transparent;
-      }
-
-      .celda {
-        position: relative;
-      }
-
-      /* Estados con mejor contraste */
       .status-required {
         background: rgba(255, 50, 50, 0.25);
         color: #ff6b6b;
@@ -489,104 +459,46 @@
         display: none;
       }
 
-      /* ===== Ajustes ultra pequeños (≤360px) ===== */
-      @media (max-width: 360px) {
+      /* ===== RESPONSIVE ===== */
+      @media (max-width: 480px) {
         .grid {
           grid-template-columns: 1fr;
-          padding: 0.5rem;
-          gap: 0.6rem;
+          gap: 1rem;
+          padding: 0.6rem;
         }
 
         .celda {
-          padding: 0.6rem;
-          min-height: 70px;
+          padding: 0.6rem 0.8rem 1rem 0.8rem;
+          min-height: 85px;
         }
 
         .celda-title {
-          font-size: 0.8rem;
-        }
-
-        .celda-icon {
-          width: 24px;
-          height: 24px;
-          font-size: 12px;
-          margin-right: 4px;
-        }
-
-        .celda-status {
-          font-size: 0.6rem;
-          padding: 1px 8px;
-        }
-
-        .search-box input {
           font-size: 0.85rem;
         }
 
-        .modal-title {
-          font-size: 0.95rem;
-        }
-
-        .modal-header {
-          padding: 0.8rem 1rem;
-        }
-
-        .modal-btn {
+        .celda-codigo {
           font-size: 0.7rem;
-          padding: 4px 10px;
-        }
-
-        .celda-header {
-          gap: 4px;
-        }
-
-        .celda-status-wrapper {
-          gap: 3px;
-        }
-      }
-
-      /* ===== Ajustes para pantallas entre 361px y 480px ===== */
-      @media (min-width: 361px) and (max-width: 480px) {
-        .grid {
-          grid-template-columns: 1fr 1fr;
-          gap: 0.6rem;
-          padding: 0.6rem;
-        }
-
-        .celda-title {
-          font-size: 0.8rem;
-        }
-
-        .celda-icon {
-          width: 26px;
-          height: 26px;
-          font-size: 13px;
         }
 
         .celda-status {
-          font-size: 0.6rem;
+          font-size: 0.55rem;
           padding: 1px 8px;
+        }
+
+        .celda-numero {
+          font-size: 0.65rem;
         }
       }
 
-      .celda-codigo {
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: #ffdd00;
-        margin: 2px 0 4px 0;
-        padding: 2px 12px;
-        background: rgba(255, 221, 0, 0.12);
-        border-radius: 12px;
-        display: inline-block;
-        border: 1px solid rgba(255, 221, 0, 0.15);
-        letter-spacing: 0.5px;
-        align-self: flex-start; /* Para que se alinee a la izquierda */
-      }
+      @media (min-width: 481px) and (max-width: 768px) {
+        .grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 1rem;
+          padding: 0.8rem;
+        }
 
-      /* Ajustes para móviles */
-      @media (max-width: 480px) {
-        .celda-codigo {
-          font-size: 0.65rem;
-          padding: 1px 10px;
+        .celda {
+          min-height: 90px;
         }
       }
     </style>
@@ -597,7 +509,6 @@
       <h5>Orden del Expediente Clínico</h5>
       <div id="header"></div>
 
-      <!-- ===== BUSCADOR ===== -->
       <div class="search-container">
         <div class="search-box">
           <i class="fas fa-search"></i>
@@ -617,9 +528,7 @@
         </div>
       </div>
 
-      <div class="grid" id="gridContainer">
-        <!-- Las celdas se generan dinámicamente con JavaScript -->
-      </div>
+      <div class="grid" id="gridContainer"></div>
 
       <div class="no-results" id="noResults">
         <i
@@ -632,7 +541,6 @@
       <div id="footer"></div>
     </div>
 
-    <!-- Modal para mostrar documentos -->
     <div class="modal-overlay" id="documentModal">
       <div class="modal-container">
         <div class="modal-header">
@@ -664,33 +572,23 @@
     </div>
 
     <script>
-      // ============================================================
-      // CONTROL DE ESTADOS DEL GLASS
-      // ============================================================
       const glass = document.querySelector(".glass");
 
       function setGlassState(state) {
-        // Remover estados anteriores
         glass.classList.remove("loading", "success", "error");
-
         if (state) {
           glass.classList.add(state);
         }
-
-        // Después de 3 segundos, volver a estado normal
         clearTimeout(window.glassTimeout);
         window.glassTimeout = setTimeout(() => {
           glass.classList.remove("loading", "success", "error");
-        }, 3000);
+        }, 4000);
       }
 
-      // ============================================================
-      // DATOS DE LAS CELDAS
-      // ============================================================
       const documentos = [
         {
           id: "1",
-          codigo: "HFR-001", // Código único
+          codigo: "HFR-001",
           title: "HOJA FRONTAL",
           url: "https://drive.google.com/file/d/1MheW50uCAqh4V1aoVpj8FMdIRo89H3T6/preview?usp=sharing/preview",
           status: "Requerido",
@@ -698,7 +596,7 @@
         },
         {
           id: "2",
-          codigo: "HFR-001", // Código único
+          codigo: "HC-002",
           title: "HISTORIA CLÍNICA",
           url: "https://drive.google.com/file/d/16o2PZXWOi7eVpsaKFw7gzpLGWQemZUsE/preview?usp=sharing/preview",
           status: "Requerido",
@@ -706,7 +604,7 @@
         },
         {
           id: "2A",
-          codigo: "HFR-001", // Código único
+          codigo: "HCRN-003",
           title: "HISTORIA CLÍNICA RN",
           url: "https://drive.google.com/file/d/1azZpZrNUyyilcxNOwVH_Sjxc2p2w6qje/view?usp=sharing/preview",
           status: "Condicional",
@@ -714,7 +612,7 @@
         },
         {
           id: "3",
-          codigo: "HFR-001", // Código único
+          codigo: "PTG-004",
           title: "PARTOGRAMA",
           url: "https://drive.google.com/file/d/1ktaV24X06t514QAI2pnCAu2Zj8u71ShA/view?usp=sharing/preview",
           status: "Condicional",
@@ -722,7 +620,7 @@
         },
         {
           id: "4",
-          codigo: "HFR-001", // Código único
+          codigo: "NU-005",
           title: "NOTA DE URGENCIAS (INGRESO Y EVOLUCIÓN)",
           url: "https://drive.google.com/file/d/1g8qJ88OyZ9zTAdSaDtB50T4TtN8KKMfe/view?usp=sharing/preview",
           status: "Requerido",
@@ -730,7 +628,7 @@
         },
         {
           id: "5",
-          codigo: "HFR-001", // Código único
+          codigo: "NIH-006",
           title: "NOTA DE INGRESO AL HOSPITAL",
           url: "https://drive.google.com/file/d/1M8vQ9gFWehKT5Do7Z3lylXOo5zNYO0Jz/view?usp=sharing/preview",
           status: "Requerido",
@@ -738,7 +636,7 @@
         },
         {
           id: "6",
-          codigo: "HFR-001", // Código único
+          codigo: "NE-007",
           title: "NOTA DE EVOLUCIÓN",
           url: "https://drive.google.com/file/d/13AsHwgM6N2CinfdFeqIRrUXieFx_nxry/view?usp=sharing/preview",
           status: "Requerido",
@@ -748,7 +646,7 @@
         },
         {
           id: "6A",
-          codigo: "HFR-001", // Código único
+          codigo: "NEP-008",
           title: "NOTA DE EVOLUCIÓN PEDIÁTRICA",
           url: "https://drive.google.com/file/d/1B3U4mTIUhA55F2vqKEpzmrx7h8LI6Ks_/view?usp=sharing/preview",
           status: "Condicional",
@@ -756,7 +654,7 @@
         },
         {
           id: "7",
-          codigo: "HFR-001", // Código único
+          codigo: "NRT-009",
           title: "NOTA DE REFERENCIA/TRASLADO",
           url: "",
           status: "Condicional",
@@ -764,7 +662,7 @@
         },
         {
           id: "8",
-          codigo: "HFR-001", // Código único
+          codigo: "NIC-010",
           title: "NOTA INTERCONSULTA",
           url: "https://drive.google.com/file/d/1-J9hEWgVYSAJhoWnSsZ0u2bMnocHPPB_/view?usp=sharing/preview",
           status: "Condicional",
@@ -772,7 +670,7 @@
         },
         {
           id: "9",
-          codigo: "HFR-001", // Código único
+          codigo: "NVN-011",
           title: "NOTA DE VALORACION NUTRICIONAL Y OTRAS",
           url: "https://drive.google.com/file/d/17STnZYRVJsKFH4Q_dla_tmzaWTUNLT21/view?usp=sharing/preview",
           status: "Condicional",
@@ -780,7 +678,7 @@
         },
         {
           id: "10",
-          codigo: "HFR-001", // Código único
+          codigo: "NPO-012",
           title: "NOTA PREOPERATORIA",
           url: "https://drive.google.com/file/d/1hywMxLcf9Xkn1J8ZZOM0c1I6mw1Qqg_3/view?usp=sharing/preview",
           status: "Condicional",
@@ -788,7 +686,7 @@
         },
         {
           id: "11",
-          codigo: "HFR-001", // Código único
+          codigo: "VPO-013",
           title: "VALORACION PREOPERATORIA",
           url: "https://drive.google.com/file/d/1NxPo1tpkJifXNQo6vPWnfjK9PQt_05xJ/view?usp=sharing/preview",
           status: "Condicional",
@@ -796,7 +694,7 @@
         },
         {
           id: "12",
-          codigo: "HFR-001", // Código único
+          codigo: "NPA-014",
           title: "NOTA PRE ANESTÉSICA",
           url: "https://drive.google.com/file/d/1iBM76bN3TueUZ7HWaG-TPIm37yZ3b2QT/view?usp=sharing/preview",
           status: "Condicional",
@@ -804,7 +702,7 @@
         },
         {
           id: "12A",
-          codigo: "HFR-001", // Código único
+          codigo: "RAN-015",
           title: "REGISTRO DE ANESTESIA-NOTA POST ANESTÉSICA",
           url: "https://drive.google.com/file/d/1iBM76bN3TueUZ7HWaG-TPIm37yZ3b2QT/view?usp=sharing/preview",
           status: "Condicional",
@@ -812,7 +710,7 @@
         },
         {
           id: "13",
-          codigo: "HFR-001", // Código único
+          codigo: "LVS-016",
           title: "LISTA DE VERIFICACIÓN DE LA SEGURIDAD DE LA CIRUGIA",
           url: "",
           status: "Condicional",
@@ -820,7 +718,7 @@
         },
         {
           id: "14",
-          codigo: "HFR-001", // Código único
+          codigo: "NE-017",
           title: "NOTA DE EGRESO",
           url: "https://drive.google.com/file/d/1OQCzkiFXLGjZos1HG_9sZVvVjKHD4D8j/view?usp=sharing/preview",
           status: "Requerido",
@@ -828,7 +726,7 @@
         },
         {
           id: "14A",
-          codigo: "HFR-001", // Código único
+          codigo: "RC-018",
           title: "RESUMEN CLÍNICO",
           url: "https://drive.google.com/file/d/1tmtm3dOOA4wIvwyFtrmlIb22sHjyhI11/view?usp=sharing/preview",
           status: "Requerido",
@@ -836,7 +734,7 @@
         },
         {
           id: "14B",
-          codigo: "HFR-001", // Código único
+          codigo: "NEAC-019",
           title: "NOTA DE EGRESO ALOJAMIENTO CONJUNTO",
           url: "https://drive.google.com/file/d/1ZWHXlcXp-YAmDyWw2JcIvusZjJPj5gAy/view?usp=sharing/preview",
           status: "Condicional",
@@ -844,7 +742,7 @@
         },
         {
           id: "15",
-          codigo: "HFR-001", // Código único
+          codigo: "LAB-020",
           title: "LABORATORIALES",
           url: "https://drive.google.com/file/d/1lYZlAHHTzWB0yDYqC82SeHwbgIsNogmx/view?usp=sharing/preview",
           status: "Requerido",
@@ -852,7 +750,7 @@
         },
         {
           id: "16",
-          codigo: "HFR-001", // Código único
+          codigo: "PEG-021",
           title: "PARA PEGAR LOS ESTUDIOS DE GABINETE",
           url: "https://drive.google.com/file/d/1lYZlAHHTzWB0yDYqC82SeHwbgIsNogmx/view?usp=sharing/preview",
           status: "Requerido",
@@ -860,7 +758,7 @@
         },
         {
           id: "17",
-          codigo: "SINBA-SEUL-14-P-DGIS", // Código único
+          codigo: "SINBA-SEUL-14-P-DGIS",
           title: "HOJA DE HOSPITALIZACIÓN",
           url: "https://drive.google.com/file/d/191TnKV5UmZyLk-qwTq0PaQY0szdljaRx/view?usp=sharing/preview",
           status: "Requerido",
@@ -868,7 +766,7 @@
         },
         {
           id: "18",
-          codigo: "HFR-001", // Código único
+          codigo: "NRE-022",
           title: "NOTA Y REGISTRO DE ENFERMERIA",
           url: "",
           status: "Requerido",
@@ -876,7 +774,7 @@
         },
         {
           id: "19",
-          codigo: "HFR-001", // Código único
+          codigo: "VDP-023",
           title: "VIGILANCIA DIARIA PREVENCIÓN IAAS",
           url: "",
           status: "Requerido",
@@ -884,7 +782,7 @@
         },
         {
           id: "20",
-          codigo: "HFR-001", // Código único
+          codigo: "REQ-024",
           title: "REGISTRO DE ENFERMERÍA QUIRÓFANOS Y RECUPERACIÓN",
           url: "",
           status: "Condicional",
@@ -892,7 +790,7 @@
         },
         {
           id: "21",
-          codigo: "HFR-001", // Código único
+          codigo: "IMO-025",
           title: "INDICACIONES MÉDICAS EN ORDEN CRONOLÓGICO ASCENDENTE",
           url: "https://drive.google.com/file/d/1c8B_xW7o1hc4Bxi0MOKY3LnM1yxQ-e1n/view?usp=sharing/preview",
           status: "Requerido",
@@ -902,7 +800,7 @@
         },
         {
           id: "22",
-          codigo: "HFR-001", // Código único
+          codigo: "RTH-026",
           title: "REGISTRO DE TRANSFUSIONES DE HEMODERIVADOS",
           url: "",
           status: "Condicional",
@@ -910,7 +808,7 @@
         },
         {
           id: "23",
-          codigo: "HFR-001", // Código único
+          codigo: "NTS-027",
           title: "NOTA DE TRABAJO SOCIAL",
           url: "",
           status: "Requerido",
@@ -918,7 +816,7 @@
         },
         {
           id: "24",
-          codigo: "HFR-001", // Código único
+          codigo: "CCI-028",
           title: "CARTA(S) DE CONSENTIMIENTO INFORMADO",
           url: "https://drive.google.com/file/d/1q28YCv9oiJBjVJtw6eEl6QZv06MrA7Wd/view?usp=sharing/preview",
           status: "Requerido",
@@ -926,7 +824,7 @@
         },
         {
           id: "25",
-          codigo: "HFR-001", // Código único
+          codigo: "EV-029",
           title: "EGRESO VOLUNTARIO",
           url: "https://drive.google.com/file/d/1VXzpeg9Yc42DPGLWFC7HbtlgDN9GJjeu/view?usp=sharing/preview",
           status: "Condicional",
@@ -934,7 +832,7 @@
         },
         {
           id: "26",
-          codigo: "HFR-001", // Código único
+          codigo: "NMP-030",
           title: "NOTIFICACIÓN AL MINISTERIO PÚBLICO",
           url: "",
           status: "Condicional",
@@ -942,7 +840,7 @@
         },
         {
           id: "27",
-          codigo: "HFR-001", // Código único
+          codigo: "NDM-031",
           title: "NOTA DE DEFUNCIÓN Y MUERTE FETAL",
           url: "",
           status: "Condicional",
@@ -950,7 +848,7 @@
         },
         {
           id: "28",
-          codigo: "HFR-001", // Código único
+          codigo: "FRN-032",
           title: "FORMATO DE RECTIFICACIÓN DE NOMBRE DEL PACIENTE",
           url: "https://drive.google.com/file/d/1OSigei6xksCQXoGj-0YDaCVxE5NjhdLD/view?usp=sharing/preview",
           status: "Condicional",
@@ -958,7 +856,7 @@
         },
         {
           id: "29",
-          codigo: "HFR-001", // Código único
+          codigo: "ACM-033",
           title: "ACTIVACIÓN DE CÓDIGO MATER",
           url: "https://drive.google.com/file/d/1Q9Or0GRM_zDZv20p7Qo1tzqJL91b96KE/view?usp=sharing/preview",
           status: "Condicional",
@@ -966,7 +864,7 @@
         },
         {
           id: "30",
-          codigo: "HFR-001", // Código único
+          codigo: "CIC-034",
           title: "CURP, INE COMPROBANTE DE DOMICILIO, CARTA DE RESIDENTE",
           url: "",
           status: "Requerido",
@@ -974,7 +872,7 @@
         },
         {
           id: "31",
-          codigo: "HFR-001", // Código único
+          codigo: "HCH-035",
           title: "HOJA DE CONSUMO HOSPITAL Y URGENCIAS",
           url: "",
           status: "Requerido",
@@ -982,17 +880,22 @@
         },
         {
           id: "32",
-          codigo: "HFR-001", // Código único
+          codigo: "SINBA-SEUL-16-P DGIS",
           title: "HOJA DE URGENCIAS",
           url: "https://drive.google.com/file/d/1XsHxMAaUv_J9reJpmRAIle4ZRFSJ3B3h/view?usp=sharing/preview",
-          status: "Requerido",
+          status: "Condicional",
+          statusClass: "status-required",
+        },
+        {
+          id: "33",
+          codigo: "SINBA SEUL-17-P DGIS",
+          title: "HOJA DE VIOLENCIA Y/O LESIONES",
+          url: "https://drive.google.com/file/d/1hqKLQgbHE3gFO8HYbQ9i1BvE-TV43LgF/view?usp=sharing/preview",
+          status: "Condicional",
           statusClass: "status-required",
         },
       ];
 
-      // ============================================================
-      // FUNCIONES PARA GENERAR CELDAS Y BUSCAR
-      // ============================================================
       const grid = document.getElementById("gridContainer");
       const searchInput = document.getElementById("searchInput");
       const clearBtn = document.getElementById("clearSearchBtn");
@@ -1023,53 +926,18 @@
           celda.setAttribute("data-title", doc.title);
           celda.setAttribute("data-url", doc.url || "");
 
-          // ===== HEADER CON ID Y TÍTULO =====
-          const header = document.createElement("div");
-          header.className = "celda-header";
+          const numero = document.createElement("div");
+          numero.className = "celda-numero";
+          numero.textContent = doc.id;
 
-          // ID (sigue igual)
-          const idH3 = document.createElement("h3");
-          idH3.className = "celda-id";
-          idH3.textContent = doc.id;
-          idH3.style.cssText = `
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #00ff89;
-      margin: 0 8px 0 0;
-      min-width: 30px;
-      background: rgba(74, 158, 255, 0.15);
-      padding: 2px 10px;
-      border-radius: 6px;
-      display: inline-block;
-      flex-shrink: 0;
-    `;
-
-          // Título (sigue igual)
-          const title = document.createElement("h3");
+          const title = document.createElement("div");
           title.className = "celda-title";
           title.textContent = doc.title;
 
-          header.appendChild(idH3);
-          header.appendChild(title);
+          const codigo = document.createElement("div");
+          codigo.className = "celda-codigo";
+          codigo.textContent = doc.codigo || "Sin código";
 
-          // ===== NUEVO: CÓDIGO DEL DOCUMENTO =====
-          const codigoH3 = document.createElement("h3");
-          codigoH3.className = "celda-codigo";
-          codigoH3.textContent = doc.codigo || "Sin código"; // Si no tiene código, muestra "Sin código"
-          codigoH3.style.cssText = `
-      font-size: .95rem;
-      font-weight: 300;
-      color: #fff;
-      margin: 2px 0 4px 0;
-      padding: 2px 12px;
-      background: rgba(255, 221, 0, 0.12);
-      border-radius: 12px;
-      display: inline-block;
-      border: 1px solid rgba(255, 221, 0, 0.15);
-      letter-spacing: 0.5px;
-    `;
-
-          // ===== STATUS WRAPPER =====
           const statusWrapper = document.createElement("div");
           statusWrapper.className = "celda-status-wrapper";
 
@@ -1086,9 +954,9 @@
             statusWrapper.appendChild(extraSpan);
           }
 
-          // ===== ARMAR LA CELDA =====
-          celda.appendChild(header);
-          celda.appendChild(codigoH3); // <--- Agregamos el código
+          celda.appendChild(numero);
+          celda.appendChild(title);
+          celda.appendChild(codigo);
           celda.appendChild(statusWrapper);
 
           celda.addEventListener("click", function (e) {
@@ -1106,9 +974,6 @@
         }
       }
 
-      // ============================================================
-      // FUNCIONES DEL MODAL
-      // ============================================================
       let currentDocumentUrl = "";
 
       function openModal(celda) {
@@ -1130,7 +995,6 @@
           loadingSpinner.style.display = "flex";
           documentFrame.style.display = "none";
 
-          // Mostrar estado de carga en el glass
           setGlassState("loading");
 
           documentFrame.onload = function () {
@@ -1179,9 +1043,6 @@
           }, 10);
         } else {
           setGlassState("error");
-          alert(
-            `📋 Documento #${docId}: ${docTitle}\n\nEstoy trabajando para mostrarte el PDF de este documento.`,
-          );
         }
       }
 
@@ -1196,7 +1057,6 @@
           documentFrame.src = "";
           documentFrame.style.display = "none";
           loadingSpinner.style.display = "flex";
-          // Resetear estado del glass
           setGlassState(null);
         }, 300);
       }
@@ -1206,9 +1066,6 @@
           const viewUrl = currentDocumentUrl.replace("/preview", "/view");
           const printWindow = window.open(viewUrl, "_blank");
           if (!printWindow) {
-            alert(
-              'Por favor, permite ventanas emergentes para imprimir. O haz clic derecho en el enlace y selecciona "Abrir en nueva pestaña".',
-            );
             const tempLink = document.createElement("a");
             tempLink.href = viewUrl;
             tempLink.target = "_blank";
@@ -1229,9 +1086,6 @@
         return driveUrl;
       }
 
-      // ============================================================
-      // EVENTOS Y DOMContentLoaded
-      // ============================================================
       document.addEventListener("DOMContentLoaded", function () {
         renderCeldas();
 
@@ -1272,7 +1126,6 @@
           }
         });
 
-        // Cargar header y footer
         fetch("/comun/header-archivo.html")
           .then((r) => r.text())
           .then((html) => {
