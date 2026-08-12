@@ -562,6 +562,50 @@
       }
 
       /* ============================================
+   NÚMERO DE ORDEN EN LA TARJETA
+   ============================================ */
+.card-item {
+  position: relative;
+  overflow: visible;
+}
+
+.card-item-number {
+  position: absolute;
+  top: 12px;
+  right: 20px;
+  font-size: 3.5rem;
+  font-weight: 800;
+  color: rgba(163, 177, 198, 0.12);
+  pointer-events: none;
+  user-select: none;
+  line-height: 1;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  z-index: 0;
+}
+
+/* El contenido debe estar por encima */
+.card-item .card-body {
+  position: relative;
+  z-index: 1;
+}
+
+@media (max-width: 768px) {
+  .card-item-number {
+    font-size: 2.8rem;
+    top: 10px;
+    right: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-item-number {
+    font-size: 2.2rem;
+    top: 8px;
+    right: 10px;
+  }
+}
+
+      /* ============================================
    CARD BODY - 4 COLUMNAS
    ============================================ */
       .card-body {
@@ -1920,81 +1964,79 @@
       // RENDER CARDS
       // ============================================
       function renderCards() {
-        if (state.data.length === 0) {
-          cardsContainer.innerHTML = `
-            <div class="empty-state">
-              <span class="icon">📭</span>
-              No hay registros
-            </div>
-          `;
-          return;
-        }
+  if (state.data.length === 0) {
+    cardsContainer.innerHTML = `
+      <div class="empty-state">
+        <span class="icon">📭</span>
+        No hay registros
+      </div>
+    `;
+    return;
+  }
 
-        const columnCount = state.headers.length;
-        const rowCount = state.data.length;
-        const tabLabel =
-          TABS.find((t) => t.id === state.currentTab)?.label ||
-          state.currentTab;
+  const columnCount = state.headers.length;
+  const rowCount = state.data.length;
+  const tabLabel =
+    TABS.find((t) => t.id === state.currentTab)?.label ||
+    state.currentTab;
 
-        sheetNameDisplay.textContent = tabLabel;
-        rowCountDisplay.textContent = `${rowCount} registros · ${columnCount} columnas`;
+  sheetNameDisplay.textContent = tabLabel;
+  rowCountDisplay.textContent = `${rowCount} registros · ${columnCount} columnas`;
 
-        let html = '<div class="cards-grid">';
+  let html = '<div class="cards-grid">';
 
-        state.data.forEach((row, rowIndex) => {
-          // NÚMERO DE ORDEN CONTINUO (comienza en 1)
-          const orderNumber = rowIndex + 1;
+  state.data.forEach((row, rowIndex) => {
+    const orderNumber = rowIndex + 1;
 
-          html += `
-            <div class="card-item" data-row="${rowIndex}">
-              <div class="card-body">
-          `;
+    html += `
+      <div class="card-item" data-row="${rowIndex}">
+        <div class="card-item-number">${orderNumber}</div>
+        <div class="card-body">
+    `;
 
-          state.headers.forEach((header) => {
-            const value = row[header] || "";
-            const fieldId = `field_${rowIndex}_${header.replace(/\s+/g, "_")}`;
-            const isEditing =
-              state.editingFields[`${rowIndex}_${header}`] || false;
+    state.headers.forEach((header) => {
+      const value = row[header] || "";
+      const fieldId = `field_${rowIndex}_${header.replace(/\s+/g, "_")}`;
+      const isEditing = state.editingFields[`${rowIndex}_${header}`] || false;
 
-            html += `
-              <div class="card-field ${isEditing ? "editing" : ""}" 
-                   data-row="${rowIndex}" 
-                   data-header="${header}"
-                   onclick="if(!this.classList.contains('editing')) startFieldEdit(${rowIndex}, '${header}')">
-                <span class="order-number">${orderNumber}</span>
-                <span class="field-label">${header}</span>
-            `;
+      html += `
+        <div class="card-field ${isEditing ? "editing" : ""}" 
+             data-row="${rowIndex}" 
+             data-header="${header}"
+             onclick="if(!this.classList.contains('editing')) startFieldEdit(${rowIndex}, '${header}')">
+          <span class="field-label">${header}</span>
+      `;
 
-            if (isEditing) {
-              html += `
-                <input class="field-input" id="${fieldId}" type="text" value="${value}" 
-                       data-row="${rowIndex}" data-header="${header}" 
-                       onkeydown="if(event.key==='Enter') saveFieldEdit(${rowIndex}, '${header}')" />
-              `;
-              html += `
-                <div class="field-actions">
-                  <button class="save-btn" onclick="event.stopPropagation(); saveFieldEdit(${rowIndex}, '${header}')">💾</button>
-                  <button class="cancel-btn" onclick="event.stopPropagation(); cancelFieldEdit(${rowIndex}, '${header}')">✕</button>
-                </div>
-              `;
-            } else {
-              html += `
-                <span class="field-value ${value ? "" : "empty"}">${value || "—"}</span>
-              `;
-            }
-
-            html += `</div>`;
-          });
-
-          html += `
-              </div>
-            </div>
-          `;
-        });
-
-        html += "</div>";
-        cardsContainer.innerHTML = html;
+      if (isEditing) {
+        html += `
+          <input class="field-input" id="${fieldId}" type="text" value="${value}" 
+                 data-row="${rowIndex}" data-header="${header}" 
+                 onkeydown="if(event.key==='Enter') saveFieldEdit(${rowIndex}, '${header}')" />
+        `;
+        html += `
+          <div class="field-actions">
+            <button class="save-btn" onclick="event.stopPropagation(); saveFieldEdit(${rowIndex}, '${header}')">💾</button>
+            <button class="cancel-btn" onclick="event.stopPropagation(); cancelFieldEdit(${rowIndex}, '${header}')">✕</button>
+          </div>
+        `;
+      } else {
+        html += `
+          <span class="field-value ${value ? "" : "empty"}">${value || "—"}</span>
+        `;
       }
+
+      html += `</div>`;
+    });
+
+    html += `
+        </div>
+      </div>
+    `;
+  });
+
+  html += "</div>";
+  cardsContainer.innerHTML = html;
+}
 
       // ============================================
       // EDICIÓN DE CAMPO INDIVIDUAL (en línea)
