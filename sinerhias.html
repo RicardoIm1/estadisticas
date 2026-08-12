@@ -1830,7 +1830,6 @@
 
   let html = '<div class="cards-grid">';
   
-  // CONTADOR GLOBAL PARA TODOS LOS CAMPOS
   let globalFieldCounter = 0;
 
   state.data.forEach((row, rowIndex) => {
@@ -1840,7 +1839,6 @@
     `;
 
     state.headers.forEach((header) => {
-      // INCREMENTAR EL CONTADOR PARA CADA CAMPO
       globalFieldCounter++;
       const fieldNumber = globalFieldCounter;
 
@@ -1858,26 +1856,31 @@
       `;
 
       if (isEditing) {
-  html += `
-    <input class="field-input" id="${fieldId}" type="text" value="${value}" 
-           data-row="${rowIndex}" data-header="${header}" 
-           onkeydown="if(event.key==='Enter') saveFieldEdit(${rowIndex}, '${header}')" />
-  `;
-  html += `
-    <div class="field-actions">
-      <div class="btn-group-left">
-        <button class="cancel-btn" onclick="event.stopPropagation(); cancelFieldEdit(${rowIndex}, '${header}')">
-          <span>✕</span> Cancelar
-        </button>
-      </div>
-      <div class="btn-group-right">
-        <button class="save-btn" onclick="event.stopPropagation(); saveFieldEdit(${rowIndex}, '${header}')">
-          <span>✓</span> Guardar
-        </button>
-      </div>
-    </div>
-  `;
-}
+        html += `
+          <input class="field-input" id="${fieldId}" type="text" value="${value}" 
+                 data-row="${rowIndex}" data-header="${header}" 
+                 onkeydown="if(event.key==='Enter') saveFieldEdit(${rowIndex}, '${header}')" />
+        `;
+        html += `
+          <div class="field-actions">
+            <div class="btn-group-left">
+              <button class="cancel-btn" onclick="event.stopPropagation(); cancelFieldEdit(${rowIndex}, '${header}')">
+                <span>✕</span> Cancelar
+              </button>
+            </div>
+            <div class="btn-group-right">
+              <button class="save-btn" onclick="event.stopPropagation(); saveFieldEdit(${rowIndex}, '${header}')">
+                <span>✓</span> Guardar
+              </button>
+            </div>
+          </div>
+        `;
+      } else {
+        // ← ESTO ES LO QUE FALTABA: mostrar el valor del campo
+        html += `
+          <span class="field-value ${value ? "" : "empty"}">${value || "—"}</span>
+        `;
+      }
 
       html += `</div>`;
     });
