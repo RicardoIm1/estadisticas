@@ -6,381 +6,294 @@
     <title>Sistema Profesional de Oficios</title>
 
     <!-- Librerías -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
+    </script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet" />
 
     <style>
-      /* ==================== ESTILOS COMPLETOS ==================== */
+      /* === BASE GENERAL === */
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
 
+      html,
       body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        background: #f0f2f5;
-        padding: 20px;
-      }
-
-      .container {
-        max-width: 1500px;
-        margin: 0 auto;
-      }
-
-      /* Header */
-      .header {
-        background: linear-gradient(135deg, #1e3a5f 0%, #2d6da8 100%);
+        height: 100%;
+        width: 100%;
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #2c3e50, #4a6a85, #7dacbf);
+        background-attachment: fixed;
+        overflow: hidden;
         color: white;
-        padding: 20px 30px;
-        border-radius: 12px;
-        margin-bottom: 30px;
+        font-size: 12px;
+        font-size: clamp(0.85rem, 0.9vw, 0.85rem);
+      }
+
+      /* === ESTRUCTURA FLEXIBLE === */
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2vh;
+      }
+
+      /* === PANEL PRINCIPAL (GLASS) === */
+      .glass {
+        display: flex;
+        flex-direction: column;
+        height: 92vh;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        transition: all 0.3s ease;
+        padding: 1.2rem 1.5rem;
+        width: min(94%, 1600px);
+        overflow: hidden;
+      }
+
+      .glass.loading {
+        background: rgba(0, 123, 255, 0.15);
+      }
+
+      .glass.success {
+        background: rgba(40, 167, 69, 0.2);
+      }
+
+      .glass.error {
+        background: rgba(240, 50, 60, 0.45);
+      }
+
+      /* === HEADER === */
+      .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         flex-wrap: wrap;
-        gap: 15px;
+        gap: 0.5rem;
+        padding: 0.3rem 0 0.6rem 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        flex-shrink: 0;
       }
 
-      .header h1 {
-        font-size: 26px;
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+      }
+
+      .logo-icon {
+        font-size: 2rem;
+        color: #ffdd00;
+      }
+
+      .logo h1 {
+        font-size: clamp(1rem, 1.5vw, 1.4rem);
+        font-weight: 600;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      }
+
+      .logo .subtitle {
+        opacity: 0.7;
+        font-size: 0.75rem;
         font-weight: 300;
-      }
-
-      .header .subtitle {
-        opacity: 0.9;
-        font-size: 14px;
+        display: block;
+        color: rgba(255, 255, 255, 0.7);
       }
 
       .header-actions {
         display: flex;
-        gap: 10px;
+        gap: 0.5rem;
         flex-wrap: wrap;
       }
 
-      /* Stats */
-      .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 20px;
-        margin-bottom: 30px;
-      }
-
-      .stat-card {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        text-align: center;
-        transition: transform 0.2s;
-        cursor: pointer;
-      }
-
-      .stat-card:hover {
-        transform: translateY(-5px);
-      }
-
-      .stat-card .number {
-        font-size: 36px;
-        font-weight: bold;
-        color: #1e3a5f;
-      }
-
-      .stat-card .label {
-        color: #666;
-        font-size: 14px;
-        margin-top: 5px;
-      }
-
-      .stat-card .icon {
-        font-size: 28px;
-        margin-bottom: 10px;
-      }
-
-      .stat-card.pendientes .number {
-        color: #f59e0b;
-      }
-      .stat-card.respondidos .number {
-        color: #10b981;
-      }
-      .stat-card.vencidos .number {
-        color: #ef4444;
-      }
-      .stat-card.urgentes .number {
-        color: #dc2626;
-      }
-
-      /* Formulario */
-      .form-section {
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        margin-bottom: 30px;
-      }
-
-      .form-section h2 {
-        margin-bottom: 20px;
-        color: #1e3a5f;
-        font-size: 20px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .form-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 15px;
-      }
-
-      .form-group {
-        display: flex;
-        flex-direction: column;
-      }
-
-      .form-group label {
-        font-size: 13px;
-        font-weight: 600;
-        color: #555;
-        margin-bottom: 5px;
-      }
-
-      .form-group label .required {
-        color: #ef4444;
-      }
-
-      .form-group input,
-      .form-group select,
-      .form-group textarea {
-        padding: 10px 12px;
-        border: 2px solid #e5e7eb;
+      /* === BOTONES === */
+      button {
+        padding: 0.4rem 1rem;
         border-radius: 8px;
-        font-size: 14px;
-        transition: all 0.3s;
-        font-family: inherit;
-      }
-
-      .form-group input:focus,
-      .form-group select:focus,
-      .form-group textarea:focus {
-        outline: none;
-        border-color: #2d6da8;
-        box-shadow: 0 0 0 3px rgba(45, 109, 168, 0.1);
-      }
-
-      .form-group textarea {
-        resize: vertical;
-        min-height: 80px;
-      }
-
-      .form-group.full-width {
-        grid-column: 1 / -1;
-      }
-
-      .btn {
-        padding: 12px 28px;
-        border: none;
-        border-radius: 8px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .btn-primary {
-        background: linear-gradient(135deg, #1e3a5f 0%, #2d6da8 100%);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.08);
         color: white;
+        font-weight: 600;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: 'Poppins', sans-serif;
+        white-space: nowrap;
       }
 
-      .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(45, 109, 168, 0.4);
+      button:hover {
+        background: rgba(255, 255, 255, 0.15);
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+      }
+
+      button:active {
+        transform: scale(0.97);
+        opacity: 0.9;
       }
 
       .btn-success {
-        background: #10b981;
-        color: white;
+        background: rgba(40, 167, 69, 0.25);
+        border-color: rgba(40, 167, 69, 0.3);
       }
 
       .btn-success:hover {
-        background: #059669;
-        transform: translateY(-2px);
-      }
-
-      .btn-danger {
-        background: #ef4444;
-        color: white;
-      }
-
-      .btn-danger:hover {
-        background: #dc2626;
+        background: rgba(40, 167, 69, 0.35);
       }
 
       .btn-warning {
-        background: #f59e0b;
-        color: white;
+        background: rgba(255, 193, 7, 0.2);
+        border-color: rgba(255, 193, 7, 0.25);
       }
 
       .btn-warning:hover {
-        background: #d97706;
-      }
-
-      .btn-secondary {
-        background: #6b7280;
-        color: white;
-      }
-
-      .btn-secondary:hover {
-        background: #4b5563;
+        background: rgba(255, 193, 7, 0.3);
       }
 
       .btn-outline {
         background: transparent;
-        border: 2px solid #2d6da8;
-        color: #2d6da8;
+        border: 1px solid rgba(255, 255, 255, 0.2);
       }
 
       .btn-outline:hover {
-        background: #2d6da8;
-        color: white;
+        background: rgba(255, 255, 255, 0.08);
       }
 
-      /* Tabla */
-      .table-section {
-        background: white;
-        padding: 25px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      .btn-primary {
+        background: rgba(0, 123, 255, 0.25);
+        border-color: rgba(0, 123, 255, 0.3);
       }
 
-      .table-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-        flex-wrap: wrap;
-        gap: 15px;
+      .btn-primary:hover {
+        background: rgba(0, 123, 255, 0.35);
       }
 
-      .table-header h2 {
-        color: #1e3a5f;
-        font-size: 20px;
+      .btn-danger {
+        background: rgba(220, 53, 69, 0.2);
+        border-color: rgba(220, 53, 69, 0.25);
       }
 
-      .table-controls {
-        display: flex;
-        gap: 10px;
-        flex-wrap: wrap;
+      .btn-danger:hover {
+        background: rgba(220, 53, 69, 0.3);
       }
 
-      .table-controls input,
-      .table-controls select {
-        padding: 8px 14px;
-        border: 2px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: all 0.3s;
+      .btn-salir-ultra {
+        background: transparent;
+        color: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        padding: 0.3rem 0.8rem;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.7rem;
+        font-weight: 300;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
       }
 
-      .table-controls input:focus,
-      .table-controls select:focus {
-        outline: none;
-        border-color: #2d6da8;
+      .btn-salir-ultra:hover {
+        color: rgba(255, 255, 255, 1);
+        border-color: rgba(255, 255, 255, 0.3);
+        background: rgba(240, 50, 60, 0.05);
+        transform: translateY(-1px);
       }
 
-      .table-wrapper {
-        overflow-x: auto;
-      }
-
-      table {
+      /* === CONTENIDO SCROLLABLE === */
+      .contenido {
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        margin: 0.5rem 0;
+        padding-right: 0.3rem;
         width: 100%;
-        border-collapse: collapse;
-        font-size: 14px;
       }
 
-      thead {
-        background: #f8fafc;
+      .contenido::-webkit-scrollbar {
+        width: 6px;
       }
 
-      th {
-        padding: 12px 15px;
-        text-align: left;
-        font-weight: 600;
-        color: #1e3a5f;
-        border-bottom: 2px solid #e5e7eb;
-        white-space: nowrap;
+      .contenido::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
       }
 
-      td {
-        padding: 12px 15px;
-        border-bottom: 1px solid #e5e7eb;
-        vertical-align: middle;
+      .contenido::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
       }
 
-      tr:hover {
-        background: #f8fafc;
+      .contenido::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.25);
       }
 
-      /* Badges */
-      .estado-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        display: inline-block;
-        white-space: nowrap;
+      /* === GRID DE INDICADORES === */
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 0.8rem;
+        margin-bottom: 1rem;
+        grid-auto-rows: minmax(75px, auto);
       }
 
-      .estado-borrador {
-        background: #e5e7eb;
-        color: #374151;
-      }
-      .estado-emitido {
-        background: #bfdbfe;
-        color: #1e40af;
-      }
-      .estado-en-proceso {
-        background: #fef3c7;
-        color: #92400e;
-      }
-      .estado-respondido {
-        background: #d1fae5;
-        color: #065f46;
-      }
-      .estado-archivado {
-        background: #e0e7ff;
-        color: #3730a3;
-      }
-      .estado-anulado {
-        background: #fecaca;
-        color: #991b1b;
+      .celda {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 12px;
+        padding: 0.8rem 1rem;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+        will-change: transform, box-shadow;
       }
 
-      .prioridad-badge {
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 12px;
-        font-weight: 600;
-        display: inline-block;
-        white-space: nowrap;
+      .celda:hover {
+        transform: translateY(-3px) scale(1.02);
+        background: rgba(255, 255, 255, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
       }
 
-      .prioridad-alta {
-        background: #fecaca;
-        color: #991b1b;
+      .celda .icon {
+        display: block;
+        font-size: 1.4rem;
+        margin-bottom: 0.2rem;
+        color: #ffdd00;
+      }
+
+      .celda .number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1.2;
+      }
+
+      .celda .label {
+        opacity: 0.7;
+        font-size: 0.7rem;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.8);
+        margin-top: 0.1rem;
+      }
+
+      .celda.pendientes .number {
+        color: #ffc107;
+      }
+      .celda.respondidos .number {
+        color: #28a745;
+      }
+      .celda.vencidos .number {
+        color: #dc3545;
+      }
+      .celda.urgentes .number {
+        color: #ff6b6b;
         animation: pulse 2s infinite;
-      }
-      .prioridad-media {
-        background: #fef3c7;
-        color: #92400e;
-      }
-      .prioridad-baja {
-        background: #d1fae5;
-        color: #065f46;
       }
 
       @keyframes pulse {
@@ -389,60 +302,391 @@
           opacity: 1;
         }
         50% {
-          opacity: 0.7;
+          opacity: 0.6;
         }
       }
 
-      /* Botones de acción */
+      /* === ALERTAS === */
+      .alerta-vencimiento {
+        background: rgba(220, 53, 69, 0.15);
+        border: 1px solid rgba(220, 53, 69, 0.2);
+        color: #f8d7da;
+        padding: 0.6rem 1rem;
+        border-radius: 10px;
+        margin-bottom: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        font-size: 0.8rem;
+        backdrop-filter: blur(4px);
+      }
+
+      .alerta-vencimiento .icono {
+        font-size: 1.2rem;
+      }
+
+      .alerta-vencimiento button {
+        padding: 0.2rem 0.8rem;
+        font-size: 0.65rem;
+        margin-left: 0.5rem;
+      }
+
+      /* === FORMULARIO === */
+      .form-section {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px;
+        padding: 1rem 1.2rem;
+        margin-bottom: 0.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .form-section h2 {
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-bottom: 0.8rem;
+        color: rgba(255, 255, 255, 0.9);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.6rem;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group label {
+        font-size: 0.65rem;
+        font-weight: 400;
+        color: rgba(255, 255, 255, 0.7);
+        margin-bottom: 0.2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .form-group label .required {
+        color: #ff6b6b;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        padding: 0.4rem 0.6rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        font-size: 0.75rem;
+        transition: all 0.3s;
+        font-family: 'Poppins', sans-serif;
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+      }
+
+      .form-group input::placeholder,
+      .form-group textarea::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.05);
+      }
+
+      .form-group select option {
+        background: #2c3e50;
+        color: white;
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 50px;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-top: 0.6rem;
+      }
+
+      /* === TABLA === */
+      .table-section {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 12px;
+        padding: 0.8rem;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        margin-top: 0.2rem;
+      }
+
+      .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.6rem;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .table-header h2 {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      .table-controls {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .table-controls input,
+      .table-controls select {
+        padding: 0.3rem 0.6rem;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        font-size: 0.7rem;
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        font-family: 'Poppins', sans-serif;
+        transition: all 0.3s;
+      }
+
+      .table-controls input::placeholder {
+        color: rgba(255, 255, 255, 0.3);
+      }
+
+      .table-controls input:focus,
+      .table-controls select:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .table-controls select option {
+        background: #2c3e50;
+        color: white;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .table-wrapper::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+
+      .table-wrapper::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.7rem;
+      }
+
+      thead {
+        background: rgba(255, 255, 255, 0.05);
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+
+      th {
+        padding: 0.5rem 0.6rem;
+        text-align: left;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        white-space: nowrap;
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      td {
+        padding: 0.4rem 0.6rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        vertical-align: middle;
+        color: rgba(255, 255, 255, 0.9);
+      }
+
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      /* === BADGES === */
+      .estado-badge {
+        padding: 0.15rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .estado-borrador {
+        background: rgba(108, 117, 125, 0.3);
+        color: #adb5bd;
+      }
+      .estado-emitido {
+        background: rgba(0, 123, 255, 0.25);
+        color: #6ea8fe;
+      }
+      .estado-en-proceso {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+      }
+      .estado-respondido {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+      }
+      .estado-archivado {
+        background: rgba(111, 66, 193, 0.2);
+        color: #b78cff;
+      }
+      .estado-anulado {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+      }
+
+      .prioridad-badge {
+        padding: 0.15rem 0.6rem;
+        border-radius: 20px;
+        font-size: 0.6rem;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .prioridad-alta {
+        background: rgba(220, 53, 69, 0.2);
+        color: #ff6b6b;
+        animation: pulse 2s infinite;
+      }
+      .prioridad-media {
+        background: rgba(255, 193, 7, 0.15);
+        color: #ffc107;
+      }
+      .prioridad-baja {
+        background: rgba(40, 167, 69, 0.15);
+        color: #28a745;
+      }
+
+      /* === BOTONES DE ACCIÓN === */
       .btn-accion {
-        padding: 6px 12px;
+        padding: 0.15rem 0.5rem;
         border: none;
         border-radius: 6px;
         cursor: pointer;
-        font-size: 12px;
-        margin: 2px;
+        font-size: 0.6rem;
+        margin: 1px;
         transition: all 0.2s;
         font-weight: 500;
         display: inline-flex;
         align-items: center;
-        gap: 4px;
+        gap: 2px;
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.8);
+        font-family: 'Poppins', sans-serif;
       }
 
       .btn-accion:hover {
         transform: scale(1.05);
+        background: rgba(255, 255, 255, 0.12);
       }
 
       .btn-accion-imprimir {
-        background: #8b5cf6;
-        color: white;
+        background: rgba(111, 66, 193, 0.2);
+        color: #b78cff;
       }
+      .btn-accion-imprimir:hover {
+        background: rgba(111, 66, 193, 0.3);
+      }
+
       .btn-accion-pdf {
-        background: #dc2626;
-        color: white;
+        background: rgba(220, 53, 69, 0.15);
+        color: #ff6b6b;
       }
+      .btn-accion-pdf:hover {
+        background: rgba(220, 53, 69, 0.25);
+      }
+
       .btn-accion-estado {
-        background: #f59e0b;
-        color: white;
+        background: rgba(255, 193, 7, 0.15);
+        color: #ffc107;
       }
+      .btn-accion-estado:hover {
+        background: rgba(255, 193, 7, 0.25);
+      }
+
       .btn-accion-eliminar {
-        background: #ef4444;
-        color: white;
+        background: rgba(220, 53, 69, 0.15);
+        color: #ff6b6b;
       }
+      .btn-accion-eliminar:hover {
+        background: rgba(220, 53, 69, 0.25);
+      }
+
       .btn-accion-ver {
-        background: #2d6da8;
-        color: white;
+        background: rgba(0, 123, 255, 0.15);
+        color: #6ea8fe;
       }
+      .btn-accion-ver:hover {
+        background: rgba(0, 123, 255, 0.25);
+      }
+
       .btn-accion-comentar {
-        background: #10b981;
-        color: white;
+        background: rgba(40, 167, 69, 0.15);
+        color: #28a745;
+      }
+      .btn-accion-comentar:hover {
+        background: rgba(40, 167, 69, 0.25);
       }
 
       .file-input-small {
-        font-size: 11px;
-        width: 85px;
+        font-size: 0.55rem;
+        width: 70px;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 6px;
+        padding: 0.1rem 0.2rem;
       }
 
-      /* Modal */
+      .file-input-small::-webkit-file-upload-button {
+        background: rgba(255, 255, 255, 0.05);
+        border: none;
+        border-radius: 4px;
+        color: rgba(255, 255, 255, 0.7);
+        padding: 0.1rem 0.4rem;
+        font-size: 0.5rem;
+        cursor: pointer;
+        font-family: 'Poppins', sans-serif;
+      }
+
+      /* === MODAL === */
       .modal-overlay {
         display: none;
         position: fixed;
@@ -450,7 +694,9 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: rgba(0, 0, 0, 0.5);
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
         z-index: 1000;
         justify-content: center;
         align-items: center;
@@ -461,96 +707,106 @@
       }
 
       .modal {
-        background: white;
-        border-radius: 12px;
-        max-width: 800px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        max-width: 700px;
         width: 95%;
         max-height: 90vh;
         overflow-y: auto;
-        padding: 30px;
+        padding: 1.5rem 2rem;
         animation: modalAnim 0.3s ease;
+        color: white;
       }
 
       @keyframes modalAnim {
         from {
-          transform: translateY(-50px);
+          transform: translateY(-30px) scale(0.95);
           opacity: 0;
         }
         to {
-          transform: translateY(0);
+          transform: translateY(0) scale(1);
           opacity: 1;
         }
+      }
+
+      .modal::-webkit-scrollbar {
+        width: 5px;
+      }
+
+      .modal::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 8px;
       }
 
       .modal-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 20px;
-        border-bottom: 2px solid #e5e7eb;
-        padding-bottom: 15px;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        padding-bottom: 0.8rem;
       }
 
       .modal-header h2 {
-        color: #1e3a5f;
+        color: white;
+        font-size: 1rem;
+        font-weight: 600;
       }
 
       .modal-close {
         background: none;
         border: none;
-        font-size: 28px;
+        font-size: 1.5rem;
         cursor: pointer;
-        color: #6b7280;
+        color: rgba(255, 255, 255, 0.5);
         transition: 0.3s;
+        padding: 0 0.5rem;
       }
 
       .modal-close:hover {
-        color: #ef4444;
+        color: #ff6b6b;
         transform: rotate(90deg);
       }
 
       .modal-body {
-        line-height: 1.8;
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.8rem;
       }
 
-      /* Comentarios */
       .comentario-item {
-        background: #f8fafc;
-        padding: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 0.6rem 0.8rem;
         border-radius: 8px;
-        margin-bottom: 10px;
-        border-left: 4px solid #2d6da8;
+        margin-bottom: 0.5rem;
+        border-left: 3px solid rgba(255, 255, 255, 0.15);
       }
 
       .comentario-item .meta {
-        font-size: 12px;
-        color: #6b7280;
-        margin-bottom: 5px;
+        font-size: 0.6rem;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 0.2rem;
       }
 
       .comentario-item .texto {
-        color: #1e3a5f;
-      }
-
-      /* Adjuntos */
-      .adjuntos-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
+        font-size: 0.75rem;
       }
 
       .adjunto-item {
-        background: #f3f4f6;
-        padding: 5px 12px;
+        background: rgba(255, 255, 255, 0.06);
+        padding: 0.15rem 0.6rem;
         border-radius: 6px;
-        font-size: 12px;
-        display: flex;
+        font-size: 0.6rem;
+        display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 0.3rem;
       }
 
       .adjunto-item a {
-        color: #2d6da8;
+        color: #6ea8fe;
         text-decoration: none;
       }
 
@@ -558,356 +814,417 @@
         text-decoration: underline;
       }
 
-      /* Toast */
+      /* === TOAST === */
       .toast {
         position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 15px 25px;
-        border-radius: 10px;
+        bottom: 30px;
+        right: 30px;
+        padding: 0.8rem 1.5rem;
+        border-radius: 12px;
         color: white;
         font-weight: 500;
+        font-size: 0.8rem;
         z-index: 2000;
-        transform: translateX(450px);
-        transition: transform 0.4s ease;
+        transform: translateY(100px);
+        opacity: 0;
+        transition: all 0.4s ease;
         max-width: 400px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        font-family: 'Poppins', sans-serif;
       }
 
       .toast.show {
-        transform: translateX(0);
+        transform: translateY(0);
+        opacity: 1;
       }
 
       .toast.success {
-        background: #10b981;
+        background: rgba(40, 167, 69, 0.3);
+        border-color: rgba(40, 167, 69, 0.2);
       }
       .toast.error {
-        background: #ef4444;
+        background: rgba(220, 53, 69, 0.3);
+        border-color: rgba(220, 53, 69, 0.2);
       }
       .toast.info {
-        background: #2d6da8;
+        background: rgba(0, 123, 255, 0.25);
+        border-color: rgba(0, 123, 255, 0.15);
       }
       .toast.warning {
-        background: #f59e0b;
+        background: rgba(255, 193, 7, 0.2);
+        border-color: rgba(255, 193, 7, 0.15);
       }
 
-      /* Loading */
-      .loading {
+      /* === FOOTER === */
+      .glass footer {
+        flex-shrink: 0;
         text-align: center;
-        padding: 40px;
-        color: #6b7280;
+        font-size: 0.6rem;
+        color: rgba(255, 255, 255, 0.3);
+        padding: 0.4rem 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        margin-top: 0.3rem;
+        letter-spacing: 0.5px;
       }
 
-      /* Alertas de vencimiento */
-      .alerta-vencimiento {
-        background: #fef2f2;
-        border: 1px solid #fecaca;
-        color: #991b1b;
-        padding: 10px 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      .alerta-vencimiento .icono {
-        font-size: 20px;
-      }
-
-      /* Responsive */
+      /* === RESPONSIVIDAD === */
       @media (max-width: 768px) {
+        .glass {
+          width: 98%;
+          height: 95vh;
+          padding: 0.8rem 1rem;
+        }
+
         .header {
           flex-direction: column;
           text-align: center;
+          gap: 0.3rem;
         }
 
-        .stats-grid {
+        .grid {
           grid-template-columns: repeat(2, 1fr);
+          gap: 0.5rem;
+        }
+
+        .celda .number {
+          font-size: 1.4rem;
         }
 
         .form-grid {
           grid-template-columns: 1fr;
         }
 
-        .table-header {
-          flex-direction: column;
-          align-items: stretch;
-        }
-
         .table-controls {
           flex-direction: column;
+          width: 100%;
+        }
+
+        .table-controls input,
+        .table-controls select {
+          width: 100%;
         }
 
         td,
         th {
-          padding: 8px 10px;
-          font-size: 12px;
+          padding: 0.3rem 0.4rem;
+          font-size: 0.6rem;
         }
 
         .btn-accion {
-          font-size: 10px;
-          padding: 4px 8px;
+          font-size: 0.5rem;
+          padding: 0.1rem 0.3rem;
         }
 
         .modal {
-          padding: 20px;
+          padding: 1rem;
+        }
+
+        .header-actions {
+          justify-content: center;
+        }
+
+        .logo h1 {
+          font-size: 1rem;
         }
       }
 
-      /* Scrollbar */
-      ::-webkit-scrollbar {
-        width: 8px;
-        height: 8px;
+      @media (max-width: 480px) {
+        .grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 0.4rem;
+        }
+
+        .celda {
+          padding: 0.5rem;
+        }
+
+        .celda .number {
+          font-size: 1.2rem;
+        }
+
+        .celda .label {
+          font-size: 0.55rem;
+        }
+
+        .glass {
+          padding: 0.5rem;
+        }
+
+        .form-section {
+          padding: 0.6rem;
+        }
+
+        .table-section {
+          padding: 0.5rem;
+        }
+
+        button {
+          font-size: 0.6rem;
+          padding: 0.2rem 0.6rem;
+        }
       }
 
-      ::-webkit-scrollbar-track {
-        background: #f1f1f1;
+      /* === LOADING === */
+      .loading {
+        text-align: center;
+        padding: 2rem;
+        color: rgba(255, 255, 255, 0.5);
+        font-size: 0.85rem;
       }
 
-      ::-webkit-scrollbar-thumb {
-        background: #2d6da8;
-        border-radius: 4px;
+      .loading::after {
+        content: '...';
+        animation: dots 1.5s steps(4, end) infinite;
       }
 
-      ::-webkit-scrollbar-thumb:hover {
-        background: #1e3a5f;
+      @keyframes dots {
+        0%,
+        20% {
+          content: '';
+        }
+        40% {
+          content: '.';
+        }
+        60% {
+          content: '..';
+        }
+        80%,
+        100% {
+          content: '...';
+        }
+      }
+
+      /* === TEXTO VERDE DESTACADO === */
+      .senalado {
+        color: #28a745;
+        font-weight: 600;
+      }
+
+      .frecuencia {
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #28a745;
+      }
+
+      h4 {
+        font-weight: 900;
+        font-size: 1rem;
+        text-align: center;
+        margin-bottom: 0.5rem;
+        color: #28a745;
+      }
+
+      h5 {
+        color: #85ACBD;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+
+      h6 {
+        color: #85ACBD;
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        font-weight: 400;
+        letter-spacing: 0.5px;
+      }
+
+      .title {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: rgba(238, 223, 223, 0.9);
+        margin-bottom: 0.5rem;
       }
     </style>
   </head>
   <body>
-    <div class="container">
+    <div class="glass" id="appGlass">
       <!-- ==================== HEADER ==================== -->
       <div class="header">
-        <div>
-          <h1>📋 Sistema de Control de Oficios</h1>
-          <div class="subtitle">Gestión completa de comunicación oficial</div>
+        <div class="logo">
+          <span class="logo-icon">📋</span>
+          <div>
+            <h1>Sistema de Control de Oficios</h1>
+            <span class="subtitle">Gestión completa de comunicación oficial</span>
+          </div>
         </div>
         <div class="header-actions">
-          <button class="btn btn-success" onclick="cargarDatos()">
-            🔄 Actualizar
-          </button>
-          <button class="btn btn-warning" onclick="exportarExcel()">
-            📊 Exportar Excel
-          </button>
-          <button class="btn btn-outline" onclick="verAlertasVencimiento()">
-            🔔 Alertas
-          </button>
+          <button class="btn-success" onclick="cargarDatos()">🔄 Actualizar</button>
+          <button class="btn-warning" onclick="exportarExcel()">📊 Exportar</button>
+          <button class="btn-outline" onclick="verAlertasVencimiento()">🔔 Alertas</button>
+          <button class="btn-salir-ultra" onclick="if(confirm('¿Cerrar sesión?')){location.reload();}">🚪 Salir</button>
         </div>
       </div>
 
-      <!-- ==================== ALERTAS DE VENCIMIENTO ==================== -->
-      <div id="alertasContainer"></div>
+      <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+      <div class="contenido">
+        <!-- Alertas de vencimiento -->
+        <div id="alertasContainer"></div>
 
-      <!-- ==================== STATS ==================== -->
-      <div class="stats-grid" id="statsGrid">
-        <div class="stat-card">
-          <div class="icon">📄</div>
-          <div class="number" id="totalOficios">0</div>
-          <div class="label">Total Oficios</div>
-        </div>
-        <div class="stat-card pendientes">
-          <div class="icon">⏳</div>
-          <div class="number" id="pendientes">0</div>
-          <div class="label">Pendientes</div>
-        </div>
-        <div class="stat-card respondidos">
-          <div class="icon">✅</div>
-          <div class="number" id="respondidos">0</div>
-          <div class="label">Respondidos</div>
-        </div>
-        <div class="stat-card vencidos">
-          <div class="icon">⚠️</div>
-          <div class="number" id="vencidos">0</div>
-          <div class="label">Vencidos</div>
-        </div>
-        <div class="stat-card urgentes">
-          <div class="icon">🔴</div>
-          <div class="number" id="urgentes">0</div>
-          <div class="label">Prioridad Alta</div>
-        </div>
-      </div>
-
-      <!-- ==================== FORMULARIO ==================== -->
-      <div class="form-section" id="formSection">
-        <h2>✏️ <span id="formTitle">Nuevo Oficio</span></h2>
-        <form id="oficioForm" onsubmit="return guardarOficio(event);">
-          <input type="hidden" id="editId" value="" />
-
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Número de Oficio <span class="required">*</span></label>
-              <input
-                type="text"
-                id="numero_oficio"
-                placeholder="Ej: OF-2026-0001"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label>Tipo <span class="required">*</span></label>
-              <select id="tipo_documento" required>
-                <option value="Oficio">Oficio</option>
-                <option value="Circular">Circular</option>
-                <option value="Memorándum">Memorándum</option>
-                <option value="Comunicado">Comunicado</option>
-                <option value="Resolución">Resolución</option>
-                <option value="Acta">Acta</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Prioridad <span class="required">*</span></label>
-              <select id="prioridad" required>
-                <option value="Alta">🔴 Alta</option>
-                <option value="Media" selected>🟡 Media</option>
-                <option value="Baja">🟢 Baja</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Fecha de Emisión <span class="required">*</span></label>
-              <input type="date" id="fecha_emision" required />
-            </div>
-
-            <div class="form-group full-width">
-              <label>Asunto <span class="required">*</span></label>
-              <input
-                type="text"
-                id="asunto"
-                placeholder="Escribe el asunto del oficio"
-                required
-              />
-            </div>
-
-            <div class="form-group">
-              <label>Remitente <span class="required">*</span></label>
-              <input
-                type="text"
-                id="remitente"
-                placeholder="Quién envía"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label>Destinatario <span class="required">*</span></label>
-              <input
-                type="text"
-                id="destinatario"
-                placeholder="A quién va dirigido"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <label>Departamento Destino</label>
-              <input
-                type="text"
-                id="departamento_destino"
-                placeholder="Departamento"
-              />
-            </div>
-            <div class="form-group">
-              <label>Plazo Respuesta (días)</label>
-              <input
-                type="number"
-                id="plazo_respuesta"
-                value="5"
-                min="1"
-                max="60"
-              />
-            </div>
-
-            <div class="form-group full-width">
-              <label>Contenido</label>
-              <textarea
-                id="contenido"
-                placeholder="Redacta el contenido completo del oficio..."
-                rows="4"
-              ></textarea>
-            </div>
-
-            <div class="form-group full-width">
-              <label>Observaciones</label>
-              <input
-                type="text"
-                id="observaciones"
-                placeholder="Observaciones adicionales"
-              />
-            </div>
+        <!-- ==================== STATS ==================== -->
+        <div class="grid" id="statsGrid">
+          <div class="celda">
+            <span class="icon">📄</span>
+            <div class="number" id="totalOficios">0</div>
+            <div class="label">Total Oficios</div>
           </div>
-          <br />
-          <button type="submit" class="btn btn-primary" id="btnGuardar">
-            📤 Guardar Oficio
-          </button>
-          <button
-            type="button"
-            class="btn btn-secondary"
-            onclick="limpiarFormulario()"
-          >
-            🗑️ Limpiar
-          </button>
-          <button
-            type="button"
-            class="btn btn-danger"
-            id="btnCancelar"
-            style="display: none"
-            onclick="cancelarEdicion()"
-          >
-            ❌ Cancelar
-          </button>
-        </form>
-      </div>
-
-      <!-- ==================== TABLA ==================== -->
-      <div class="table-section">
-        <div class="table-header">
-          <h2>📄 Listado de Oficios</h2>
-          <div class="table-controls">
-            <input
-              type="text"
-              id="buscarOficio"
-              placeholder="🔍 Buscar..."
-              onkeyup="filtrarTabla()"
-            />
-            <select id="filtroEstado" onchange="filtrarTabla()">
-              <option value="">Todos los estados</option>
-              <option value="Borrador">Borrador</option>
-              <option value="Emitido">Emitido</option>
-              <option value="En Proceso">En Proceso</option>
-              <option value="Respondido">Respondido</option>
-              <option value="Archivado">Archivado</option>
-              <option value="Anulado">Anulado</option>
-            </select>
-            <select id="filtroPrioridad" onchange="filtrarTabla()">
-              <option value="">Todas las prioridades</option>
-              <option value="Alta">Alta</option>
-              <option value="Media">Media</option>
-              <option value="Baja">Baja</option>
-            </select>
+          <div class="celda pendientes">
+            <span class="icon">⏳</span>
+            <div class="number" id="pendientes">0</div>
+            <div class="label">Pendientes</div>
+          </div>
+          <div class="celda respondidos">
+            <span class="icon">✅</span>
+            <div class="number" id="respondidos">0</div>
+            <div class="label">Respondidos</div>
+          </div>
+          <div class="celda vencidos">
+            <span class="icon">⚠️</span>
+            <div class="number" id="vencidos">0</div>
+            <div class="label">Vencidos</div>
+          </div>
+          <div class="celda urgentes">
+            <span class="icon">🔴</span>
+            <div class="number" id="urgentes">0</div>
+            <div class="label">Prioridad Alta</div>
           </div>
         </div>
 
-        <div class="table-wrapper">
-          <table>
-            <thead>
-              <tr>
-                <th>N° Oficio</th>
-                <th>Asunto</th>
-                <th>Remitente</th>
-                <th>Destinatario</th>
-                <th>Emisión</th>
-                <th>Estado</th>
-                <th>Prioridad</th>
-                <th>Adjuntos</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tablaBody">
-              <tr>
-                <td colspan="9" class="loading">Cargando datos...</td>
-              </tr>
-            </tbody>
-          </table>
+        <!-- ==================== FORMULARIO ==================== -->
+        <div class="form-section" id="formSection">
+          <h2>✏️ <span id="formTitle">Nuevo Oficio</span></h2>
+          <form id="oficioForm" onsubmit="return guardarOficio(event);">
+            <input type="hidden" id="editId" value="" />
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Número de Oficio <span class="required">*</span></label>
+                <input type="text" id="numero_oficio" placeholder="Ej: OF-2026-0001" required />
+              </div>
+              <div class="form-group">
+                <label>Tipo <span class="required">*</span></label>
+                <select id="tipo_documento" required>
+                  <option value="Oficio">Oficio</option>
+                  <option value="Circular">Circular</option>
+                  <option value="Memorándum">Memorándum</option>
+                  <option value="Comunicado">Comunicado</option>
+                  <option value="Resolución">Resolución</option>
+                  <option value="Acta">Acta</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Prioridad <span class="required">*</span></label>
+                <select id="prioridad" required>
+                  <option value="Alta">🔴 Alta</option>
+                  <option value="Media" selected>🟡 Media</option>
+                  <option value="Baja">🟢 Baja</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Fecha de Emisión <span class="required">*</span></label>
+                <input type="date" id="fecha_emision" required />
+              </div>
+
+              <div class="form-group full-width">
+                <label>Asunto <span class="required">*</span></label>
+                <input type="text" id="asunto" placeholder="Escribe el asunto del oficio" required />
+              </div>
+
+              <div class="form-group">
+                <label>Remitente <span class="required">*</span></label>
+                <input type="text" id="remitente" placeholder="Quién envía" required />
+              </div>
+              <div class="form-group">
+                <label>Destinatario <span class="required">*</span></label>
+                <input type="text" id="destinatario" placeholder="A quién va dirigido" required />
+              </div>
+              <div class="form-group">
+                <label>Departamento Destino</label>
+                <input type="text" id="departamento_destino" placeholder="Departamento" />
+              </div>
+              <div class="form-group">
+                <label>Plazo Respuesta (días)</label>
+                <input type="number" id="plazo_respuesta" value="5" min="1" max="60" />
+              </div>
+
+              <div class="form-group full-width">
+                <label>Contenido</label>
+                <textarea id="contenido" placeholder="Redacta el contenido completo del oficio..." rows="3"></textarea>
+              </div>
+
+              <div class="form-group full-width">
+                <label>Observaciones</label>
+                <input type="text" id="observaciones" placeholder="Observaciones adicionales" />
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn-primary" id="btnGuardar">📤 Guardar Oficio</button>
+              <button type="button" class="btn-outline" onclick="limpiarFormulario()">🗑️ Limpiar</button>
+              <button type="button" class="btn-danger" id="btnCancelar" style="display: none" onclick="cancelarEdicion()">❌ Cancelar</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- ==================== TABLA ==================== -->
+        <div class="table-section">
+          <div class="table-header">
+            <h2>📄 Listado de Oficios</h2>
+            <div class="table-controls">
+              <input type="text" id="buscarOficio" placeholder="🔍 Buscar..." onkeyup="filtrarTabla()" />
+              <select id="filtroEstado" onchange="filtrarTabla()">
+                <option value="">Todos los estados</option>
+                <option value="Borrador">Borrador</option>
+                <option value="Emitido">Emitido</option>
+                <option value="En Proceso">En Proceso</option>
+                <option value="Respondido">Respondido</option>
+                <option value="Archivado">Archivado</option>
+                <option value="Anulado">Anulado</option>
+              </select>
+              <select id="filtroPrioridad" onchange="filtrarTabla()">
+                <option value="">Todas las prioridades</option>
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>N° Oficio</th>
+                  <th>Asunto</th>
+                  <th>Remitente</th>
+                  <th>Destinatario</th>
+                  <th>Emisión</th>
+                  <th>Estado</th>
+                  <th>Prioridad</th>
+                  <th>Adjuntos</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tablaBody">
+                <tr>
+                  <td colspan="9" class="loading">Cargando datos...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
+
+      <!-- ==================== FOOTER ==================== -->
+      <footer>
+        <span style="color: rgba(255,255,255,0.3);">Sistema de Oficios v2.0 · Gestión Documental</span>
+        <span style="color: rgba(255,255,255,0.15); margin-left: 1rem;">⚡ Desarrollado con Supabase</span>
+      </footer>
     </div>
 
     <!-- ==================== MODAL ==================== -->
@@ -929,12 +1246,10 @@
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
       // ==================== CONFIGURACIÓN ====================
-      // 🔴 ¡CAMBIA ESTOS VALORES CON TUS CREDENCIALES DE SUPABASE!
       const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-      // ✅ CORREGIDO: Usamos un nombre diferente para evitar conflicto
       const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       // ==================== VARIABLES GLOBALES ====================
@@ -942,7 +1257,7 @@
       let oficioEnEdicion = null;
 
       // ==================== INICIALIZACIÓN ====================
-      document.addEventListener("DOMContentLoaded", function () {
+      document.addEventListener("DOMContentLoaded", function() {
         cargarDatos();
         document.getElementById("fecha_emision").value = new Date()
           .toISOString()
@@ -970,7 +1285,6 @@
         try {
           mostrarToast("Cargando datos...", "info");
 
-          // ✅ CORREGIDO: Usamos supabaseClient en lugar de supabase
           const { data, error } = await supabaseClient
             .from("oficios")
             .select("*")
@@ -988,7 +1302,7 @@
           console.error("Error:", error);
           mostrarToast("❌ Error al cargar: " + error.message, "error");
           document.getElementById("tablaBody").innerHTML =
-            `<tr><td colspan="9" style="text-align:center;color:#ef4444;">❌ Error al cargar datos</td></tr>`;
+            `<tr><td colspan="9" style="text-align:center;color:#ff6b6b;">❌ Error al cargar datos</td></tr>`;
         }
       }
 
@@ -997,7 +1311,8 @@
         const tbody = document.getElementById("tablaBody");
 
         if (!data || data.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#999;">📭 No hay oficios registrados</td></tr>`;
+          tbody.innerHTML =
+            `<tr><td colspan="9" style="text-align:center;color:rgba(255,255,255,0.4);padding:1rem;">📭 No hay oficios registrados</td></tr>`;
           return;
         }
 
@@ -1005,8 +1320,8 @@
           .map((oficio) => {
             const estaVencido = verificarVencimiento(oficio);
             return `
-                <tr style="${estaVencido ? "background: #fef2f2;" : ""}">
-                    <td><strong>${oficio.numero_oficio}</strong></td>
+                <tr style="${estaVencido ? "background: rgba(220,53,69,0.05);" : ""}">
+                    <td><strong style="color:#fff;">${oficio.numero_oficio}</strong></td>
                     <td>${oficio.asunto}</td>
                     <td>${oficio.remitente}</td>
                     <td>${oficio.destinatario}</td>
@@ -1024,16 +1339,16 @@
                     </td>
                     <td>
                         ${
-                          oficio.documento_pdf
-                            ? `<span class="adjunto-item">
+                          oficio.documento_pdf ?
+                          `<span class="adjunto-item">
                                 📄 <a href="${oficio.documento_pdf}" target="_blank">Ver</a>
-                            </span>`
-                            : `<input type="file" accept=".pdf" class="file-input-small" 
+                            </span>` :
+                          `<input type="file" accept=".pdf" class="file-input-small" 
                                 onchange="subirPDF(${oficio.id}, this)">`
                         }
                     </td>
                     <td>
-                        <div style="display:flex; flex-wrap:wrap; gap:3px;">
+                        <div style="display:flex; flex-wrap:wrap; gap:2px;">
                             <button class="btn-accion btn-accion-ver" onclick="verDetalle(${oficio.id})">👁️</button>
                             <button class="btn-accion btn-accion-imprimir" onclick="imprimirOficio(${oficio.id})">🖨️</button>
                             <button class="btn-accion btn-accion-pdf" onclick="descargarPDF(${oficio.id})">📄</button>
@@ -1064,8 +1379,7 @@
           departamento_destino: document.getElementById("departamento_destino")
             .value,
           fecha_emision: document.getElementById("fecha_emision").value,
-          plazo_respuesta:
-            parseInt(document.getElementById("plazo_respuesta").value) || 5,
+          plazo_respuesta: parseInt(document.getElementById("plazo_respuesta").value) || 5,
           prioridad: document.getElementById("prioridad").value,
           observaciones: document.getElementById("observaciones").value,
         };
@@ -1074,7 +1388,6 @@
           let result;
 
           if (id) {
-            // Actualizar
             result = await supabaseClient
               .from("oficios")
               .update(data)
@@ -1085,7 +1398,6 @@
               mostrarToast("✅ Oficio actualizado correctamente", "success");
             }
           } else {
-            // Crear nuevo
             data.estado = "Borrador";
             result = await supabaseClient.from("oficios").insert([data]);
 
@@ -1119,12 +1431,7 @@
       }
 
       async function eliminarOficio(id, numero) {
-        if (
-          !confirm(
-            `¿Estás seguro de eliminar el oficio ${numero}? Esta acción no se puede deshacer.`,
-          )
-        )
-          return;
+        if (!confirm(`¿Estás seguro de eliminar el oficio ${numero}?`)) return;
 
         try {
           const { error } = await supabaseClient
@@ -1273,7 +1580,7 @@
                 <head>
                     <title>Oficio ${oficio.numero_oficio}</title>
                     <style>
-                        body { font-family: 'Times New Roman', serif; padding: 40px; }
+                        body { font-family: 'Times New Roman', serif; padding: 40px; background: white; color: #1e3a5f; }
                         .header { text-align: center; border-bottom: 3px solid #1e3a5f; padding-bottom: 20px; margin-bottom: 30px; }
                         .header h1 { color: #1e3a5f; font-size: 24px; }
                         .header .sub { color: #666; font-size: 14px; }
@@ -1353,10 +1660,9 @@
         try {
           mostrarToast("Generando PDF...", "info");
 
-          // Crear elemento temporal
           const element = document.createElement("div");
           element.innerHTML = `
-                    <div style="font-family: 'Times New Roman', serif; padding: 40px;">
+                    <div style="font-family: 'Times New Roman', serif; padding: 40px; background: white; color: #1e3a5f;">
                         <div style="text-align:center; border-bottom:3px solid #1e3a5f; padding-bottom:20px; margin-bottom:30px;">
                             <h1 style="color:#1e3a5f;">OFICIO N° ${oficio.numero_oficio}</h1>
                             <div style="color:#666;">${oficio.tipo_documento} - ${formatearFecha(oficio.fecha_emision)}</div>
@@ -1418,13 +1724,13 @@
                 </div>
                 <div style="margin:20px 0;">
                     <strong>📝 Contenido:</strong>
-                    <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-top:5px; line-height:1.8;">
+                    <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-top:5px; line-height:1.8;">
                         ${oficio.contenido || "Sin contenido"}
                     </div>
                 </div>
                 <div style="margin:20px 0;">
                     <strong>💬 Observaciones:</strong>
-                    <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-top:5px;">
+                    <div style="background:rgba(255,255,255,0.05); padding:15px; border-radius:8px; margin-top:5px;">
                         ${oficio.observaciones || "Sin observaciones"}
                     </div>
                 </div>
@@ -1432,9 +1738,9 @@
                     <strong>📎 Documentos Adjuntos:</strong>
                     <div style="margin-top:5px;">
                         ${
-                          oficio.documento_pdf
-                            ? `<a href="${oficio.documento_pdf}" target="_blank" class="btn-accion btn-accion-ver">📄 Ver PDF</a>`
-                            : "No hay documentos adjuntos"
+                          oficio.documento_pdf ?
+                          `<a href="${oficio.documento_pdf}" target="_blank" class="btn-accion btn-accion-ver">📄 Ver PDF</a>` :
+                          "No hay documentos adjuntos"
                         }
                     </div>
                 </div>
@@ -1448,7 +1754,7 @@
             `;
 
         if (seguimiento.length === 0) {
-          html += `<div style="color:#999;">No hay registros de seguimiento</div>`;
+          html += `<div style="color:rgba(255,255,255,0.4);">No hay registros de seguimiento</div>`;
         } else {
           seguimiento.forEach((item) => {
             html += `
@@ -1506,10 +1812,7 @@
           "📤 Actualizar Oficio";
         document.getElementById("btnCancelar").style.display = "inline-block";
 
-        // Scroll al formulario
-        document
-          .getElementById("formSection")
-          .scrollIntoView({ behavior: "smooth" });
+        document.getElementById("formSection").scrollIntoView({ behavior: "smooth" });
         mostrarToast("✏️ Editando oficio: " + oficio.numero_oficio, "info");
       }
 
@@ -1551,8 +1854,7 @@
           oficio.estado === "Respondido" ||
           oficio.estado === "Archivado" ||
           oficio.estado === "Anulado"
-        )
-          return false;
+        ) return false;
 
         const fechaEmision = new Date(oficio.fecha_emision);
         const plazo = oficio.plazo_respuesta || 5;
@@ -1572,7 +1874,7 @@
                         <div>
                             <strong>¡Atención!</strong> ${vencidos.length} oficio(s) están vencidos:
                             ${vencidos.map((o) => `<strong>${o.numero_oficio}</strong>`).join(", ")}
-                            <button class="btn btn-danger" style="padding:4px 12px; font-size:12px; margin-left:10px;" 
+                            <button class="btn-danger" style="padding:0.2rem 0.8rem; font-size:0.65rem; margin-left:0.5rem;" 
                                     onclick="filtrarVencidos()">
                                 Ver todos
                             </button>
@@ -1583,7 +1885,6 @@
           container.innerHTML = "";
         }
 
-        // Actualizar stats
         document.getElementById("vencidos").textContent = vencidos.length;
       }
 
@@ -1703,10 +2004,7 @@
         const toast = document.getElementById("toast");
         toast.textContent = mensaje;
         toast.className = `toast ${tipo}`;
-
-        // Forzar reflow
         void toast.offsetWidth;
-
         toast.classList.add("show");
 
         clearTimeout(toast._timeout);
@@ -1716,24 +2014,21 @@
       }
 
       // Cerrar modal con ESC
-      document.addEventListener("keydown", function (e) {
+      document.addEventListener("keydown", function(e) {
         if (e.key === "Escape") {
           cerrarModal();
         }
       });
 
       // Cerrar modal clic en overlay
-      document
-        .getElementById("modalDetalle")
-        .addEventListener("click", function (e) {
-          if (e.target === this) {
-            cerrarModal();
-          }
-        });
+      document.getElementById("modalDetalle").addEventListener("click", function(e) {
+        if (e.target === this) {
+          cerrarModal();
+        }
+      });
 
       console.log("📋 Sistema Profesional de Oficios cargado correctamente");
       console.log("✅ Todas las funcionalidades disponibles");
     </script>
-
   </body>
 </html>
