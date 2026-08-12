@@ -1,1799 +1,1973 @@
 <!doctype html>
 <html lang="es">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sistema de Control de Oficios</title>
+    <title>OPDSSJ - Sistema de Control de Oficios</title>
 
     <!-- Librerías -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
 
     <style>
-        /* ============================================
-                   BASE GENERAL
+      /* ============================================
+                   TODOS LOS ESTILOS (igual que antes)
                    ============================================ */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        html,
-        body {
-            height: 100%;
-            width: 100%;
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #0f1a2e, #1a2a4a, #2c3e6a);
-            background-attachment: fixed;
-            overflow: hidden;
-            color: white;
-            font-size: 14px;
-        }
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        font-family: "Poppins", sans-serif;
+        background: linear-gradient(135deg, #0f1a2e, #1a2a4a, #2c3e6a);
+        background-attachment: fixed;
+        overflow: hidden;
+        color: white;
+        font-size: 14px;
+      }
 
-        body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px;
-        }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px;
+      }
 
-        .glass {
-            display: flex;
-            flex-direction: column;
-            height: 96vh;
-            border-radius: 16px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            padding: 12px 18px;
-            width: min(98%, 1600px);
-            overflow: hidden;
-        }
+      .glass {
+        display: flex;
+        flex-direction: column;
+        height: 96vh;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        padding: 12px 18px;
+        width: min(98%, 1600px);
+        overflow: hidden;
+      }
 
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.08);
-            flex-shrink: 0;
-        }
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding-bottom: 8px;
+        border-bottom: 2px solid rgba(255, 255, 255, 0.08);
+        flex-shrink: 0;
+      }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
 
-        .logo-icon {
-            font-size: 28px;
-        }
+      .logo-icon {
+        font-size: 28px;
+      }
 
-        .logo h1 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #fff;
-        }
+      .logo h1 {
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+      }
 
-        .logo .institucion {
-            font-size: 9px;
-            font-weight: 300;
-            color: rgba(255, 255, 255, 0.35);
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-        }
+      .logo .institucion {
+        font-size: 9px;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.35);
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+      }
 
-        .logo .subtitle {
-            font-size: 11px;
-            font-weight: 300;
-            color: rgba(255, 255, 255, 0.4);
-        }
+      .logo .subtitle {
+        font-size: 11px;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.4);
+      }
 
-        .header-actions {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
+      .header-actions {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
 
-        button {
-            padding: 5px 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background: rgba(255, 255, 255, 0.06);
-            color: white;
-            font-weight: 500;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-family: 'Poppins', sans-serif;
-            white-space: nowrap;
-        }
+      button {
+        padding: 5px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.06);
+        color: white;
+        font-weight: 500;
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: "Poppins", sans-serif;
+        white-space: nowrap;
+      }
 
-        button:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-1px);
-        }
+      button:hover {
+        background: rgba(255, 255, 255, 0.12);
+        transform: translateY(-1px);
+      }
 
-        .btn-success {
-            background: rgba(40, 167, 69, 0.2);
-            border-color: rgba(40, 167, 69, 0.2);
-        }
-        .btn-success:hover {
-            background: rgba(40, 167, 69, 0.3);
-        }
+      .btn-success {
+        background: rgba(40, 167, 69, 0.2);
+        border-color: rgba(40, 167, 69, 0.2);
+      }
+      .btn-success:hover {
+        background: rgba(40, 167, 69, 0.3);
+      }
 
-        .btn-warning {
-            background: rgba(255, 193, 7, 0.15);
-            border-color: rgba(255, 193, 7, 0.15);
-        }
-        .btn-warning:hover {
-            background: rgba(255, 193, 7, 0.25);
-        }
+      .btn-warning {
+        background: rgba(255, 193, 7, 0.15);
+        border-color: rgba(255, 193, 7, 0.15);
+      }
+      .btn-warning:hover {
+        background: rgba(255, 193, 7, 0.25);
+      }
 
-        .btn-outline {
-            background: transparent;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .btn-outline:hover {
-            background: rgba(255, 255, 255, 0.06);
-        }
+      .btn-outline {
+        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .btn-outline:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
 
-        .btn-primary {
-            background: rgba(0, 123, 255, 0.2);
-            border-color: rgba(0, 123, 255, 0.2);
-        }
-        .btn-primary:hover {
-            background: rgba(0, 123, 255, 0.3);
-        }
+      .btn-primary {
+        background: rgba(0, 123, 255, 0.2);
+        border-color: rgba(0, 123, 255, 0.2);
+      }
+      .btn-primary:hover {
+        background: rgba(0, 123, 255, 0.3);
+      }
 
-        .btn-danger {
-            background: rgba(220, 53, 69, 0.15);
-            border-color: rgba(220, 53, 69, 0.15);
-        }
-        .btn-danger:hover {
-            background: rgba(220, 53, 69, 0.25);
-        }
+      .btn-danger {
+        background: rgba(220, 53, 69, 0.15);
+        border-color: rgba(220, 53, 69, 0.15);
+      }
+      .btn-danger:hover {
+        background: rgba(220, 53, 69, 0.25);
+      }
 
-        .btn-salir-ultra {
-            background: transparent;
-            color: rgba(255, 255, 255, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            padding: 4px 10px;
-            border-radius: 10px;
-            font-size: 10px;
-            font-weight: 300;
-            letter-spacing: 0.5px;
-        }
+      .btn-salir-ultra {
+        background: transparent;
+        color: rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        padding: 4px 10px;
+        border-radius: 10px;
+        font-size: 10px;
+        font-weight: 300;
+        letter-spacing: 0.5px;
+      }
 
-        .btn-salir-ultra:hover {
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.2);
-        }
+      .btn-salir-ultra:hover {
+        color: #fff;
+        border-color: rgba(255, 255, 255, 0.2);
+      }
 
-        .contenido-principal {
-            display: flex;
-            flex: 1;
-            min-height: 0;
-            gap: 14px;
-            margin: 6px 0;
-            overflow: hidden;
-        }
+      .btn-nuevo-oficio {
+        background: rgba(255, 193, 7, 0.15);
+        border-color: rgba(255, 193, 7, 0.15);
+      }
 
-        .modo-edicion {
-            display: flex;
-            flex: 1;
-            gap: 14px;
-            min-height: 0;
-        }
+      .btn-nuevo-oficio:hover {
+        background: rgba(255, 193, 7, 0.25);
+      }
 
-        .col-formulario {
-            flex: 0 0 40%;
-            min-width: 0;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-right: 6px;
-        }
+      .btn-ver-tabla {
+        background: rgba(0, 123, 255, 0.15);
+        border-color: rgba(0, 123, 255, 0.15);
+      }
 
-        .col-formulario::-webkit-scrollbar {
-            width: 4px;
-        }
+      .btn-ver-tabla:hover {
+        background: rgba(0, 123, 255, 0.25);
+      }
 
-        .col-formulario::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.06);
-            border-radius: 8px;
-        }
+      .contenido-principal {
+        display: flex;
+        flex: 1;
+        min-height: 0;
+        gap: 14px;
+        margin: 6px 0;
+        overflow: hidden;
+      }
 
-        .col-vista-previa {
-            flex: 1;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            padding: 10px;
-        }
+      .modo-edicion {
+        display: flex;
+        flex: 1;
+        gap: 14px;
+        min-height: 0;
+      }
 
-        .col-vista-previa .label-vista {
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.2);
-            text-align: center;
-            margin-bottom: 8px;
-            flex-shrink: 0;
-        }
+      .col-formulario {
+        flex: 0 0 40%;
+        min-width: 0;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 6px;
+      }
 
-        .col-vista-previa .label-vista span {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 2px 12px;
-            border-radius: 20px;
-            font-weight: 300;
-        }
+      .col-formulario::-webkit-scrollbar {
+        width: 4px;
+      }
 
-        .vista-papel {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            background: #f5f5f0;
-            border-radius: 6px;
-            padding: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            min-height: 0;
-        }
+      .col-formulario::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.06);
+        border-radius: 8px;
+      }
 
-        .vista-papel::-webkit-scrollbar {
-            width: 4px;
-        }
+      .col-vista-previa {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        padding: 10px;
+      }
 
-        .vista-papel::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.15);
-            border-radius: 8px;
-        }
+      .col-vista-previa .label-vista {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: rgba(255, 255, 255, 0.2);
+        text-align: center;
+        margin-bottom: 8px;
+        flex-shrink: 0;
+      }
 
-        /* ============================================
+      .col-vista-previa .label-vista span {
+        background: rgba(255, 255, 255, 0.05);
+        padding: 2px 12px;
+        border-radius: 20px;
+        font-weight: 300;
+      }
+
+      .vista-papel {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        background: #f5f5f0;
+        border-radius: 6px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        min-height: 0;
+      }
+
+      .vista-papel::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      .vista-papel::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 8px;
+      }
+
+      /* ============================================
                    ESTILOS DEL DOCUMENTO EN VISTA PREVIA
                    ============================================ */
-        .documento-preview {
-            font-family: 'Arial', sans-serif;
-            background: white;
-            color: #1a1a1a;
-            font-size: 12pt;
-            line-height: 1.0;
-            padding: 3.5cm 3.0cm 3.5cm 3.0cm;
-            max-width: 100%;
-            min-height: 100%;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-            border-radius: 2px;
-            position: relative;
-        }
+      .documento-preview {
+        font-family: "Arial", sans-serif;
+        background: white;
+        color: #1a1a1a;
+        font-size: 12pt;
+        line-height: 1;
+        padding: 3.5cm 3cm 3.5cm 3cm;
+        max-width: 100%;
+        min-height: 100%;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        border-radius: 2px;
+        position: relative;
+      }
 
-        .documento-preview .header-doc {
-            text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #0f1a2e;
-            padding-bottom: 12px;
-        }
+      .documento-preview .header-doc {
+        text-align: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #0f1a2e;
+        padding-bottom: 12px;
+      }
 
-        .documento-preview .header-doc .logo-container {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
+      .documento-preview .header-doc .logo-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
 
-        .documento-preview .header-doc .logo-texto {
-            font-size: 13pt;
-            font-weight: bold;
-            color: #0f1a2e;
-            letter-spacing: 0.5px;
-            line-height: 1.3;
-        }
+      .documento-preview .header-doc .logo-texto {
+        font-size: 13pt;
+        font-weight: bold;
+        color: #0f1a2e;
+        letter-spacing: 0.5px;
+        line-height: 1.3;
+      }
 
-        .documento-preview .header-doc .logo-texto .sub {
-            font-size: 10pt;
-            font-weight: normal;
-            color: #555;
-        }
+      .documento-preview .header-doc .logo-texto .sub {
+        font-size: 10pt;
+        font-weight: normal;
+        color: #555;
+      }
 
-        .documento-preview .header-doc .direccion {
-            font-size: 8pt;
-            color: #555;
-            margin-top: 4px;
-        }
+      .documento-preview .header-doc .direccion {
+        font-size: 8pt;
+        color: #555;
+        margin-top: 4px;
+      }
 
-        .documento-preview .header-doc .clave-doc {
-            margin-top: 6px;
-            font-size: 12pt;
-            font-weight: bold;
-            color: #0f1a2e;
-            text-align: right;
-        }
+      .documento-preview .header-doc .clave-doc {
+        margin-top: 6px;
+        font-size: 12pt;
+        font-weight: bold;
+        color: #0f1a2e;
+        text-align: right;
+      }
 
-        .documento-preview .fecha-lugar {
-            text-align: right;
-            font-size: 12pt;
-            margin-bottom: 15px;
-            margin-top: 8px;
-        }
+      .documento-preview .fecha-lugar {
+        text-align: right;
+        font-size: 12pt;
+        margin-bottom: 15px;
+        margin-top: 8px;
+      }
 
-        .documento-preview .destinatario {
-            margin-bottom: 10px;
-            font-size: 12pt;
-        }
-        .documento-preview .destinatario .label {
-            font-weight: bold;
-        }
+      .documento-preview .destinatario {
+        margin-bottom: 10px;
+        font-size: 12pt;
+      }
+      .documento-preview .destinatario .label {
+        font-weight: bold;
+      }
 
-        .documento-preview .asunto {
-            font-weight: bold;
-            font-size: 12pt;
-            margin: 10px 0 6px 0;
-            text-transform: uppercase;
-        }
+      .documento-preview .asunto {
+        font-weight: bold;
+        font-size: 12pt;
+        margin: 10px 0 6px 0;
+        text-transform: uppercase;
+      }
 
-        .documento-preview .contenido {
-            line-height: 1.0;
-            font-size: 12pt;
-            text-align: justify;
-            margin: 12px 0;
-        }
+      .documento-preview .contenido {
+        line-height: 1;
+        font-size: 12pt;
+        text-align: justify;
+        margin: 12px 0;
+      }
 
-        .documento-preview .contenido p {
-            margin-bottom: 6px;
-        }
+      .documento-preview .contenido p {
+        margin-bottom: 6px;
+      }
 
-        .documento-preview .contenido ul,
-        .documento-preview .contenido ol {
-            padding-left: 25px;
-            margin: 6px 0;
-        }
+      .documento-preview .contenido ul,
+      .documento-preview .contenido ol {
+        padding-left: 25px;
+        margin: 6px 0;
+      }
 
-        .documento-preview .contenido li {
-            margin-bottom: 3px;
-        }
+      .documento-preview .contenido li {
+        margin-bottom: 3px;
+      }
 
-        .documento-preview .fundamentacion {
-            margin: 10px 0;
-            padding: 6px 10px;
-            background: #f5f5f5;
-            border-left: 3px solid #0f1a2e;
-            font-style: italic;
-            font-size: 11pt;
-        }
+      .documento-preview .fundamentacion {
+        margin: 10px 0;
+        padding: 6px 10px;
+        background: #f5f5f5;
+        border-left: 3px solid #0f1a2e;
+        font-style: italic;
+        font-size: 11pt;
+      }
 
-        .documento-preview .cierre {
-            margin-top: 30px;
-            text-align: left;
-        }
+      .documento-preview .cierre {
+        margin-top: 30px;
+        text-align: left;
+      }
 
-        .documento-preview .cierre .atentamente {
-            font-size: 12pt;
-            margin-bottom: 4px;
-        }
+      .documento-preview .cierre .atentamente {
+        font-size: 12pt;
+        margin-bottom: 4px;
+      }
 
-        .documento-preview .cierre .leyenda {
-            font-style: italic;
-            font-size: 10pt;
-            color: #555;
-            margin: 4px 0 20px 0;
-        }
+      .documento-preview .cierre .leyenda {
+        font-style: italic;
+        font-size: 10pt;
+        color: #555;
+        margin: 4px 0 20px 0;
+      }
 
-        .documento-preview .cierre .firma {
-            margin-top: 8px;
-            text-align: center;
-        }
+      .documento-preview .cierre .firma {
+        margin-top: 8px;
+        text-align: center;
+      }
 
-        .documento-preview .cierre .firma .linea {
-            width: 220px;
-            border-top: 1px solid #000;
-            margin: 8px auto 3px;
-        }
+      .documento-preview .cierre .firma .linea {
+        width: 220px;
+        border-top: 1px solid #000;
+        margin: 8px auto 3px;
+      }
 
-        .documento-preview .cierre .firma .nombre {
-            font-weight: bold;
-            font-size: 12pt;
-        }
+      .documento-preview .cierre .firma .nombre {
+        font-weight: bold;
+        font-size: 12pt;
+      }
 
-        .documento-preview .cierre .firma .cargo {
-            font-size: 11pt;
-            color: #333;
-        }
+      .documento-preview .cierre .firma .cargo {
+        font-size: 11pt;
+        color: #333;
+      }
 
-        .documento-preview .confidencial {
-            margin-top: 10px;
-            padding: 5px 10px;
-            background: #fff5f5;
-            border: 1px solid #ffcdd2;
-            color: #c62828;
-            font-size: 9pt;
-            text-align: center;
-        }
+      .documento-preview .confidencial {
+        margin-top: 10px;
+        padding: 5px 10px;
+        background: #fff5f5;
+        border: 1px solid #ffcdd2;
+        color: #c62828;
+        font-size: 9pt;
+        text-align: center;
+      }
 
-        .documento-preview .responsables {
-            margin-top: 25px;
-            font-size: 8pt;
-            color: #666;
-            text-align: right;
-            border-top: 1px solid #ddd;
-            padding-top: 6px;
-        }
+      .documento-preview .responsables {
+        margin-top: 25px;
+        font-size: 8pt;
+        color: #666;
+        text-align: right;
+        border-top: 1px solid #ddd;
+        padding-top: 6px;
+      }
 
-        .documento-preview .footer-doc {
-            margin-top: 20px;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
-            font-size: 8pt;
-            color: #999;
-            text-align: center;
-        }
+      .documento-preview .footer-doc {
+        margin-top: 20px;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+        font-size: 8pt;
+        color: #999;
+        text-align: center;
+      }
 
-        .documento-preview .footer-doc .page-number {
-            font-size: 9pt;
-            color: #666;
-        }
+      .documento-preview .footer-doc .page-number {
+        font-size: 9pt;
+        color: #666;
+      }
 
-        .documento-preview .empty-message {
-            color: #ccc;
-            text-align: center;
-            padding: 40px 20px;
-            font-family: 'Poppins', sans-serif;
-            font-size: 12px;
-        }
+      .documento-preview .empty-message {
+        color: #ccc;
+        text-align: center;
+        padding: 40px 20px;
+        font-family: "Poppins", sans-serif;
+        font-size: 12px;
+      }
 
-        .documento-preview .empty-message .icono {
-            font-size: 40px;
-            display: block;
-            margin-bottom: 10px;
-        }
+      .documento-preview .empty-message .icono {
+        font-size: 40px;
+        display: block;
+        margin-bottom: 10px;
+      }
 
-        /* ============================================
+      /* ============================================
                    FORMULARIO
                    ============================================ */
+      .form-section {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 10px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        margin-bottom: 6px;
+      }
+
+      .form-section h2 {
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .form-section h2 small {
+        font-weight: 300;
+        font-size: 8px;
+        color: rgba(255, 255, 255, 0.25);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .form-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group label {
+        font-size: 9px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.4);
+        margin-bottom: 1px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .form-group label .required {
+        color: #ff6b6b;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        padding: 4px 8px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 5px;
+        font-size: 11px;
+        font-family: "Poppins", sans-serif;
+        background: rgba(255, 255, 255, 0.04);
+        color: white;
+        transition: all 0.3s;
+      }
+
+      .form-group input::placeholder,
+      .form-group textarea::placeholder {
+        color: rgba(255, 255, 255, 0.12);
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .form-group select option {
+        background: #0f1a2e;
+        color: white;
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 35px;
+        font-size: 10px;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+
+      /* ============================================
+                   EDITOR WYSIWYG SIMPLE
+                   ============================================ */
+      .editor-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 3px;
+        padding: 4px 6px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-bottom: none;
+        border-radius: 5px 5px 0 0;
+      }
+
+      .editor-toolbar button {
+        padding: 2px 6px;
+        font-size: 11px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.5);
+        cursor: pointer;
+        transition: all 0.2s;
+        font-family: "Poppins", sans-serif;
+        font-weight: 400;
+        min-width: 28px;
+        text-align: center;
+      }
+
+      .editor-toolbar button:hover {
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.8);
+      }
+
+      .editor-content {
+        min-height: 120px;
+        padding: 8px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 0 0 5px 5px;
+        background: rgba(255, 255, 255, 0.04);
+        color: white;
+        font-size: 11px;
+        font-family: "Arial", sans-serif;
+        line-height: 1.6;
+        outline: none;
+        overflow-y: auto;
+        max-height: 250px;
+      }
+
+      .editor-content:focus {
+        border-color: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .editor-content p {
+        margin-bottom: 4px;
+      }
+
+      .editor-content ul,
+      .editor-content ol {
+        padding-left: 20px;
+        margin: 4px 0;
+      }
+
+      .editor-content li {
+        margin-bottom: 2px;
+      }
+
+      .editor-content .editor-placeholder {
+        color: rgba(255, 255, 255, 0.15);
+        font-style: italic;
+      }
+
+      .grupo-responsables {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 5px;
+      }
+
+      .grupo-responsables .form-group label {
+        font-size: 7px;
+      }
+
+      .grupo-responsables .form-group input {
+        font-size: 9px;
+        padding: 3px 5px;
+      }
+
+      .form-actions {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+
+      .form-actions button {
+        font-size: 10px;
+        padding: 4px 10px;
+      }
+
+      /* ============================================
+                   MODO TABLA
+                   ============================================ */
+      .modo-tabla {
+        display: none;
+        flex: 1;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .modo-tabla.active {
+        display: flex;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 8px;
+        margin-bottom: 10px;
+        flex-shrink: 0;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.04);
+        border-radius: 8px;
+        padding: 8px 10px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.03);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+
+      .stat-card .icon {
+        font-size: 20px;
+        color: #ffdd00;
+      }
+
+      .stat-card .info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        line-height: 1.2;
+      }
+
+      .stat-card .number {
+        font-size: 22px;
+        font-weight: 700;
+        color: #fff;
+        line-height: 1;
+      }
+
+      .stat-card .label {
+        font-size: 10px;
+        font-weight: 300;
+        color: rgba(255, 255, 255, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 1px;
+      }
+
+      .stat-card.pendientes .number {
+        color: #ffc107;
+      }
+      .stat-card.respondidos .number {
+        color: #28a745;
+      }
+      .stat-card.vencidos .number {
+        color: #dc3545;
+      }
+      .stat-card.urgentes .number {
+        color: #ff6b6b;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .table-section {
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 10px;
+        padding: 10px 12px;
+        border: 1px solid rgba(255, 255, 255, 0.04);
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+
+      .table-header h2 {
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      .table-header h2 small {
+        font-weight: 300;
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.2);
+      }
+
+      .table-controls {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .table-controls input,
+      .table-controls select {
+        padding: 4px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 6px;
+        font-size: 11px;
+        background: rgba(255, 255, 255, 0.04);
+        color: white;
+        font-family: "Poppins", sans-serif;
+        transition: all 0.3s;
+      }
+
+      .table-controls input::placeholder {
+        color: rgba(255, 255, 255, 0.15);
+      }
+
+      .table-controls input:focus,
+      .table-controls select:focus {
+        outline: none;
+        border-color: rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .table-controls select option {
+        background: #0f1a2e;
+        color: white;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
+      }
+
+      .table-wrapper::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+
+      .table-wrapper::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 12px;
+      }
+
+      thead {
+        background: rgba(255, 255, 255, 0.03);
+        position: sticky;
+        top: 0;
+        z-index: 5;
+      }
+
+      th {
+        padding: 6px 8px;
+        text-align: left;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.5);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        white-space: nowrap;
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      td {
+        padding: 6px 8px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        vertical-align: middle;
+        color: rgba(255, 255, 255, 0.8);
+        font-size: 11px;
+      }
+
+      tr:hover td {
+        background: rgba(255, 255, 255, 0.03);
+      }
+
+      .estado-badge {
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 9px;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .estado-borrador {
+        background: rgba(108, 117, 125, 0.2);
+        color: #adb5bd;
+      }
+      .estado-emitido {
+        background: rgba(0, 123, 255, 0.2);
+        color: #6ea8fe;
+      }
+      .estado-en-proceso {
+        background: rgba(255, 193, 7, 0.15);
+        color: #ffc107;
+      }
+      .estado-respondido {
+        background: rgba(40, 167, 69, 0.15);
+        color: #28a745;
+      }
+      .estado-archivado {
+        background: rgba(111, 66, 193, 0.15);
+        color: #b78cff;
+      }
+      .estado-anulado {
+        background: rgba(220, 53, 69, 0.15);
+        color: #dc3545;
+      }
+
+      .prioridad-badge {
+        padding: 2px 8px;
+        border-radius: 20px;
+        font-size: 9px;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .prioridad-alta {
+        background: rgba(220, 53, 69, 0.15);
+        color: #ff6b6b;
+        animation: pulse 2s infinite;
+      }
+      .prioridad-media {
+        background: rgba(255, 193, 7, 0.12);
+        color: #ffc107;
+      }
+      .prioridad-baja {
+        background: rgba(40, 167, 69, 0.12);
+        color: #28a745;
+      }
+
+      .btn-accion {
+        padding: 2px 6px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 10px;
+        margin: 1px;
+        transition: all 0.2s;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.5);
+        font-family: "Poppins", sans-serif;
+      }
+
+      .btn-accion:hover {
+        transform: scale(1.05);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .btn-accion-ver {
+        background: rgba(0, 123, 255, 0.12);
+        color: #6ea8fe;
+      }
+      .btn-accion-ver:hover {
+        background: rgba(0, 123, 255, 0.2);
+      }
+
+      .btn-accion-imprimir {
+        background: rgba(111, 66, 193, 0.15);
+        color: #b78cff;
+      }
+      .btn-accion-imprimir:hover {
+        background: rgba(111, 66, 193, 0.25);
+      }
+
+      .btn-accion-pdf {
+        background: rgba(220, 53, 69, 0.12);
+        color: #ff6b6b;
+      }
+      .btn-accion-pdf:hover {
+        background: rgba(220, 53, 69, 0.2);
+      }
+
+      .btn-accion-estado {
+        background: rgba(255, 193, 7, 0.12);
+        color: #ffc107;
+      }
+      .btn-accion-estado:hover {
+        background: rgba(255, 193, 7, 0.2);
+      }
+
+      .btn-accion-comentar {
+        background: rgba(40, 167, 69, 0.12);
+        color: #28a745;
+      }
+      .btn-accion-comentar:hover {
+        background: rgba(40, 167, 69, 0.2);
+      }
+
+      .btn-accion-eliminar {
+        background: rgba(220, 53, 69, 0.12);
+        color: #ff6b6b;
+      }
+      .btn-accion-eliminar:hover {
+        background: rgba(220, 53, 69, 0.2);
+      }
+
+      .file-input-small {
+        font-size: 9px;
+        width: 55px;
+        background: transparent;
+        color: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 4px;
+        padding: 1px 3px;
+      }
+
+      .file-input-small::-webkit-file-upload-button {
+        background: rgba(255, 255, 255, 0.04);
+        border: none;
+        border-radius: 3px;
+        color: rgba(255, 255, 255, 0.3);
+        padding: 1px 5px;
+        font-size: 8px;
+        cursor: pointer;
+        font-family: "Poppins", sans-serif;
+      }
+
+      /* ============================================
+                   ALERTAS
+                   ============================================ */
+      .alerta-vencimiento {
+        display: inline-flex !important;
+        align-items: center;
+        gap: 4px;
+        background: rgba(220, 53, 69, 0.05);
+        border: 1px solid rgba(220, 53, 69, 0.04);
+        color: rgba(248, 215, 218, 0.2);
+        padding: 2px 6px 2px 4px;
+        border-radius: 4px;
+        font-size: 8px;
+        width: auto !important;
+        max-width: 100%;
+        margin-bottom: 2px;
+        opacity: 0.15;
+        transition: opacity 0.3s;
+      }
+
+      .alerta-vencimiento:hover {
+        opacity: 0.6;
+      }
+
+      .alerta-vencimiento .icono {
+        font-size: 10px;
+        flex-shrink: 0;
+        opacity: 0.3;
+      }
+
+      .alerta-vencimiento .contenido-alerta {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-wrap: wrap;
+      }
+
+      .alerta-vencimiento .contenido-alerta strong {
+        color: rgba(255, 107, 107, 0.2);
+        font-weight: 400;
+        font-size: 7px;
+      }
+
+      #alertasContainer,
+      #alertasContainerTabla {
+        display: flex;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 4px;
+        margin-bottom: 2px;
+        flex-shrink: 0;
+        min-height: 12px;
+      }
+
+      #alertasContainerTabla .alerta-vencimiento {
+        opacity: 1;
+        background: rgba(220, 53, 69, 0.12);
+        border-color: rgba(220, 53, 69, 0.15);
+        color: #f8d7da;
+        padding: 4px 10px 4px 8px;
+        font-size: 10px;
+      }
+
+      #alertasContainerTabla .alerta-vencimiento .icono {
+        opacity: 1;
+        font-size: 14px;
+      }
+
+      #alertasContainerTabla .alerta-vencimiento .contenido-alerta strong {
+        color: #ff6b6b;
+        font-weight: 600;
+        font-size: 10px;
+      }
+
+      .etiqueta-confidencial {
+        background: rgba(255, 0, 0, 0.05);
+        border: 1px solid rgba(255, 0, 0, 0.08);
+        border-radius: 4px;
+        padding: 3px 6px;
+        font-size: 7px;
+        color: rgba(255, 100, 100, 0.5);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+        margin-top: 3px;
+      }
+
+      .etiqueta-confidencial input {
+        margin-right: 4px;
+        width: auto;
+      }
+
+      .etiqueta-confidencial label {
+        font-size: 7px !important;
+        color: rgba(255, 100, 100, 0.35) !important;
+        text-transform: none !important;
+        letter-spacing: 0 !important;
+        cursor: pointer;
+      }
+
+      .leyenda-congreso {
+        font-size: 8px;
+        color: rgba(255, 255, 255, 0.12);
+        font-style: italic;
+        text-align: center;
+        padding: 2px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        margin-top: 3px;
+      }
+
+      .glass footer {
+        flex-shrink: 0;
+        text-align: center;
+        font-size: 9px;
+        color: rgba(255, 255, 255, 0.08);
+        padding: 4px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.03);
+        margin-top: 3px;
+        letter-spacing: 0.5px;
+      }
+
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 8px 16px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 500;
+        font-size: 12px;
+        z-index: 2000;
+        transform: translateY(80px);
+        opacity: 0;
+        transition: all 0.4s ease;
+        max-width: 300px;
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        font-family: "Poppins", sans-serif;
+      }
+
+      .toast.show {
+        transform: translateY(0);
+        opacity: 1;
+      }
+
+      .toast.success {
+        background: rgba(40, 167, 69, 0.2);
+        border-color: rgba(40, 167, 69, 0.15);
+      }
+      .toast.error {
+        background: rgba(220, 53, 69, 0.2);
+        border-color: rgba(220, 53, 69, 0.15);
+      }
+      .toast.info {
+        background: rgba(0, 123, 255, 0.18);
+        border-color: rgba(0, 123, 255, 0.12);
+      }
+      .toast.warning {
+        background: rgba(255, 193, 7, 0.15);
+        border-color: rgba(255, 193, 7, 0.12);
+      }
+
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(20px);
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        max-width: 700px;
+        width: 92%;
+        max-height: 85vh;
+        overflow-y: auto;
+        padding: 20px 24px;
+        animation: modalAnim 0.3s ease;
+        color: white;
+      }
+
+      @keyframes modalAnim {
+        from {
+          transform: translateY(-20px) scale(0.96);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0) scale(1);
+          opacity: 1;
+        }
+      }
+
+      .modal::-webkit-scrollbar {
+        width: 4px;
+      }
+
+      .modal::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        padding-bottom: 8px;
+      }
+
+      .modal-header h2 {
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: rgba(255, 255, 255, 0.3);
+        transition: 0.3s;
+        padding: 0 6px;
+      }
+
+      .modal-close:hover {
+        color: #ff6b6b;
+        transform: rotate(90deg);
+      }
+
+      .modal-body {
+        line-height: 1.6;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: 12px;
+      }
+
+      .modal-body .contenido-html {
+        background: rgba(255, 255, 255, 0.04);
+        padding: 10px;
+        border-radius: 6px;
+        margin-top: 4px;
+        line-height: 1.7;
+      }
+
+      .modal-body .contenido-html p {
+        margin-bottom: 6px;
+      }
+
+      .modal-body .contenido-html ul,
+      .modal-body .contenido-html ol {
+        padding-left: 20px;
+        margin: 6px 0;
+      }
+
+      .modal-body .contenido-html li {
+        margin-bottom: 3px;
+      }
+
+      .comentario-item {
+        background: rgba(255, 255, 255, 0.04);
+        padding: 6px 10px;
+        border-radius: 6px;
+        margin-bottom: 5px;
+        border-left: 3px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .comentario-item .meta {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.3);
+        margin-bottom: 2px;
+      }
+
+      .comentario-item .texto {
+        font-size: 11px;
+      }
+
+      @media (max-width: 1024px) {
+        .modo-edicion {
+          flex-direction: column;
+          gap: 6px;
+        }
+        .col-formulario {
+          flex: none;
+          max-height: 40vh;
+          overflow-y: auto;
+        }
+        .col-vista-previa {
+          flex: 1;
+          min-height: 0;
+        }
+        .documento-preview {
+          padding: 2.5cm 2cm 2.5cm 2cm;
+          font-size: 11pt;
+        }
+        .stats-grid {
+          grid-template-columns: repeat(3, 1fr);
+        }
+      }
+
+      @media (max-width: 768px) {
+        .glass {
+          padding: 8px 10px;
+          height: 97vh;
+        }
+        .header {
+          flex-direction: column;
+          text-align: center;
+        }
+        .header-actions {
+          justify-content: center;
+        }
+        .logo h1 {
+          font-size: 14px;
+        }
+        .logo-icon {
+          font-size: 20px;
+        }
+        .grupo-responsables {
+          grid-template-columns: 1fr;
+        }
+        .documento-preview {
+          padding: 2cm 1.5cm 2cm 1.5cm;
+          font-size: 10pt;
+        }
+        .col-formulario {
+          max-height: 35vh;
+        }
+        button {
+          font-size: 9px;
+          padding: 3px 8px;
+        }
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 4px;
+        }
+        .stat-card .number {
+          font-size: 16px;
+        }
+        .stat-card .label {
+          font-size: 8px;
+        }
+        .stat-card .icon {
+          font-size: 14px;
+        }
+        table {
+          font-size: 10px;
+        }
+        th,
+        td {
+          padding: 4px 5px;
+          font-size: 10px;
+        }
+        .btn-accion {
+          font-size: 9px;
+          padding: 1px 4px;
+        }
+        .modal {
+          padding: 14px 16px;
+        }
+        .modal-header h2 {
+          font-size: 16px;
+        }
+        .editor-toolbar button {
+          font-size: 9px;
+          padding: 1px 4px;
+          min-width: 22px;
+        }
+        .editor-content {
+          min-height: 80px;
+          font-size: 10px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .glass {
+          padding: 4px 6px;
+          border-radius: 10px;
+        }
+        .documento-preview {
+          padding: 1.5cm 1cm 1.5cm 1cm;
+          font-size: 9pt;
+        }
         .form-section {
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 10px;
-            padding: 10px 12px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            margin-bottom: 6px;
+          padding: 6px 8px;
         }
-
-        .form-section h2 {
-            font-size: 12px;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: rgba(255, 255, 255, 0.7);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .form-section h2 small {
-            font-weight: 300;
-            font-size: 8px;
-            color: rgba(255, 255, 255, 0.25);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-size: 9px;
-            font-weight: 500;
-            color: rgba(255, 255, 255, 0.4);
-            margin-bottom: 1px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-group label .required {
-            color: #ff6b6b;
-        }
-
         .form-group input,
         .form-group select,
         .form-group textarea {
-            padding: 4px 8px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 5px;
-            font-size: 11px;
-            font-family: 'Poppins', sans-serif;
-            background: rgba(255, 255, 255, 0.04);
-            color: white;
-            transition: all 0.3s;
+          font-size: 10px;
+          padding: 3px 6px;
         }
-
-        .form-group input::placeholder,
-        .form-group textarea::placeholder {
-            color: rgba(255, 255, 255, 0.12);
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .form-group select option {
-            background: #0f1a2e;
-            color: white;
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 35px;
-            font-size: 10px;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        /* ============================================
-                   EDITOR WYSIWYG SIMPLE
-                   ============================================ */
-        .editor-toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 3px;
-            padding: 4px 6px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-bottom: none;
-            border-radius: 5px 5px 0 0;
-        }
-
-        .editor-toolbar button {
-            padding: 2px 6px;
-            font-size: 11px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            color: rgba(255, 255, 255, 0.5);
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 400;
-            min-width: 28px;
-            text-align: center;
-        }
-
-        .editor-toolbar button:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        .editor-content {
-            min-height: 120px;
-            padding: 8px 10px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 0 0 5px 5px;
-            background: rgba(255, 255, 255, 0.04);
-            color: white;
-            font-size: 11px;
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            outline: none;
-            overflow-y: auto;
-            max-height: 250px;
-        }
-
-        .editor-content:focus {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .editor-content p {
-            margin-bottom: 4px;
-        }
-
-        .editor-content ul,
-        .editor-content ol {
-            padding-left: 20px;
-            margin: 4px 0;
-        }
-
-        .editor-content li {
-            margin-bottom: 2px;
-        }
-
-        .editor-content .editor-placeholder {
-            color: rgba(255, 255, 255, 0.15);
-            font-style: italic;
-        }
-
-        .grupo-responsables {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 5px;
-        }
-
-        .grupo-responsables .form-group label {
-            font-size: 7px;
-        }
-
-        .grupo-responsables .form-group input {
-            font-size: 9px;
-            padding: 3px 5px;
-        }
-
-        .form-actions {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
-
         .form-actions button {
-            font-size: 10px;
-            padding: 4px 10px;
+          font-size: 8px;
+          padding: 3px 6px;
         }
-
-        /* ============================================
-                   MODO TABLA
-                   ============================================ */
-        .modo-tabla {
-            display: none;
-            flex: 1;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        .modo-tabla.active {
-            display: flex;
-        }
-
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 8px;
-            margin-bottom: 10px;
-            flex-shrink: 0;
+          grid-template-columns: 1fr 1fr;
+          gap: 3px;
         }
-
         .stat-card {
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 8px;
-            padding: 8px 10px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+          padding: 4px 6px;
         }
-
-        .stat-card .icon {
-            font-size: 20px;
-            color: #ffdd00;
-        }
-
-        .stat-card .info {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            line-height: 1.2;
-        }
-
         .stat-card .number {
-            font-size: 22px;
-            font-weight: 700;
-            color: #fff;
-            line-height: 1;
+          font-size: 14px;
         }
-
         .stat-card .label {
-            font-size: 10px;
-            font-weight: 300;
-            color: rgba(255, 255, 255, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 1px;
+          font-size: 7px;
         }
-
-        .stat-card.pendientes .number {
-            color: #ffc107;
+        .stat-card .icon {
+          font-size: 12px;
         }
-        .stat-card.respondidos .number {
-            color: #28a745;
-        }
-        .stat-card.vencidos .number {
-            color: #dc3545;
-        }
-        .stat-card.urgentes .number {
-            color: #ff6b6b;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%,
-            100% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.5;
-            }
-        }
-
-        .table-section {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 10px;
-            padding: 10px 12px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            min-height: 0;
-        }
-
-        .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-            gap: 6px;
-            flex-shrink: 0;
-        }
-
-        .table-header h2 {
-            font-size: 13px;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .table-header h2 small {
-            font-weight: 300;
-            font-size: 9px;
-            color: rgba(255, 255, 255, 0.2);
-        }
-
-        .table-controls {
-            display: flex;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-
-        .table-controls input,
-        .table-controls select {
-            padding: 4px 10px;
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 6px;
-            font-size: 11px;
-            background: rgba(255, 255, 255, 0.04);
-            color: white;
-            font-family: 'Poppins', sans-serif;
-            transition: all 0.3s;
-        }
-
-        .table-controls input::placeholder {
-            color: rgba(255, 255, 255, 0.15);
-        }
-
-        .table-controls input:focus,
-        .table-controls select:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.12);
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .table-controls select option {
-            background: #0f1a2e;
-            color: white;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-            overflow-y: auto;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .table-wrapper::-webkit-scrollbar {
-            width: 5px;
-            height: 5px;
-        }
-
-        .table-wrapper::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
-        thead {
-            background: rgba(255, 255, 255, 0.03);
-            position: sticky;
-            top: 0;
-            z-index: 5;
-        }
-
-        th {
-            padding: 6px 8px;
-            text-align: left;
-            font-weight: 600;
-            color: rgba(255, 255, 255, 0.5);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            white-space: nowrap;
-            font-size: 9px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        td {
-            padding: 6px 8px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
-            vertical-align: middle;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 11px;
-        }
-
-        tr:hover td {
-            background: rgba(255, 255, 255, 0.03);
-        }
-
-        .estado-badge {
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 9px;
-            font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .estado-borrador {
-            background: rgba(108, 117, 125, 0.2);
-            color: #adb5bd;
-        }
-        .estado-emitido {
-            background: rgba(0, 123, 255, 0.2);
-            color: #6ea8fe;
-        }
-        .estado-en-proceso {
-            background: rgba(255, 193, 7, 0.15);
-            color: #ffc107;
-        }
-        .estado-respondido {
-            background: rgba(40, 167, 69, 0.15);
-            color: #28a745;
-        }
-        .estado-archivado {
-            background: rgba(111, 66, 193, 0.15);
-            color: #b78cff;
-        }
-        .estado-anulado {
-            background: rgba(220, 53, 69, 0.15);
-            color: #dc3545;
-        }
-
-        .prioridad-badge {
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 9px;
-            font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .prioridad-alta {
-            background: rgba(220, 53, 69, 0.15);
-            color: #ff6b6b;
-            animation: pulse 2s infinite;
-        }
-        .prioridad-media {
-            background: rgba(255, 193, 7, 0.12);
-            color: #ffc107;
-        }
-        .prioridad-baja {
-            background: rgba(40, 167, 69, 0.12);
-            color: #28a745;
-        }
-
-        .btn-accion {
-            padding: 2px 6px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 10px;
-            margin: 1px;
-            transition: all 0.2s;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 2px;
-            background: rgba(255, 255, 255, 0.04);
-            color: rgba(255, 255, 255, 0.5);
-            font-family: 'Poppins', sans-serif;
-        }
-
-        .btn-accion:hover {
-            transform: scale(1.05);
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        .btn-accion-ver {
-            background: rgba(0, 123, 255, 0.12);
-            color: #6ea8fe;
-        }
-        .btn-accion-ver:hover {
-            background: rgba(0, 123, 255, 0.2);
-        }
-
-        .btn-accion-imprimir {
-            background: rgba(111, 66, 193, 0.15);
-            color: #b78cff;
-        }
-        .btn-accion-imprimir:hover {
-            background: rgba(111, 66, 193, 0.25);
-        }
-
-        .btn-accion-pdf {
-            background: rgba(220, 53, 69, 0.12);
-            color: #ff6b6b;
-        }
-        .btn-accion-pdf:hover {
-            background: rgba(220, 53, 69, 0.2);
-        }
-
-        .btn-accion-estado {
-            background: rgba(255, 193, 7, 0.12);
-            color: #ffc107;
-        }
-        .btn-accion-estado:hover {
-            background: rgba(255, 193, 7, 0.2);
-        }
-
-        .btn-accion-comentar {
-            background: rgba(40, 167, 69, 0.12);
-            color: #28a745;
-        }
-        .btn-accion-comentar:hover {
-            background: rgba(40, 167, 69, 0.2);
-        }
-
-        .btn-accion-eliminar {
-            background: rgba(220, 53, 69, 0.12);
-            color: #ff6b6b;
-        }
-        .btn-accion-eliminar:hover {
-            background: rgba(220, 53, 69, 0.2);
-        }
-
-        .file-input-small {
-            font-size: 9px;
-            width: 55px;
-            background: transparent;
-            color: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 4px;
-            padding: 1px 3px;
-        }
-
-        .file-input-small::-webkit-file-upload-button {
-            background: rgba(255, 255, 255, 0.04);
-            border: none;
-            border-radius: 3px;
-            color: rgba(255, 255, 255, 0.3);
-            padding: 1px 5px;
-            font-size: 8px;
-            cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-        }
-
-        /* ============================================
-                   ALERTAS
-                   ============================================ */
-        .alerta-vencimiento {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 4px;
-            background: rgba(220, 53, 69, 0.05);
-            border: 1px solid rgba(220, 53, 69, 0.04);
-            color: rgba(248, 215, 218, 0.2);
-            padding: 2px 6px 2px 4px;
-            border-radius: 4px;
-            font-size: 8px;
-            width: auto !important;
-            max-width: 100%;
-            margin-bottom: 2px;
-            opacity: 0.15;
-            transition: opacity 0.3s;
-        }
-
-        .alerta-vencimiento:hover {
-            opacity: 0.6;
-        }
-
-        .alerta-vencimiento .icono {
-            font-size: 10px;
-            flex-shrink: 0;
-            opacity: 0.3;
-        }
-
-        .alerta-vencimiento .contenido-alerta {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            flex-wrap: wrap;
-        }
-
-        .alerta-vencimiento .contenido-alerta strong {
-            color: rgba(255, 107, 107, 0.2);
-            font-weight: 400;
-            font-size: 7px;
-        }
-
-        .alerta-vencimiento button {
-            padding: 1px 6px;
-            font-size: 7px;
-            border-radius: 3px;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid rgba(255, 255, 255, 0.02);
-            color: rgba(255, 255, 255, 0.1);
-            cursor: pointer;
-            transition: all 0.2s;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 300;
-        }
-
-        .alerta-vencimiento button:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: rgba(255, 255, 255, 0.2);
-        }
-
-        #alertasContainer,
-        #alertasContainerTabla {
-            display: flex;
-            justify-content: flex-start;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-bottom: 2px;
-            flex-shrink: 0;
-            min-height: 12px;
-        }
-
-        #alertasContainerTabla .alerta-vencimiento {
-            opacity: 1;
-            background: rgba(220, 53, 69, 0.12);
-            border-color: rgba(220, 53, 69, 0.15);
-            color: #f8d7da;
-            padding: 4px 10px 4px 8px;
-            font-size: 10px;
-        }
-
-        #alertasContainerTabla .alerta-vencimiento .icono {
-            opacity: 1;
-            font-size: 14px;
-        }
-
-        #alertasContainerTabla .alerta-vencimiento .contenido-alerta strong {
-            color: #ff6b6b;
-            font-weight: 600;
-            font-size: 10px;
-        }
-
-        .etiqueta-confidencial {
-            background: rgba(255, 0, 0, 0.05);
-            border: 1px solid rgba(255, 0, 0, 0.08);
-            border-radius: 4px;
-            padding: 3px 6px;
-            font-size: 7px;
-            color: rgba(255, 100, 100, 0.5);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            text-align: center;
-            margin-top: 3px;
-        }
-
-        .etiqueta-confidencial input {
-            margin-right: 4px;
-            width: auto;
-        }
-
-        .etiqueta-confidencial label {
-            font-size: 7px !important;
-            color: rgba(255, 100, 100, 0.35) !important;
-            text-transform: none !important;
-            letter-spacing: 0 !important;
-            cursor: pointer;
-        }
-
-        .leyenda-congreso {
-            font-size: 8px;
-            color: rgba(255, 255, 255, 0.12);
-            font-style: italic;
-            text-align: center;
-            padding: 2px 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.03);
-            margin-top: 3px;
-        }
-
-        .glass footer {
-            flex-shrink: 0;
-            text-align: center;
-            font-size: 9px;
-            color: rgba(255, 255, 255, 0.08);
-            padding: 4px 0;
-            border-top: 1px solid rgba(255, 255, 255, 0.03);
-            margin-top: 3px;
-            letter-spacing: 0.5px;
-        }
-
         .toast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 8px 16px;
-            border-radius: 10px;
-            color: white;
-            font-weight: 500;
-            font-size: 12px;
-            z-index: 2000;
-            transform: translateY(80px);
-            opacity: 0;
-            transition: all 0.4s ease;
-            max-width: 300px;
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            font-family: 'Poppins', sans-serif;
+          font-size: 11px;
+          padding: 8px 14px;
+          max-width: 250px;
         }
-
-        .toast.show {
-            transform: translateY(0);
-            opacity: 1;
-        }
-
-        .toast.success {
-            background: rgba(40, 167, 69, 0.2);
-            border-color: rgba(40, 167, 69, 0.15);
-        }
-        .toast.error {
-            background: rgba(220, 53, 69, 0.2);
-            border-color: rgba(220, 53, 69, 0.15);
-        }
-        .toast.info {
-            background: rgba(0, 123, 255, 0.18);
-            border-color: rgba(0, 123, 255, 0.12);
-        }
-        .toast.warning {
-            background: rgba(255, 193, 7, 0.15);
-            border-color: rgba(255, 193, 7, 0.12);
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(8px);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-        }
-
         .modal {
-            background: rgba(255, 255, 255, 0.06);
-            backdrop-filter: blur(20px);
-            border-radius: 14px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            max-width: 700px;
-            width: 92%;
-            max-height: 85vh;
-            overflow-y: auto;
-            padding: 20px 24px;
-            animation: modalAnim 0.3s ease;
-            color: white;
+          padding: 10px 12px;
         }
-
-        @keyframes modalAnim {
-            from {
-                transform: translateY(-20px) scale(0.96);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0) scale(1);
-                opacity: 1;
-            }
+        .editor-toolbar {
+          gap: 2px;
+          padding: 3px 4px;
         }
-
-        .modal::-webkit-scrollbar {
-            width: 4px;
+        .editor-toolbar button {
+          font-size: 8px;
+          padding: 1px 3px;
+          min-width: 18px;
         }
-
-        .modal::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 8px;
+        .editor-content {
+          min-height: 60px;
+          font-size: 9px;
+          padding: 6px 8px;
         }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-            padding-bottom: 8px;
-        }
-
-        .modal-header h2 {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            color: rgba(255, 255, 255, 0.3);
-            transition: 0.3s;
-            padding: 0 6px;
-        }
-
-        .modal-close:hover {
-            color: #ff6b6b;
-            transform: rotate(90deg);
-        }
-
-        .modal-body {
-            line-height: 1.6;
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 12px;
-        }
-
-        .modal-body .contenido-html {
-            background: rgba(255, 255, 255, 0.04);
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 4px;
-            line-height: 1.7;
-        }
-
-        .modal-body .contenido-html p {
-            margin-bottom: 6px;
-        }
-
-        .modal-body .contenido-html ul,
-        .modal-body .contenido-html ol {
-            padding-left: 20px;
-            margin: 6px 0;
-        }
-
-        .modal-body .contenido-html li {
-            margin-bottom: 3px;
-        }
-
-        .comentario-item {
-            background: rgba(255, 255, 255, 0.04);
-            padding: 6px 10px;
-            border-radius: 6px;
-            margin-bottom: 5px;
-            border-left: 3px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .comentario-item .meta {
-            font-size: 10px;
-            color: rgba(255, 255, 255, 0.3);
-            margin-bottom: 2px;
-        }
-
-        .comentario-item .texto {
-            font-size: 11px;
-        }
-
-        .btn-nuevo-oficio {
-            background: rgba(255, 193, 7, 0.15);
-            border-color: rgba(255, 193, 7, 0.15);
-        }
-
-        .btn-nuevo-oficio:hover {
-            background: rgba(255, 193, 7, 0.25);
-        }
-
-        .btn-ver-tabla {
-            background: rgba(0, 123, 255, 0.15);
-            border-color: rgba(0, 123, 255, 0.15);
-        }
-
-        .btn-ver-tabla:hover {
-            background: rgba(0, 123, 255, 0.25);
-        }
-
-        @media (max-width: 1024px) {
-            .modo-edicion {
-                flex-direction: column;
-                gap: 6px;
-            }
-            .col-formulario {
-                flex: none;
-                max-height: 40vh;
-                overflow-y: auto;
-            }
-            .col-vista-previa {
-                flex: 1;
-                min-height: 0;
-            }
-            .documento-preview {
-                padding: 2.5cm 2.0cm 2.5cm 2.0cm;
-                font-size: 11pt;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .glass {
-                padding: 8px 10px;
-                height: 97vh;
-            }
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-            .header-actions {
-                justify-content: center;
-            }
-            .logo h1 {
-                font-size: 14px;
-            }
-            .logo-icon {
-                font-size: 20px;
-            }
-            .grupo-responsables {
-                grid-template-columns: 1fr;
-            }
-            .documento-preview {
-                padding: 2.0cm 1.5cm 2.0cm 1.5cm;
-                font-size: 10pt;
-            }
-            .col-formulario {
-                max-height: 35vh;
-            }
-            button {
-                font-size: 9px;
-                padding: 3px 8px;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 4px;
-            }
-            .stat-card .number {
-                font-size: 16px;
-            }
-            .stat-card .label {
-                font-size: 8px;
-            }
-            .stat-card .icon {
-                font-size: 14px;
-            }
-            table {
-                font-size: 10px;
-            }
-            th,
-            td {
-                padding: 4px 5px;
-                font-size: 10px;
-            }
-            .btn-accion {
-                font-size: 9px;
-                padding: 1px 4px;
-            }
-            .modal {
-                padding: 14px 16px;
-            }
-            .modal-header h2 {
-                font-size: 16px;
-            }
-            .editor-toolbar button {
-                font-size: 9px;
-                padding: 1px 4px;
-                min-width: 22px;
-            }
-            .editor-content {
-                min-height: 80px;
-                font-size: 10px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .glass {
-                padding: 4px 6px;
-                border-radius: 10px;
-            }
-            .documento-preview {
-                padding: 1.5cm 1.0cm 1.5cm 1.0cm;
-                font-size: 9pt;
-            }
-            .form-section {
-                padding: 6px 8px;
-            }
-            .form-group input,
-            .form-group select,
-            .form-group textarea {
-                font-size: 10px;
-                padding: 3px 6px;
-            }
-            .form-actions button {
-                font-size: 8px;
-                padding: 3px 6px;
-            }
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-                gap: 3px;
-            }
-            .stat-card {
-                padding: 4px 6px;
-            }
-            .stat-card .number {
-                font-size: 14px;
-            }
-            .stat-card .label {
-                font-size: 7px;
-            }
-            .stat-card .icon {
-                font-size: 12px;
-            }
-            .toast {
-                font-size: 11px;
-                padding: 8px 14px;
-                max-width: 250px;
-            }
-            .modal {
-                padding: 10px 12px;
-            }
-            .editor-toolbar {
-                gap: 2px;
-                padding: 3px 4px;
-            }
-            .editor-toolbar button {
-                font-size: 8px;
-                padding: 1px 3px;
-                min-width: 18px;
-            }
-            .editor-content {
-                min-height: 60px;
-                font-size: 9px;
-                padding: 6px 8px;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="glass" id="appGlass">
-        <!-- ==================== HEADER ==================== -->
-        <div class="header">
-            <div class="logo">
-                <span class="logo-icon">🏥</span>
-                <div>
-                    <h1>Sistema de Control de Oficios</h1>
-                    <div class="institucion">Organismo Público Descentralizado Servicios de Salud Jalisco</div>
-                    <div class="subtitle">Hospital Regional Puerto Vallarta</div>
+      <!-- ==================== HEADER ==================== -->
+      <div class="header">
+        <div class="logo">
+          <span class="logo-icon">🏥</span>
+          <div>
+            <h1>OPDSSJ - Sistema de Oficios</h1>
+            <div class="institucion">
+              Organismo Público Descentralizado Servicios de Salud Jalisco
+            </div>
+            <div class="subtitle">
+              Control de comunicaciones oficiales · SDGM
+            </div>
+          </div>
+        </div>
+        <div class="header-actions" id="headerActions">
+          <button class="btn-success" onclick="cargarDatos()">
+            🔄 Actualizar
+          </button>
+          <button class="btn-warning" onclick="exportarExcel()">
+            📊 Exportar
+          </button>
+          <button class="btn-outline" onclick="verAlertasVencimiento()">
+            🔔 Alertas
+          </button>
+          <button
+            class="btn-nuevo-oficio"
+            id="btnNuevoOficio"
+            onclick="mostrarModoEdicion()"
+          >
+            ✏️ Nuevo Oficio
+          </button>
+          <button
+            class="btn-salir-ultra"
+            onclick="
+              if (confirm('¿Cerrar sesión?')) {
+                location.reload();
+              }
+            "
+          >
+            🚪 Salir
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
+      <div class="contenido-principal">
+        <!-- ===== MODO EDICIÓN ===== -->
+        <div class="modo-edicion" id="modoEdicion">
+          <div id="alertasContainer"></div>
+
+          <div class="col-formulario">
+            <div class="form-section" id="formSection">
+              <h2>
+                ✏️ <span id="formTitle">Nuevo Oficio</span>
+                <small>Instructivo SDGM/198/2026</small>
+              </h2>
+
+              <form id="oficioForm" onsubmit="return guardarOficio(event);">
+                <input type="hidden" id="editId" value="" />
+
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label>Clave OPDSSJ <span class="required">*</span></label>
+                    <input
+                      type="text"
+                      id="clave_opdssj"
+                      placeholder="OPDSSJ.SDGM/000/2026"
+                      required
+                    />
+                    <small
+                      style="color: rgba(255, 255, 255, 0.12); font-size: 7px"
+                      >OPDSSJ.[AREA]/[CONSECUTIVO]/[AÑO]</small
+                    >
+                  </div>
+
+                  <div class="form-group">
+                    <label>Tipo <span class="required">*</span></label>
+                    <select id="tipo_documento" required>
+                      <option value="Oficio">Oficio</option>
+                      <option value="Circular">Circular</option>
+                      <option value="Memorándum">Memorándum</option>
+                      <option value="Comunicado">Comunicado</option>
+                      <option value="Resolución">Resolución</option>
+                      <option value="Acta">Acta</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Asunto <span class="required">*</span></label>
+                    <input
+                      type="text"
+                      id="asunto"
+                      placeholder="Breve y preciso"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Remitente <span class="required">*</span></label>
+                    <input
+                      type="text"
+                      id="remitente"
+                      placeholder="Nombre completo"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label
+                      >Cargo del Remitente
+                      <span class="required">*</span></label
+                    >
+                    <input
+                      type="text"
+                      id="cargo_remitente"
+                      placeholder="Director, Jefe, Coordinador..."
+                      required
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Destinatario <span class="required">*</span></label>
+                    <input
+                      type="text"
+                      id="destinatario"
+                      placeholder="Nombre completo y cargo"
+                      required
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Departamento Destino</label>
+                    <input
+                      type="text"
+                      id="departamento_destino"
+                      placeholder="Área receptora"
+                    />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Fecha Emisión <span class="required">*</span></label>
+                    <input type="date" id="fecha_emision" required />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Prioridad <span class="required">*</span></label>
+                    <select id="prioridad" required>
+                      <option value="Alta">🔴 Alta</option>
+                      <option value="Media" selected>🟡 Media</option>
+                      <option value="Baja">🟢 Baja</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Plazo Respuesta (días)</label>
+                    <input
+                      type="number"
+                      id="plazo_respuesta"
+                      value="5"
+                      min="1"
+                      max="60"
+                    />
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label>Contenido <span class="required">*</span></label>
+                    <div class="editor-toolbar">
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('bold')"
+                        title="Negrita"
+                      >
+                        <b>N</b>
+                      </button>
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('italic')"
+                        title="Cursiva"
+                      >
+                        <i>C</i>
+                      </button>
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('underline')"
+                        title="Subrayado"
+                      >
+                        <u>S</u>
+                      </button>
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('strikethrough')"
+                        title="Tachado"
+                      >
+                        <s>T</s>
+                      </button>
+                      <span style="color: rgba(255, 255, 255, 0.1)">|</span>
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('insertUnorderedList')"
+                        title="Lista con viñetas"
+                      >
+                        •
+                      </button>
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('insertOrderedList')"
+                        title="Lista numerada"
+                      >
+                        1.
+                      </button>
+                      <span style="color: rgba(255, 255, 255, 0.1)">|</span>
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('justifyLeft')"
+                        title="Alinear izquierda"
+                      >
+                        ≡
+                      </button>
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('justifyCenter')"
+                        title="Centrar"
+                      >
+                        ☰
+                      </button>
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('justifyRight')"
+                        title="Alinear derecha"
+                      >
+                        ≡
+                      </button>
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('justifyFull')"
+                        title="Justificar"
+                      >
+                        ☷
+                      </button>
+                      <span style="color: rgba(255, 255, 255, 0.1)">|</span>
+                      <button
+                        type="button"
+                        onclick="ejecutarComando('removeFormat')"
+                        title="Quitar formato"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div
+                      class="editor-content"
+                      id="editorContenido"
+                      contenteditable="true"
+                    >
+                      <span class="editor-placeholder"
+                        >Escribe aquí el contenido del oficio...</span
+                      >
+                    </div>
+                    <textarea id="contenido" style="display: none"></textarea>
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label>Fundamentación Legal</label>
+                    <textarea
+                      id="fundamentacion"
+                      placeholder="Artículos, fracciones, incisos..."
+                      rows="2"
+                    ></textarea>
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label>Observaciones</label>
+                    <input
+                      type="text"
+                      id="observaciones"
+                      placeholder="Notas adicionales"
+                    />
+                  </div>
+
+                  <div class="full-width">
+                    <label
+                      style="
+                        font-size: 8px;
+                        color: rgba(255, 255, 255, 0.2);
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        display: block;
+                        margin-bottom: 3px;
+                      "
+                    >
+                      📋 Responsables del documento
+                    </label>
+                    <div class="grupo-responsables">
+                      <div class="form-group">
+                        <label>Elaboró</label>
+                        <input type="text" id="elaboro" placeholder="Nombre" />
+                      </div>
+                      <div class="form-group">
+                        <label>Revisó</label>
+                        <input type="text" id="reviso" placeholder="Nombre" />
+                      </div>
+                      <div class="form-group">
+                        <label>Autorizó</label>
+                        <input type="text" id="autorizo" placeholder="Nombre" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group full-width etiqueta-confidencial">
+                    <input type="checkbox" id="confidencial" />
+                    <label for="confidencial"
+                      >🔒 Contiene datos personales</label
+                    >
+                  </div>
+
+                  <div class="form-actions">
+                    <button type="submit" class="btn-primary" id="btnGuardar">
+                      📤 Guardar
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-outline"
+                      onclick="limpiarFormulario()"
+                    >
+                      🗑️ Limpiar
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-danger"
+                      id="btnCancelar"
+                      style="display: none"
+                      onclick="cancelarEdicion()"
+                    >
+                      ❌ Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-ver-tabla"
+                      onclick="mostrarModoTabla()"
+                    >
+                      📋 Ver listado
+                    </button>
+                  </div>
                 </div>
+              </form>
             </div>
-            <div class="header-actions" id="headerActions">
-                <button class="btn-success" onclick="cargarDatos()">🔄 Actualizar</button>
-                <button class="btn-warning" onclick="exportarExcel()">📊 Exportar</button>
-                <button class="btn-outline" onclick="verAlertasVencimiento()">🔔 Alertas</button>
-                <button class="btn-nuevo-oficio" id="btnNuevoOficio" onclick="mostrarModoEdicion()">✏️ Nuevo Oficio</button>
-                <button class="btn-salir-ultra" onclick="if(confirm('¿Cerrar sesión?')){location.reload();}">🚪 Salir</button>
+
+            <div class="leyenda-congreso">
+              "El año de la Transformación Digital"
             </div>
+          </div>
+
+          <!-- COLUMNA DERECHA: VISTA PREVIA -->
+          <div class="col-vista-previa">
+            <div class="label-vista">
+              <span>📄 Vista previa · Tamaño real</span>
+            </div>
+            <div class="vista-papel" id="vistaPapel">
+              <div class="documento-preview" id="previewDocumento">
+                <div class="empty-message">
+                  <span class="icono">📝</span>
+                  Completa el formulario<br />
+                  <span style="font-size: 11px; color: #aaa"
+                    >para ver la vista previa</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- ==================== CONTENIDO PRINCIPAL ==================== -->
-        <div class="contenido-principal">
+        <!-- ===== MODO TABLA ===== -->
+        <div class="modo-tabla" id="modoTabla">
+          <div id="alertasContainerTabla"></div>
 
-            <!-- ===== MODO EDICIÓN ===== -->
-            <div class="modo-edicion" id="modoEdicion">
-                <div id="alertasContainer"></div>
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+              <span class="icon">📄</span>
+              <div class="info">
+                <div class="number" id="totalOficios">0</div>
+                <div class="label">Total</div>
+              </div>
+            </div>
+            <div class="stat-card pendientes">
+              <span class="icon">⏳</span>
+              <div class="info">
+                <div class="number" id="pendientes">0</div>
+                <div class="label">Pendientes</div>
+              </div>
+            </div>
+            <div class="stat-card respondidos">
+              <span class="icon">✅</span>
+              <div class="info">
+                <div class="number" id="respondidos">0</div>
+                <div class="label">Respondidos</div>
+              </div>
+            </div>
+            <div class="stat-card vencidos">
+              <span class="icon">⚠️</span>
+              <div class="info">
+                <div class="number" id="vencidos">0</div>
+                <div class="label">Vencidos</div>
+              </div>
+            </div>
+            <div class="stat-card urgentes">
+              <span class="icon">🔴</span>
+              <div class="info">
+                <div class="number" id="urgentes">0</div>
+                <div class="label">Alta Prioridad</div>
+              </div>
+            </div>
+          </div>
 
-                <div class="col-formulario">
-                    <div class="form-section" id="formSection">
-                        <h2>✏️ <span id="formTitle">Nuevo Oficio</span> <small>Instructivo SDGM/198/2026</small></h2>
-
-                        <form id="oficioForm" onsubmit="return guardarOficio(event);">
-                            <input type="hidden" id="editId" value="" />
-
-                            <div class="form-grid">
-
-                                <div class="form-group">
-                                    <label>Clave OPDSSJ <span class="required">*</span></label>
-                                    <input type="text" id="clave_opdssj" placeholder="OPDSSJ.SDGM/000/2026" required />
-                                    <small style="color:rgba(255,255,255,0.12);font-size:7px;">OPDSSJ.[AREA]/[CONSECUTIVO]/[AÑO]</small>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Tipo <span class="required">*</span></label>
-                                    <select id="tipo_documento" required>
-                                        <option value="Oficio">Oficio</option>
-                                        <option value="Circular">Circular</option>
-                                        <option value="Memorándum">Memorándum</option>
-                                        <option value="Comunicado">Comunicado</option>
-                                        <option value="Resolución">Resolución</option>
-                                        <option value="Acta">Acta</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Asunto <span class="required">*</span></label>
-                                    <input type="text" id="asunto" placeholder="Breve y preciso" required />
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Remitente <span class="required">*</span></label>
-                                    <input type="text" id="remitente" placeholder="Nombre completo" required />
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Cargo del Remitente <span class="required">*</span></label>
-                                    <input type="text" id="cargo_remitente" placeholder="Director, Jefe, Coordinador..." required />
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Destinatario <span class="required">*</span></label>
-                                    <input type="text" id="destinatario" placeholder="Nombre completo y cargo" required />
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Departamento Destino</label>
-                                    <input type="text" id="departamento_destino" placeholder="Área receptora" />
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Fecha Emisión <span class="required">*</span></label>
-                                    <input type="date" id="fecha_emision" required />
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Prioridad <span class="required">*</span></label>
-                                    <select id="prioridad" required>
-                                        <option value="Alta">🔴 Alta</option>
-                                        <option value="Media" selected>🟡 Media</option>
-                                        <option value="Baja">🟢 Baja</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Plazo Respuesta (días)</label>
-                                    <input type="number" id="plazo_respuesta" value="5" min="1" max="60" />
-                                </div>
-
-                                <div class="form-group full-width">
-                                    <label>Contenido <span class="required">*</span></label>
-                                    <div class="editor-toolbar">
-                                        <button type="button" onclick="ejecutarComando('bold')" title="Negrita"><b>N</b></button>
-                                        <button type="button" onclick="ejecutarComando('italic')" title="Cursiva"><i>C</i></button>
-                                        <button type="button" onclick="ejecutarComando('underline')" title="Subrayado"><u>S</u></button>
-                                        <button type="button" onclick="ejecutarComando('strikethrough')" title="Tachado"><s>T</s></button>
-                                        <span style="color:rgba(255,255,255,0.1);">|</span>
-                                        <button type="button" onclick="ejecutarComando('insertUnorderedList')" title="Lista con viñetas">•</button>
-                                        <button type="button" onclick="ejecutarComando('insertOrderedList')" title="Lista numerada">1.</button>
-                                        <span style="color:rgba(255,255,255,0.1);">|</span>
-                                        <button type="button" onclick="ejecutarComando('justifyLeft')" title="Alinear izquierda">≡</button>
-                                        <button type="button" onclick="ejecutarComando('justifyCenter')" title="Centrar">☰</button>
-                                        <button type="button" onclick="ejecutarComando('justifyRight')" title="Alinear derecha">≡</button>
-                                        <button type="button" onclick="ejecutarComando('justifyFull')" title="Justificar">☷</button>
-                                        <span style="color:rgba(255,255,255,0.1);">|</span>
-                                        <button type="button" onclick="ejecutarComando('removeFormat')" title="Quitar formato">✕</button>
-                                    </div>
-                                    <div class="editor-content" id="editorContenido" contenteditable="true">
-                                        <span class="editor-placeholder">Escribe aquí el contenido del oficio...</span>
-                                    </div>
-                                    <textarea id="contenido" style="display:none;"></textarea>
-                                </div>
-
-                                <div class="form-group full-width">
-                                    <label>Fundamentación Legal</label>
-                                    <textarea id="fundamentacion" placeholder="Artículos, fracciones, incisos..." rows="2"></textarea>
-                                </div>
-
-                                <div class="form-group full-width">
-                                    <label>Observaciones</label>
-                                    <input type="text" id="observaciones" placeholder="Notas adicionales" />
-                                </div>
-
-                                <div class="full-width">
-                                    <label style="font-size:8px;color:rgba(255,255,255,0.2);text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:3px;">
-                                        📋 Responsables del documento
-                                    </label>
-                                    <div class="grupo-responsables">
-                                        <div class="form-group">
-                                            <label>Elaboró</label>
-                                            <input type="text" id="elaboro" placeholder="Nombre" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Revisó</label>
-                                            <input type="text" id="reviso" placeholder="Nombre" />
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Autorizó</label>
-                                            <input type="text" id="autorizo" placeholder="Nombre" />
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="form-group full-width etiqueta-confidencial">
-                                    <input type="checkbox" id="confidencial" />
-                                    <label for="confidencial">🔒 Contiene datos personales</label>
-                                </div>
-
-                                <div class="form-actions">
-                                    <button type="submit" class="btn-primary" id="btnGuardar">📤 Guardar</button>
-                                    <button type="button" class="btn-outline" onclick="limpiarFormulario()">🗑️ Limpiar</button>
-                                    <button type="button" class="btn-danger" id="btnCancelar" style="display:none;" onclick="cancelarEdicion()">❌ Cancelar</button>
-                                    <button type="button" class="btn-ver-tabla" onclick="mostrarModoTabla()">📋 Ver listado</button>
-                                </div>
-
-                            </div>
-                        </form>
-                    </div>
-
-                    <div class="leyenda-congreso">"El año de la Transformación Digital"</div>
-                </div>
-
-                <!-- COLUMNA DERECHA: VISTA PREVIA -->
-                <div class="col-vista-previa">
-                    <div class="label-vista">
-                        <span>📄 Vista previa · Tamaño real</span>
-                    </div>
-                    <div class="vista-papel" id="vistaPapel">
-                        <div class="documento-preview" id="previewDocumento">
-                            <div class="empty-message">
-                                <span class="icono">📝</span>
-                                Completa el formulario<br>
-                                <span style="font-size:11px;color:#aaa;">para ver la vista previa</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+          <div class="table-section">
+            <div class="table-header">
+              <h2>📄 Listado de Oficios <small>OPDSSJ</small></h2>
+              <div class="table-controls">
+                <!-- Botón "Nuevo Oficio" ELIMINADO (solo está en el header) -->
+                <input
+                  type="text"
+                  id="buscarOficio"
+                  placeholder="🔍 Buscar..."
+                  onkeyup="filtrarTabla()"
+                />
+                <select id="filtroEstado" onchange="filtrarTabla()">
+                  <option value="">Todos</option>
+                  <option value="Borrador">Borrador</option>
+                  <option value="Emitido">Emitido</option>
+                  <option value="En Proceso">En Proceso</option>
+                  <option value="Respondido">Respondido</option>
+                  <option value="Archivado">Archivado</option>
+                  <option value="Anulado">Anulado</option>
+                </select>
+                <select id="filtroPrioridad" onchange="filtrarTabla()">
+                  <option value="">Todas</option>
+                  <option value="Alta">Alta</option>
+                  <option value="Media">Media</option>
+                  <option value="Baja">Baja</option>
+                </select>
+              </div>
             </div>
 
-            <!-- ===== MODO TABLA ===== -->
-            <div class="modo-tabla" id="modoTabla">
-                <div id="alertasContainerTabla"></div>
-
-                <div class="stats-grid" id="statsGrid">
-                    <div class="stat-card">
-                        <span class="icon">📄</span>
-                        <div class="info">
-                            <div class="number" id="totalOficios">0</div>
-                            <div class="label">Total</div>
-                        </div>
-                    </div>
-                    <div class="stat-card pendientes">
-                        <span class="icon">⏳</span>
-                        <div class="info">
-                            <div class="number" id="pendientes">0</div>
-                            <div class="label">Pendientes</div>
-                        </div>
-                    </div>
-                    <div class="stat-card respondidos">
-                        <span class="icon">✅</span>
-                        <div class="info">
-                            <div class="number" id="respondidos">0</div>
-                            <div class="label">Respondidos</div>
-                        </div>
-                    </div>
-                    <div class="stat-card vencidos">
-                        <span class="icon">⚠️</span>
-                        <div class="info">
-                            <div class="number" id="vencidos">0</div>
-                            <div class="label">Vencidos</div>
-                        </div>
-                    </div>
-                    <div class="stat-card urgentes">
-                        <span class="icon">🔴</span>
-                        <div class="info">
-                            <div class="number" id="urgentes">0</div>
-                            <div class="label">Alta Prioridad</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="table-section">
-                    <div class="table-header">
-                        <h2>📄 Listado de Oficios <small>OPDSSJ</small></h2>
-                        <div class="table-controls">
-                            <button class="btn-nuevo-oficio" onclick="mostrarModoEdicion()">✏️ Nuevo Oficio</button>
-                            <input type="text" id="buscarOficio" placeholder="🔍 Buscar..." onkeyup="filtrarTabla()" />
-                            <select id="filtroEstado" onchange="filtrarTabla()">
-                                <option value="">Todos</option>
-                                <option value="Borrador">Borrador</option>
-                                <option value="Emitido">Emitido</option>
-                                <option value="En Proceso">En Proceso</option>
-                                <option value="Respondido">Respondido</option>
-                                <option value="Archivado">Archivado</option>
-                                <option value="Anulado">Anulado</option>
-                            </select>
-                            <select id="filtroPrioridad" onchange="filtrarTabla()">
-                                <option value="">Todas</option>
-                                <option value="Alta">Alta</option>
-                                <option value="Media">Media</option>
-                                <option value="Baja">Baja</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Clave OPDSSJ</th>
-                                    <th>Asunto</th>
-                                    <th>Remitente</th>
-                                    <th>Cargo</th>
-                                    <th>Destinatario</th>
-                                    <th>Fecha</th>
-                                    <th>Estado</th>
-                                    <th>Prioridad</th>
-                                    <th>Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tablaBody">
-                                <tr>
-                                    <td colspan="9" class="loading">Cargando datos...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Clave OPDSSJ</th>
+                    <th>Asunto</th>
+                    <th>Remitente</th>
+                    <th>Cargo</th>
+                    <th>Destinatario</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Prioridad</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody id="tablaBody">
+                  <tr>
+                    <td colspan="9" class="loading">Cargando datos...</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-
+          </div>
         </div>
+      </div>
 
-        <footer>
-            <span>OPDSSJ - Sistema de Control de Oficios v2.0</span>
-            <span style="margin-left:10px;opacity:0.4;">Instructivo SDGM/198/2026</span>
-            <span style="margin-left:10px;opacity:0.2;">⚡ Editor enriquecido</span>
-        </footer>
+      <footer>
+        <span>OPDSSJ - Sistema de Control de Oficios v2.0</span>
+        <span style="margin-left: 10px; opacity: 0.4"
+          >Instructivo SDGM/198/2026</span
+        >
+        <span style="margin-left: 10px; opacity: 0.2"
+          >⚡ Editor enriquecido</span
+        >
+      </footer>
     </div>
 
     <!-- ==================== MODAL ==================== -->
     <div class="modal-overlay" id="modalDetalle">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="modalTitle">Detalle del Oficio OPDSSJ</h2>
-                <button class="modal-close" onclick="cerrarModal()">✕</button>
-            </div>
-            <div class="modal-body" id="modalBody"></div>
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modalTitle">Detalle del Oficio OPDSSJ</h2>
+          <button class="modal-close" onclick="cerrarModal()">✕</button>
         </div>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
     </div>
 
     <!-- ==================== TOAST ==================== -->
@@ -1801,154 +1975,184 @@
 
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
-        // ==================== CONFIGURACIÓN ====================
-        const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
-        const SUPABASE_ANON_KEY =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
+      // ==================== CONFIGURACIÓN ====================
+      const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY,
+      );
 
-        // ==================== VARIABLES GLOBALES ====================
-        let todosLosOficios = [];
+      // ==================== VARIABLES GLOBALES ====================
+      let todosLosOficios = [];
 
-        // ==================== INICIALIZACIÓN ====================
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("fecha_emision").value = new Date().toISOString().split("T")[0];
-            cargarDatos();
-            mostrarModoTabla();
-            setInterval(verificarVencimientos, 300000);
+      // ==================== INICIALIZACIÓN ====================
+      document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById("fecha_emision").value = new Date()
+          .toISOString()
+          .split("T")[0];
+        cargarDatos();
+        mostrarModoTabla();
+        setInterval(verificarVencimientos, 300000);
 
-            const editor = document.getElementById('editorContenido');
-            editor.addEventListener('input', function() {
-                actualizarVistaPrevia();
-                const placeholder = this.querySelector('.editor-placeholder');
-                if (placeholder && this.innerHTML.trim() !== '') {
-                    placeholder.remove();
-                }
-            });
-            editor.addEventListener('blur', function() {
-                if (this.innerHTML.trim() === '' || this.innerHTML.trim() === '<br>') {
-                    this.innerHTML = '<span class="editor-placeholder">Escribe aquí el contenido del oficio...</span>';
-                }
-            });
-
-            document.querySelectorAll('#oficioForm input, #oficioForm select, #oficioForm textarea').forEach(el => {
-                el.addEventListener('input', actualizarVistaPrevia);
-                el.addEventListener('change', actualizarVistaPrevia);
-            });
+        const editor = document.getElementById("editorContenido");
+        editor.addEventListener("input", function () {
+          actualizarVistaPrevia();
+          const placeholder = this.querySelector(".editor-placeholder");
+          if (placeholder && this.innerHTML.trim() !== "") {
+            placeholder.remove();
+          }
+        });
+        editor.addEventListener("blur", function () {
+          if (
+            this.innerHTML.trim() === "" ||
+            this.innerHTML.trim() === "<br>"
+          ) {
+            this.innerHTML =
+              '<span class="editor-placeholder">Escribe aquí el contenido del oficio...</span>';
+          }
         });
 
-        // ==================== EDITOR ====================
-        function ejecutarComando(comando) {
-            document.execCommand(comando, false, null);
-            actualizarVistaPrevia();
+        document
+          .querySelectorAll(
+            "#oficioForm input, #oficioForm select, #oficioForm textarea",
+          )
+          .forEach((el) => {
+            el.addEventListener("input", actualizarVistaPrevia);
+            el.addEventListener("change", actualizarVistaPrevia);
+          });
+      });
+
+      // ==================== EDITOR ====================
+      function ejecutarComando(comando) {
+        document.execCommand(comando, false, null);
+        actualizarVistaPrevia();
+      }
+
+      function obtenerContenidoEditor() {
+        const editor = document.getElementById("editorContenido");
+        let html = editor.innerHTML;
+        if (
+          html.trim() ===
+          '<span class="editor-placeholder">Escribe aquí el contenido del oficio...</span>'
+        ) {
+          return "";
+        }
+        return html;
+      }
+
+      function setContenidoEditor(html) {
+        const editor = document.getElementById("editorContenido");
+        if (html && html.trim() !== "") {
+          editor.innerHTML = html;
+        } else {
+          editor.innerHTML =
+            '<span class="editor-placeholder">Escribe aquí el contenido del oficio...</span>';
+        }
+        actualizarVistaPrevia();
+      }
+
+      // ==================== MODOS ====================
+      function mostrarModoEdicion() {
+        document.getElementById("modoEdicion").style.display = "flex";
+        document.getElementById("modoTabla").classList.remove("active");
+        document.getElementById("modoTabla").style.display = "none";
+        if (!document.getElementById("editId").value) {
+          generarClaveOPDSSJ();
+        }
+        actualizarVistaPrevia();
+      }
+
+      function mostrarModoTabla() {
+        document.getElementById("modoEdicion").style.display = "none";
+        document.getElementById("modoTabla").style.display = "flex";
+        document.getElementById("modoTabla").classList.add("active");
+        cargarDatos();
+      }
+
+      // ==================== GENERAR CLAVE ====================
+      async function generarClaveOPDSSJ() {
+        const año = new Date().getFullYear();
+        const area = "SDGM";
+
+        const { data, error } = await supabaseClient
+          .from("oficios")
+          .select("clave_opdssj")
+          .order("clave_opdssj", { ascending: false })
+          .limit(1);
+
+        let nuevoConsecutivo = 1;
+
+        if (data && data.length > 0) {
+          const ultimaClave = data[0].clave_opdssj;
+          const match = ultimaClave.match(/OPDSSJ\.SDGM\/(\d{3})\/\d{4}/);
+          if (match) {
+            nuevoConsecutivo = parseInt(match[1]) + 1;
+          }
         }
 
-        function obtenerContenidoEditor() {
-            const editor = document.getElementById('editorContenido');
-            let html = editor.innerHTML;
-            if (html.trim() === '<span class="editor-placeholder">Escribe aquí el contenido del oficio...</span>') {
-                return '';
-            }
-            return html;
+        const consecutivoStr = String(nuevoConsecutivo).padStart(3, "0");
+        const clave = `OPDSSJ.${area}/${consecutivoStr}/${año}`;
+
+        const input = document.getElementById("clave_opdssj");
+        if (input) {
+          input.value = clave;
+          actualizarVistaPrevia();
         }
+        return clave;
+      }
 
-        function setContenidoEditor(html) {
-            const editor = document.getElementById('editorContenido');
-            if (html && html.trim() !== '') {
-                editor.innerHTML = html;
-            } else {
-                editor.innerHTML = '<span class="editor-placeholder">Escribe aquí el contenido del oficio...</span>';
-            }
-            actualizarVistaPrevia();
-        }
+      // ==================== VISTA PREVIA ====================
+      function actualizarVistaPrevia() {
+        const preview = document.getElementById("previewDocumento");
+        if (!preview) return;
 
-        // ==================== MODOS ====================
-        function mostrarModoEdicion() {
-            document.getElementById('modoEdicion').style.display = 'flex';
-            document.getElementById('modoTabla').classList.remove('active');
-            document.getElementById('modoTabla').style.display = 'none';
-            if (!document.getElementById('editId').value) {
-                generarClaveOPDSSJ();
-            }
-            actualizarVistaPrevia();
-        }
+        const clave =
+          document.getElementById("clave_opdssj")?.value ||
+          "OPDSSJ.SDGM/000/2026";
+        const asunto =
+          document.getElementById("asunto")?.value || "Asunto del oficio";
+        const contenido =
+          obtenerContenidoEditor() || "Redacte el contenido del oficio...";
+        const fundamentacion = document.getElementById("fundamentacion")?.value;
+        const remitente =
+          document.getElementById("remitente")?.value || "Nombre del remitente";
+        const cargoRemitente =
+          document.getElementById("cargo_remitente")?.value ||
+          "Cargo del remitente";
+        const destinatario =
+          document.getElementById("destinatario")?.value ||
+          "Nombre del destinatario";
+        const fecha = document.getElementById("fecha_emision")?.value;
+        const elaboro = document.getElementById("elaboro")?.value;
+        const reviso = document.getElementById("reviso")?.value;
+        const autorizo = document.getElementById("autorizo")?.value;
+        const confidencial =
+          document.getElementById("confidencial")?.checked || false;
 
-        function mostrarModoTabla() {
-            document.getElementById('modoEdicion').style.display = 'none';
-            document.getElementById('modoTabla').style.display = 'flex';
-            document.getElementById('modoTabla').classList.add('active');
-            cargarDatos();
-        }
+        const fechaFormateada = fecha
+          ? formatearFecha(fecha)
+          : "Fecha de emisión";
 
-        // ==================== GENERAR CLAVE ====================
-        async function generarClaveOPDSSJ() {
-            const año = new Date().getFullYear();
-            const area = "SDGM";
+        const tieneDatos =
+          document.getElementById("asunto")?.value ||
+          document.getElementById("remitente")?.value ||
+          document.getElementById("destinatario")?.value;
 
-            const { data, error } = await supabaseClient
-                .from("oficios")
-                .select("clave_opdssj")
-                .order("clave_opdssj", { ascending: false })
-                .limit(1);
-
-            let nuevoConsecutivo = 1;
-
-            if (data && data.length > 0) {
-                const ultimaClave = data[0].clave_opdssj;
-                const match = ultimaClave.match(/OPDSSJ\.SDGM\/(\d{3})\/\d{4}/);
-                if (match) {
-                    nuevoConsecutivo = parseInt(match[1]) + 1;
-                }
-            }
-
-            const consecutivoStr = String(nuevoConsecutivo).padStart(3, "0");
-            const clave = `OPDSSJ.${area}/${consecutivoStr}/${año}`;
-
-            const input = document.getElementById("clave_opdssj");
-            if (input) {
-                input.value = clave;
-                actualizarVistaPrevia();
-            }
-            return clave;
-        }
-
-        // ==================== VISTA PREVIA ====================
-        function actualizarVistaPrevia() {
-            const preview = document.getElementById('previewDocumento');
-            if (!preview) return;
-
-            const clave = document.getElementById('clave_opdssj')?.value || 'OPDSSJ.SDGM/000/2026';
-            const asunto = document.getElementById('asunto')?.value || 'Asunto del oficio';
-            const contenido = obtenerContenidoEditor() || 'Redacte el contenido del oficio...';
-            const fundamentacion = document.getElementById('fundamentacion')?.value;
-            const remitente = document.getElementById('remitente')?.value || 'Nombre del remitente';
-            const cargoRemitente = document.getElementById('cargo_remitente')?.value || 'Cargo del remitente';
-            const destinatario = document.getElementById('destinatario')?.value || 'Nombre del destinatario';
-            const fecha = document.getElementById('fecha_emision')?.value;
-            const elaboro = document.getElementById('elaboro')?.value;
-            const reviso = document.getElementById('reviso')?.value;
-            const autorizo = document.getElementById('autorizo')?.value;
-            const confidencial = document.getElementById('confidencial')?.checked || false;
-
-            const fechaFormateada = fecha ? formatearFecha(fecha) : 'Fecha de emisión';
-
-            const tieneDatos = document.getElementById('asunto')?.value ||
-                document.getElementById('remitente')?.value ||
-                document.getElementById('destinatario')?.value;
-
-            if (!tieneDatos) {
-                preview.innerHTML = `
+        if (!tieneDatos) {
+          preview.innerHTML = `
                     <div class="empty-message">
                         <span class="icono">📝</span>
                         Completa el formulario<br>
                         <span style="font-size:11px;color:#aaa;">para ver la vista previa</span>
                     </div>
                 `;
-                return;
-            }
+          return;
+        }
 
-            preview.innerHTML = `
+        preview.innerHTML = `
                 <div class="header-doc">
                     <div class="logo-container">
                         <div style="text-align:left;">
@@ -1980,14 +2184,18 @@
                     Asunto: ${asunto}
                 </div>
                 <div class="contenido">
-                    ${contenido || 'Redacte el contenido del oficio...'}
+                    ${contenido || "Redacte el contenido del oficio..."}
                 </div>
-                ${fundamentacion ? `
+                ${
+                  fundamentacion
+                    ? `
                 <div class="fundamentacion">
                     <strong>Fundamentación:</strong><br>
                     ${fundamentacion}
                 </div>
-                ` : ''}
+                `
+                    : ""
+                }
                 <div class="cierre">
                     <div class="atentamente">Atentamente,</div>
                     <div class="leyenda">"El año de la Transformación Digital"</div>
@@ -1997,66 +2205,69 @@
                         <div class="cargo">${cargoRemitente}</div>
                     </div>
                 </div>
-                ${confidencial ? `
+                ${
+                  confidencial
+                    ? `
                 <div class="confidencial">
                     🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
                 </div>
-                ` : ''}
+                `
+                    : ""
+                }
                 <div class="responsables">
-                    ${elaboro ? `Elaboró: ${elaboro}` : ''}
-                    ${reviso ? ` | Revisó: ${reviso}` : ''}
-                    ${autorizo ? ` | Autorizó: ${autorizo}` : ''}
+                    ${elaboro ? `Elaboró: ${elaboro}` : ""}
+                    ${reviso ? ` | Revisó: ${reviso}` : ""}
+                    ${autorizo ? ` | Autorizó: ${autorizo}` : ""}
                 </div>
                 <div class="footer-doc">
                     <span class="page-number">Página 1 de 1</span>
                 </div>
             `;
 
-            const papel = document.getElementById('vistaPapel');
-            if (papel) {
-                setTimeout(() => {
-                    papel.scrollTop = papel.scrollHeight;
-                }, 50);
-            }
+        const papel = document.getElementById("vistaPapel");
+        if (papel) {
+          setTimeout(() => {
+            papel.scrollTop = papel.scrollHeight;
+          }, 50);
+        }
+      }
+
+      // ==================== CRUD ====================
+      async function cargarDatos() {
+        try {
+          const { data, error } = await supabaseClient
+            .from("oficios")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+          if (error) throw error;
+
+          todosLosOficios = data || [];
+          renderizarTabla(todosLosOficios);
+          actualizarEstadisticas(todosLosOficios);
+          verificarVencimientos();
+          await generarClaveOPDSSJ();
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast("❌ Error al cargar: " + error.message, "error");
+          document.getElementById("tablaBody").innerHTML =
+            `<tr><td colspan="9" style="text-align:center;color:#ff6b6b;padding:15px;">❌ Error al cargar datos</td></tr>`;
+        }
+      }
+
+      function renderizarTabla(data) {
+        const tbody = document.getElementById("tablaBody");
+        if (!tbody) return;
+
+        if (!data || data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:rgba(255,255,255,0.2);padding:15px;">📭 No hay oficios registrados</td></tr>`;
+          return;
         }
 
-        // ==================== CRUD ====================
-        async function cargarDatos() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from("oficios")
-                    .select("*")
-                    .order("created_at", { ascending: false });
-
-                if (error) throw error;
-
-                todosLosOficios = data || [];
-                renderizarTabla(todosLosOficios);
-                actualizarEstadisticas(todosLosOficios);
-                verificarVencimientos();
-                await generarClaveOPDSSJ();
-            } catch (error) {
-                console.error("Error:", error);
-                mostrarToast("❌ Error al cargar: " + error.message, "error");
-                document.getElementById("tablaBody").innerHTML =
-                    `<tr><td colspan="9" style="text-align:center;color:#ff6b6b;padding:15px;">❌ Error al cargar datos</td></tr>`;
-            }
-        }
-
-        function renderizarTabla(data) {
-            const tbody = document.getElementById("tablaBody");
-            if (!tbody) return;
-
-            if (!data || data.length === 0) {
-                tbody.innerHTML =
-                    `<tr><td colspan="9" style="text-align:center;color:rgba(255,255,255,0.2);padding:15px;">📭 No hay oficios registrados</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = data
-                .map((oficio) => {
-                    const estaVencido = verificarVencimiento(oficio);
-                    return `
+        tbody.innerHTML = data
+          .map((oficio) => {
+            const estaVencido = verificarVencimiento(oficio);
+            return `
                     <tr style="${estaVencido ? "background: rgba(220,53,69,0.04);" : ""}">
                         <td><strong style="color:#fff;font-size:10px;">${oficio.clave_opdssj || "N/A"}</strong></td>
                         <td>${oficio.asunto || ""}</td>
@@ -2087,164 +2298,199 @@
                         </td>
                     </tr>
                 `;
-                })
-                .join("");
+          })
+          .join("");
+      }
+
+      // ==================== GUARDAR ====================
+      async function guardarOficio(event) {
+        event.preventDefault();
+
+        const id = document.getElementById("editId").value;
+        const confidencial = document.getElementById("confidencial").checked;
+        const clave = document.getElementById("clave_opdssj").value;
+        const contenido = obtenerContenidoEditor();
+
+        const contenidoFinal = contenido.includes("editor-placeholder")
+          ? ""
+          : contenido;
+
+        const data = {
+          clave_opdssj: clave,
+          tipo_documento: document.getElementById("tipo_documento").value,
+          asunto: document.getElementById("asunto").value,
+          contenido: contenidoFinal,
+          fundamentacion: document.getElementById("fundamentacion").value,
+          remitente: document.getElementById("remitente").value,
+          cargo_remitente: document.getElementById("cargo_remitente").value,
+          destinatario: document.getElementById("destinatario").value,
+          departamento_destino: document.getElementById("departamento_destino")
+            .value,
+          fecha_emision: document.getElementById("fecha_emision").value,
+          plazo_respuesta:
+            parseInt(document.getElementById("plazo_respuesta").value) || 5,
+          prioridad: document.getElementById("prioridad").value,
+          observaciones: document.getElementById("observaciones").value,
+          elaboro: document.getElementById("elaboro").value,
+          reviso: document.getElementById("reviso").value,
+          autorizo: document.getElementById("autorizo").value,
+          confidencial: confidencial,
+          numero_oficio: clave,
+          estado: "Borrador",
+        };
+
+        try {
+          let result;
+
+          if (id) {
+            delete data.numero_oficio;
+            result = await supabaseClient
+              .from("oficios")
+              .update(data)
+              .eq("id", id);
+            if (!result.error) {
+              await registrarSeguimiento(id, "Edición", "Oficio actualizado");
+              mostrarToast("✅ Oficio actualizado correctamente", "success");
+              mostrarModoTabla();
+            }
+          } else {
+            result = await supabaseClient.from("oficios").insert([data]);
+            if (!result.error) {
+              const { data: newData } = await supabaseClient
+                .from("oficios")
+                .select("id")
+                .order("created_at", { ascending: false })
+                .limit(1);
+              if (newData && newData.length > 0) {
+                await registrarSeguimiento(
+                  newData[0].id,
+                  "Creación",
+                  "Oficio creado",
+                );
+              }
+              mostrarToast("✅ Oficio creado exitosamente", "success");
+              mostrarModoTabla();
+            }
+          }
+
+          if (result.error) {
+            throw result.error;
+          }
+
+          limpiarFormulario();
+          cargarDatos();
+        } catch (error) {
+          console.error("Error:", error);
+          if (error.code === "23505") {
+            mostrarToast(
+              "❌ Esta clave ya existe. Generando una nueva...",
+              "warning",
+            );
+            await generarClaveOPDSSJ();
+          } else {
+            mostrarToast("❌ Error al guardar: " + error.message, "error");
+          }
+        }
+      }
+
+      async function eliminarOficio(id, clave) {
+        if (!confirm(`¿Estás seguro de eliminar el oficio ${clave}?`)) return;
+
+        try {
+          const { error } = await supabaseClient
+            .from("oficios")
+            .delete()
+            .eq("id", id);
+          if (error) throw error;
+
+          mostrarToast("✅ Oficio eliminado correctamente", "success");
+          cargarDatos();
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast("❌ Error al eliminar: " + error.message, "error");
+        }
+      }
+
+      async function cambiarEstado(id, estadoActual) {
+        const estados = [
+          "Borrador",
+          "Emitido",
+          "En Proceso",
+          "Respondido",
+          "Archivado",
+        ];
+        const index = estados.indexOf(estadoActual);
+        const nuevoEstado = estados[(index + 1) % estados.length];
+
+        try {
+          const { error } = await supabaseClient
+            .from("oficios")
+            .update({ estado: nuevoEstado })
+            .eq("id", id);
+
+          if (error) throw error;
+
+          await registrarSeguimiento(
+            id,
+            "Cambio de Estado",
+            `Estado cambiado de "${estadoActual}" a "${nuevoEstado}"`,
+          );
+          mostrarToast(`✅ Estado cambiado a: ${nuevoEstado}`, "success");
+          cargarDatos();
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast("❌ Error al cambiar estado: " + error.message, "error");
+        }
+      }
+
+      // ==================== SEGUIMIENTO ====================
+      async function registrarSeguimiento(oficioId, tipoAccion, descripcion) {
+        try {
+          const { error } = await supabaseClient
+            .from("seguimiento")
+            .insert([
+              {
+                oficio_id: oficioId,
+                tipo_accion: tipoAccion,
+                descripcion: descripcion,
+                usuario: "Usuario del sistema",
+                fecha_accion: new Date(),
+              },
+            ]);
+          if (error) throw error;
+        } catch (error) {
+          console.error("Error al registrar seguimiento:", error);
+        }
+      }
+
+      async function obtenerSeguimiento(oficioId) {
+        const { data, error } = await supabaseClient
+          .from("seguimiento")
+          .select("*")
+          .eq("oficio_id", oficioId)
+          .order("fecha_accion", { ascending: false });
+
+        if (error) {
+          console.error("Error al obtener seguimiento:", error);
+          return [];
+        }
+        return data || [];
+      }
+
+      // ==================== IMPRIMIR ====================
+      function imprimirOficio(id) {
+        const oficio = todosLosOficios.find((o) => o.id === id);
+        if (!oficio) {
+          mostrarToast("❌ Oficio no encontrado", "error");
+          return;
         }
 
-        // ==================== GUARDAR ====================
-        async function guardarOficio(event) {
-            event.preventDefault();
+        const clave = oficio.clave_opdssj || "N/A";
+        const cargoRemitente =
+          oficio.cargo_remitente || "Cargo no especificado";
 
-            const id = document.getElementById("editId").value;
-            const confidencial = document.getElementById("confidencial").checked;
-            const clave = document.getElementById("clave_opdssj").value;
-            const contenido = obtenerContenidoEditor();
-
-            const contenidoFinal = contenido.includes('editor-placeholder') ? '' : contenido;
-
-            const data = {
-                clave_opdssj: clave,
-                tipo_documento: document.getElementById("tipo_documento").value,
-                asunto: document.getElementById("asunto").value,
-                contenido: contenidoFinal,
-                fundamentacion: document.getElementById("fundamentacion").value,
-                remitente: document.getElementById("remitente").value,
-                cargo_remitente: document.getElementById("cargo_remitente").value,
-                destinatario: document.getElementById("destinatario").value,
-                departamento_destino: document.getElementById("departamento_destino").value,
-                fecha_emision: document.getElementById("fecha_emision").value,
-                plazo_respuesta: parseInt(document.getElementById("plazo_respuesta").value) || 5,
-                prioridad: document.getElementById("prioridad").value,
-                observaciones: document.getElementById("observaciones").value,
-                elaboro: document.getElementById("elaboro").value,
-                reviso: document.getElementById("reviso").value,
-                autorizo: document.getElementById("autorizo").value,
-                confidencial: confidencial,
-                numero_oficio: clave,
-                estado: "Borrador"
-            };
-
-            try {
-                let result;
-
-                if (id) {
-                    delete data.numero_oficio;
-                    result = await supabaseClient.from("oficios").update(data).eq("id", id);
-                    if (!result.error) {
-                        await registrarSeguimiento(id, "Edición", "Oficio actualizado");
-                        mostrarToast("✅ Oficio actualizado correctamente", "success");
-                        mostrarModoTabla();
-                    }
-                } else {
-                    result = await supabaseClient.from("oficios").insert([data]);
-                    if (!result.error) {
-                        const { data: newData } = await supabaseClient
-                            .from("oficios")
-                            .select("id")
-                            .order("created_at", { ascending: false })
-                            .limit(1);
-                        if (newData && newData.length > 0) {
-                            await registrarSeguimiento(newData[0].id, "Creación", "Oficio creado");
-                        }
-                        mostrarToast("✅ Oficio creado exitosamente", "success");
-                        mostrarModoTabla();
-                    }
-                }
-
-                if (result.error) {
-                    throw result.error;
-                }
-
-                limpiarFormulario();
-                cargarDatos();
-            } catch (error) {
-                console.error("Error:", error);
-                if (error.code === '23505') {
-                    mostrarToast("❌ Esta clave ya existe. Generando una nueva...", "warning");
-                    await generarClaveOPDSSJ();
-                } else {
-                    mostrarToast("❌ Error al guardar: " + error.message, "error");
-                }
-            }
-        }
-
-        async function eliminarOficio(id, clave) {
-            if (!confirm(`¿Estás seguro de eliminar el oficio ${clave}?`)) return;
-
-            try {
-                const { error } = await supabaseClient.from("oficios").delete().eq("id", id);
-                if (error) throw error;
-
-                mostrarToast("✅ Oficio eliminado correctamente", "success");
-                cargarDatos();
-            } catch (error) {
-                console.error("Error:", error);
-                mostrarToast("❌ Error al eliminar: " + error.message, "error");
-            }
-        }
-
-        async function cambiarEstado(id, estadoActual) {
-            const estados = ["Borrador", "Emitido", "En Proceso", "Respondido", "Archivado"];
-            const index = estados.indexOf(estadoActual);
-            const nuevoEstado = estados[(index + 1) % estados.length];
-
-            try {
-                const { error } = await supabaseClient
-                    .from("oficios")
-                    .update({ estado: nuevoEstado })
-                    .eq("id", id);
-
-                if (error) throw error;
-
-                await registrarSeguimiento(id, "Cambio de Estado", `Estado cambiado de "${estadoActual}" a "${nuevoEstado}"`);
-                mostrarToast(`✅ Estado cambiado a: ${nuevoEstado}`, "success");
-                cargarDatos();
-            } catch (error) {
-                console.error("Error:", error);
-                mostrarToast("❌ Error al cambiar estado: " + error.message, "error");
-            }
-        }
-
-        // ==================== SEGUIMIENTO ====================
-        async function registrarSeguimiento(oficioId, tipoAccion, descripcion) {
-            try {
-                const { error } = await supabaseClient.from("seguimiento").insert([
-                    { oficio_id: oficioId, tipo_accion: tipoAccion, descripcion: descripcion, usuario: "Usuario del sistema",
-                        fecha_accion: new Date() },
-                ]);
-                if (error) throw error;
-            } catch (error) {
-                console.error("Error al registrar seguimiento:", error);
-            }
-        }
-
-        async function obtenerSeguimiento(oficioId) {
-            const { data, error } = await supabaseClient
-                .from("seguimiento")
-                .select("*")
-                .eq("oficio_id", oficioId)
-                .order("fecha_accion", { ascending: false });
-
-            if (error) {
-                console.error("Error al obtener seguimiento:", error);
-                return [];
-            }
-            return data || [];
-        }
-
-        // ==================== IMPRIMIR ====================
-        function imprimirOficio(id) {
-            const oficio = todosLosOficios.find((o) => o.id === id);
-            if (!oficio) {
-                mostrarToast("❌ Oficio no encontrado", "error");
-                return;
-            }
-
-            const clave = oficio.clave_opdssj || "N/A";
-            const cargoRemitente = oficio.cargo_remitente || "Cargo no especificado";
-
-            const ventana = window.open("", "_blank");
-            ventana.document.write(`
+        const ventana = window.open("", "_blank");
+        ventana.document.write(`
                 <html>
                 <head>
                     <title>Oficio ${clave}</title>
@@ -2293,7 +2539,7 @@
                     <div class="destinatario"><span class="label">C.</span> ${oficio.destinatario}</div>
                     <div class="asunto">Asunto: ${oficio.asunto}</div>
                     <div class="contenido">${oficio.contenido || "Contenido no especificado"}</div>
-                    ${oficio.fundamentacion ? `<div class="fundamentacion"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ''}
+                    ${oficio.fundamentacion ? `<div class="fundamentacion"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
                     <div class="cierre">
                         <div class="atentamente">Atentamente,</div>
                         <div class="leyenda">"El año de la Transformación Digital"</div>
@@ -2303,8 +2549,8 @@
                             <div class="cargo">${cargoRemitente}</div>
                         </div>
                     </div>
-                    ${oficio.confidencial ? `<div class="confidencial">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ''}
-                    <div class="responsables">${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ''}${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ''}${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ''}</div>
+                    ${oficio.confidencial ? `<div class="confidencial">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ""}
+                    <div class="responsables">${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}</div>
                     <div class="footer-doc">
                         <span class="page-number">Página 1 de 1</span>
                     </div>
@@ -2312,25 +2558,26 @@
                 </body>
                 </html>
             `);
-            ventana.document.close();
+        ventana.document.close();
+      }
+
+      // ==================== DESCARGAR PDF ====================
+      async function descargarPDF(id) {
+        const oficio = todosLosOficios.find((o) => o.id === id);
+        if (!oficio) {
+          mostrarToast("❌ Oficio no encontrado", "error");
+          return;
         }
 
-        // ==================== DESCARGAR PDF ====================
-        async function descargarPDF(id) {
-            const oficio = todosLosOficios.find((o) => o.id === id);
-            if (!oficio) {
-                mostrarToast("❌ Oficio no encontrado", "error");
-                return;
-            }
+        try {
+          mostrarToast("Generando PDF...", "info");
 
-            try {
-                mostrarToast("Generando PDF...", "info");
+          const clave = oficio.clave_opdssj || "N/A";
+          const cargoRemitente =
+            oficio.cargo_remitente || "Cargo no especificado";
 
-                const clave = oficio.clave_opdssj || "N/A";
-                const cargoRemitente = oficio.cargo_remitente || "Cargo no especificado";
-
-                const element = document.createElement("div");
-                element.innerHTML = `
+          const element = document.createElement("div");
+          element.innerHTML = `
                     <div style="font-family: 'Arial', sans-serif; padding: 0; background: white; color: #1a1a1a; font-size: 12pt; line-height: 1.0; max-width: 100%; margin: 0 auto;">
                         <div style="text-align:center; margin-bottom:20px; border-bottom:2px solid #0f1a2e; padding-bottom:12px;">
                             <div style="text-align:left;">
@@ -2345,7 +2592,7 @@
                         <div style="margin-bottom:10px; font-size:12pt;"><strong>C.</strong> ${oficio.destinatario}</div>
                         <div style="font-weight:bold; font-size:12pt; margin:10px 0 6px 0; text-transform:uppercase;">Asunto: ${oficio.asunto}</div>
                         <div style="line-height:1.0; font-size:12pt; text-align:justify; margin:12px 0;">${oficio.contenido || "Contenido no especificado"}</div>
-                        ${oficio.fundamentacion ? `<div style="margin:10px 0; padding:6px 10px; background:#f5f5f5; border-left:3px solid #0f1a2e; font-style:italic; font-size:11pt;"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ''}
+                        ${oficio.fundamentacion ? `<div style="margin:10px 0; padding:6px 10px; background:#f5f5f5; border-left:3px solid #0f1a2e; font-style:italic; font-size:11pt;"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
                         <div style="margin-top:30px; text-align:left;">
                             <div style="font-size:12pt; margin-bottom:4px;">Atentamente,</div>
                             <div style="font-style:italic; font-size:10pt; color:#555; margin:4px 0 20px 0;">"El año de la Transformación Digital"</div>
@@ -2355,44 +2602,44 @@
                                 <div style="font-size:11pt; color:#333;">${cargoRemitente}</div>
                             </div>
                         </div>
-                        ${oficio.confidencial ? `<div style="margin-top:10px; padding:5px 10px; background:#fff5f5; border:1px solid #ffcdd2; color:#c62828; font-size:9pt; text-align:center;">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ''}
-                        <div style="margin-top:25px; font-size:8pt; color:#666; text-align:right; border-top:1px solid #ddd; padding-top:6px;">${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ''}${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ''}${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ''}</div>
+                        ${oficio.confidencial ? `<div style="margin-top:10px; padding:5px 10px; background:#fff5f5; border:1px solid #ffcdd2; color:#c62828; font-size:9pt; text-align:center;">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ""}
+                        <div style="margin-top:25px; font-size:8pt; color:#666; text-align:right; border-top:1px solid #ddd; padding-top:6px;">${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}</div>
                         <div style="margin-top:20px; border-top:1px solid #ddd; padding-top:10px; font-size:8pt; color:#999; text-align:center;">
                             <span style="font-size:9pt; color:#666;">Página 1 de 1</span>
                         </div>
                     </div>
                 `;
 
-                const opt = {
-                    margin: { top: 35, bottom: 35, left: 30, right: 30 },
-                    filename: `OPDSSJ_${clave}.pdf`,
-                    image: { type: "jpeg", quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true, letterRendering: true },
-                    jsPDF: { unit: "mm", format: "letter", orientation: "portrait" },
-                };
+          const opt = {
+            margin: { top: 35, bottom: 35, left: 30, right: 30 },
+            filename: `OPDSSJ_${clave}.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF: { unit: "mm", format: "letter", orientation: "portrait" },
+          };
 
-                await html2pdf().set(opt).from(element).save();
-                mostrarToast("✅ PDF descargado correctamente", "success");
-            } catch (error) {
-                console.error("Error:", error);
-                mostrarToast("❌ Error al generar PDF: " + error.message, "error");
-            }
+          await html2pdf().set(opt).from(element).save();
+          mostrarToast("✅ PDF descargado correctamente", "success");
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast("❌ Error al generar PDF: " + error.message, "error");
+        }
+      }
+
+      // ==================== DETALLE ====================
+      async function verDetalle(id) {
+        const oficio = todosLosOficios.find((o) => o.id === id);
+        if (!oficio) {
+          mostrarToast("❌ Oficio no encontrado", "error");
+          return;
         }
 
-        // ==================== DETALLE ====================
-        async function verDetalle(id) {
-            const oficio = todosLosOficios.find((o) => o.id === id);
-            if (!oficio) {
-                mostrarToast("❌ Oficio no encontrado", "error");
-                return;
-            }
+        const seguimiento = await obtenerSeguimiento(id);
+        const clave = oficio.clave_opdssj || "N/A";
 
-            const seguimiento = await obtenerSeguimiento(id);
-            const clave = oficio.clave_opdssj || "N/A";
+        document.getElementById("modalTitle").textContent = `Detalle: ${clave}`;
 
-            document.getElementById("modalTitle").textContent = `Detalle: ${clave}`;
-
-            let html = `
+        let html = `
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
                     <div><strong>📌 Clave:</strong><br>${clave}</div>
                     <div><strong>📄 Tipo:</strong><br>${oficio.tipo_documento || "Oficio"}</div>
@@ -2413,14 +2660,18 @@
                         ${oficio.contenido || "Sin contenido"}
                     </div>
                 </div>
-                ${oficio.fundamentacion ? `
+                ${
+                  oficio.fundamentacion
+                    ? `
                 <div style="margin:10px 0;">
                     <strong>⚖️ Fundamentación:</strong>
                     <div style="background:rgba(255,255,255,0.04); padding:8px; border-radius:6px; margin-top:4px; font-size:10px; font-style:italic; border-left:3px solid rgba(255,255,255,0.1);">
                         ${oficio.fundamentacion}
                     </div>
                 </div>
-                ` : ''}
+                `
+                    : ""
+                }
                 <div style="margin:10px 0;">
                     <strong>💬 Observaciones:</strong>
                     <div style="background:rgba(255,255,255,0.04); padding:8px; border-radius:6px; margin-top:4px;">
@@ -2437,26 +2688,26 @@
                 </div>
             `;
 
-            html += `
+        html += `
                 <div style="margin:10px 0;">
                     <strong>📋 Historial de Seguimiento:</strong>
                     <div style="max-height:180px; overflow-y:auto; margin-top:4px;">
             `;
 
-            if (!seguimiento || seguimiento.length === 0) {
-                html += `<div style="color:rgba(255,255,255,0.2);">No hay registros de seguimiento</div>`;
-            } else {
-                seguimiento.forEach((item) => {
-                    html += `
+        if (!seguimiento || seguimiento.length === 0) {
+          html += `<div style="color:rgba(255,255,255,0.2);">No hay registros de seguimiento</div>`;
+        } else {
+          seguimiento.forEach((item) => {
+            html += `
                         <div class="comentario-item">
                             <div class="meta"><strong>${item.tipo_accion}</strong> - ${formatearFecha(item.fecha_accion)}</div>
                             <div class="texto">${item.descripcion}</div>
                         </div>
                     `;
-                });
-            }
+          });
+        }
 
-            html += `
+        html += `
                     </div>
                 </div>
                 <div style="margin-top:12px; display:flex; gap:6px; flex-wrap:wrap;">
@@ -2466,100 +2717,121 @@
                 </div>
             `;
 
-            document.getElementById("modalBody").innerHTML = html;
-            document.getElementById("modalDetalle").classList.add("active");
+        document.getElementById("modalBody").innerHTML = html;
+        document.getElementById("modalDetalle").classList.add("active");
+      }
+
+      function cerrarModal() {
+        document.getElementById("modalDetalle").classList.remove("active");
+      }
+
+      // ==================== EDITAR ====================
+      function editarOficio(id) {
+        const oficio = todosLosOficios.find((o) => o.id === id);
+        if (!oficio) return;
+
+        mostrarModoEdicion();
+
+        document.getElementById("editId").value = oficio.id;
+        document.getElementById("clave_opdssj").value =
+          oficio.clave_opdssj || "";
+        document.getElementById("tipo_documento").value =
+          oficio.tipo_documento || "Oficio";
+        document.getElementById("asunto").value = oficio.asunto || "";
+        setContenidoEditor(oficio.contenido || "");
+        document.getElementById("fundamentacion").value =
+          oficio.fundamentacion || "";
+        document.getElementById("remitente").value = oficio.remitente || "";
+        document.getElementById("cargo_remitente").value =
+          oficio.cargo_remitente || "";
+        document.getElementById("destinatario").value =
+          oficio.destinatario || "";
+        document.getElementById("departamento_destino").value =
+          oficio.departamento_destino || "";
+        document.getElementById("fecha_emision").value =
+          oficio.fecha_emision || "";
+        document.getElementById("plazo_respuesta").value =
+          oficio.plazo_respuesta || 5;
+        document.getElementById("prioridad").value =
+          oficio.prioridad || "Media";
+        document.getElementById("observaciones").value =
+          oficio.observaciones || "";
+        document.getElementById("elaboro").value = oficio.elaboro || "";
+        document.getElementById("reviso").value = oficio.reviso || "";
+        document.getElementById("autorizo").value = oficio.autorizo || "";
+        document.getElementById("confidencial").checked =
+          oficio.confidencial || false;
+
+        document.getElementById("formTitle").textContent = "✏️ Editar Oficio";
+        document.getElementById("btnGuardar").textContent = "📤 Actualizar";
+        document.getElementById("btnCancelar").style.display = "inline-block";
+
+        setTimeout(actualizarVistaPrevia, 300);
+        mostrarToast(
+          "✏️ Editando oficio: " + (oficio.clave_opdssj || ""),
+          "info",
+        );
+      }
+
+      function cancelarEdicion() {
+        limpiarFormulario();
+        mostrarModoTabla();
+        mostrarToast("Edición cancelada", "info");
+      }
+
+      function limpiarFormulario() {
+        document.getElementById("oficioForm").reset();
+        document.getElementById("editId").value = "";
+        document.getElementById("fecha_emision").value = new Date()
+          .toISOString()
+          .split("T")[0];
+        document.getElementById("formTitle").textContent = "✏️ Nuevo Oficio";
+        document.getElementById("btnGuardar").textContent = "📤 Guardar";
+        document.getElementById("btnCancelar").style.display = "none";
+        document.getElementById("confidencial").checked = false;
+        setContenidoEditor("");
+        generarClaveOPDSSJ();
+        setTimeout(actualizarVistaPrevia, 200);
+      }
+
+      // ==================== COMENTARIOS ====================
+      async function agregarComentario(id) {
+        const comentario = prompt("Escribe tu comentario sobre este oficio:");
+        if (!comentario) return;
+
+        try {
+          await registrarSeguimiento(id, "Comentario", comentario);
+          mostrarToast("✅ Comentario agregado", "success");
+          cargarDatos();
+        } catch (error) {
+          mostrarToast("❌ Error al agregar comentario", "error");
         }
+      }
 
-        function cerrarModal() {
-            document.getElementById("modalDetalle").classList.remove("active");
-        }
+      // ==================== ALERTAS ====================
+      function verificarVencimiento(oficio) {
+        if (!oficio.fecha_emision) return false;
+        if (
+          oficio.estado === "Respondido" ||
+          oficio.estado === "Archivado" ||
+          oficio.estado === "Anulado"
+        )
+          return false;
 
-        // ==================== EDITAR ====================
-        function editarOficio(id) {
-            const oficio = todosLosOficios.find((o) => o.id === id);
-            if (!oficio) return;
+        const fechaEmision = new Date(oficio.fecha_emision);
+        const plazo = oficio.plazo_respuesta || 5;
+        fechaEmision.setDate(fechaEmision.getDate() + plazo);
 
-            mostrarModoEdicion();
+        return new Date() > fechaEmision;
+      }
 
-            document.getElementById("editId").value = oficio.id;
-            document.getElementById("clave_opdssj").value = oficio.clave_opdssj || "";
-            document.getElementById("tipo_documento").value = oficio.tipo_documento || "Oficio";
-            document.getElementById("asunto").value = oficio.asunto || "";
-            setContenidoEditor(oficio.contenido || "");
-            document.getElementById("fundamentacion").value = oficio.fundamentacion || "";
-            document.getElementById("remitente").value = oficio.remitente || "";
-            document.getElementById("cargo_remitente").value = oficio.cargo_remitente || "";
-            document.getElementById("destinatario").value = oficio.destinatario || "";
-            document.getElementById("departamento_destino").value = oficio.departamento_destino || "";
-            document.getElementById("fecha_emision").value = oficio.fecha_emision || "";
-            document.getElementById("plazo_respuesta").value = oficio.plazo_respuesta || 5;
-            document.getElementById("prioridad").value = oficio.prioridad || "Media";
-            document.getElementById("observaciones").value = oficio.observaciones || "";
-            document.getElementById("elaboro").value = oficio.elaboro || "";
-            document.getElementById("reviso").value = oficio.reviso || "";
-            document.getElementById("autorizo").value = oficio.autorizo || "";
-            document.getElementById("confidencial").checked = oficio.confidencial || false;
+      function verificarVencimientos() {
+        const vencidos = todosLosOficios.filter((o) => verificarVencimiento(o));
 
-            document.getElementById("formTitle").textContent = "✏️ Editar Oficio";
-            document.getElementById("btnGuardar").textContent = "📤 Actualizar";
-            document.getElementById("btnCancelar").style.display = "inline-block";
-
-            setTimeout(actualizarVistaPrevia, 300);
-            mostrarToast("✏️ Editando oficio: " + (oficio.clave_opdssj || ""), "info");
-        }
-
-        function cancelarEdicion() {
-            limpiarFormulario();
-            mostrarModoTabla();
-            mostrarToast("Edición cancelada", "info");
-        }
-
-        function limpiarFormulario() {
-            document.getElementById("oficioForm").reset();
-            document.getElementById("editId").value = "";
-            document.getElementById("fecha_emision").value = new Date().toISOString().split("T")[0];
-            document.getElementById("formTitle").textContent = "✏️ Nuevo Oficio";
-            document.getElementById("btnGuardar").textContent = "📤 Guardar";
-            document.getElementById("btnCancelar").style.display = "none";
-            document.getElementById("confidencial").checked = false;
-            setContenidoEditor("");
-            generarClaveOPDSSJ();
-            setTimeout(actualizarVistaPrevia, 200);
-        }
-
-        // ==================== COMENTARIOS ====================
-        async function agregarComentario(id) {
-            const comentario = prompt("Escribe tu comentario sobre este oficio:");
-            if (!comentario) return;
-
-            try {
-                await registrarSeguimiento(id, "Comentario", comentario);
-                mostrarToast("✅ Comentario agregado", "success");
-                cargarDatos();
-            } catch (error) {
-                mostrarToast("❌ Error al agregar comentario", "error");
-            }
-        }
-
-        // ==================== ALERTAS ====================
-        function verificarVencimiento(oficio) {
-            if (!oficio.fecha_emision) return false;
-            if (oficio.estado === "Respondido" || oficio.estado === "Archivado" || oficio.estado === "Anulado") return false;
-
-            const fechaEmision = new Date(oficio.fecha_emision);
-            const plazo = oficio.plazo_respuesta || 5;
-            fechaEmision.setDate(fechaEmision.getDate() + plazo);
-
-            return new Date() > fechaEmision;
-        }
-
-        function verificarVencimientos() {
-            const vencidos = todosLosOficios.filter((o) => verificarVencimiento(o));
-
-            const containerEdicion = document.getElementById("alertasContainer");
-            if (containerEdicion) {
-                if (vencidos.length > 0) {
-                    containerEdicion.innerHTML = `
+        const containerEdicion = document.getElementById("alertasContainer");
+        if (containerEdicion) {
+          if (vencidos.length > 0) {
+            containerEdicion.innerHTML = `
                         <div class="alerta-vencimiento">
                             <span class="icono">⚠️</span>
                             <div class="contenido-alerta">
@@ -2567,15 +2839,15 @@
                             </div>
                         </div>
                     `;
-                } else {
-                    containerEdicion.innerHTML = "";
-                }
-            }
+          } else {
+            containerEdicion.innerHTML = "";
+          }
+        }
 
-            const containerTabla = document.getElementById("alertasContainerTabla");
-            if (containerTabla) {
-                if (vencidos.length > 0) {
-                    containerTabla.innerHTML = `
+        const containerTabla = document.getElementById("alertasContainerTabla");
+        if (containerTabla) {
+          if (vencidos.length > 0) {
+            containerTabla.innerHTML = `
                         <div class="alerta-vencimiento">
                             <span class="icono">⚠️</span>
                             <div class="contenido-alerta">
@@ -2583,156 +2855,177 @@
                             </div>
                         </div>
                     `;
-                } else {
-                    containerTabla.innerHTML = "";
-                }
-            }
-
-            const vencidosElement = document.getElementById("vencidos");
-            if (vencidosElement) {
-                vencidosElement.textContent = vencidos.length;
-            }
+          } else {
+            containerTabla.innerHTML = "";
+          }
         }
 
-        function verAlertasVencimiento() {
-            const vencidos = todosLosOficios.filter((o) => verificarVencimiento(o));
+        const vencidosElement = document.getElementById("vencidos");
+        if (vencidosElement) {
+          vencidosElement.textContent = vencidos.length;
+        }
+      }
 
-            if (vencidos.length === 0) {
-                mostrarToast("✅ No hay oficios vencidos", "success");
-                return;
-            }
+      function verAlertasVencimiento() {
+        const vencidos = todosLosOficios.filter((o) => verificarVencimiento(o));
 
-            let mensaje = "⚠️ OFICIOS VENCIDOS:\n\n";
-            vencidos.forEach((o, i) => {
-                mensaje += `${i + 1}. ${o.clave_opdssj || "N/A"} - ${o.asunto}\n`;
-                mensaje += `   Remitente: ${o.remitente}\n`;
-                mensaje += `   Vence: ${formatearFecha(o.fecha_emision)} + ${o.plazo_respuesta || 5} días\n\n`;
-            });
-            mensaje += `Total: ${vencidos.length} oficios vencidos`;
-            alert(mensaje);
+        if (vencidos.length === 0) {
+          mostrarToast("✅ No hay oficios vencidos", "success");
+          return;
         }
 
-        // ==================== FILTROS ====================
-        function filtrarTabla() {
-            const busqueda = document.getElementById("buscarOficio").value.toLowerCase();
-            const estado = document.getElementById("filtroEstado").value;
-            const prioridad = document.getElementById("filtroPrioridad").value;
+        let mensaje = "⚠️ OFICIOS VENCIDOS:\n\n";
+        vencidos.forEach((o, i) => {
+          mensaje += `${i + 1}. ${o.clave_opdssj || "N/A"} - ${o.asunto}\n`;
+          mensaje += `   Remitente: ${o.remitente}\n`;
+          mensaje += `   Vence: ${formatearFecha(o.fecha_emision)} + ${o.plazo_respuesta || 5} días\n\n`;
+        });
+        mensaje += `Total: ${vencidos.length} oficios vencidos`;
+        alert(mensaje);
+      }
 
-            let filtrados = todosLosOficios;
+      // ==================== FILTROS ====================
+      function filtrarTabla() {
+        const busqueda = document
+          .getElementById("buscarOficio")
+          .value.toLowerCase();
+        const estado = document.getElementById("filtroEstado").value;
+        const prioridad = document.getElementById("filtroPrioridad").value;
 
-            if (busqueda) {
-                filtrados = filtrados.filter(
-                    (o) =>
-                    (o.clave_opdssj || "").toLowerCase().includes(busqueda) ||
-                    (o.asunto || "").toLowerCase().includes(busqueda) ||
-                    (o.remitente || "").toLowerCase().includes(busqueda) ||
-                    (o.destinatario || "").toLowerCase().includes(busqueda)
-                );
-            }
+        let filtrados = todosLosOficios;
 
-            if (estado) {
-                filtrados = filtrados.filter((o) => (o.estado || "Borrador") === estado);
-            }
-
-            if (prioridad) {
-                filtrados = filtrados.filter((o) => (o.prioridad || "Media") === prioridad);
-            }
-
-            renderizarTabla(filtrados);
+        if (busqueda) {
+          filtrados = filtrados.filter(
+            (o) =>
+              (o.clave_opdssj || "").toLowerCase().includes(busqueda) ||
+              (o.asunto || "").toLowerCase().includes(busqueda) ||
+              (o.remitente || "").toLowerCase().includes(busqueda) ||
+              (o.destinatario || "").toLowerCase().includes(busqueda),
+          );
         }
 
-        // ==================== EXPORTAR EXCEL ====================
-        function exportarExcel() {
-            if (!todosLosOficios || todosLosOficios.length === 0) {
-                mostrarToast("❌ No hay datos para exportar", "error");
-                return;
-            }
-
-            let csv = "Clave OPDSSJ,Tipo,Asunto,Remitente,Cargo Remitente,Destinatario,Fecha Emisión,Estado,Prioridad,Plazo,Elaboró,Revisó,Autorizó,Confidencial,Observaciones\n";
-
-            todosLosOficios.forEach((o) => {
-                const contenidoPlano = o.contenido ? o.contenido.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ') : '';
-                csv +=
-                    `"${o.clave_opdssj || ""}","${o.tipo_documento || "Oficio"}","${o.asunto || ""}","${o.remitente || ""}","${o.cargo_remitente || ""}","${o.destinatario || ""}","${formatearFecha(o.fecha_emision)}","${o.estado || "Borrador"}","${o.prioridad || "Media"}","${o.plazo_respuesta || 5}","${o.elaboro || ""}","${o.reviso || ""}","${o.autorizo || ""}","${o.confidencial ? "Sí" : "No"}","${o.observaciones || ""}"\n`;
-            });
-
-            const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `OPDSSJ_oficios_${new Date().toISOString().split("T")[0]}.csv`;
-            link.click();
-
-            mostrarToast("✅ Excel exportado correctamente", "success");
+        if (estado) {
+          filtrados = filtrados.filter(
+            (o) => (o.estado || "Borrador") === estado,
+          );
         }
 
-        // ==================== ESTADÍSTICAS ====================
-        function actualizarEstadisticas(data) {
-            const totalEl = document.getElementById("totalOficios");
-            const pendientesEl = document.getElementById("pendientes");
-            const respondidosEl = document.getElementById("respondidos");
-            const urgentesEl = document.getElementById("urgentes");
-            const vencidosEl = document.getElementById("vencidos");
-
-            if (totalEl) totalEl.textContent = data ? data.length : 0;
-            if (pendientesEl) pendientesEl.textContent = data ? data.filter(
-                (o) => o.estado === "En Proceso" || o.estado === "Emitido"
-            ).length : 0;
-            if (respondidosEl) respondidosEl.textContent = data ? data.filter(
-                (o) => o.estado === "Respondido" || o.estado === "Archivado"
-            ).length : 0;
-            if (urgentesEl) urgentesEl.textContent = data ? data.filter(
-                (o) => o.prioridad === "Alta"
-            ).length : 0;
-
-            const vencidos = data ? data.filter((o) => verificarVencimiento(o)) : [];
-            if (vencidosEl) vencidosEl.textContent = vencidos.length;
+        if (prioridad) {
+          filtrados = filtrados.filter(
+            (o) => (o.prioridad || "Media") === prioridad,
+          );
         }
 
-        // ==================== UTILIDADES ====================
-        function formatearFecha(fecha) {
-            if (!fecha) return "-";
-            const d = new Date(fecha);
-            if (isNaN(d.getTime())) return fecha;
-            return d.toLocaleDateString("es-MX", {
-                day: "2-digit",
-                month: "2-digit",
-                year: "numeric",
-            });
+        renderizarTabla(filtrados);
+      }
+
+      // ==================== EXPORTAR EXCEL ====================
+      function exportarExcel() {
+        if (!todosLosOficios || todosLosOficios.length === 0) {
+          mostrarToast("❌ No hay datos para exportar", "error");
+          return;
         }
 
-        function mostrarToast(mensaje, tipo = "info") {
-            const toast = document.getElementById("toast");
-            if (!toast) return;
-            toast.textContent = mensaje;
-            toast.className = `toast ${tipo}`;
-            void toast.offsetWidth;
-            toast.classList.add("show");
+        let csv =
+          "Clave OPDSSJ,Tipo,Asunto,Remitente,Cargo Remitente,Destinatario,Fecha Emisión,Estado,Prioridad,Plazo,Elaboró,Revisó,Autorizó,Confidencial,Observaciones\n";
 
-            clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => {
-                toast.classList.remove("show");
-            }, 4000);
-        }
-
-        document.addEventListener("keydown", function(e) {
-            if (e.key === "Escape") {
-                cerrarModal();
-            }
+        todosLosOficios.forEach((o) => {
+          const contenidoPlano = o.contenido
+            ? o.contenido.replace(/<[^>]*>/g, "").replace(/\s+/g, " ")
+            : "";
+          csv += `"${o.clave_opdssj || ""}","${o.tipo_documento || "Oficio"}","${o.asunto || ""}","${o.remitente || ""}","${o.cargo_remitente || ""}","${o.destinatario || ""}","${formatearFecha(o.fecha_emision)}","${o.estado || "Borrador"}","${o.prioridad || "Media"}","${o.plazo_respuesta || 5}","${o.elaboro || ""}","${o.reviso || ""}","${o.autorizo || ""}","${o.confidencial ? "Sí" : "No"}","${o.observaciones || ""}"\n`;
         });
 
-        document.getElementById("modalDetalle").addEventListener("click", function(e) {
-            if (e.target === this) {
-                cerrarModal();
-            }
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `OPDSSJ_oficios_${new Date().toISOString().split("T")[0]}.csv`;
+        link.click();
+
+        mostrarToast("✅ Excel exportado correctamente", "success");
+      }
+
+      // ==================== ESTADÍSTICAS ====================
+      function actualizarEstadisticas(data) {
+        const totalEl = document.getElementById("totalOficios");
+        const pendientesEl = document.getElementById("pendientes");
+        const respondidosEl = document.getElementById("respondidos");
+        const urgentesEl = document.getElementById("urgentes");
+        const vencidosEl = document.getElementById("vencidos");
+
+        if (totalEl) totalEl.textContent = data ? data.length : 0;
+        if (pendientesEl)
+          pendientesEl.textContent = data
+            ? data.filter(
+                (o) => o.estado === "En Proceso" || o.estado === "Emitido",
+              ).length
+            : 0;
+        if (respondidosEl)
+          respondidosEl.textContent = data
+            ? data.filter(
+                (o) => o.estado === "Respondido" || o.estado === "Archivado",
+              ).length
+            : 0;
+        if (urgentesEl)
+          urgentesEl.textContent = data
+            ? data.filter((o) => o.prioridad === "Alta").length
+            : 0;
+
+        const vencidos = data
+          ? data.filter((o) => verificarVencimiento(o))
+          : [];
+        if (vencidosEl) vencidosEl.textContent = vencidos.length;
+      }
+
+      // ==================== UTILIDADES ====================
+      function formatearFecha(fecha) {
+        if (!fecha) return "-";
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) return fecha;
+        return d.toLocaleDateString("es-MX", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+      }
+
+      function mostrarToast(mensaje, tipo = "info") {
+        const toast = document.getElementById("toast");
+        if (!toast) return;
+        toast.textContent = mensaje;
+        toast.className = `toast ${tipo}`;
+        void toast.offsetWidth;
+        toast.classList.add("show");
+
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 4000);
+      }
+
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          cerrarModal();
+        }
+      });
+
+      document
+        .getElementById("modalDetalle")
+        .addEventListener("click", function (e) {
+          if (e.target === this) {
+            cerrarModal();
+          }
         });
 
-        console.log("🏥 OPDSSJ - Sistema de Control de Oficios cargado correctamente");
-        console.log("📋 Cumple con Instructivo SDGM/198/2026");
-        console.log("✍️ Editor WYSIWYG simple activado");
-        console.log("📄 Formato Arial 12pt, justificado, interlineado 1.0");
-        console.log("📐 Márgenes: 3.5cm sup/inf, 3.0cm izq/der");
-        console.log("🔢 Numeración de páginas en footer");
-        console.log("🏥 Logo como header");
+      console.log(
+        "🏥 OPDSSJ - Sistema de Control de Oficios cargado correctamente",
+      );
+      console.log("📋 Cumple con Instructivo SDGM/198/2026");
+      console.log("✍️ Editor WYSIWYG simple activado");
+      console.log("📄 Formato Arial 12pt, justificado, interlineado 1.0");
+      console.log("📐 Márgenes: 3.5cm sup/inf, 3.0cm izq/der");
+      console.log("🔢 Numeración de páginas en footer");
+      console.log("🏥 Logo como header");
     </script>
-</body>
+  </body>
 </html>
