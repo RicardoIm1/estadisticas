@@ -30,7 +30,7 @@
         height: 100%;
         width: 100%;
         font-family: "Poppins", sans-serif;
-        background: linear-gradient(135deg, #1a2a3a, #2c3e50, #3d5a73);
+        background: linear-gradient(135deg, #0f1a2e, #1a2a4a, #2c3e6a);
         background-attachment: fixed;
         overflow: hidden;
         color: white;
@@ -82,28 +82,28 @@
       }
 
       .logo-icon {
-        font-size: 36px;
+        font-size: 32px;
       }
 
       .logo h1 {
-        font-size: 20px;
+        font-size: 18px;
         font-weight: 600;
         color: #fff;
         text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
       }
 
       .logo .institucion {
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 300;
-        color: rgba(255, 255, 255, 0.5);
+        color: rgba(255, 255, 255, 0.4);
         letter-spacing: 1px;
         text-transform: uppercase;
       }
 
       .logo .subtitle {
-        font-size: 13px;
+        font-size: 12px;
         font-weight: 300;
-        color: rgba(255, 255, 255, 0.6);
+        color: rgba(255, 255, 255, 0.5);
       }
 
       .header-actions {
@@ -409,7 +409,7 @@
       }
 
       .form-group select option {
-        background: #1a2a3a;
+        background: #0f1a2e;
         color: white;
       }
 
@@ -423,7 +423,6 @@
         grid-column: 1 / -1;
       }
 
-      /* Grupo de responsables (Elaboró, Revisó, Autorizó) */
       .grupo-responsables {
         display: grid;
         grid-template-columns: 1fr 1fr 1fr;
@@ -542,7 +541,7 @@
       }
 
       .table-controls select option {
-        background: #1a2a3a;
+        background: #0f1a2e;
         color: white;
       }
 
@@ -1691,7 +1690,6 @@
           reviso: document.getElementById("reviso").value,
           autorizo: document.getElementById("autorizo").value,
           confidencial: confidencial,
-          // Guardar también el número de oficio tradicional para compatibilidad
           numero_oficio: document.getElementById("clave_opdssj").value,
         };
 
@@ -1874,7 +1872,8 @@
         return data;
       }
 
-      // ==================== IMPRIMIR Y PDF ====================
+      // ==================== IMPRIMIR Y PDF CON MEMBRETE INSTITUCIONAL ====================
+
       function imprimirOficio(id) {
         const oficio = todosLosOficios.find((o) => o.id === id);
         if (!oficio) {
@@ -1890,100 +1889,237 @@
                 <head>
                     <title>Oficio ${clave}</title>
                     <style>
-                        body { font-family: 'Times New Roman', serif; padding: 50px; background: white; color: #1a2a3a; max-width: 800px; margin: 0 auto; }
-                        .membrete { text-align: center; border-bottom: 3px solid #1a3a5a; padding-bottom: 15px; margin-bottom: 25px; }
-                        .membrete h1 { color: #1a3a5a; font-size: 22px; margin: 0; }
-                        .membrete .sub { color: #555; font-size: 13px; margin: 3px 0; }
-                        .membrete .clave { color: #1a3a5a; font-size: 16px; font-weight: bold; margin: 8px 0; }
-                        .fecha-lugar { text-align: right; font-size: 13px; margin-bottom: 20px; }
-                        .destinatario { margin-bottom: 20px; }
-                        .destinatario .label { font-weight: bold; }
-                        .asunto { font-weight: bold; font-size: 14px; margin: 15px 0 10px 0; }
-                        .contenido { line-height: 1.8; font-size: 14px; text-align: justify; margin: 20px 0; }
-                        .fundamentacion { margin: 15px 0; padding: 10px 15px; background: #f5f5f5; border-left: 3px solid #1a3a5a; font-style: italic; }
-                        .cierre { margin-top: 35px; }
-                        .cierre .atentamente { font-size: 14px; }
-                        .cierre .leyenda { font-style: italic; font-size: 13px; color: #555; margin: 5px 0; }
-                        .cierre .firma { margin-top: 30px; text-align: center; }
-                        .cierre .firma .linea { width: 250px; border-top: 1px solid #000; margin: 10px auto 3px; }
-                        .cierre .firma .nombre { font-weight: bold; font-size: 14px; }
-                        .cierre .firma .cargo { font-size: 13px; }
-                        .responsables { margin-top: 30px; font-size: 11px; color: #666; text-align: right; border-top: 1px solid #ddd; padding-top: 10px; }
-                        .confidencial { margin-top: 15px; padding: 8px 12px; background: #fff5f5; border: 1px solid #ffcdd2; color: #c62828; font-size: 11px; text-align: center; }
-                        .footer { margin-top: 30px; border-top: 1px solid #ddd; padding-top: 15px; font-size: 10px; color: #999; text-align: center; }
-    </style>
-</head>
-<body>
-    <div class="membrete">
-        <h1>${oficio.tipo_documento || "OFICIO"}</h1>
-        <div class="clave">${clave}</div>
-        <div class="sub">Organismo Público Descentralizado Servicios de Salud Jalisco</div>
-        <div class="sub">Subdirección General Médica</div>
-    </div>
+                        @page {
+                            margin: 2.5cm 2.5cm 2.5cm 2.5cm;
+                        }
+                        body {
+                            font-family: 'Times New Roman', Arial, sans-serif;
+                            padding: 0;
+                            margin: 0;
+                            background: white;
+                            color: #1a1a1a;
+                            font-size: 12pt;
+                            line-height: 1.5;
+                        }
+                        .membrete {
+                            text-align: left;
+                            margin-bottom: 25px;
+                            border-bottom: 1px solid #ccc;
+                            padding-bottom: 15px;
+                        }
+                        .membrete .logo-texto {
+                            font-size: 14pt;
+                            font-weight: bold;
+                            color: #0f1a2e;
+                            letter-spacing: 0.5px;
+                        }
+                        .membrete .direccion {
+                            font-size: 9pt;
+                            color: #555;
+                            margin-top: 2px;
+                        }
+                        .membrete .clave-doc {
+                            margin-top: 15px;
+                            font-size: 13pt;
+                            font-weight: bold;
+                            color: #0f1a2e;
+                            text-align: right;
+                        }
+                        .fecha-lugar {
+                            text-align: right;
+                            font-size: 11pt;
+                            margin-bottom: 20px;
+                            margin-top: 10px;
+                        }
+                        .destinatario {
+                            margin-bottom: 15px;
+                            font-size: 11pt;
+                        }
+                        .destinatario .label {
+                            font-weight: bold;
+                        }
+                        .asunto {
+                            font-weight: bold;
+                            font-size: 11pt;
+                            margin: 15px 0 10px 0;
+                            text-transform: uppercase;
+                        }
+                        .contenido {
+                            line-height: 1.8;
+                            font-size: 11pt;
+                            text-align: justify;
+                            margin: 20px 0;
+                        }
+                        .fundamentacion {
+                            margin: 15px 0;
+                            padding: 10px 15px;
+                            background: #f5f5f5;
+                            border-left: 3px solid #0f1a2e;
+                            font-style: italic;
+                            font-size: 10pt;
+                        }
+                        .cierre {
+                            margin-top: 40px;
+                            text-align: left;
+                        }
+                        .cierre .atentamente {
+                            font-size: 11pt;
+                            margin-bottom: 5px;
+                        }
+                        .cierre .leyenda {
+                            font-style: italic;
+                            font-size: 10pt;
+                            color: #555;
+                            margin: 5px 0 30px 0;
+                        }
+                        .cierre .firma {
+                            margin-top: 10px;
+                            text-align: center;
+                        }
+                        .cierre .firma .linea {
+                            width: 250px;
+                            border-top: 1px solid #000;
+                            margin: 10px auto 3px;
+                        }
+                        .cierre .firma .nombre {
+                            font-weight: bold;
+                            font-size: 11pt;
+                        }
+                        .cierre .firma .cargo {
+                            font-size: 10pt;
+                            color: #333;
+                        }
+                        .responsables {
+                            margin-top: 35px;
+                            font-size: 8pt;
+                            color: #666;
+                            text-align: right;
+                            border-top: 1px solid #ddd;
+                            padding-top: 8px;
+                        }
+                        .confidencial {
+                            margin-top: 15px;
+                            padding: 8px 12px;
+                            background: #fff5f5;
+                            border: 1px solid #ffcdd2;
+                            color: #c62828;
+                            font-size: 9pt;
+                            text-align: center;
+                        }
+                        .footer-doc {
+                            margin-top: 25px;
+                            border-top: 1px solid #ddd;
+                            padding-top: 12px;
+                            font-size: 8pt;
+                            color: #999;
+                            text-align: center;
+                        }
+                        .copia-texto {
+                            font-size: 9pt;
+                            color: #555;
+                            margin-top: 10px;
+                        }
+                        .copia-texto span {
+                            font-weight: bold;
+                        }
+                        .cc {
+                            font-size: 9pt;
+                            color: #555;
+                            margin-top: 5px;
+                        }
+                        .cc span {
+                            font-weight: bold;
+                        }
+                    </style>
+                </head>
+                <body>
 
-    <div class="fecha-lugar">
-        ${oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : ""}
-    </div>
+                    <!-- ===== MEMBRETE INSTITUCIONAL ===== -->
+                    <div class="membrete">
+                        <div class="logo-texto">
+                            ORGANISMO PÚBLICO DESCENTRALIZADO<br>
+                            SERVICIOS DE SALUD JALISCO
+                        </div>
+                        <div class="direccion">
+                            Calle Noruega 580, Col. Villas del Real, Puerto Vallarta, JAL.
+                        </div>
+                        <div class="clave-doc">
+                            ${clave}
+                        </div>
+                    </div>
 
-    <div class="destinatario">
-        <span class="label">Destinatario:</span> ${oficio.destinatario}
-    </div>
+                    <!-- ===== FECHA Y LUGAR ===== -->
+                    <div class="fecha-lugar">
+                        ${oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : ""}
+                    </div>
 
-    <div class="asunto">
-        Asunto: ${oficio.asunto}
-    </div>
+                    <!-- ===== DESTINATARIO ===== -->
+                    <div class="destinatario">
+                        <span class="label">C.</span> ${oficio.destinatario}
+                    </div>
 
-    <div class="contenido">
-        ${oficio.contenido || "Contenido no especificado"}
-    </div>
+                    <!-- ===== ASUNTO ===== -->
+                    <div class="asunto">
+                        Asunto: ${oficio.asunto}
+                    </div>
 
-    ${
-      oficio.fundamentacion
-        ? `
-    <div class="fundamentacion">
-        <strong>Fundamentación:</strong><br>
-        ${oficio.fundamentacion}
-    </div>
-    `
-        : ""
-    }
+                    <!-- ===== CONTENIDO ===== -->
+                    <div class="contenido">
+                        ${oficio.contenido || "Contenido no especificado"}
+                    </div>
 
-    <div class="cierre">
-        <div class="atentamente">Atentamente,</div>
-        <div class="leyenda">"El año de la Transformación Digital"</div>
-        <div class="firma">
-            <div class="linea"></div>
-            <div class="nombre">${oficio.remitente}</div>
-            <div class="cargo">${oficio.observaciones || "Cargo no especificado"}</div>
-        </div>
-    </div>
+                    <!-- ===== FUNDAMENTACIÓN ===== -->
+                    ${
+                      oficio.fundamentacion
+                        ? `
+                    <div class="fundamentacion">
+                        <strong>Fundamentación:</strong><br>
+                        ${oficio.fundamentacion}
+                    </div>
+                    `
+                        : ""
+                    }
 
-    ${
-      oficio.confidencial
-        ? `
-    <div class="confidencial">
-        🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
-    </div>
-    `
-        : ""
-    }
+                    <!-- ===== CIERRE ===== -->
+                    <div class="cierre">
+                        <div class="atentamente">Atentamente,</div>
+                        <div class="leyenda">"El año de la Transformación Digital"</div>
+                        <div class="firma">
+                            <div class="linea"></div>
+                            <div class="nombre">${oficio.remitente}</div>
+                            <div class="cargo">${oficio.observaciones || "Cargo no especificado"}</div>
+                        </div>
+                    </div>
 
-    <div class="responsables">
-        ${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}
-        ${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}
-        ${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}
-    </div>
+                    <!-- ===== CONFIDENCIALIDAD ===== -->
+                    ${
+                      oficio.confidencial
+                        ? `
+                    <div class="confidencial">
+                        🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
+                    </div>
+                    `
+                        : ""
+                    }
 
-    <div class="footer">
-        OPDSSJ - Sistema de Control de Oficios v2.0 | Instructivo SDGM/198/2026
-    </div>
+                    <!-- ===== RESPONSABLES ===== -->
+                    <div class="responsables">
+                        ${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}
+                        ${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}
+                        ${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}
+                    </div>
 
-    <script>
-        window.print();
-    <\/script>
-</body>
-</html>
-`);
+                    <!-- ===== PIE DE PÁGINA ===== -->
+                    <div class="footer-doc">
+                        OPDSSJ - Sistema de Control de Oficios v2.0 | Instructivo SDGM/198/2026
+                    </div>
+
+                    <script>
+                        window.print();
+                    <\/script>
+                </body>
+                </html>
+            `);
         ventana.document.close();
       }
 
@@ -2001,70 +2137,97 @@
 
           const element = document.createElement("div");
           element.innerHTML = `
-    <div style="font-family: 'Times New Roman', serif; padding: 50px; background: white; color: #1a2a3a; max-width: 800px; margin: 0 auto;">
-        <div style="text-align:center; border-bottom: 3px solid #1a3a5a; padding-bottom: 15px; margin-bottom: 25px;">
-            <h1 style="color:#1a3a5a; font-size:22px; margin:0;">${oficio.tipo_documento || "OFICIO"}</h1>
-            <div style="color:#1a3a5a; font-size:16px; font-weight:bold; margin:8px 0;">${clave}</div>
-            <div style="color:#555; font-size:13px;">Organismo Público Descentralizado Servicios de Salud Jalisco</div>
-            <div style="color:#555; font-size:13px;">Subdirección General Médica</div>
-        </div>
-        <div style="text-align:right; font-size:13px; margin-bottom:20px;">
-            ${oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : ""}
-        </div>
-        <div style="margin-bottom:20px;">
-            <strong>Destinatario:</strong> ${oficio.destinatario}
-        </div>
-        <div style="font-weight:bold; font-size:14px; margin:15px 0 10px 0;">
-            Asunto: ${oficio.asunto}
-        </div>
-        <div style="line-height:1.8; font-size:14px; text-align:justify; margin:20px 0;">
-            ${oficio.contenido || "Contenido no especificado"}
-        </div>
-        ${
-          oficio.fundamentacion
-            ? `
-        <div style="margin:15px 0; padding:10px 15px; background:#f5f5f5; border-left:3px solid #1a3a5a; font-style:italic;">
-            <strong>Fundamentación:</strong><br>
-            ${oficio.fundamentacion}
-        </div>
-        `
-            : ""
-        }
-        <div style="margin-top:35px;">
-            <div style="font-size:14px;">Atentamente,</div>
-            <div style="font-style:italic; font-size:13px; color:#555; margin:5px 0;">"El año de la Transformación Digital"</div>
-            <div style="margin-top:30px; text-align:center;">
-                <div style="width:250px; border-top:1px solid #000; margin:10px auto 3px;"></div>
-                <div style="font-weight:bold; font-size:14px;">${oficio.remitente}</div>
-                <div style="font-size:13px;">${oficio.observaciones || "Cargo no especificado"}</div>
-            </div>
-        </div>
-        ${
-          oficio.confidencial
-            ? `
-        <div style="margin-top:15px; padding:8px 12px; background:#fff5f5; border:1px solid #ffcdd2; color:#c62828; font-size:11px; text-align:center;">
-            🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
-        </div>
-        `
-            : ""
-        }
-        <div style="margin-top:30px; font-size:11px; color:#666; text-align:right; border-top:1px solid #ddd; padding-top:10px;">
-            ${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}
-            ${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}
-            ${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}
-        </div>
-        <div style="margin-top:30px; border-top:1px solid #ddd; padding-top:15px; font-size:10px; color:#999; text-align:center;">
-            OPDSSJ - Sistema de Control de Oficios v2.0 | Instructivo SDGM/198/2026
-        </div>
-    </div>
-`;
+                    <div style="font-family: 'Times New Roman', Arial, sans-serif; padding: 0; background: white; color: #1a1a1a; font-size: 12pt; line-height: 1.5; max-width: 800px; margin: 0 auto;">
+
+                        <!-- ===== MEMBRETE INSTITUCIONAL ===== -->
+                        <div style="text-align:left; margin-bottom:25px; border-bottom:1px solid #ccc; padding-bottom:15px;">
+                            <div style="font-size:14pt; font-weight:bold; color:#0f1a2e; letter-spacing:0.5px;">
+                                ORGANISMO PÚBLICO DESCENTRALIZADO<br>
+                                SERVICIOS DE SALUD JALISCO
+                            </div>
+                            <div style="font-size:9pt; color:#555; margin-top:2px;">
+                                Calle Noruega 580, Col. Villas del Real, Puerto Vallarta, JAL.
+                            </div>
+                            <div style="margin-top:15px; font-size:13pt; font-weight:bold; color:#0f1a2e; text-align:right;">
+                                ${clave}
+                            </div>
+                        </div>
+
+                        <!-- ===== FECHA ===== -->
+                        <div style="text-align:right; font-size:11pt; margin-bottom:20px; margin-top:10px;">
+                            ${oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : ""}
+                        </div>
+
+                        <!-- ===== DESTINATARIO ===== -->
+                        <div style="margin-bottom:15px; font-size:11pt;">
+                            <strong>C.</strong> ${oficio.destinatario}
+                        </div>
+
+                        <!-- ===== ASUNTO ===== -->
+                        <div style="font-weight:bold; font-size:11pt; margin:15px 0 10px 0; text-transform:uppercase;">
+                            Asunto: ${oficio.asunto}
+                        </div>
+
+                        <!-- ===== CONTENIDO ===== -->
+                        <div style="line-height:1.8; font-size:11pt; text-align:justify; margin:20px 0;">
+                            ${oficio.contenido || "Contenido no especificado"}
+                        </div>
+
+                        ${
+                          oficio.fundamentacion
+                            ? `
+                        <div style="margin:15px 0; padding:10px 15px; background:#f5f5f5; border-left:3px solid #0f1a2e; font-style:italic; font-size:10pt;">
+                            <strong>Fundamentación:</strong><br>
+                            ${oficio.fundamentacion}
+                        </div>
+                        `
+                            : ""
+                        }
+
+                        <!-- ===== CIERRE ===== -->
+                        <div style="margin-top:40px; text-align:left;">
+                            <div style="font-size:11pt; margin-bottom:5px;">Atentamente,</div>
+                            <div style="font-style:italic; font-size:10pt; color:#555; margin:5px 0 30px 0;">"El año de la Transformación Digital"</div>
+                            <div style="margin-top:10px; text-align:center;">
+                                <div style="width:250px; border-top:1px solid #000; margin:10px auto 3px;"></div>
+                                <div style="font-weight:bold; font-size:11pt;">${oficio.remitente}</div>
+                                <div style="font-size:10pt; color:#333;">${oficio.observaciones || "Cargo no especificado"}</div>
+                            </div>
+                        </div>
+
+                        ${
+                          oficio.confidencial
+                            ? `
+                        <div style="margin-top:15px; padding:8px 12px; background:#fff5f5; border:1px solid #ffcdd2; color:#c62828; font-size:9pt; text-align:center;">
+                            🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
+                        </div>
+                        `
+                            : ""
+                        }
+
+                        <div style="margin-top:35px; font-size:8pt; color:#666; text-align:right; border-top:1px solid #ddd; padding-top:8px;">
+                            ${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}
+                            ${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}
+                            ${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}
+                        </div>
+
+                        <div style="margin-top:25px; border-top:1px solid #ddd; padding-top:12px; font-size:8pt; color:#999; text-align:center;">
+                            OPDSSJ - Sistema de Control de Oficios v2.0 | Instructivo SDGM/198/2026
+                        </div>
+                    </div>
+                `;
 
           const opt = {
-            margin: 1,
+            margin: {
+              top: 30,
+              bottom: 30,
+              left: 30,
+              right: 30,
+            },
             filename: `OPDSSJ_${clave}.pdf`,
             image: { type: "jpeg", quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true },
-            jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+            html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+            jsPDF: { unit: "mm", format: "letter", orientation: "portrait" },
           };
 
           await html2pdf().set(opt).from(element).save();
@@ -2089,93 +2252,93 @@
         document.getElementById("modalTitle").textContent = `Detalle: ${clave}`;
 
         let html = `
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
-        <div><strong>📌 Clave:</strong><br>${clave}</div>
-        <div><strong>📄 Tipo:</strong><br>${oficio.tipo_documento || "Oficio"}</div>
-        <div><strong>📅 Fecha:</strong><br>${formatearFecha(oficio.fecha_emision)}</div>
-        <div><strong>⚠️ Prioridad:</strong><br><span class="prioridad-badge prioridad-${oficio.prioridad.toLowerCase()}">${oficio.prioridad}</span></div>
-        <div><strong>👤 Remitente:</strong><br>${oficio.remitente}</div>
-        <div><strong>👤 Destinatario:</strong><br>${oficio.destinatario}</div>
-        <div><strong>🏢 Departamento:</strong><br>${oficio.departamento_destino || "No especificado"}</div>
-        <div><strong>📊 Estado:</strong><br><span class="estado-badge estado-${oficio.estado.toLowerCase().replace(" ", "-")}">${oficio.estado}</span></div>
-        <div><strong>⏱️ Plazo:</strong><br>${oficio.plazo_respuesta || 5} días</div>
-        <div><strong>🔒 Confidencial:</strong><br>${oficio.confidencial ? "✅ Sí" : "❌ No"}</div>
-        <div style="grid-column:1/-1;"><strong>📝 Asunto:</strong><br>${oficio.asunto}</div>
-    </div>
-    <div style="margin:12px 0;">
-        <strong>📝 Contenido:</strong>
-        <div style="background:rgba(255,255,255,0.04); padding:12px; border-radius:6px; margin-top:4px; line-height:1.7; font-size:12px;">
-            ${oficio.contenido || "Sin contenido"}
-        </div>
-    </div>
-    ${
-      oficio.fundamentacion
-        ? `
-    <div style="margin:12px 0;">
-        <strong>⚖️ Fundamentación:</strong>
-        <div style="background:rgba(255,255,255,0.04); padding:10px; border-radius:6px; margin-top:4px; font-size:11px; font-style:italic; border-left:3px solid rgba(255,255,255,0.1);">
-            ${oficio.fundamentacion}
-        </div>
-    </div>
-    `
-        : ""
-    }
-    <div style="margin:12px 0;">
-        <strong>💬 Observaciones:</strong>
-        <div style="background:rgba(255,255,255,0.04); padding:10px; border-radius:6px; margin-top:4px;">
-            ${oficio.observaciones || "Sin observaciones"}
-        </div>
-    </div>
-    <div style="margin:12px 0;">
-        <strong>📋 Responsables:</strong>
-        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:4px; font-size:12px;">
-            <div><strong>Elaboró:</strong> ${oficio.elaboro || "-"}</div>
-            <div><strong>Revisó:</strong> ${oficio.reviso || "-"}</div>
-            <div><strong>Autorizó:</strong> ${oficio.autorizo || "-"}</div>
-        </div>
-    </div>
-    <div style="margin:12px 0;">
-        <strong>📎 Documentos Adjuntos:</strong>
-        <div style="margin-top:4px;">
-            ${
-              oficio.documento_pdf
-                ? `<a href="${oficio.documento_pdf}" target="_blank" class="btn-accion btn-accion-ver">📄 Ver PDF</a>`
-                : "No hay documentos adjuntos"
-            }
-        </div>
-    </div>
-`;
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+                        <div><strong>📌 Clave:</strong><br>${clave}</div>
+                        <div><strong>📄 Tipo:</strong><br>${oficio.tipo_documento || "Oficio"}</div>
+                        <div><strong>📅 Fecha:</strong><br>${formatearFecha(oficio.fecha_emision)}</div>
+                        <div><strong>⚠️ Prioridad:</strong><br><span class="prioridad-badge prioridad-${oficio.prioridad.toLowerCase()}">${oficio.prioridad}</span></div>
+                        <div><strong>👤 Remitente:</strong><br>${oficio.remitente}</div>
+                        <div><strong>👤 Destinatario:</strong><br>${oficio.destinatario}</div>
+                        <div><strong>🏢 Departamento:</strong><br>${oficio.departamento_destino || "No especificado"}</div>
+                        <div><strong>📊 Estado:</strong><br><span class="estado-badge estado-${oficio.estado.toLowerCase().replace(" ", "-")}">${oficio.estado}</span></div>
+                        <div><strong>⏱️ Plazo:</strong><br>${oficio.plazo_respuesta || 5} días</div>
+                        <div><strong>🔒 Confidencial:</strong><br>${oficio.confidencial ? "✅ Sí" : "❌ No"}</div>
+                        <div style="grid-column:1/-1;"><strong>📝 Asunto:</strong><br>${oficio.asunto}</div>
+                    </div>
+                    <div style="margin:12px 0;">
+                        <strong>📝 Contenido:</strong>
+                        <div style="background:rgba(255,255,255,0.04); padding:12px; border-radius:6px; margin-top:4px; line-height:1.7; font-size:12px;">
+                            ${oficio.contenido || "Sin contenido"}
+                        </div>
+                    </div>
+                    ${
+                      oficio.fundamentacion
+                        ? `
+                    <div style="margin:12px 0;">
+                        <strong>⚖️ Fundamentación:</strong>
+                        <div style="background:rgba(255,255,255,0.04); padding:10px; border-radius:6px; margin-top:4px; font-size:11px; font-style:italic; border-left:3px solid rgba(255,255,255,0.1);">
+                            ${oficio.fundamentacion}
+                        </div>
+                    </div>
+                    `
+                        : ""
+                    }
+                    <div style="margin:12px 0;">
+                        <strong>💬 Observaciones:</strong>
+                        <div style="background:rgba(255,255,255,0.04); padding:10px; border-radius:6px; margin-top:4px;">
+                            ${oficio.observaciones || "Sin observaciones"}
+                        </div>
+                    </div>
+                    <div style="margin:12px 0;">
+                        <strong>📋 Responsables:</strong>
+                        <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:4px; font-size:12px;">
+                            <div><strong>Elaboró:</strong> ${oficio.elaboro || "-"}</div>
+                            <div><strong>Revisó:</strong> ${oficio.reviso || "-"}</div>
+                            <div><strong>Autorizó:</strong> ${oficio.autorizo || "-"}</div>
+                        </div>
+                    </div>
+                    <div style="margin:12px 0;">
+                        <strong>📎 Documentos Adjuntos:</strong>
+                        <div style="margin-top:4px;">
+                            ${
+                              oficio.documento_pdf
+                                ? `<a href="${oficio.documento_pdf}" target="_blank" class="btn-accion btn-accion-ver">📄 Ver PDF</a>`
+                                : "No hay documentos adjuntos"
+                            }
+                        </div>
+                    </div>
+                `;
 
         html += `
-    <div style="margin:12px 0;">
-        <strong>📋 Historial de Seguimiento:</strong>
-        <div style="max-height:200px; overflow-y:auto; margin-top:6px;">
-`;
+                    <div style="margin:12px 0;">
+                        <strong>📋 Historial de Seguimiento:</strong>
+                        <div style="max-height:200px; overflow-y:auto; margin-top:6px;">
+                    `;
 
         if (seguimiento.length === 0) {
           html += `<div style="color:rgba(255,255,255,0.2);">No hay registros de seguimiento</div>`;
         } else {
           seguimiento.forEach((item) => {
             html += `
-            <div class="comentario-item">
-                <div class="meta">
-                    <strong>${item.tipo_accion}</strong> - ${formatearFecha(item.fecha_accion)}
-                </div>
-                <div class="texto">${item.descripcion}</div>
-            </div>
-        `;
+                            <div class="comentario-item">
+                                <div class="meta">
+                                    <strong>${item.tipo_accion}</strong> - ${formatearFecha(item.fecha_accion)}
+                                </div>
+                                <div class="texto">${item.descripcion}</div>
+                            </div>
+                        `;
           });
         }
 
         html += `
-        </div>
-    </div>
-    <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="cerrarModal(); imprimirOficio(${oficio.id});">🖨️ Imprimir</button>
-        <button class="btn btn-success" onclick="cerrarModal(); descargarPDF(${oficio.id});">📄 Descargar PDF</button>
-        <button class="btn btn-warning" onclick="cerrarModal(); editarOficio(${oficio.id});">✏️ Editar</button>
-    </div>
-`;
+                        </div>
+                    </div>
+                    <div style="margin-top:14px; display:flex; gap:8px; flex-wrap:wrap;">
+                        <button class="btn btn-primary" onclick="cerrarModal(); imprimirOficio(${oficio.id});">🖨️ Imprimir</button>
+                        <button class="btn btn-success" onclick="cerrarModal(); descargarPDF(${oficio.id});">📄 Descargar PDF</button>
+                        <button class="btn btn-warning" onclick="cerrarModal(); editarOficio(${oficio.id});">✏️ Editar</button>
+                    </div>
+                `;
 
         document.getElementById("modalBody").innerHTML = html;
         document.getElementById("modalDetalle").classList.add("active");
@@ -2282,14 +2445,14 @@
         const container = document.getElementById("alertasContainer");
         if (vencidos.length > 0) {
           container.innerHTML = `
-        <div class="alerta-vencimiento">
-            <span class="icono">⚠️</span>
-            <div>
-                <strong>¡Atención!</strong> ${vencidos.length} oficio(s) vencidos
-                <button class="btn-danger" onclick="filtrarVencidos()">Ver</button>
-            </div>
-        </div>
-    `;
+                        <div class="alerta-vencimiento">
+                            <span class="icono">⚠️</span>
+                            <div>
+                                <strong>¡Atención!</strong> ${vencidos.length} oficio(s) vencidos
+                                <button class="btn-danger" onclick="filtrarVencidos()">Ver</button>
+                            </div>
+                        </div>
+                    `;
         } else {
           container.innerHTML = "";
         }
