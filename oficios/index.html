@@ -1,786 +1,926 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sistema Profesional de Oficios</title>
-    
+
     <!-- Librerías -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    
+
     <style>
-        /* ==================== ESTILOS COMPLETOS ==================== */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      /* ==================== ESTILOS COMPLETOS ==================== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #f0f2f5;
-            padding: 20px;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f0f2f5;
+        padding: 20px;
+      }
 
-        .container {
-            max-width: 1500px;
-            margin: 0 auto;
-        }
+      .container {
+        max-width: 1500px;
+        margin: 0 auto;
+      }
 
-        /* Header */
+      /* Header */
+      .header {
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d6da8 100%);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 12px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .header h1 {
+        font-size: 26px;
+        font-weight: 300;
+      }
+
+      .header .subtitle {
+        opacity: 0.9;
+        font-size: 14px;
+      }
+
+      .header-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      /* Stats */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        text-align: center;
+        transition: transform 0.2s;
+        cursor: pointer;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-card .number {
+        font-size: 36px;
+        font-weight: bold;
+        color: #1e3a5f;
+      }
+
+      .stat-card .label {
+        color: #666;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+
+      .stat-card .icon {
+        font-size: 28px;
+        margin-bottom: 10px;
+      }
+
+      .stat-card.pendientes .number {
+        color: #f59e0b;
+      }
+      .stat-card.respondidos .number {
+        color: #10b981;
+      }
+      .stat-card.vencidos .number {
+        color: #ef4444;
+      }
+      .stat-card.urgentes .number {
+        color: #dc2626;
+      }
+
+      /* Formulario */
+      .form-section {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        margin-bottom: 30px;
+      }
+
+      .form-section h2 {
+        margin-bottom: 20px;
+        color: #1e3a5f;
+        font-size: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+      }
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .form-group label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #555;
+        margin-bottom: 5px;
+      }
+
+      .form-group label .required {
+        color: #ef4444;
+      }
+
+      .form-group input,
+      .form-group select,
+      .form-group textarea {
+        padding: 10px 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+        font-family: inherit;
+      }
+
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: #2d6da8;
+        box-shadow: 0 0 0 3px rgba(45, 109, 168, 0.1);
+      }
+
+      .form-group textarea {
+        resize: vertical;
+        min-height: 80px;
+      }
+
+      .form-group.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .btn {
+        padding: 12px 28px;
+        border: none;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #1e3a5f 0%, #2d6da8 100%);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(45, 109, 168, 0.4);
+      }
+
+      .btn-success {
+        background: #10b981;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #059669;
+        transform: translateY(-2px);
+      }
+
+      .btn-danger {
+        background: #ef4444;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #dc2626;
+      }
+
+      .btn-warning {
+        background: #f59e0b;
+        color: white;
+      }
+
+      .btn-warning:hover {
+        background: #d97706;
+      }
+
+      .btn-secondary {
+        background: #6b7280;
+        color: white;
+      }
+
+      .btn-secondary:hover {
+        background: #4b5563;
+      }
+
+      .btn-outline {
+        background: transparent;
+        border: 2px solid #2d6da8;
+        color: #2d6da8;
+      }
+
+      .btn-outline:hover {
+        background: #2d6da8;
+        color: white;
+      }
+
+      /* Tabla */
+      .table-section {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      }
+
+      .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 15px;
+      }
+
+      .table-header h2 {
+        color: #1e3a5f;
+        font-size: 20px;
+      }
+
+      .table-controls {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .table-controls input,
+      .table-controls select {
+        padding: 8px 14px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.3s;
+      }
+
+      .table-controls input:focus,
+      .table-controls select:focus {
+        outline: none;
+        border-color: #2d6da8;
+      }
+
+      .table-wrapper {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      thead {
+        background: #f8fafc;
+      }
+
+      th {
+        padding: 12px 15px;
+        text-align: left;
+        font-weight: 600;
+        color: #1e3a5f;
+        border-bottom: 2px solid #e5e7eb;
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 12px 15px;
+        border-bottom: 1px solid #e5e7eb;
+        vertical-align: middle;
+      }
+
+      tr:hover {
+        background: #f8fafc;
+      }
+
+      /* Badges */
+      .estado-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+      }
+
+      .estado-borrador {
+        background: #e5e7eb;
+        color: #374151;
+      }
+      .estado-emitido {
+        background: #bfdbfe;
+        color: #1e40af;
+      }
+      .estado-en-proceso {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .estado-respondido {
+        background: #d1fae5;
+        color: #065f46;
+      }
+      .estado-archivado {
+        background: #e0e7ff;
+        color: #3730a3;
+      }
+      .estado-anulado {
+        background: #fecaca;
+        color: #991b1b;
+      }
+
+      .prioridad-badge {
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-block;
+        white-space: nowrap;
+      }
+
+      .prioridad-alta {
+        background: #fecaca;
+        color: #991b1b;
+        animation: pulse 2s infinite;
+      }
+      .prioridad-media {
+        background: #fef3c7;
+        color: #92400e;
+      }
+      .prioridad-baja {
+        background: #d1fae5;
+        color: #065f46;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.7;
+        }
+      }
+
+      /* Botones de acción */
+      .btn-accion {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        margin: 2px;
+        transition: all 0.2s;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .btn-accion:hover {
+        transform: scale(1.05);
+      }
+
+      .btn-accion-imprimir {
+        background: #8b5cf6;
+        color: white;
+      }
+      .btn-accion-pdf {
+        background: #dc2626;
+        color: white;
+      }
+      .btn-accion-estado {
+        background: #f59e0b;
+        color: white;
+      }
+      .btn-accion-eliminar {
+        background: #ef4444;
+        color: white;
+      }
+      .btn-accion-ver {
+        background: #2d6da8;
+        color: white;
+      }
+      .btn-accion-comentar {
+        background: #10b981;
+        color: white;
+      }
+
+      .file-input-small {
+        font-size: 11px;
+        width: 85px;
+      }
+
+      /* Modal */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .modal-overlay.active {
+        display: flex;
+      }
+
+      .modal {
+        background: white;
+        border-radius: 12px;
+        max-width: 800px;
+        width: 95%;
+        max-height: 90vh;
+        overflow-y: auto;
+        padding: 30px;
+        animation: modalAnim 0.3s ease;
+      }
+
+      @keyframes modalAnim {
+        from {
+          transform: translateY(-50px);
+          opacity: 0;
+        }
+        to {
+          transform: translateY(0);
+          opacity: 1;
+        }
+      }
+
+      .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        border-bottom: 2px solid #e5e7eb;
+        padding-bottom: 15px;
+      }
+
+      .modal-header h2 {
+        color: #1e3a5f;
+      }
+
+      .modal-close {
+        background: none;
+        border: none;
+        font-size: 28px;
+        cursor: pointer;
+        color: #6b7280;
+        transition: 0.3s;
+      }
+
+      .modal-close:hover {
+        color: #ef4444;
+        transform: rotate(90deg);
+      }
+
+      .modal-body {
+        line-height: 1.8;
+      }
+
+      /* Comentarios */
+      .comentario-item {
+        background: #f8fafc;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        border-left: 4px solid #2d6da8;
+      }
+
+      .comentario-item .meta {
+        font-size: 12px;
+        color: #6b7280;
+        margin-bottom: 5px;
+      }
+
+      .comentario-item .texto {
+        color: #1e3a5f;
+      }
+
+      /* Adjuntos */
+      .adjuntos-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .adjunto-item {
+        background: #f3f4f6;
+        padding: 5px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .adjunto-item a {
+        color: #2d6da8;
+        text-decoration: none;
+      }
+
+      .adjunto-item a:hover {
+        text-decoration: underline;
+      }
+
+      /* Toast */
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 15px 25px;
+        border-radius: 10px;
+        color: white;
+        font-weight: 500;
+        z-index: 2000;
+        transform: translateX(450px);
+        transition: transform 0.4s ease;
+        max-width: 400px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      }
+
+      .toast.show {
+        transform: translateX(0);
+      }
+
+      .toast.success {
+        background: #10b981;
+      }
+      .toast.error {
+        background: #ef4444;
+      }
+      .toast.info {
+        background: #2d6da8;
+      }
+      .toast.warning {
+        background: #f59e0b;
+      }
+
+      /* Loading */
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #6b7280;
+      }
+
+      /* Alertas de vencimiento */
+      .alerta-vencimiento {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        padding: 10px 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .alerta-vencimiento .icono {
+        font-size: 20px;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
         .header {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d6da8 100%);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
+          flex-direction: column;
+          text-align: center;
         }
 
-        .header h1 {
-            font-size: 26px;
-            font-weight: 300;
-        }
-
-        .header .subtitle {
-            opacity: 0.9;
-            font-size: 14px;
-        }
-
-        .header-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        /* Stats */
         .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            text-align: center;
-            transition: transform 0.2s;
-            cursor: pointer;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-card .number {
-            font-size: 36px;
-            font-weight: bold;
-            color: #1e3a5f;
-        }
-
-        .stat-card .label {
-            color: #666;
-            font-size: 14px;
-            margin-top: 5px;
-        }
-
-        .stat-card .icon {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        .stat-card.pendientes .number { color: #f59e0b; }
-        .stat-card.respondidos .number { color: #10b981; }
-        .stat-card.vencidos .number { color: #ef4444; }
-        .stat-card.urgentes .number { color: #dc2626; }
-
-        /* Formulario */
-        .form-section {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 30px;
-        }
-
-        .form-section h2 {
-            margin-bottom: 20px;
-            color: #1e3a5f;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+          grid-template-columns: repeat(2, 1fr);
         }
 
         .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .form-group label {
-            font-size: 13px;
-            font-weight: 600;
-            color: #555;
-            margin-bottom: 5px;
-        }
-
-        .form-group label .required {
-            color: #ef4444;
-        }
-
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            padding: 10px 12px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #2d6da8;
-            box-shadow: 0 0 0 3px rgba(45, 109, 168, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 80px;
-        }
-
-        .form-group.full-width {
-            grid-column: 1 / -1;
-        }
-
-        .btn {
-            padding: 12px 28px;
-            border: none;
-            border-radius: 8px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #1e3a5f 0%, #2d6da8 100%);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(45, 109, 168, 0.4);
-        }
-
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #059669;
-            transform: translateY(-2px);
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
-
-        .btn-warning {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .btn-warning:hover {
-            background: #d97706;
-        }
-
-        .btn-secondary {
-            background: #6b7280;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #4b5563;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #2d6da8;
-            color: #2d6da8;
-        }
-
-        .btn-outline:hover {
-            background: #2d6da8;
-            color: white;
-        }
-
-        /* Tabla */
-        .table-section {
-            background: white;
-            padding: 25px;
-            border-radius: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          grid-template-columns: 1fr;
         }
 
         .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .table-header h2 {
-            color: #1e3a5f;
-            font-size: 20px;
+          flex-direction: column;
+          align-items: stretch;
         }
 
         .table-controls {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+          flex-direction: column;
         }
 
-        .table-controls input,
-        .table-controls select {
-            padding: 8px 14px;
-            border: 2px solid #e5e7eb;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-
-        .table-controls input:focus,
-        .table-controls select:focus {
-            outline: none;
-            border-color: #2d6da8;
-        }
-
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-
-        thead {
-            background: #f8fafc;
-        }
-
+        td,
         th {
-            padding: 12px 15px;
-            text-align: left;
-            font-weight: 600;
-            color: #1e3a5f;
-            border-bottom: 2px solid #e5e7eb;
-            white-space: nowrap;
+          padding: 8px 10px;
+          font-size: 12px;
         }
 
-        td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: middle;
-        }
-
-        tr:hover {
-            background: #f8fafc;
-        }
-
-        /* Badges */
-        .estado-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .estado-borrador { background: #e5e7eb; color: #374151; }
-        .estado-emitido { background: #bfdbfe; color: #1e40af; }
-        .estado-en-proceso { background: #fef3c7; color: #92400e; }
-        .estado-respondido { background: #d1fae5; color: #065f46; }
-        .estado-archivado { background: #e0e7ff; color: #3730a3; }
-        .estado-anulado { background: #fecaca; color: #991b1b; }
-
-        .prioridad-badge {
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
-        }
-
-        .prioridad-alta { background: #fecaca; color: #991b1b; animation: pulse 2s infinite; }
-        .prioridad-media { background: #fef3c7; color: #92400e; }
-        .prioridad-baja { background: #d1fae5; color: #065f46; }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        /* Botones de acción */
         .btn-accion {
-            padding: 6px 12px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            margin: 2px;
-            transition: all 0.2s;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-        }
-
-        .btn-accion:hover {
-            transform: scale(1.05);
-        }
-
-        .btn-accion-imprimir { background: #8b5cf6; color: white; }
-        .btn-accion-pdf { background: #dc2626; color: white; }
-        .btn-accion-estado { background: #f59e0b; color: white; }
-        .btn-accion-eliminar { background: #ef4444; color: white; }
-        .btn-accion-ver { background: #2d6da8; color: white; }
-        .btn-accion-comentar { background: #10b981; color: white; }
-
-        .file-input-small {
-            font-size: 11px;
-            width: 85px;
-        }
-
-        /* Modal */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
+          font-size: 10px;
+          padding: 4px 8px;
         }
 
         .modal {
-            background: white;
-            border-radius: 12px;
-            max-width: 800px;
-            width: 95%;
-            max-height: 90vh;
-            overflow-y: auto;
-            padding: 30px;
-            animation: modalAnim 0.3s ease;
+          padding: 20px;
         }
+      }
 
-        @keyframes modalAnim {
-            from { transform: translateY(-50px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
+      /* Scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
 
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid #e5e7eb;
-            padding-bottom: 15px;
-        }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
 
-        .modal-header h2 {
-            color: #1e3a5f;
-        }
+      ::-webkit-scrollbar-thumb {
+        background: #2d6da8;
+        border-radius: 4px;
+      }
 
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 28px;
-            cursor: pointer;
-            color: #6b7280;
-            transition: 0.3s;
-        }
-
-        .modal-close:hover {
-            color: #ef4444;
-            transform: rotate(90deg);
-        }
-
-        .modal-body {
-            line-height: 1.8;
-        }
-
-        /* Comentarios */
-        .comentario-item {
-            background: #f8fafc;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border-left: 4px solid #2d6da8;
-        }
-
-        .comentario-item .meta {
-            font-size: 12px;
-            color: #6b7280;
-            margin-bottom: 5px;
-        }
-
-        .comentario-item .texto {
-            color: #1e3a5f;
-        }
-
-        /* Adjuntos */
-        .adjuntos-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-
-        .adjunto-item {
-            background: #f3f4f6;
-            padding: 5px 12px;
-            border-radius: 6px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .adjunto-item a {
-            color: #2d6da8;
-            text-decoration: none;
-        }
-
-        .adjunto-item a:hover {
-            text-decoration: underline;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            border-radius: 10px;
-            color: white;
-            font-weight: 500;
-            z-index: 2000;
-            transform: translateX(450px);
-            transition: transform 0.4s ease;
-            max-width: 400px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-
-        .toast.show {
-            transform: translateX(0);
-        }
-
-        .toast.success { background: #10b981; }
-        .toast.error { background: #ef4444; }
-        .toast.info { background: #2d6da8; }
-        .toast.warning { background: #f59e0b; }
-
-        /* Loading */
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: #6b7280;
-        }
-
-        /* Alertas de vencimiento */
-        .alerta-vencimiento {
-            background: #fef2f2;
-            border: 1px solid #fecaca;
-            color: #991b1b;
-            padding: 10px 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .alerta-vencimiento .icono {
-            font-size: 20px;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .form-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .table-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .table-controls {
-                flex-direction: column;
-            }
-
-            td, th {
-                padding: 8px 10px;
-                font-size: 12px;
-            }
-
-            .btn-accion {
-                font-size: 10px;
-                padding: 4px 8px;
-            }
-
-            .modal {
-                padding: 20px;
-            }
-        }
-
-        /* Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #2d6da8;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #1e3a5f;
-        }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #1e3a5f;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div class="container">
-        <!-- ==================== HEADER ==================== -->
-        <div class="header">
-            <div>
-                <h1>📋 Sistema de Control de Oficios</h1>
-                <div class="subtitle">Gestión completa de comunicación oficial</div>
+      <!-- ==================== HEADER ==================== -->
+      <div class="header">
+        <div>
+          <h1>📋 Sistema de Control de Oficios</h1>
+          <div class="subtitle">Gestión completa de comunicación oficial</div>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-success" onclick="cargarDatos()">
+            🔄 Actualizar
+          </button>
+          <button class="btn btn-warning" onclick="exportarExcel()">
+            📊 Exportar Excel
+          </button>
+          <button class="btn btn-outline" onclick="verAlertasVencimiento()">
+            🔔 Alertas
+          </button>
+        </div>
+      </div>
+
+      <!-- ==================== ALERTAS DE VENCIMIENTO ==================== -->
+      <div id="alertasContainer"></div>
+
+      <!-- ==================== STATS ==================== -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="icon">📄</div>
+          <div class="number" id="totalOficios">0</div>
+          <div class="label">Total Oficios</div>
+        </div>
+        <div class="stat-card pendientes">
+          <div class="icon">⏳</div>
+          <div class="number" id="pendientes">0</div>
+          <div class="label">Pendientes</div>
+        </div>
+        <div class="stat-card respondidos">
+          <div class="icon">✅</div>
+          <div class="number" id="respondidos">0</div>
+          <div class="label">Respondidos</div>
+        </div>
+        <div class="stat-card vencidos">
+          <div class="icon">⚠️</div>
+          <div class="number" id="vencidos">0</div>
+          <div class="label">Vencidos</div>
+        </div>
+        <div class="stat-card urgentes">
+          <div class="icon">🔴</div>
+          <div class="number" id="urgentes">0</div>
+          <div class="label">Prioridad Alta</div>
+        </div>
+      </div>
+
+      <!-- ==================== FORMULARIO ==================== -->
+      <div class="form-section" id="formSection">
+        <h2>✏️ <span id="formTitle">Nuevo Oficio</span></h2>
+        <form id="oficioForm" onsubmit="return guardarOficio(event);">
+          <input type="hidden" id="editId" value="" />
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Número de Oficio <span class="required">*</span></label>
+              <input
+                type="text"
+                id="numero_oficio"
+                placeholder="Ej: OF-2026-0001"
+                required
+              />
             </div>
-            <div class="header-actions">
-                <button class="btn btn-success" onclick="cargarDatos()">🔄 Actualizar</button>
-                <button class="btn btn-warning" onclick="exportarExcel()">📊 Exportar Excel</button>
-                <button class="btn btn-outline" onclick="verAlertasVencimiento()">🔔 Alertas</button>
+            <div class="form-group">
+              <label>Tipo <span class="required">*</span></label>
+              <select id="tipo_documento" required>
+                <option value="Oficio">Oficio</option>
+                <option value="Circular">Circular</option>
+                <option value="Memorándum">Memorándum</option>
+                <option value="Comunicado">Comunicado</option>
+                <option value="Resolución">Resolución</option>
+                <option value="Acta">Acta</option>
+              </select>
             </div>
+            <div class="form-group">
+              <label>Prioridad <span class="required">*</span></label>
+              <select id="prioridad" required>
+                <option value="Alta">🔴 Alta</option>
+                <option value="Media" selected>🟡 Media</option>
+                <option value="Baja">🟢 Baja</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Fecha de Emisión <span class="required">*</span></label>
+              <input type="date" id="fecha_emision" required />
+            </div>
+
+            <div class="form-group full-width">
+              <label>Asunto <span class="required">*</span></label>
+              <input
+                type="text"
+                id="asunto"
+                placeholder="Escribe el asunto del oficio"
+                required
+              />
+            </div>
+
+            <div class="form-group">
+              <label>Remitente <span class="required">*</span></label>
+              <input
+                type="text"
+                id="remitente"
+                placeholder="Quién envía"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Destinatario <span class="required">*</span></label>
+              <input
+                type="text"
+                id="destinatario"
+                placeholder="A quién va dirigido"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label>Departamento Destino</label>
+              <input
+                type="text"
+                id="departamento_destino"
+                placeholder="Departamento"
+              />
+            </div>
+            <div class="form-group">
+              <label>Plazo Respuesta (días)</label>
+              <input
+                type="number"
+                id="plazo_respuesta"
+                value="5"
+                min="1"
+                max="60"
+              />
+            </div>
+
+            <div class="form-group full-width">
+              <label>Contenido</label>
+              <textarea
+                id="contenido"
+                placeholder="Redacta el contenido completo del oficio..."
+                rows="4"
+              ></textarea>
+            </div>
+
+            <div class="form-group full-width">
+              <label>Observaciones</label>
+              <input
+                type="text"
+                id="observaciones"
+                placeholder="Observaciones adicionales"
+              />
+            </div>
+          </div>
+          <br />
+          <button type="submit" class="btn btn-primary" id="btnGuardar">
+            📤 Guardar Oficio
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="limpiarFormulario()"
+          >
+            🗑️ Limpiar
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            id="btnCancelar"
+            style="display: none"
+            onclick="cancelarEdicion()"
+          >
+            ❌ Cancelar
+          </button>
+        </form>
+      </div>
+
+      <!-- ==================== TABLA ==================== -->
+      <div class="table-section">
+        <div class="table-header">
+          <h2>📄 Listado de Oficios</h2>
+          <div class="table-controls">
+            <input
+              type="text"
+              id="buscarOficio"
+              placeholder="🔍 Buscar..."
+              onkeyup="filtrarTabla()"
+            />
+            <select id="filtroEstado" onchange="filtrarTabla()">
+              <option value="">Todos los estados</option>
+              <option value="Borrador">Borrador</option>
+              <option value="Emitido">Emitido</option>
+              <option value="En Proceso">En Proceso</option>
+              <option value="Respondido">Respondido</option>
+              <option value="Archivado">Archivado</option>
+              <option value="Anulado">Anulado</option>
+            </select>
+            <select id="filtroPrioridad" onchange="filtrarTabla()">
+              <option value="">Todas las prioridades</option>
+              <option value="Alta">Alta</option>
+              <option value="Media">Media</option>
+              <option value="Baja">Baja</option>
+            </select>
+          </div>
         </div>
 
-        <!-- ==================== ALERTAS DE VENCIMIENTO ==================== -->
-        <div id="alertasContainer"></div>
-
-        <!-- ==================== STATS ==================== -->
-        <div class="stats-grid" id="statsGrid">
-            <div class="stat-card">
-                <div class="icon">📄</div>
-                <div class="number" id="totalOficios">0</div>
-                <div class="label">Total Oficios</div>
-            </div>
-            <div class="stat-card pendientes">
-                <div class="icon">⏳</div>
-                <div class="number" id="pendientes">0</div>
-                <div class="label">Pendientes</div>
-            </div>
-            <div class="stat-card respondidos">
-                <div class="icon">✅</div>
-                <div class="number" id="respondidos">0</div>
-                <div class="label">Respondidos</div>
-            </div>
-            <div class="stat-card vencidos">
-                <div class="icon">⚠️</div>
-                <div class="number" id="vencidos">0</div>
-                <div class="label">Vencidos</div>
-            </div>
-            <div class="stat-card urgentes">
-                <div class="icon">🔴</div>
-                <div class="number" id="urgentes">0</div>
-                <div class="label">Prioridad Alta</div>
-            </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>N° Oficio</th>
+                <th>Asunto</th>
+                <th>Remitente</th>
+                <th>Destinatario</th>
+                <th>Emisión</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Adjuntos</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaBody">
+              <tr>
+                <td colspan="9" class="loading">Cargando datos...</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        <!-- ==================== FORMULARIO ==================== -->
-        <div class="form-section" id="formSection">
-            <h2>✏️ <span id="formTitle">Nuevo Oficio</span></h2>
-            <form id="oficioForm" onsubmit="return guardarOficio(event)">
-                <input type="hidden" id="editId" value="">
-                
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Número de Oficio <span class="required">*</span></label>
-                        <input type="text" id="numero_oficio" placeholder="Ej: OF-2026-0001" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Tipo <span class="required">*</span></label>
-                        <select id="tipo_documento" required>
-                            <option value="Oficio">Oficio</option>
-                            <option value="Circular">Circular</option>
-                            <option value="Memorándum">Memorándum</option>
-                            <option value="Comunicado">Comunicado</option>
-                            <option value="Resolución">Resolución</option>
-                            <option value="Acta">Acta</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Prioridad <span class="required">*</span></label>
-                        <select id="prioridad" required>
-                            <option value="Alta">🔴 Alta</option>
-                            <option value="Media" selected>🟡 Media</option>
-                            <option value="Baja">🟢 Baja</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Fecha de Emisión <span class="required">*</span></label>
-                        <input type="date" id="fecha_emision" required>
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label>Asunto <span class="required">*</span></label>
-                        <input type="text" id="asunto" placeholder="Escribe el asunto del oficio" required>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Remitente <span class="required">*</span></label>
-                        <input type="text" id="remitente" placeholder="Quién envía" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Destinatario <span class="required">*</span></label>
-                        <input type="text" id="destinatario" placeholder="A quién va dirigido" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Departamento Destino</label>
-                        <input type="text" id="departamento_destino" placeholder="Departamento">
-                    </div>
-                    <div class="form-group">
-                        <label>Plazo Respuesta (días)</label>
-                        <input type="number" id="plazo_respuesta" value="5" min="1" max="60">
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label>Contenido</label>
-                        <textarea id="contenido" placeholder="Redacta el contenido completo del oficio..." rows="4"></textarea>
-                    </div>
-                    
-                    <div class="form-group full-width">
-                        <label>Observaciones</label>
-                        <input type="text" id="observaciones" placeholder="Observaciones adicionales">
-                    </div>
-                </div>
-                <br>
-                <button type="submit" class="btn btn-primary" id="btnGuardar">📤 Guardar Oficio</button>
-                <button type="button" class="btn btn-secondary" onclick="limpiarFormulario()">🗑️ Limpiar</button>
-                <button type="button" class="btn btn-danger" id="btnCancelar" style="display:none;" onclick="cancelarEdicion()">❌ Cancelar</button>
-            </form>
-        </div>
-
-        <!-- ==================== TABLA ==================== -->
-        <div class="table-section">
-            <div class="table-header">
-                <h2>📄 Listado de Oficios</h2>
-                <div class="table-controls">
-                    <input type="text" id="buscarOficio" placeholder="🔍 Buscar..." onkeyup="filtrarTabla()">
-                    <select id="filtroEstado" onchange="filtrarTabla()">
-                        <option value="">Todos los estados</option>
-                        <option value="Borrador">Borrador</option>
-                        <option value="Emitido">Emitido</option>
-                        <option value="En Proceso">En Proceso</option>
-                        <option value="Respondido">Respondido</option>
-                        <option value="Archivado">Archivado</option>
-                        <option value="Anulado">Anulado</option>
-                    </select>
-                    <select id="filtroPrioridad" onchange="filtrarTabla()">
-                        <option value="">Todas las prioridades</option>
-                        <option value="Alta">Alta</option>
-                        <option value="Media">Media</option>
-                        <option value="Baja">Baja</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="table-wrapper">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>N° Oficio</th>
-                            <th>Asunto</th>
-                            <th>Remitente</th>
-                            <th>Destinatario</th>
-                            <th>Emisión</th>
-                            <th>Estado</th>
-                            <th>Prioridad</th>
-                            <th>Adjuntos</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tablaBody">
-                        <tr><td colspan="9" class="loading">Cargando datos...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+      </div>
     </div>
 
     <!-- ==================== MODAL ==================== -->
     <div class="modal-overlay" id="modalDetalle">
-        <div class="modal">
-            <div class="modal-header">
-                <h2 id="modalTitle">Detalle del Oficio</h2>
-                <button class="modal-close" onclick="cerrarModal()">✕</button>
-            </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Contenido dinámico -->
-            </div>
+      <div class="modal">
+        <div class="modal-header">
+          <h2 id="modalTitle">Detalle del Oficio</h2>
+          <button class="modal-close" onclick="cerrarModal()">✕</button>
         </div>
+        <div class="modal-body" id="modalBody">
+          <!-- Contenido dinámico -->
+        </div>
+      </div>
     </div>
 
     <!-- ==================== TOAST ==================== -->
@@ -788,84 +928,92 @@
 
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
-        // ==================== CONFIGURACIÓN ====================
-        // 🔴 ¡CAMBIA ESTOS VALORES CON TUS CREDENCIALES DE SUPABASE!
-        const SUPABASE_URL = 'https://TU_PROYECTO.supabase.co';
-        const SUPABASE_KEY = 'TU_ANON_KEY';
-        
-        const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+      // ==================== CONFIGURACIÓN ====================
+      // 🔴 ¡CAMBIA ESTOS VALORES CON TUS CREDENCIALES DE SUPABASE!
+      const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
+      const SUPABASE_ANON_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-        // ==================== VARIABLES GLOBALES ====================
-        let todosLosOficios = [];
-        let oficioEnEdicion = null;
+      const supabase = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ==================== INICIALIZACIÓN ====================
-        document.addEventListener('DOMContentLoaded', function() {
-            cargarDatos();
-            document.getElementById('fecha_emision').value = new Date().toISOString().split('T')[0];
-            generarNumeroOficio();
-            
-            // Verificar vencimientos cada 5 minutos
-            setInterval(verificarVencimientos, 300000);
-        });
+      // ==================== VARIABLES GLOBALES ====================
+      let todosLosOficios = [];
+      let oficioEnEdicion = null;
 
-        // ==================== FUNCIONES PRINCIPALES ====================
+      // ==================== INICIALIZACIÓN ====================
+      document.addEventListener("DOMContentLoaded", function () {
+        cargarDatos();
+        document.getElementById("fecha_emision").value = new Date()
+          .toISOString()
+          .split("T")[0];
+        generarNumeroOficio();
 
-        function generarNumeroOficio() {
-            const año = new Date().getFullYear();
-            const depto = 'OF';
-            const consecutivo = String(Math.floor(Math.random() * 9999)).padStart(4, '0');
-            document.getElementById('numero_oficio').value = `${depto}-${año}-${consecutivo}`;
+        // Verificar vencimientos cada 5 minutos
+        setInterval(verificarVencimientos, 300000);
+      });
+
+      // ==================== FUNCIONES PRINCIPALES ====================
+
+      function generarNumeroOficio() {
+        const año = new Date().getFullYear();
+        const depto = "OF";
+        const consecutivo = String(Math.floor(Math.random() * 9999)).padStart(
+          4,
+          "0",
+        );
+        document.getElementById("numero_oficio").value =
+          `${depto}-${año}-${consecutivo}`;
+      }
+
+      async function cargarDatos() {
+        try {
+          mostrarToast("Cargando datos...", "info");
+
+          const { data, error } = await supabase
+            .from("oficios")
+            .select("*")
+            .order("created_at", { ascending: false });
+
+          if (error) throw error;
+
+          todosLosOficios = data;
+          renderizarTabla(data);
+          actualizarEstadisticas(data);
+          verificarVencimientos();
+
+          mostrarToast("✅ Datos actualizados", "success");
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast("❌ Error al cargar: " + error.message, "error");
+          document.getElementById("tablaBody").innerHTML =
+            `<tr><td colspan="9" style="text-align:center;color:#ef4444;">❌ Error al cargar datos</td></tr>`;
+        }
+      }
+
+      // ==================== RENDERIZAR TABLA ====================
+      function renderizarTabla(data) {
+        const tbody = document.getElementById("tablaBody");
+
+        if (!data || data.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#999;">📭 No hay oficios registrados</td></tr>`;
+          return;
         }
 
-        async function cargarDatos() {
-            try {
-                mostrarToast('Cargando datos...', 'info');
-                
-                const { data, error } = await supabase
-                    .from('oficios')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-
-                if (error) throw error;
-
-                todosLosOficios = data;
-                renderizarTabla(data);
-                actualizarEstadisticas(data);
-                verificarVencimientos();
-                
-                mostrarToast('✅ Datos actualizados', 'success');
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarToast('❌ Error al cargar: ' + error.message, 'error');
-                document.getElementById('tablaBody').innerHTML = 
-                    `<tr><td colspan="9" style="text-align:center;color:#ef4444;">❌ Error al cargar datos</td></tr>`;
-            }
-        }
-
-        // ==================== RENDERIZAR TABLA ====================
-        function renderizarTabla(data) {
-            const tbody = document.getElementById('tablaBody');
-            
-            if (!data || data.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:#999;">📭 No hay oficios registrados</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = data.map(oficio => {
-                const estaVencido = verificarVencimiento(oficio);
-                return `
-                <tr style="${estaVencido ? 'background: #fef2f2;' : ''}">
+        tbody.innerHTML = data
+          .map((oficio) => {
+            const estaVencido = verificarVencimiento(oficio);
+            return `
+                <tr style="${estaVencido ? "background: #fef2f2;" : ""}">
                     <td><strong>${oficio.numero_oficio}</strong></td>
                     <td>${oficio.asunto}</td>
                     <td>${oficio.remitente}</td>
                     <td>${oficio.destinatario}</td>
                     <td>${formatearFecha(oficio.fecha_emision)}</td>
                     <td>
-                        <span class="estado-badge estado-${oficio.estado.toLowerCase().replace(' ', '-')}">
+                        <span class="estado-badge estado-${oficio.estado.toLowerCase().replace(" ", "-")}">
                             ${oficio.estado}
                         </span>
-                        ${estaVencido ? ' ⚠️' : ''}
+                        ${estaVencido ? " ⚠️" : ""}
                     </td>
                     <td>
                         <span class="prioridad-badge prioridad-${oficio.prioridad.toLowerCase()}">
@@ -873,11 +1021,12 @@
                         </span>
                     </td>
                     <td>
-                        ${oficio.documento_pdf ? 
-                            `<span class="adjunto-item">
+                        ${
+                          oficio.documento_pdf
+                            ? `<span class="adjunto-item">
                                 📄 <a href="${oficio.documento_pdf}" target="_blank">Ver</a>
-                            </span>` : 
-                            `<input type="file" accept=".pdf" class="file-input-small" 
+                            </span>`
+                            : `<input type="file" accept=".pdf" class="file-input-small" 
                                 onchange="subirPDF(${oficio.id}, this)">`
                         }
                     </td>
@@ -892,207 +1041,229 @@
                         </div>
                     </td>
                 </tr>
-            `}).join('');
+            `;
+          })
+          .join("");
+      }
+
+      // ==================== CRUD COMPLETO ====================
+
+      async function guardarOficio(event) {
+        event.preventDefault();
+
+        const id = document.getElementById("editId").value;
+        const data = {
+          numero_oficio: document.getElementById("numero_oficio").value,
+          tipo_documento: document.getElementById("tipo_documento").value,
+          asunto: document.getElementById("asunto").value,
+          contenido: document.getElementById("contenido").value,
+          remitente: document.getElementById("remitente").value,
+          destinatario: document.getElementById("destinatario").value,
+          departamento_destino: document.getElementById("departamento_destino")
+            .value,
+          fecha_emision: document.getElementById("fecha_emision").value,
+          plazo_respuesta:
+            parseInt(document.getElementById("plazo_respuesta").value) || 5,
+          prioridad: document.getElementById("prioridad").value,
+          observaciones: document.getElementById("observaciones").value,
+        };
+
+        try {
+          let result;
+
+          if (id) {
+            // Actualizar
+            result = await supabase.from("oficios").update(data).eq("id", id);
+
+            if (!result.error) {
+              await registrarSeguimiento(id, "Edición", "Oficio actualizado");
+              mostrarToast("✅ Oficio actualizado correctamente", "success");
+            }
+          } else {
+            // Crear nuevo
+            data.estado = "Borrador";
+            result = await supabase.from("oficios").insert([data]);
+
+            if (!result.error) {
+              const { data: newData } = await supabase
+                .from("oficios")
+                .select("id")
+                .order("created_at", { ascending: false })
+                .limit(1);
+
+              if (newData && newData.length > 0) {
+                await registrarSeguimiento(
+                  newData[0].id,
+                  "Creación",
+                  "Oficio creado",
+                );
+              }
+              mostrarToast("✅ Oficio creado exitosamente", "success");
+            }
+          }
+
+          if (result.error) throw result.error;
+
+          limpiarFormulario();
+          cargarDatos();
+          generarNumeroOficio();
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast("❌ Error al guardar: " + error.message, "error");
+        }
+      }
+
+      async function eliminarOficio(id, numero) {
+        if (
+          !confirm(
+            `¿Estás seguro de eliminar el oficio ${numero}? Esta acción no se puede deshacer.`,
+          )
+        )
+          return;
+
+        try {
+          const { error } = await supabase
+            .from("oficios")
+            .delete()
+            .eq("id", id);
+
+          if (error) throw error;
+
+          mostrarToast("✅ Oficio eliminado correctamente", "success");
+          cargarDatos();
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast("❌ Error al eliminar: " + error.message, "error");
+        }
+      }
+
+      async function cambiarEstado(id, estadoActual) {
+        const estados = [
+          "Borrador",
+          "Emitido",
+          "En Proceso",
+          "Respondido",
+          "Archivado",
+        ];
+        const index = estados.indexOf(estadoActual);
+        const nuevoEstado = estados[(index + 1) % estados.length];
+
+        try {
+          const { error } = await supabase
+            .from("oficios")
+            .update({ estado: nuevoEstado })
+            .eq("id", id);
+
+          if (error) throw error;
+
+          await registrarSeguimiento(
+            id,
+            "Cambio de Estado",
+            `Estado cambiado de "${estadoActual}" a "${nuevoEstado}"`,
+          );
+          mostrarToast(`✅ Estado cambiado a: ${nuevoEstado}`, "success");
+          cargarDatos();
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast("❌ Error al cambiar estado: " + error.message, "error");
+        }
+      }
+
+      // ==================== SUBIR PDF ====================
+      async function subirPDF(id, input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        if (file.type !== "application/pdf") {
+          mostrarToast("❌ Solo se permiten archivos PDF", "error");
+          return;
         }
 
-        // ==================== CRUD COMPLETO ====================
-
-        async function guardarOficio(event) {
-            event.preventDefault();
-            
-            const id = document.getElementById('editId').value;
-            const data = {
-                numero_oficio: document.getElementById('numero_oficio').value,
-                tipo_documento: document.getElementById('tipo_documento').value,
-                asunto: document.getElementById('asunto').value,
-                contenido: document.getElementById('contenido').value,
-                remitente: document.getElementById('remitente').value,
-                destinatario: document.getElementById('destinatario').value,
-                departamento_destino: document.getElementById('departamento_destino').value,
-                fecha_emision: document.getElementById('fecha_emision').value,
-                plazo_respuesta: parseInt(document.getElementById('plazo_respuesta').value) || 5,
-                prioridad: document.getElementById('prioridad').value,
-                observaciones: document.getElementById('observaciones').value
-            };
-
-            try {
-                let result;
-                
-                if (id) {
-                    // Actualizar
-                    result = await supabase
-                        .from('oficios')
-                        .update(data)
-                        .eq('id', id);
-                        
-                    if (!result.error) {
-                        await registrarSeguimiento(id, 'Edición', 'Oficio actualizado');
-                        mostrarToast('✅ Oficio actualizado correctamente', 'success');
-                    }
-                } else {
-                    // Crear nuevo
-                    data.estado = 'Borrador';
-                    result = await supabase
-                        .from('oficios')
-                        .insert([data]);
-                        
-                    if (!result.error) {
-                        const { data: newData } = await supabase
-                            .from('oficios')
-                            .select('id')
-                            .order('created_at', { ascending: false })
-                            .limit(1);
-                            
-                        if (newData && newData.length > 0) {
-                            await registrarSeguimiento(newData[0].id, 'Creación', 'Oficio creado');
-                        }
-                        mostrarToast('✅ Oficio creado exitosamente', 'success');
-                    }
-                }
-
-                if (result.error) throw result.error;
-
-                limpiarFormulario();
-                cargarDatos();
-                generarNumeroOficio();
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarToast('❌ Error al guardar: ' + error.message, 'error');
-            }
+        if (file.size > 10 * 1024 * 1024) {
+          mostrarToast("❌ El archivo no debe superar 10MB", "error");
+          return;
         }
 
-        async function eliminarOficio(id, numero) {
-            if (!confirm(`¿Estás seguro de eliminar el oficio ${numero}? Esta acción no se puede deshacer.`)) return;
+        try {
+          mostrarToast("Subiendo PDF...", "info");
 
-            try {
-                const { error } = await supabase
-                    .from('oficios')
-                    .delete()
-                    .eq('id', id);
+          const fileName = `oficio_${id}_${Date.now()}.pdf`;
 
-                if (error) throw error;
+          const { error: uploadError } = await supabase.storage
+            .from("documentos")
+            .upload(fileName, file);
 
-                mostrarToast('✅ Oficio eliminado correctamente', 'success');
-                cargarDatos();
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarToast('❌ Error al eliminar: ' + error.message, 'error');
-            }
+          if (uploadError) throw uploadError;
+
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("documentos").getPublicUrl(fileName);
+
+          const { error: updateError } = await supabase
+            .from("oficios")
+            .update({ documento_pdf: publicUrl })
+            .eq("id", id);
+
+          if (updateError) throw updateError;
+
+          await registrarSeguimiento(
+            id,
+            "PDF Subido",
+            "Se adjuntó documento PDF",
+          );
+          mostrarToast("✅ PDF subido correctamente", "success");
+          cargarDatos();
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast("❌ Error al subir PDF: " + error.message, "error");
         }
 
-        async function cambiarEstado(id, estadoActual) {
-            const estados = ['Borrador', 'Emitido', 'En Proceso', 'Respondido', 'Archivado'];
-            const index = estados.indexOf(estadoActual);
-            const nuevoEstado = estados[(index + 1) % estados.length];
+        input.value = "";
+      }
 
-            try {
-                const { error } = await supabase
-                    .from('oficios')
-                    .update({ estado: nuevoEstado })
-                    .eq('id', id);
+      // ==================== SEGUIMIENTO ====================
+      async function registrarSeguimiento(oficioId, tipoAccion, descripcion) {
+        try {
+          const { error } = await supabase.from("seguimiento").insert([
+            {
+              oficio_id: oficioId,
+              tipo_accion: tipoAccion,
+              descripcion: descripcion,
+              usuario: "Usuario del sistema",
+              fecha_accion: new Date(),
+            },
+          ]);
 
-                if (error) throw error;
+          if (error) throw error;
+        } catch (error) {
+          console.error("Error al registrar seguimiento:", error);
+        }
+      }
 
-                await registrarSeguimiento(id, 'Cambio de Estado', `Estado cambiado de "${estadoActual}" a "${nuevoEstado}"`);
-                mostrarToast(`✅ Estado cambiado a: ${nuevoEstado}`, 'success');
-                cargarDatos();
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarToast('❌ Error al cambiar estado: ' + error.message, 'error');
-            }
+      async function obtenerSeguimiento(oficioId) {
+        const { data, error } = await supabase
+          .from("seguimiento")
+          .select("*")
+          .eq("oficio_id", oficioId)
+          .order("fecha_accion", { ascending: false });
+
+        if (error) {
+          console.error("Error al obtener seguimiento:", error);
+          return [];
+        }
+        return data;
+      }
+
+      // ==================== IMPRIMIR Y PDF ====================
+      function imprimirOficio(id) {
+        const oficio = todosLosOficios.find((o) => o.id === id);
+        if (!oficio) {
+          mostrarToast("❌ Oficio no encontrado", "error");
+          return;
         }
 
-        // ==================== SUBIR PDF ====================
-        async function subirPDF(id, input) {
-            const file = input.files[0];
-            if (!file) return;
-
-            if (file.type !== 'application/pdf') {
-                mostrarToast('❌ Solo se permiten archivos PDF', 'error');
-                return;
-            }
-
-            if (file.size > 10 * 1024 * 1024) {
-                mostrarToast('❌ El archivo no debe superar 10MB', 'error');
-                return;
-            }
-
-            try {
-                mostrarToast('Subiendo PDF...', 'info');
-                
-                const fileName = `oficio_${id}_${Date.now()}.pdf`;
-                
-                const { error: uploadError } = await supabase.storage
-                    .from('documentos')
-                    .upload(fileName, file);
-
-                if (uploadError) throw uploadError;
-
-                const { data: { publicUrl } } = supabase.storage
-                    .from('documentos')
-                    .getPublicUrl(fileName);
-
-                const { error: updateError } = await supabase
-                    .from('oficios')
-                    .update({ documento_pdf: publicUrl })
-                    .eq('id', id);
-
-                if (updateError) throw updateError;
-
-                await registrarSeguimiento(id, 'PDF Subido', 'Se adjuntó documento PDF');
-                mostrarToast('✅ PDF subido correctamente', 'success');
-                cargarDatos();
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarToast('❌ Error al subir PDF: ' + error.message, 'error');
-            }
-
-            input.value = '';
-        }
-
-        // ==================== SEGUIMIENTO ====================
-        async function registrarSeguimiento(oficioId, tipoAccion, descripcion) {
-            try {
-                const { error } = await supabase
-                    .from('seguimiento')
-                    .insert([{
-                        oficio_id: oficioId,
-                        tipo_accion: tipoAccion,
-                        descripcion: descripcion,
-                        usuario: 'Usuario del sistema',
-                        fecha_accion: new Date()
-                    }]);
-
-                if (error) throw error;
-            } catch (error) {
-                console.error('Error al registrar seguimiento:', error);
-            }
-        }
-
-        async function obtenerSeguimiento(oficioId) {
-            const { data, error } = await supabase
-                .from('seguimiento')
-                .select('*')
-                .eq('oficio_id', oficioId)
-                .order('fecha_accion', { ascending: false });
-
-            if (error) {
-                console.error('Error al obtener seguimiento:', error);
-                return [];
-            }
-            return data;
-        }
-
-        // ==================== IMPRIMIR Y PDF ====================
-        function imprimirOficio(id) {
-            const oficio = todosLosOficios.find(o => o.id === id);
-            if (!oficio) {
-                mostrarToast('❌ Oficio no encontrado', 'error');
-                return;
-            }
-            
-            const ventana = window.open('', '_blank');
-            ventana.document.write(`
+        const ventana = window.open("", "_blank");
+        ventana.document.write(`
                 <html>
                 <head>
                     <title>Oficio ${oficio.numero_oficio}</title>
@@ -1136,7 +1307,7 @@
                         </div>
                         <hr style="margin: 20px 0;">
                         <div style="font-size: 16px; line-height: 2;">
-                            ${oficio.contenido || 'Contenido no especificado'}
+                            ${oficio.contenido || "Contenido no especificado"}
                         </div>
                     </div>
                     
@@ -1164,22 +1335,22 @@
                 </body>
                 </html>
             `);
-            ventana.document.close();
+        ventana.document.close();
+      }
+
+      async function descargarPDF(id) {
+        const oficio = todosLosOficios.find((o) => o.id === id);
+        if (!oficio) {
+          mostrarToast("❌ Oficio no encontrado", "error");
+          return;
         }
 
-        async function descargarPDF(id) {
-            const oficio = todosLosOficios.find(o => o.id === id);
-            if (!oficio) {
-                mostrarToast('❌ Oficio no encontrado', 'error');
-                return;
-            }
+        try {
+          mostrarToast("Generando PDF...", "info");
 
-            try {
-                mostrarToast('Generando PDF...', 'info');
-                
-                // Crear elemento temporal
-                const element = document.createElement('div');
-                element.innerHTML = `
+          // Crear elemento temporal
+          const element = document.createElement("div");
+          element.innerHTML = `
                     <div style="font-family: 'Times New Roman', serif; padding: 40px;">
                         <div style="text-align:center; border-bottom:3px solid #1e3a5f; padding-bottom:20px; margin-bottom:30px;">
                             <h1 style="color:#1e3a5f;">OFICIO N° ${oficio.numero_oficio}</h1>
@@ -1191,7 +1362,7 @@
                             <div><strong>Asunto:</strong> ${oficio.asunto}</div>
                             <div><strong>Prioridad:</strong> ${oficio.prioridad}</div>
                             <hr style="margin:20px 0;">
-                            <div style="font-size:16px; line-height:2;">${oficio.contenido || 'Contenido no especificado'}</div>
+                            <div style="font-size:16px; line-height:2;">${oficio.contenido || "Contenido no especificado"}</div>
                         </div>
                         <div style="margin-top:50px; border-top:1px solid #ccc; padding-top:20px; text-align:center; color:#666; font-size:12px;">
                             Documento generado por Sistema de Control de Oficios<br>
@@ -1199,80 +1370,83 @@
                         </div>
                     </div>
                 `;
-                
-                const opt = {
-                    margin: 1,
-                    filename: `Oficio_${oficio.numero_oficio}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2, useCORS: true },
-                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-                };
-                
-                await html2pdf().set(opt).from(element).save();
-                mostrarToast('✅ PDF descargado correctamente', 'success');
-            } catch (error) {
-                console.error('Error:', error);
-                mostrarToast('❌ Error al generar PDF: ' + error.message, 'error');
-            }
+
+          const opt = {
+            margin: 1,
+            filename: `Oficio_${oficio.numero_oficio}.pdf`,
+            image: { type: "jpeg", quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true },
+            jsPDF: { unit: "in", format: "letter", orientation: "portrait" },
+          };
+
+          await html2pdf().set(opt).from(element).save();
+          mostrarToast("✅ PDF descargado correctamente", "success");
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast("❌ Error al generar PDF: " + error.message, "error");
+        }
+      }
+
+      // ==================== DETALLE Y COMENTARIOS ====================
+      async function verDetalle(id) {
+        const oficio = todosLosOficios.find((o) => o.id === id);
+        if (!oficio) {
+          mostrarToast("❌ Oficio no encontrado", "error");
+          return;
         }
 
-        // ==================== DETALLE Y COMENTARIOS ====================
-        async function verDetalle(id) {
-            const oficio = todosLosOficios.find(o => o.id === id);
-            if (!oficio) {
-                mostrarToast('❌ Oficio no encontrado', 'error');
-                return;
-            }
+        const seguimiento = await obtenerSeguimiento(id);
 
-            const seguimiento = await obtenerSeguimiento(id);
-            
-            document.getElementById('modalTitle').textContent = `Detalle: ${oficio.numero_oficio}`;
-            
-            let html = `
+        document.getElementById("modalTitle").textContent =
+          `Detalle: ${oficio.numero_oficio}`;
+
+        let html = `
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-bottom:20px;">
                     <div><strong>📌 Asunto:</strong><br>${oficio.asunto}</div>
                     <div><strong>📅 Fecha Emisión:</strong><br>${formatearFecha(oficio.fecha_emision)}</div>
                     <div><strong>👤 Remitente:</strong><br>${oficio.remitente}</div>
                     <div><strong>👤 Destinatario:</strong><br>${oficio.destinatario}</div>
-                    <div><strong>🏢 Departamento:</strong><br>${oficio.departamento_destino || 'No especificado'}</div>
+                    <div><strong>🏢 Departamento:</strong><br>${oficio.departamento_destino || "No especificado"}</div>
                     <div><strong>⏱️ Plazo:</strong><br>${oficio.plazo_respuesta || 5} días</div>
-                    <div><strong>📊 Estado:</strong><br><span class="estado-badge estado-${oficio.estado.toLowerCase().replace(' ', '-')}">${oficio.estado}</span></div>
+                    <div><strong>📊 Estado:</strong><br><span class="estado-badge estado-${oficio.estado.toLowerCase().replace(" ", "-")}">${oficio.estado}</span></div>
                     <div><strong>⚠️ Prioridad:</strong><br><span class="prioridad-badge prioridad-${oficio.prioridad.toLowerCase()}">${oficio.prioridad}</span></div>
                 </div>
                 <div style="margin:20px 0;">
                     <strong>📝 Contenido:</strong>
                     <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-top:5px; line-height:1.8;">
-                        ${oficio.contenido || 'Sin contenido'}
+                        ${oficio.contenido || "Sin contenido"}
                     </div>
                 </div>
                 <div style="margin:20px 0;">
                     <strong>💬 Observaciones:</strong>
                     <div style="background:#f8fafc; padding:15px; border-radius:8px; margin-top:5px;">
-                        ${oficio.observaciones || 'Sin observaciones'}
+                        ${oficio.observaciones || "Sin observaciones"}
                     </div>
                 </div>
                 <div style="margin:20px 0;">
                     <strong>📎 Documentos Adjuntos:</strong>
                     <div style="margin-top:5px;">
-                        ${oficio.documento_pdf ? 
-                            `<a href="${oficio.documento_pdf}" target="_blank" class="btn-accion btn-accion-ver">📄 Ver PDF</a>` : 
-                            'No hay documentos adjuntos'}
+                        ${
+                          oficio.documento_pdf
+                            ? `<a href="${oficio.documento_pdf}" target="_blank" class="btn-accion btn-accion-ver">📄 Ver PDF</a>`
+                            : "No hay documentos adjuntos"
+                        }
                     </div>
                 </div>
             `;
 
-            // Historial de seguimiento
-            html += `
+        // Historial de seguimiento
+        html += `
                 <div style="margin:20px 0;">
                     <strong>📋 Historial de Seguimiento:</strong>
                     <div style="max-height:300px; overflow-y:auto; margin-top:10px;">
             `;
-            
-            if (seguimiento.length === 0) {
-                html += `<div style="color:#999;">No hay registros de seguimiento</div>`;
-            } else {
-                seguimiento.forEach(item => {
-                    html += `
+
+        if (seguimiento.length === 0) {
+          html += `<div style="color:#999;">No hay registros de seguimiento</div>`;
+        } else {
+          seguimiento.forEach((item) => {
+            html += `
                         <div class="comentario-item">
                             <div class="meta">
                                 <strong>${item.tipo_accion}</strong> - ${formatearFecha(item.fecha_accion)}
@@ -1280,10 +1454,10 @@
                             <div class="texto">${item.descripcion}</div>
                         </div>
                     `;
-                });
-            }
-            
-            html += `
+          });
+        }
+
+        html += `
                     </div>
                 </div>
                 <div style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap;">
@@ -1292,94 +1466,107 @@
                     <button class="btn btn-warning" onclick="cerrarModal(); editarOficio(${oficio.id});">✏️ Editar</button>
                 </div>
             `;
-            
-            document.getElementById('modalBody').innerHTML = html;
-            document.getElementById('modalDetalle').classList.add('active');
-        }
 
-        function cerrarModal() {
-            document.getElementById('modalDetalle').classList.remove('active');
-        }
+        document.getElementById("modalBody").innerHTML = html;
+        document.getElementById("modalDetalle").classList.add("active");
+      }
 
-        // ==================== EDITAR OFICIO ====================
-        function editarOficio(id) {
-            const oficio = todosLosOficios.find(o => o.id === id);
-            if (!oficio) return;
-            
-            document.getElementById('editId').value = oficio.id;
-            document.getElementById('numero_oficio').value = oficio.numero_oficio;
-            document.getElementById('tipo_documento').value = oficio.tipo_documento;
-            document.getElementById('asunto').value = oficio.asunto;
-            document.getElementById('contenido').value = oficio.contenido || '';
-            document.getElementById('remitente').value = oficio.remitente;
-            document.getElementById('destinatario').value = oficio.destinatario;
-            document.getElementById('departamento_destino').value = oficio.departamento_destino || '';
-            document.getElementById('fecha_emision').value = oficio.fecha_emision;
-            document.getElementById('plazo_respuesta').value = oficio.plazo_respuesta || 5;
-            document.getElementById('prioridad').value = oficio.prioridad;
-            document.getElementById('observaciones').value = oficio.observaciones || '';
-            
-            document.getElementById('formTitle').textContent = '✏️ Editar Oficio';
-            document.getElementById('btnGuardar').textContent = '📤 Actualizar Oficio';
-            document.getElementById('btnCancelar').style.display = 'inline-block';
-            
-            // Scroll al formulario
-            document.getElementById('formSection').scrollIntoView({ behavior: 'smooth' });
-            mostrarToast('✏️ Editando oficio: ' + oficio.numero_oficio, 'info');
-        }
+      function cerrarModal() {
+        document.getElementById("modalDetalle").classList.remove("active");
+      }
 
-        function cancelarEdicion() {
-            limpiarFormulario();
-            mostrarToast('Edición cancelada', 'info');
-        }
+      // ==================== EDITAR OFICIO ====================
+      function editarOficio(id) {
+        const oficio = todosLosOficios.find((o) => o.id === id);
+        if (!oficio) return;
 
-        function limpiarFormulario() {
-            document.getElementById('oficioForm').reset();
-            document.getElementById('editId').value = '';
-            document.getElementById('fecha_emision').value = new Date().toISOString().split('T')[0];
-            document.getElementById('formTitle').textContent = '✏️ Nuevo Oficio';
-            document.getElementById('btnGuardar').textContent = '📤 Guardar Oficio';
-            document.getElementById('btnCancelar').style.display = 'none';
-            generarNumeroOficio();
-        }
+        document.getElementById("editId").value = oficio.id;
+        document.getElementById("numero_oficio").value = oficio.numero_oficio;
+        document.getElementById("tipo_documento").value = oficio.tipo_documento;
+        document.getElementById("asunto").value = oficio.asunto;
+        document.getElementById("contenido").value = oficio.contenido || "";
+        document.getElementById("remitente").value = oficio.remitente;
+        document.getElementById("destinatario").value = oficio.destinatario;
+        document.getElementById("departamento_destino").value =
+          oficio.departamento_destino || "";
+        document.getElementById("fecha_emision").value = oficio.fecha_emision;
+        document.getElementById("plazo_respuesta").value =
+          oficio.plazo_respuesta || 5;
+        document.getElementById("prioridad").value = oficio.prioridad;
+        document.getElementById("observaciones").value =
+          oficio.observaciones || "";
 
-        // ==================== COMENTARIOS ====================
-        async function agregarComentario(id) {
-            const comentario = prompt('Escribe tu comentario sobre este oficio:');
-            if (!comentario) return;
-            
-            try {
-                await registrarSeguimiento(id, 'Comentario', comentario);
-                mostrarToast('✅ Comentario agregado', 'success');
-                cargarDatos();
-            } catch (error) {
-                mostrarToast('❌ Error al agregar comentario', 'error');
-            }
-        }
+        document.getElementById("formTitle").textContent = "✏️ Editar Oficio";
+        document.getElementById("btnGuardar").textContent =
+          "📤 Actualizar Oficio";
+        document.getElementById("btnCancelar").style.display = "inline-block";
 
-        // ==================== ALERTAS DE VENCIMIENTO ====================
-        function verificarVencimiento(oficio) {
-            if (!oficio.fecha_emision) return false;
-            if (oficio.estado === 'Respondido' || oficio.estado === 'Archivado' || oficio.estado === 'Anulado') return false;
-            
-            const fechaEmision = new Date(oficio.fecha_emision);
-            const plazo = oficio.plazo_respuesta || 5;
-            fechaEmision.setDate(fechaEmision.getDate() + plazo);
-            
-            return new Date() > fechaEmision;
-        }
+        // Scroll al formulario
+        document
+          .getElementById("formSection")
+          .scrollIntoView({ behavior: "smooth" });
+        mostrarToast("✏️ Editando oficio: " + oficio.numero_oficio, "info");
+      }
 
-        function verificarVencimientos() {
-            const vencidos = todosLosOficios.filter(o => verificarVencimiento(o));
-            
-            const container = document.getElementById('alertasContainer');
-            if (vencidos.length > 0) {
-                container.innerHTML = `
+      function cancelarEdicion() {
+        limpiarFormulario();
+        mostrarToast("Edición cancelada", "info");
+      }
+
+      function limpiarFormulario() {
+        document.getElementById("oficioForm").reset();
+        document.getElementById("editId").value = "";
+        document.getElementById("fecha_emision").value = new Date()
+          .toISOString()
+          .split("T")[0];
+        document.getElementById("formTitle").textContent = "✏️ Nuevo Oficio";
+        document.getElementById("btnGuardar").textContent = "📤 Guardar Oficio";
+        document.getElementById("btnCancelar").style.display = "none";
+        generarNumeroOficio();
+      }
+
+      // ==================== COMENTARIOS ====================
+      async function agregarComentario(id) {
+        const comentario = prompt("Escribe tu comentario sobre este oficio:");
+        if (!comentario) return;
+
+        try {
+          await registrarSeguimiento(id, "Comentario", comentario);
+          mostrarToast("✅ Comentario agregado", "success");
+          cargarDatos();
+        } catch (error) {
+          mostrarToast("❌ Error al agregar comentario", "error");
+        }
+      }
+
+      // ==================== ALERTAS DE VENCIMIENTO ====================
+      function verificarVencimiento(oficio) {
+        if (!oficio.fecha_emision) return false;
+        if (
+          oficio.estado === "Respondido" ||
+          oficio.estado === "Archivado" ||
+          oficio.estado === "Anulado"
+        )
+          return false;
+
+        const fechaEmision = new Date(oficio.fecha_emision);
+        const plazo = oficio.plazo_respuesta || 5;
+        fechaEmision.setDate(fechaEmision.getDate() + plazo);
+
+        return new Date() > fechaEmision;
+      }
+
+      function verificarVencimientos() {
+        const vencidos = todosLosOficios.filter((o) => verificarVencimiento(o));
+
+        const container = document.getElementById("alertasContainer");
+        if (vencidos.length > 0) {
+          container.innerHTML = `
                     <div class="alerta-vencimiento">
                         <span class="icono">⚠️</span>
                         <div>
                             <strong>¡Atención!</strong> ${vencidos.length} oficio(s) están vencidos:
-                            ${vencidos.map(o => `<strong>${o.numero_oficio}</strong>`).join(', ')}
+                            ${vencidos.map((o) => `<strong>${o.numero_oficio}</strong>`).join(", ")}
                             <button class="btn btn-danger" style="padding:4px 12px; font-size:12px; margin-left:10px;" 
                                     onclick="filtrarVencidos()">
                                 Ver todos
@@ -1387,149 +1574,160 @@
                         </div>
                     </div>
                 `;
-            } else {
-                container.innerHTML = '';
-            }
-            
-            // Actualizar stats
-            document.getElementById('vencidos').textContent = vencidos.length;
+        } else {
+          container.innerHTML = "";
         }
 
-        function filtrarVencidos() {
-            document.getElementById('filtroEstado').value = '';
-            const vencidos = todosLosOficios.filter(o => verificarVencimiento(o));
-            renderizarTabla(vencidos);
-            mostrarToast(`🔍 Mostrando ${vencidos.length} oficios vencidos`, 'info');
+        // Actualizar stats
+        document.getElementById("vencidos").textContent = vencidos.length;
+      }
+
+      function filtrarVencidos() {
+        document.getElementById("filtroEstado").value = "";
+        const vencidos = todosLosOficios.filter((o) => verificarVencimiento(o));
+        renderizarTabla(vencidos);
+        mostrarToast(
+          `🔍 Mostrando ${vencidos.length} oficios vencidos`,
+          "info",
+        );
+      }
+
+      function verAlertasVencimiento() {
+        const vencidos = todosLosOficios.filter((o) => verificarVencimiento(o));
+
+        if (vencidos.length === 0) {
+          mostrarToast("✅ No hay oficios vencidos", "success");
+          return;
         }
 
-        function verAlertasVencimiento() {
-            const vencidos = todosLosOficios.filter(o => verificarVencimiento(o));
-            
-            if (vencidos.length === 0) {
-                mostrarToast('✅ No hay oficios vencidos', 'success');
-                return;
-            }
-            
-            let mensaje = '⚠️ OFICIOS VENCIDOS:\n\n';
-            vencidos.forEach((o, i) => {
-                mensaje += `${i+1}. ${o.numero_oficio} - ${o.asunto}\n`;
-                mensaje += `   Remitente: ${o.remitente}\n`;
-                mensaje += `   Vence: ${formatearFecha(o.fecha_emision)} + ${o.plazo_respuesta || 5} días\n\n`;
-            });
-            mensaje += `Total: ${vencidos.length} oficios vencidos`;
-            
-            alert(mensaje);
+        let mensaje = "⚠️ OFICIOS VENCIDOS:\n\n";
+        vencidos.forEach((o, i) => {
+          mensaje += `${i + 1}. ${o.numero_oficio} - ${o.asunto}\n`;
+          mensaje += `   Remitente: ${o.remitente}\n`;
+          mensaje += `   Vence: ${formatearFecha(o.fecha_emision)} + ${o.plazo_respuesta || 5} días\n\n`;
+        });
+        mensaje += `Total: ${vencidos.length} oficios vencidos`;
+
+        alert(mensaje);
+      }
+
+      // ==================== FILTROS ====================
+      function filtrarTabla() {
+        const busqueda = document
+          .getElementById("buscarOficio")
+          .value.toLowerCase();
+        const estado = document.getElementById("filtroEstado").value;
+        const prioridad = document.getElementById("filtroPrioridad").value;
+
+        let filtrados = todosLosOficios;
+
+        if (busqueda) {
+          filtrados = filtrados.filter(
+            (o) =>
+              o.numero_oficio.toLowerCase().includes(busqueda) ||
+              o.asunto.toLowerCase().includes(busqueda) ||
+              o.remitente.toLowerCase().includes(busqueda) ||
+              o.destinatario.toLowerCase().includes(busqueda),
+          );
         }
 
-        // ==================== FILTROS ====================
-        function filtrarTabla() {
-            const busqueda = document.getElementById('buscarOficio').value.toLowerCase();
-            const estado = document.getElementById('filtroEstado').value;
-            const prioridad = document.getElementById('filtroPrioridad').value;
-
-            let filtrados = todosLosOficios;
-
-            if (busqueda) {
-                filtrados = filtrados.filter(o =>
-                    o.numero_oficio.toLowerCase().includes(busqueda) ||
-                    o.asunto.toLowerCase().includes(busqueda) ||
-                    o.remitente.toLowerCase().includes(busqueda) ||
-                    o.destinatario.toLowerCase().includes(busqueda)
-                );
-            }
-
-            if (estado) {
-                filtrados = filtrados.filter(o => o.estado === estado);
-            }
-
-            if (prioridad) {
-                filtrados = filtrados.filter(o => o.prioridad === prioridad);
-            }
-
-            renderizarTabla(filtrados);
+        if (estado) {
+          filtrados = filtrados.filter((o) => o.estado === estado);
         }
 
-        // ==================== EXPORTAR EXCEL ====================
-        function exportarExcel() {
-            if (todosLosOficios.length === 0) {
-                mostrarToast('❌ No hay datos para exportar', 'error');
-                return;
-            }
-
-            let csv = 'N° Oficio,Tipo,Asunto,Remitente,Destinatario,Fecha Emisión,Estado,Prioridad,Plazo,Observaciones\n';
-            
-            todosLosOficios.forEach(o => {
-                csv += `"${o.numero_oficio}","${o.tipo_documento}","${o.asunto}","${o.remitente}","${o.destinatario}","${formatearFecha(o.fecha_emision)}","${o.estado}","${o.prioridad}","${o.plazo_respuesta || 5}","${o.observaciones || ''}"\n`;
-            });
-
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `oficios_${new Date().toISOString().split('T')[0]}.csv`;
-            link.click();
-            
-            mostrarToast('✅ Excel exportado correctamente', 'success');
+        if (prioridad) {
+          filtrados = filtrados.filter((o) => o.prioridad === prioridad);
         }
 
-        // ==================== ESTADÍSTICAS ====================
-        function actualizarEstadisticas(data) {
-            document.getElementById('totalOficios').textContent = data.length;
-            document.getElementById('pendientes').textContent = 
-                data.filter(o => o.estado === 'En Proceso' || o.estado === 'Emitido').length;
-            document.getElementById('respondidos').textContent = 
-                data.filter(o => o.estado === 'Respondido' || o.estado === 'Archivado').length;
-            document.getElementById('urgentes').textContent = 
-                data.filter(o => o.prioridad === 'Alta').length;
-            
-            const vencidos = data.filter(o => verificarVencimiento(o));
-            document.getElementById('vencidos').textContent = vencidos.length;
+        renderizarTabla(filtrados);
+      }
+
+      // ==================== EXPORTAR EXCEL ====================
+      function exportarExcel() {
+        if (todosLosOficios.length === 0) {
+          mostrarToast("❌ No hay datos para exportar", "error");
+          return;
         }
 
-        // ==================== UTILIDADES ====================
-        function formatearFecha(fecha) {
-            if (!fecha) return '-';
-            const d = new Date(fecha);
-            if (isNaN(d.getTime())) return fecha;
-            return d.toLocaleDateString('es-MX', {
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric'
-            });
-        }
+        let csv =
+          "N° Oficio,Tipo,Asunto,Remitente,Destinatario,Fecha Emisión,Estado,Prioridad,Plazo,Observaciones\n";
 
-        function mostrarToast(mensaje, tipo = 'info') {
-            const toast = document.getElementById('toast');
-            toast.textContent = mensaje;
-            toast.className = `toast ${tipo}`;
-            
-            // Forzar reflow
-            void toast.offsetWidth;
-            
-            toast.classList.add('show');
-            
-            clearTimeout(toast._timeout);
-            toast._timeout = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 4000);
-        }
-
-        // Cerrar modal con ESC
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                cerrarModal();
-            }
+        todosLosOficios.forEach((o) => {
+          csv += `"${o.numero_oficio}","${o.tipo_documento}","${o.asunto}","${o.remitente}","${o.destinatario}","${formatearFecha(o.fecha_emision)}","${o.estado}","${o.prioridad}","${o.plazo_respuesta || 5}","${o.observaciones || ""}"\n`;
         });
 
-        // Cerrar modal clic en overlay
-        document.getElementById('modalDetalle').addEventListener('click', function(e) {
-            if (e.target === this) {
-                cerrarModal();
-            }
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `oficios_${new Date().toISOString().split("T")[0]}.csv`;
+        link.click();
+
+        mostrarToast("✅ Excel exportado correctamente", "success");
+      }
+
+      // ==================== ESTADÍSTICAS ====================
+      function actualizarEstadisticas(data) {
+        document.getElementById("totalOficios").textContent = data.length;
+        document.getElementById("pendientes").textContent = data.filter(
+          (o) => o.estado === "En Proceso" || o.estado === "Emitido",
+        ).length;
+        document.getElementById("respondidos").textContent = data.filter(
+          (o) => o.estado === "Respondido" || o.estado === "Archivado",
+        ).length;
+        document.getElementById("urgentes").textContent = data.filter(
+          (o) => o.prioridad === "Alta",
+        ).length;
+
+        const vencidos = data.filter((o) => verificarVencimiento(o));
+        document.getElementById("vencidos").textContent = vencidos.length;
+      }
+
+      // ==================== UTILIDADES ====================
+      function formatearFecha(fecha) {
+        if (!fecha) return "-";
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) return fecha;
+        return d.toLocaleDateString("es-MX", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+      }
+
+      function mostrarToast(mensaje, tipo = "info") {
+        const toast = document.getElementById("toast");
+        toast.textContent = mensaje;
+        toast.className = `toast ${tipo}`;
+
+        // Forzar reflow
+        void toast.offsetWidth;
+
+        toast.classList.add("show");
+
+        clearTimeout(toast._timeout);
+        toast._timeout = setTimeout(() => {
+          toast.classList.remove("show");
+        }, 4000);
+      }
+
+      // Cerrar modal con ESC
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          cerrarModal();
+        }
+      });
+
+      // Cerrar modal clic en overlay
+      document
+        .getElementById("modalDetalle")
+        .addEventListener("click", function (e) {
+          if (e.target === this) {
+            cerrarModal();
+          }
         });
 
-        console.log('📋 Sistema Profesional de Oficios cargado correctamente');
-        console.log('✅ Todas las funcionalidades disponibles');
+      console.log("📋 Sistema Profesional de Oficios cargado correctamente");
+      console.log("✅ Todas las funcionalidades disponibles");
     </script>
-
-</body>
+  </body>
 </html>
