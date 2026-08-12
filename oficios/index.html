@@ -11,6 +11,10 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
     </script>
 
+    <!-- TinyMCE Editor -->
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin">
+    </script>
+
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
@@ -352,6 +356,20 @@
             margin: 15px 0;
         }
 
+        .documento-preview .contenido p {
+            margin-bottom: 8px;
+        }
+
+        .documento-preview .contenido ul,
+        .documento-preview .contenido ol {
+            padding-left: 25px;
+            margin: 8px 0;
+        }
+
+        .documento-preview .contenido li {
+            margin-bottom: 4px;
+        }
+
         .documento-preview .fundamentacion {
             margin: 12px 0;
             padding: 8px 12px;
@@ -533,6 +551,49 @@
 
         .form-group.full-width {
             grid-column: 1 / -1;
+        }
+
+        /* Estilo para el editor TinyMCE */
+        .tox-tinymce {
+            border-radius: 5px !important;
+            border-color: rgba(255, 255, 255, 0.06) !important;
+        }
+
+        .tox .tox-editor-header {
+            background: rgba(255, 255, 255, 0.04) !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+        }
+
+        .tox .tox-toolbar,
+        .tox .tox-toolbar__overflow,
+        .tox .tox-toolbar__primary {
+            background: rgba(255, 255, 255, 0.02) !important;
+        }
+
+        .tox .tox-tbtn {
+            color: rgba(255, 255, 255, 0.7) !important;
+        }
+
+        .tox .tox-tbtn:hover {
+            background: rgba(255, 255, 255, 0.08) !important;
+        }
+
+        .tox .tox-tbtn--enabled {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        .tox .tox-edit-area {
+            background: rgba(255, 255, 255, 0.03) !important;
+        }
+
+        .tox .tox-edit-area iframe {
+            background: rgba(255, 255, 255, 0.03) !important;
+        }
+
+        .tox .tox-statusbar {
+            background: rgba(255, 255, 255, 0.02) !important;
+            border-top: 1px solid rgba(255, 255, 255, 0.06) !important;
+            color: rgba(255, 255, 255, 0.3) !important;
         }
 
         .grupo-responsables {
@@ -930,7 +991,7 @@
         }
 
         /* ============================================
-                   ALERTAS - NUEVO ESTILO COMPACTO
+                   ALERTAS - ESTILO COMPACTO
                    ============================================ */
         .alerta-vencimiento {
             display: inline-flex !important;
@@ -984,7 +1045,6 @@
             transform: translateY(-1px);
         }
 
-        /* Contenedor de alertas para alinear correctamente */
         #alertasContainer,
         #alertasContainerTabla {
             display: flex;
@@ -1183,6 +1243,28 @@
             line-height: 1.6;
             color: rgba(255, 255, 255, 0.85);
             font-size: 12px;
+        }
+
+        .modal-body .contenido-html {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 4px;
+            line-height: 1.7;
+        }
+
+        .modal-body .contenido-html p {
+            margin-bottom: 6px;
+        }
+
+        .modal-body .contenido-html ul,
+        .modal-body .contenido-html ol {
+            padding-left: 20px;
+            margin: 6px 0;
+        }
+
+        .modal-body .contenido-html li {
+            margin-bottom: 3px;
         }
 
         .comentario-item {
@@ -1456,14 +1538,13 @@
                                 <!-- Clave OPDSSJ -->
                                 <div class="form-group">
                                     <label>Clave OPDSSJ <span class="required">*</span></label>
-                                    <input type="text" id="clave_opdssj" placeholder="OPDSSJ.SDGM/000/2026" required
-                                    oninput="actualizarVistaPrevia()" />
+                                    <input type="text" id="clave_opdssj" placeholder="OPDSSJ.SDGM/000/2026" required />
                                     <small style="color:rgba(255,255,255,0.12);font-size:7px;">OPDSSJ.[AREA]/[CONSECUTIVO]/[AÑO]</small>
                                 </div>
 
                                 <div class="form-group">
                                     <label>Tipo <span class="required">*</span></label>
-                                    <select id="tipo_documento" required onchange="actualizarVistaPrevia()">
+                                    <select id="tipo_documento" required>
                                         <option value="Oficio">Oficio</option>
                                         <option value="Circular">Circular</option>
                                         <option value="Memorándum">Memorándum</option>
@@ -1475,36 +1556,38 @@
 
                                 <div class="form-group">
                                     <label>Asunto <span class="required">*</span></label>
-                                    <input type="text" id="asunto" placeholder="Breve y preciso" required
-                                    oninput="actualizarVistaPrevia()" />
+                                    <input type="text" id="asunto" placeholder="Breve y preciso" required />
                                 </div>
 
                                 <div class="form-group">
                                     <label>Remitente <span class="required">*</span></label>
-                                    <input type="text" id="remitente" placeholder="Nombre completo y cargo" required
-                                    oninput="actualizarVistaPrevia()" />
+                                    <input type="text" id="remitente" placeholder="Nombre completo" required />
+                                </div>
+
+                                <!-- NUEVO: Cargo del Remitente -->
+                                <div class="form-group">
+                                    <label>Cargo del Remitente <span class="required">*</span></label>
+                                    <input type="text" id="cargo_remitente" placeholder="Director, Jefe, Coordinador..." required />
                                 </div>
 
                                 <div class="form-group">
                                     <label>Destinatario <span class="required">*</span></label>
-                                    <input type="text" id="destinatario" placeholder="Nombre completo y cargo" required
-                                    oninput="actualizarVistaPrevia()" />
+                                    <input type="text" id="destinatario" placeholder="Nombre completo y cargo" required />
                                 </div>
 
                                 <div class="form-group">
                                     <label>Departamento Destino</label>
-                                    <input type="text" id="departamento_destino" placeholder="Área receptora"
-                                    oninput="actualizarVistaPrevia()" />
+                                    <input type="text" id="departamento_destino" placeholder="Área receptora" />
                                 </div>
 
                                 <div class="form-group">
                                     <label>Fecha Emisión <span class="required">*</span></label>
-                                    <input type="date" id="fecha_emision" required onchange="actualizarVistaPrevia()" />
+                                    <input type="date" id="fecha_emision" required />
                                 </div>
 
                                 <div class="form-group">
                                     <label>Prioridad <span class="required">*</span></label>
-                                    <select id="prioridad" required onchange="actualizarVistaPrevia()">
+                                    <select id="prioridad" required>
                                         <option value="Alta">🔴 Alta</option>
                                         <option value="Media" selected>🟡 Media</option>
                                         <option value="Baja">🟢 Baja</option>
@@ -1516,25 +1599,22 @@
                                     <input type="number" id="plazo_respuesta" value="5" min="1" max="60" />
                                 </div>
 
-                                <!-- Contenido -->
+                                <!-- Contenido con editor enriquecido -->
                                 <div class="form-group full-width">
                                     <label>Contenido <span class="required">*</span></label>
-                                    <textarea id="contenido" placeholder="Redacte el contenido completo..." rows="3" required
-                                    oninput="actualizarVistaPrevia()"></textarea>
+                                    <textarea id="contenido" placeholder="Redacte el contenido completo..." rows="3" required></textarea>
                                 </div>
 
                                 <!-- Fundamentación -->
                                 <div class="form-group full-width">
                                     <label>Fundamentación Legal</label>
-                                    <textarea id="fundamentacion" placeholder="Artículos, fracciones, incisos..." rows="2"
-                                    oninput="actualizarVistaPrevia()"></textarea>
+                                    <textarea id="fundamentacion" placeholder="Artículos, fracciones, incisos..." rows="2"></textarea>
                                 </div>
 
                                 <!-- Observaciones -->
                                 <div class="form-group full-width">
                                     <label>Observaciones</label>
-                                    <input type="text" id="observaciones" placeholder="Notas adicionales"
-                                    oninput="actualizarVistaPrevia()" />
+                                    <input type="text" id="observaciones" placeholder="Notas adicionales" />
                                 </div>
 
                                 <!-- Responsables -->
@@ -1545,25 +1625,22 @@
                                     <div class="grupo-responsables">
                                         <div class="form-group">
                                             <label>Elaboró</label>
-                                            <input type="text" id="elaboro" placeholder="Nombre"
-                                            oninput="actualizarVistaPrevia()" />
+                                            <input type="text" id="elaboro" placeholder="Nombre" />
                                         </div>
                                         <div class="form-group">
                                             <label>Revisó</label>
-                                            <input type="text" id="reviso" placeholder="Nombre"
-                                            oninput="actualizarVistaPrevia()" />
+                                            <input type="text" id="reviso" placeholder="Nombre" />
                                         </div>
                                         <div class="form-group">
                                             <label>Autorizó</label>
-                                            <input type="text" id="autorizo" placeholder="Nombre"
-                                            oninput="actualizarVistaPrevia()" />
+                                            <input type="text" id="autorizo" placeholder="Nombre" />
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Confidencialidad -->
                                 <div class="form-group full-width etiqueta-confidencial">
-                                    <input type="checkbox" id="confidencial" onchange="actualizarVistaPrevia()" />
+                                    <input type="checkbox" id="confidencial" />
                                     <label for="confidencial">🔒 Contiene datos personales</label>
                                 </div>
 
@@ -1699,7 +1776,7 @@
         <footer>
             <span>OPDSSJ - Sistema de Control de Oficios v2.0</span>
             <span style="margin-left:10px;opacity:0.4;">Instructivo SDGM/198/2026</span>
-            <span style="margin-left:10px;opacity:0.2;">⚡ Vista previa en tiempo real</span>
+            <span style="margin-left:10px;opacity:0.2;">⚡ Editor enriquecido</span>
         </footer>
     </div>
 
@@ -1730,21 +1807,81 @@
 
         // ==================== VARIABLES GLOBALES ====================
         let todosLosOficios = [];
+        let tinymceInicializado = false;
 
         // ==================== INICIALIZACIÓN ====================
         document.addEventListener("DOMContentLoaded", function() {
             document.getElementById("fecha_emision").value = new Date().toISOString().split("T")[0];
             cargarDatos();
-            // Iniciar en modo tabla
             mostrarModoTabla();
             setInterval(verificarVencimientos, 300000);
 
-            // Actualizar vista previa con cada tecla
+            // Inicializar TinyMCE
+            inicializarTinyMCE();
+
+            // Actualizar vista previa cuando cambien los campos
             document.querySelectorAll('#oficioForm input, #oficioForm select, #oficioForm textarea').forEach(el => {
                 el.addEventListener('input', actualizarVistaPrevia);
                 el.addEventListener('change', actualizarVistaPrevia);
             });
         });
+
+        // ==================== TINYMCE ====================
+        function inicializarTinyMCE() {
+            if (tinymceInicializado) return;
+
+            tinymce.init({
+                selector: '#contenido',
+                height: 180,
+                menubar: false,
+                plugins: [
+                    'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                    'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                    'insertdatetime', 'media', 'table', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | bold italic underline strikethrough | bullist numlist | alignleft aligncenter alignright | removeformat | code',
+                content_style: `
+                    body { 
+                        font-family: 'Times New Roman', Times, serif; 
+                        font-size: 11pt; 
+                        line-height: 1.6;
+                        color: #1a1a1a;
+                        background: rgba(255,255,255,0.03);
+                        padding: 8px;
+                    }
+                    p { margin-bottom: 8px; }
+                    ul, ol { padding-left: 20px; margin: 6px 0; }
+                    li { margin-bottom: 4px; }
+                `,
+                setup: function(editor) {
+                    editor.on('init', function() {
+                        tinymceInicializado = true;
+                    });
+                    editor.on('input', function() {
+                        actualizarVistaPrevia();
+                    });
+                    editor.on('change', function() {
+                        actualizarVistaPrevia();
+                    });
+                }
+            });
+        }
+
+        // ==================== OBTENER CONTENIDO TINYMCE ====================
+        function obtenerContenido() {
+            if (tinymce.get('contenido')) {
+                return tinymce.get('contenido').getContent();
+            }
+            return document.getElementById('contenido').value || '';
+        }
+
+        function setContenido(html) {
+            if (tinymce.get('contenido')) {
+                tinymce.get('contenido').setContent(html || '');
+            } else {
+                document.getElementById('contenido').value = html || '';
+            }
+        }
 
         // ==================== CAMBIO DE MODOS ====================
 
@@ -1752,10 +1889,15 @@
             document.getElementById('modoEdicion').style.display = 'flex';
             document.getElementById('modoTabla').classList.remove('active');
             document.getElementById('modoTabla').style.display = 'none';
-            // Si es un nuevo oficio, generar clave
             if (!document.getElementById('editId').value) {
                 generarClaveOPDSSJ();
             }
+            // Re-inicializar TinyMCE si es necesario
+            setTimeout(() => {
+                if (!tinymceInicializado) {
+                    inicializarTinyMCE();
+                }
+            }, 300);
             actualizarVistaPrevia();
         }
 
@@ -1790,14 +1932,12 @@
             const consecutivoStr = String(nuevoConsecutivo).padStart(3, "0");
             const clave = `OPDSSJ.${area}/${consecutivoStr}/${año}`;
 
-            // Verificar que no exista duplicado
             const { data: verificar, error: verifError } = await supabaseClient
                 .from("oficios")
                 .select("clave_opdssj")
                 .eq("clave_opdssj", clave);
 
             if (verificar && verificar.length > 0) {
-                // Si existe, incrementar y probar de nuevo
                 return await generarClaveOPDSSJ();
             }
 
@@ -1817,12 +1957,13 @@
             const clave = document.getElementById('clave_opdssj')?.value || 'OPDSSJ.SDGM/000/2026';
             const tipo = document.getElementById('tipo_documento')?.value || 'Oficio';
             const asunto = document.getElementById('asunto')?.value || 'Asunto del oficio';
-            const contenido = document.getElementById('contenido')?.value || 'Redacte el contenido del oficio...';
+            const contenido = obtenerContenido() || 'Redacte el contenido del oficio...';
             const fundamentacion = document.getElementById('fundamentacion')?.value;
             const remitente = document.getElementById('remitente')?.value || 'Nombre del remitente';
+            const cargoRemitente = document.getElementById('cargo_remitente')?.value || 'Cargo del remitente';
             const destinatario = document.getElementById('destinatario')?.value || 'Nombre del destinatario';
             const fecha = document.getElementById('fecha_emision')?.value;
-            const observaciones = document.getElementById('observaciones')?.value || 'Cargo del remitente';
+            const observaciones = document.getElementById('observaciones')?.value;
             const elaboro = document.getElementById('elaboro')?.value;
             const reviso = document.getElementById('reviso')?.value;
             const autorizo = document.getElementById('autorizo')?.value;
@@ -1833,7 +1974,7 @@
             const tieneDatos = document.getElementById('asunto')?.value ||
                 document.getElementById('remitente')?.value ||
                 document.getElementById('destinatario')?.value ||
-                document.getElementById('contenido')?.value;
+                contenido !== 'Redacte el contenido del oficio...';
 
             if (!tieneDatos) {
                 preview.innerHTML = `
@@ -1883,7 +2024,7 @@
                     <div class="firma">
                         <div class="linea"></div>
                         <div class="nombre">${remitente}</div>
-                        <div class="cargo">${observaciones}</div>
+                        <div class="cargo">${cargoRemitente}</div>
                     </div>
                 </div>
                 ${confidencial ? `
@@ -1924,8 +2065,6 @@
                 renderizarTabla(data);
                 actualizarEstadisticas(data);
                 verificarVencimientos();
-
-                // Si estamos en modo tabla, generar nuevo número para el botón
                 await generarClaveOPDSSJ();
             } catch (error) {
                 console.error("Error:", error);
@@ -1996,6 +2135,7 @@
             const id = document.getElementById("editId").value;
             const confidencial = document.getElementById("confidencial").checked;
             const clave = document.getElementById("clave_opdssj").value;
+            const contenido = obtenerContenido();
 
             if (!id) {
                 const { data: existe, error: checkError } = await supabaseClient
@@ -2014,9 +2154,10 @@
                 clave_opdssj: clave,
                 tipo_documento: document.getElementById("tipo_documento").value,
                 asunto: document.getElementById("asunto").value,
-                contenido: document.getElementById("contenido").value,
+                contenido: contenido,
                 fundamentacion: document.getElementById("fundamentacion").value,
                 remitente: document.getElementById("remitente").value,
+                cargo_remitente: document.getElementById("cargo_remitente").value,
                 destinatario: document.getElementById("destinatario").value,
                 departamento_destino: document.getElementById("departamento_destino").value,
                 fecha_emision: document.getElementById("fecha_emision").value,
@@ -2040,7 +2181,6 @@
                     if (!result.error) {
                         await registrarSeguimiento(id, "Edición", "Oficio actualizado");
                         mostrarToast("✅ Oficio actualizado correctamente", "success");
-                        // Ir a la tabla después de guardar
                         mostrarModoTabla();
                     }
                 } else {
@@ -2055,7 +2195,6 @@
                             await registrarSeguimiento(newData[0].id, "Creación", "Oficio creado");
                         }
                         mostrarToast("✅ Oficio creado exitosamente", "success");
-                        // Ir a la tabla después de guardar
                         mostrarModoTabla();
                     }
                 }
@@ -2196,6 +2335,7 @@
             }
 
             const clave = oficio.clave_opdssj || oficio.numero_oficio || "N/A";
+            const cargoRemitente = oficio.cargo_remitente || "Cargo no especificado";
 
             const ventana = window.open("", "_blank");
             ventana.document.write(`
@@ -2214,6 +2354,9 @@
                         .destinatario .label { font-weight: bold; }
                         .asunto { font-weight: bold; font-size: 11pt; margin: 15px 0 10px 0; text-transform: uppercase; }
                         .contenido { line-height: 1.8; font-size: 11pt; text-align: justify; margin: 20px 0; }
+                        .contenido p { margin-bottom: 8px; }
+                        .contenido ul, .contenido ol { padding-left: 25px; margin: 8px 0; }
+                        .contenido li { margin-bottom: 4px; }
                         .fundamentacion { margin: 15px 0; padding: 10px 15px; background: #f5f5f5; border-left: 3px solid #0f1a2e; font-style: italic; font-size: 10pt; }
                         .cierre { margin-top: 40px; text-align: left; }
                         .cierre .atentamente { font-size: 11pt; margin-bottom: 5px; }
@@ -2244,7 +2387,7 @@
                         <div class="firma">
                             <div class="linea"></div>
                             <div class="nombre">${oficio.remitente}</div>
-                            <div class="cargo">${oficio.observaciones || "Cargo no especificado"}</div>
+                            <div class="cargo">${cargoRemitente}</div>
                         </div>
                     </div>
                     ${oficio.confidencial ? `<div class="confidencial">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ''}
@@ -2269,6 +2412,7 @@
                 mostrarToast("Generando PDF...", "info");
 
                 const clave = oficio.clave_opdssj || oficio.numero_oficio || "N/A";
+                const cargoRemitente = oficio.cargo_remitente || "Cargo no especificado";
 
                 const element = document.createElement("div");
                 element.innerHTML = `
@@ -2289,7 +2433,7 @@
                             <div style="margin-top:10px; text-align:center;">
                                 <div style="width:250px; border-top:1px solid #000; margin:10px auto 3px;"></div>
                                 <div style="font-weight:bold; font-size:11pt;">${oficio.remitente}</div>
-                                <div style="font-size:10pt; color:#333;">${oficio.observaciones || "Cargo no especificado"}</div>
+                                <div style="font-size:10pt; color:#333;">${cargoRemitente}</div>
                             </div>
                         </div>
                         ${oficio.confidencial ? `<div style="margin-top:15px; padding:8px 12px; background:#fff5f5; border:1px solid #ffcdd2; color:#c62828; font-size:9pt; text-align:center;">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ''}
@@ -2334,6 +2478,7 @@
                     <div><strong>📅 Fecha:</strong><br>${formatearFecha(oficio.fecha_emision)}</div>
                     <div><strong>⚠️ Prioridad:</strong><br><span class="prioridad-badge prioridad-${oficio.prioridad.toLowerCase()}">${oficio.prioridad}</span></div>
                     <div><strong>👤 Remitente:</strong><br>${oficio.remitente}</div>
+                    <div><strong>👔 Cargo Remitente:</strong><br>${oficio.cargo_remitente || "No especificado"}</div>
                     <div><strong>👤 Destinatario:</strong><br>${oficio.destinatario}</div>
                     <div><strong>🏢 Departamento:</strong><br>${oficio.departamento_destino || "No especificado"}</div>
                     <div><strong>📊 Estado:</strong><br><span class="estado-badge estado-${oficio.estado.toLowerCase().replace(" ", "-")}">${oficio.estado}</span></div>
@@ -2343,7 +2488,7 @@
                 </div>
                 <div style="margin:10px 0;">
                     <strong>📝 Contenido:</strong>
-                    <div style="background:rgba(255,255,255,0.04); padding:10px; border-radius:6px; margin-top:4px; line-height:1.7; font-size:11px;">
+                    <div class="contenido-html">
                         ${oficio.contenido || "Sin contenido"}
                     </div>
                 </div>
@@ -2419,16 +2564,16 @@
             const oficio = todosLosOficios.find((o) => o.id === id);
             if (!oficio) return;
 
-            // Cambiar a modo edición
             mostrarModoEdicion();
 
             document.getElementById("editId").value = oficio.id;
             document.getElementById("clave_opdssj").value = oficio.clave_opdssj || oficio.numero_oficio || "";
             document.getElementById("tipo_documento").value = oficio.tipo_documento || "Oficio";
             document.getElementById("asunto").value = oficio.asunto;
-            document.getElementById("contenido").value = oficio.contenido || "";
+            setContenido(oficio.contenido || "");
             document.getElementById("fundamentacion").value = oficio.fundamentacion || "";
             document.getElementById("remitente").value = oficio.remitente;
+            document.getElementById("cargo_remitente").value = oficio.cargo_remitente || "";
             document.getElementById("destinatario").value = oficio.destinatario;
             document.getElementById("departamento_destino").value = oficio.departamento_destino || "";
             document.getElementById("fecha_emision").value = oficio.fecha_emision;
@@ -2444,7 +2589,7 @@
             document.getElementById("btnGuardar").textContent = "📤 Actualizar";
             document.getElementById("btnCancelar").style.display = "inline-block";
 
-            actualizarVistaPrevia();
+            setTimeout(actualizarVistaPrevia, 300);
             mostrarToast("✏️ Editando oficio: " + (oficio.clave_opdssj || oficio.numero_oficio), "info");
         }
 
@@ -2462,8 +2607,9 @@
             document.getElementById("btnGuardar").textContent = "📤 Guardar";
             document.getElementById("btnCancelar").style.display = "none";
             document.getElementById("confidencial").checked = false;
+            setContenido("");
             generarClaveOPDSSJ();
-            actualizarVistaPrevia();
+            setTimeout(actualizarVistaPrevia, 200);
         }
 
         // ==================== COMENTARIOS ====================
@@ -2495,7 +2641,6 @@
         function verificarVencimientos() {
             const vencidos = todosLosOficios.filter((o) => verificarVencimiento(o));
 
-            // Alertas en modo edición
             const containerEdicion = document.getElementById("alertasContainer");
             if (containerEdicion) {
                 if (vencidos.length > 0) {
@@ -2513,7 +2658,6 @@
                 }
             }
 
-            // Alertas en modo tabla
             const containerTabla = document.getElementById("alertasContainerTabla");
             if (containerTabla) {
                 if (vencidos.length > 0) {
@@ -2530,7 +2674,6 @@
                 }
             }
 
-            // Actualizar estadísticas
             const vencidosElement = document.getElementById("vencidos");
             if (vencidosElement) {
                 vencidosElement.textContent = vencidos.length;
@@ -2591,11 +2734,13 @@
                 return;
             }
 
-            let csv = "Clave OPDSSJ,Tipo,Asunto,Remitente,Destinatario,Fecha Emisión,Estado,Prioridad,Plazo,Elaboró,Revisó,Autorizó,Confidencial,Observaciones\n";
+            let csv = "Clave OPDSSJ,Tipo,Asunto,Remitente,Cargo Remitente,Destinatario,Fecha Emisión,Estado,Prioridad,Plazo,Elaboró,Revisó,Autorizó,Confidencial,Observaciones\n";
 
             todosLosOficios.forEach((o) => {
+                // Limpiar contenido HTML para CSV
+                const contenidoPlano = o.contenido ? o.contenido.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ') : '';
                 csv +=
-                    `"${o.clave_opdssj || o.numero_oficio || ""}","${o.tipo_documento || "Oficio"}","${o.asunto}","${o.remitente}","${o.destinatario}","${formatearFecha(o.fecha_emision)}","${o.estado}","${o.prioridad}","${o.plazo_respuesta || 5}","${o.elaboro || ""}","${o.reviso || ""}","${o.autorizo || ""}","${o.confidencial ? "Sí" : "No"}","${o.observaciones || ""}"\n`;
+                    `"${o.clave_opdssj || o.numero_oficio || ""}","${o.tipo_documento || "Oficio"}","${o.asunto}","${o.remitente}","${o.cargo_remitente || ""}","${o.destinatario}","${formatearFecha(o.fecha_emision)}","${o.estado}","${o.prioridad}","${o.plazo_respuesta || 5}","${o.elaboro || ""}","${o.reviso || ""}","${o.autorizo || ""}","${o.confidencial ? "Sí" : "No"}","${o.observaciones || ""}"\n`;
             });
 
             const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -2672,7 +2817,8 @@
 
         console.log("🏥 OPDSSJ - Sistema de Control de Oficios cargado correctamente");
         console.log("📋 Cumple con Instructivo SDGM/198/2026");
-        console.log("✅ Vista previa en tiempo real activada");
+        console.log("✍️ Editor de texto enriquecido activado");
+        console.log("👔 Campo 'Cargo del Remitente' agregado");
         console.log("🔄 Modo Edición / Modo Tabla implementado");
     </script>
 </body>
