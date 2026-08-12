@@ -934,7 +934,8 @@
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-      const supabaseClient = supabaseJs.createClient(SUPABASE_URL, SUPABASE_KEY);
+      // ✅ CORREGIDO: Usamos un nombre diferente para evitar conflicto
+      const supabaseClient = supabaseJs.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
       // ==================== VARIABLES GLOBALES ====================
       let todosLosOficios = [];
@@ -969,7 +970,8 @@
         try {
           mostrarToast("Cargando datos...", "info");
 
-          const { data, error } = await supabase
+          // ✅ CORREGIDO: Usamos supabaseClient en lugar de supabase
+          const { data, error } = await supabaseClient
             .from("oficios")
             .select("*")
             .order("created_at", { ascending: false });
@@ -1073,7 +1075,10 @@
 
           if (id) {
             // Actualizar
-            result = await supabase.from("oficios").update(data).eq("id", id);
+            result = await supabaseClient
+              .from("oficios")
+              .update(data)
+              .eq("id", id);
 
             if (!result.error) {
               await registrarSeguimiento(id, "Edición", "Oficio actualizado");
@@ -1082,10 +1087,10 @@
           } else {
             // Crear nuevo
             data.estado = "Borrador";
-            result = await supabase.from("oficios").insert([data]);
+            result = await supabaseClient.from("oficios").insert([data]);
 
             if (!result.error) {
-              const { data: newData } = await supabase
+              const { data: newData } = await supabaseClient
                 .from("oficios")
                 .select("id")
                 .order("created_at", { ascending: false })
@@ -1122,7 +1127,7 @@
           return;
 
         try {
-          const { error } = await supabase
+          const { error } = await supabaseClient
             .from("oficios")
             .delete()
             .eq("id", id);
@@ -1149,7 +1154,7 @@
         const nuevoEstado = estados[(index + 1) % estados.length];
 
         try {
-          const { error } = await supabase
+          const { error } = await supabaseClient
             .from("oficios")
             .update({ estado: nuevoEstado })
             .eq("id", id);
@@ -1189,7 +1194,7 @@
 
           const fileName = `oficio_${id}_${Date.now()}.pdf`;
 
-          const { error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabaseClient.storage
             .from("documentos")
             .upload(fileName, file);
 
@@ -1197,9 +1202,9 @@
 
           const {
             data: { publicUrl },
-          } = supabase.storage.from("documentos").getPublicUrl(fileName);
+          } = supabaseClient.storage.from("documentos").getPublicUrl(fileName);
 
-          const { error: updateError } = await supabase
+          const { error: updateError } = await supabaseClient
             .from("oficios")
             .update({ documento_pdf: publicUrl })
             .eq("id", id);
@@ -1224,7 +1229,7 @@
       // ==================== SEGUIMIENTO ====================
       async function registrarSeguimiento(oficioId, tipoAccion, descripcion) {
         try {
-          const { error } = await supabase.from("seguimiento").insert([
+          const { error } = await supabaseClient.from("seguimiento").insert([
             {
               oficio_id: oficioId,
               tipo_accion: tipoAccion,
@@ -1241,7 +1246,7 @@
       }
 
       async function obtenerSeguimiento(oficioId) {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
           .from("seguimiento")
           .select("*")
           .eq("oficio_id", oficioId)
@@ -1729,5 +1734,6 @@
       console.log("📋 Sistema Profesional de Oficios cargado correctamente");
       console.log("✅ Todas las funcionalidades disponibles");
     </script>
+
   </body>
 </html>
