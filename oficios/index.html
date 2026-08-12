@@ -1145,79 +1145,99 @@
       /* ============================================
                    ALERTAS - VISIBLES Y LEGIBLES
                    ============================================ */
+      /* ============================================
+   ALERTAS - CASI INVISIBLES EN EDICIÓN
+   ============================================ */
+
+      /* Estilo BASE para todas las alertas */
       .alerta-vencimiento {
         display: inline-flex !important;
         align-items: center;
-        gap: 8px;
-        background: #fff3cd;
-        border: 1px solid #ffc107;
-        color: #856404;
-        padding: 6px 14px 6px 12px;
-        border-radius: 8px;
-        font-size: 12px;
+        gap: 4px;
+        background: rgba(220, 53, 69, 0.04);
+        border: 1px solid rgba(220, 53, 69, 0.02);
+        color: rgba(248, 215, 218, 0.15);
+        padding: 2px 6px 2px 4px;
+        border-radius: 4px;
+        font-size: 7px;
         width: auto !important;
         max-width: 100%;
-        margin-bottom: 6px;
-        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
-        opacity: 1;
+        margin-bottom: 2px;
+        backdrop-filter: none;
+        box-shadow: none;
+        opacity: 0.12;
+        transition: opacity 0.4s ease;
+      }
+
+      .alerta-vencimiento:hover {
+        opacity: 0.5;
       }
 
       .alerta-vencimiento .icono {
-        font-size: 16px;
+        font-size: 9px;
         flex-shrink: 0;
+        opacity: 0.2;
       }
 
       .alerta-vencimiento .contenido-alerta {
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: 4px;
         flex-wrap: wrap;
       }
 
       .alerta-vencimiento .contenido-alerta strong {
-        color: #856404;
-        font-weight: 600;
-        font-size: 12px;
+        color: rgba(255, 107, 107, 0.15);
+        font-weight: 400;
+        font-size: 7px;
       }
 
       .alerta-vencimiento button {
-        padding: 3px 12px;
-        font-size: 11px;
-        border-radius: 6px;
-        background: rgba(255, 255, 255, 0.8);
-        border: 1px solid #ffc107;
-        color: #856404;
+        padding: 1px 5px;
+        font-size: 6px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(255, 255, 255, 0.01);
+        color: rgba(255, 255, 255, 0.08);
         cursor: pointer;
         transition: all 0.2s;
         font-family: "Poppins", sans-serif;
-        font-weight: 500;
+        font-weight: 300;
       }
 
       .alerta-vencimiento button:hover {
-        background: #ffc107;
-        color: #ffffff;
+        background: rgba(255, 255, 255, 0.04);
+        color: rgba(255, 255, 255, 0.15);
       }
 
+      /* Contenedores de alertas - ocupan poco espacio */
       #alertasContainer,
       #alertasContainerTabla {
         display: flex;
         justify-content: flex-start;
         flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: 4px;
+        gap: 3px;
+        margin-bottom: 1px;
         flex-shrink: 0;
-        min-height: 20px;
+        min-height: 10px;
       }
 
+      /* ============================================
+   ALERTAS - VISIBLES EN MODO TABLA
+   ============================================ */
       #alertasContainerTabla .alerta-vencimiento {
+        opacity: 1 !important;
         background: #fff3cd;
-        border-color: #ffc107;
+        border: 1px solid #ffc107;
         color: #856404;
         padding: 6px 14px 6px 12px;
         font-size: 12px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
       }
 
       #alertasContainerTabla .alerta-vencimiento .icono {
+        opacity: 1;
         font-size: 16px;
       }
 
@@ -1225,6 +1245,25 @@
         color: #856404;
         font-weight: 600;
         font-size: 12px;
+      }
+
+      #alertasContainerTabla .alerta-vencimiento button {
+        padding: 3px 12px;
+        font-size: 11px;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.8);
+        border: 1px solid #ffc107;
+        color: #856404;
+        font-weight: 500;
+      }
+
+      #alertasContainerTabla .alerta-vencimiento button:hover {
+        background: #ffc107;
+        color: #ffffff;
+      }
+
+      #alertasContainerTabla .alerta-vencimiento {
+        margin-bottom: 6px;
       }
 
       /* ============================================
@@ -2827,17 +2866,15 @@
       // ==================== SEGUIMIENTO ====================
       async function registrarSeguimiento(oficioId, tipoAccion, descripcion) {
         try {
-          const { error } = await supabaseClient
-            .from("seguimiento")
-            .insert([
-              {
-                oficio_id: oficioId,
-                tipo_accion: tipoAccion,
-                descripcion: descripcion,
-                usuario: "Usuario del sistema",
-                fecha_accion: new Date(),
-              },
-            ]);
+          const { error } = await supabaseClient.from("seguimiento").insert([
+            {
+              oficio_id: oficioId,
+              tipo_accion: tipoAccion,
+              descripcion: descripcion,
+              usuario: "Usuario del sistema",
+              fecha_accion: new Date(),
+            },
+          ]);
           if (error) throw error;
         } catch (error) {
           console.error("Error al registrar seguimiento:", error);
