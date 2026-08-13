@@ -3647,13 +3647,12 @@
       }
 
       // ==================== DESCARGAR PDF - CORREGIDO CON CARGO DEL REMITENTE ====================
-      // ==================== DESCARGAR PDF - CORREGIDO ====================
+      // ==================== DESCARGAR PDF - CON CONTADOR DE PÁGINAS ====================
 async function descargarPDF(id) {
   // Obtener el oficio
   let oficio;
   
   if (!id) {
-    // Si no hay ID, usar datos del formulario (modo edición)
     const contenido = obtenerContenidoEditor();
     const contenidoFinal = contenido.includes("editor-placeholder") ? "" : contenido;
     
@@ -3681,7 +3680,6 @@ async function descargarPDF(id) {
       links: linksAgregados || []
     };
   } else {
-    // Buscar en la lista de oficios
     oficio = todosLosOficios.find((o) => o.id === id);
   }
 
@@ -3699,120 +3697,46 @@ async function descargarPDF(id) {
     const departamentoDestino = oficio.departamento_destino || "";
     const fechaFormateada = oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : "";
 
-    // Contenido del oficio - Limpiar HTML para el PDF
     let contenido = oficio.contenido || "Sin contenido";
-    // Remover placeholders
     contenido = contenido.replace(/<span class="editor-placeholder">.*?<\/span>/g, '');
-    // Asegurar que el contenido tenga formato
     if (!contenido.trim()) {
       contenido = "Sin contenido";
     }
 
-    // Construir el HTML del documento
-    let htmlContent = `
-      <div style="font-family: 'Arial', Times, serif; background: white; color: #1a1a1a; font-size: 11pt; line-height: 1.5; padding: 40px 40px 40px 40px; max-width: 100%;">
-        <!-- HEADER -->
-        <div style="text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #0f1a2e;">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; padding-bottom: 6px;">
-            <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" style="max-height: 60px; width: auto; object-fit: contain;" onerror="this.style.display='none'" />
-          </div>
-          <div style="margin-top: 6px; font-size: 11pt; font-weight: bold; color: #0f1a2e; text-align: right;">${clave}</div>
-        </div>
-
-        <!-- FECHA -->
-        <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px;">
-          ${fechaFormateada}
-        </div>
-        
-        <!-- DESTINATARIO -->
-        <div style="margin-bottom: 10px; font-size: 11pt;">
-          <span style="font-weight: bold;">C.</span> ${destinatarioNombre}
-          ${departamentoDestino ? `<br><span style="font-size: 10pt; color: #444; margin-left: 18px;">${departamentoDestino}</span>` : ""}
-        </div>
-        
-        <!-- ASUNTO -->
-        <div style="font-weight: bold; font-size: 11pt; margin: 10px 0 6px 0; text-transform: uppercase;">
-          Asunto: ${oficio.asunto || "Sin asunto"}
-        </div>
-        
-        <!-- CONTENIDO -->
-        <div style="line-height: 1.6; font-size: 11pt; text-align: justify; margin: 12px 0;">
-          ${contenido}
-        </div>
-    `;
-
-    // FUNDAMENTACIÓN
-    if (oficio.fundamentacion) {
-      htmlContent += `
-        <div style="margin: 10px 0; padding: 6px 12px; background: #f8f9fa; border-left: 4px solid #0f1a2e; font-style: italic; font-size: 10pt;">
-          <strong>Fundamentación:</strong><br>${oficio.fundamentacion}
-        </div>
-      `;
-    }
-
-    // ARCHIVOS ADJUNTOS
-    if (oficio.archivos && oficio.archivos.length > 0) {
-      htmlContent += `
-        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
-          <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">📎 Archivos adjuntos:</div>
-      `;
-      oficio.archivos.forEach((a) => {
-        htmlContent += `<div style="font-size: 9pt; padding: 2px 0;">• ${a.nombre} <span style="color: #999; font-size: 8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
-      });
-      htmlContent += `</div>`;
-    }
-
-    // ENLACES
-    if (oficio.links && oficio.links.length > 0) {
-      htmlContent += `
-        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
-          <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">🔗 Enlaces relacionados:</div>
-      `;
-      oficio.links.forEach((l) => {
-        htmlContent += `<div style="font-size: 9pt; padding: 2px 0;">• <a href="${l.url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${l.descripcion}</a></div>`;
-      });
-      htmlContent += `</div>`;
-    }
-
-    // CIERRE Y FIRMA
-    htmlContent += `
-        <div style="margin-top: 30px; text-align: left;">
-          <div style="font-size: 11pt; margin-bottom: 4px;">Atentamente,</div>
-          <div style="font-style: italic; font-size: 9pt; color: #555; margin: 4px 0 20px 0;">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
-          <div style="margin-top: 8px; text-align: center;">
-            <div style="width: 220px; border-top: 2px solid #000; margin: 6px auto 4px;"></div>
-            <div style="font-weight: bold; font-size: 11pt;">${oficio.remitente || "Sin remitente"}</div>
-            <div style="font-size: 10pt; color: #333;">${cargoRemitente}</div>
-          </div>
-        </div>
-    `;
-
-    // CONFIDENCIAL
-    if (oficio.confidencial) {
-      htmlContent += `
-        <div style="margin-top: 10px; padding: 5px 10px; background: #fff5f5; border: 1px solid #ffcdd2; color: #c62828; font-size: 8pt; text-align: center;">
-          🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
-        </div>
-      `;
-    }
-
-    // RESPONSABLES
-    let responsables = [];
-    if (oficio.elaboro) responsables.push(`Elaboró: ${oficio.elaboro}`);
-    if (oficio.reviso) responsables.push(`Revisó: ${oficio.reviso}`);
-    if (oficio.autorizo) responsables.push(`Autorizó: ${oficio.autorizo}`);
+    // Calcular altura aproximada del contenido para determinar número de páginas
+    // Una página A4 en px (aproximadamente 595px x 842px a 72dpi)
+    const PAGE_HEIGHT = 842; // Altura de página A4 en px
+    const PAGE_WIDTH = 595; // Ancho de página A4 en px
+    const MARGIN = 40; // Márgenes en px
+    const CONTENT_HEIGHT = PAGE_HEIGHT - (MARGIN * 2);
     
-    if (responsables.length > 0) {
-      htmlContent += `
-        <div style="margin-top: 25px; font-size: 7pt; color: #666; text-align: right; border-top: 1px solid #ddd; padding-top: 6px;">
-          ${responsables.join(" | ")}
-        </div>
-      `;
-    }
-
-    // FOOTER
-    htmlContent += `
-        <div style="margin-top: 30px; padding-top: 12px; border-top: 2px solid #ddd; display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0;">
+    // Estimar altura del contenido (cada línea ~20px, cada elemento adicional ~30px)
+    const contenidoLimpio = contenido.replace(/<[^>]*>/g, '');
+    const lineas = contenidoLimpio.split('\n').length;
+    const palabras = contenidoLimpio.split(' ').length;
+    
+    // Estimar líneas totales (considerando que cada línea tiene ~60 caracteres)
+    const caracteres = contenidoLimpio.length;
+    const lineasEstimadas = Math.ceil(caracteres / 60) + lineas;
+    
+    // Calcular altura estimada en px (cada línea ~20px)
+    const alturaContenido = lineasEstimadas * 20;
+    
+    // Altura total del documento (header + contenido + footer)
+    const alturaHeader = 120; // Header + fecha + destinatario + asunto
+    const alturaFooter = 100; // Cierre + firma + footer
+    const alturaTotal = alturaHeader + alturaContenido + alturaFooter;
+    
+    // Calcular número de páginas
+    const numPaginas = Math.max(1, Math.ceil(alturaTotal / CONTENT_HEIGHT));
+    
+    // Generar HTML para cada página
+    let allPagesHTML = '';
+    
+    // Función para generar el footer de cada página
+    function generarFooter(pagina, total) {
+      return `
+        <div style="margin-top: 20px; padding-top: 12px; border-top: 2px solid #ddd; display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0; position: absolute; bottom: 20px; left: 0; right: 0;">
           <div style="display: flex; align-items: center; justify-content: center; width: 15%; flex-shrink: 0;">
             <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Gobierno de Jalisco" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.style.display='none'" />
           </div>
@@ -3821,16 +3745,169 @@ async function descargarPDF(id) {
             Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.
           </div>
           <div style="width: 15%; text-align: center;">
-            <span style="font-size: 8pt; color: #999; font-weight: 400;">Pág. 1 de 1</span>
+            <span style="font-size: 8pt; color: #999; font-weight: 400;">Pág. ${pagina} de ${total}</span>
           </div>
         </div>
-      </div>
-    `;
+      `;
+    }
+
+    // Generar contenido para cada página
+    let contenidoRestante = contenido;
+    const contenidoPorPagina = [];
+    
+    // Dividir contenido por párrafos
+    const parrafos = contenido.split('</p>');
+    let paginaActual = '';
+    let alturaActual = 0;
+    
+    for (let i = 0; i < parrafos.length; i++) {
+      const parrafo = parrafos[i] + (i < parrafos.length - 1 ? '</p>' : '');
+      const alturaParrafo = parrafo.length / 60 * 20 + 30; // Estimación
+      
+      if (alturaActual + alturaParrafo > CONTENT_HEIGHT - 100) {
+        if (paginaActual) {
+          contenidoPorPagina.push(paginaActual);
+          paginaActual = '';
+          alturaActual = 0;
+        }
+      }
+      
+      paginaActual += parrafo;
+      alturaActual += alturaParrafo;
+    }
+    
+    if (paginaActual) {
+      contenidoPorPagina.push(paginaActual);
+    }
+
+    // Si no hay contenido dividido, usar el contenido completo en una página
+    if (contenidoPorPagina.length === 0) {
+      contenidoPorPagina.push(contenido);
+    }
+
+    // Generar HTML para cada página
+    contenidoPorPagina.forEach((contenidoPagina, index) => {
+      const numPagina = index + 1;
+      const totalPaginas = contenidoPorPagina.length;
+      
+      // Determinar qué elementos mostrar en cada página
+      const mostrarHeader = index === 0;
+      const mostrarCierre = index === contenidoPorPagina.length - 1;
+      
+      let pageHTML = `
+        <div style="font-family: 'Arial', Times, serif; background: white; color: #1a1a1a; font-size: 11pt; line-height: 1.5; padding: 40px 40px 40px 40px; max-width: 100%; min-height: ${PAGE_HEIGHT}px; position: relative; page-break-after: always;">
+      `;
+
+      // HEADER (solo en primera página)
+      if (mostrarHeader) {
+        pageHTML += `
+          <div style="text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #0f1a2e;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; padding-bottom: 6px;">
+              <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" style="max-height: 60px; width: auto; object-fit: contain;" onerror="this.style.display='none'" />
+            </div>
+            <div style="margin-top: 6px; font-size: 11pt; font-weight: bold; color: #0f1a2e; text-align: right;">${clave}</div>
+          </div>
+          <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px;">
+            ${fechaFormateada}
+          </div>
+          <div style="margin-bottom: 10px; font-size: 11pt;">
+            <span style="font-weight: bold;">C.</span> ${destinatarioNombre}
+            ${departamentoDestino ? `<br><span style="font-size: 10pt; color: #444; margin-left: 18px;">${departamentoDestino}</span>` : ""}
+          </div>
+          <div style="font-weight: bold; font-size: 11pt; margin: 10px 0 6px 0; text-transform: uppercase;">
+            Asunto: ${oficio.asunto || "Sin asunto"}
+          </div>
+        `;
+      }
+
+      // CONTENIDO
+      pageHTML += `
+        <div style="line-height: 1.6; font-size: 11pt; text-align: justify; margin: 12px 0;">
+          ${contenidoPagina}
+        </div>
+      `;
+
+      // FUNDAMENTACIÓN (solo en última página o si es pequeño)
+      if (mostrarCierre && oficio.fundamentacion) {
+        pageHTML += `
+          <div style="margin: 10px 0; padding: 6px 12px; background: #f8f9fa; border-left: 4px solid #0f1a2e; font-style: italic; font-size: 10pt;">
+            <strong>Fundamentación:</strong><br>${oficio.fundamentacion}
+          </div>
+        `;
+      }
+
+      // ARCHIVOS Y LINKS (solo en última página)
+      if (mostrarCierre) {
+        if (oficio.archivos && oficio.archivos.length > 0) {
+          pageHTML += `
+            <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
+              <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">📎 Archivos adjuntos:</div>
+          `;
+          oficio.archivos.forEach((a) => {
+            pageHTML += `<div style="font-size: 9pt; padding: 2px 0;">• ${a.nombre} <span style="color: #999; font-size: 8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
+          });
+          pageHTML += `</div>`;
+        }
+
+        if (oficio.links && oficio.links.length > 0) {
+          pageHTML += `
+            <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
+              <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">🔗 Enlaces relacionados:</div>
+          `;
+          oficio.links.forEach((l) => {
+            pageHTML += `<div style="font-size: 9pt; padding: 2px 0;">• <a href="${l.url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${l.descripcion}</a></div>`;
+          });
+          pageHTML += `</div>`;
+        }
+
+        // CIERRE Y FIRMA
+        pageHTML += `
+          <div style="margin-top: 30px; text-align: left;">
+            <div style="font-size: 11pt; margin-bottom: 4px;">Atentamente,</div>
+            <div style="font-style: italic; font-size: 9pt; color: #555; margin: 4px 0 20px 0;">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
+            <div style="margin-top: 8px; text-align: center;">
+              <div style="width: 220px; border-top: 2px solid #000; margin: 6px auto 4px;"></div>
+              <div style="font-weight: bold; font-size: 11pt;">${oficio.remitente || "Sin remitente"}</div>
+              <div style="font-size: 10pt; color: #333;">${cargoRemitente}</div>
+            </div>
+          </div>
+        `;
+
+        // CONFIDENCIAL
+        if (oficio.confidencial) {
+          pageHTML += `
+            <div style="margin-top: 10px; padding: 5px 10px; background: #fff5f5; border: 1px solid #ffcdd2; color: #c62828; font-size: 8pt; text-align: center;">
+              🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
+            </div>
+          `;
+        }
+
+        // RESPONSABLES
+        let responsables = [];
+        if (oficio.elaboro) responsables.push(`Elaboró: ${oficio.elaboro}`);
+        if (oficio.reviso) responsables.push(`Revisó: ${oficio.reviso}`);
+        if (oficio.autorizo) responsables.push(`Autorizó: ${oficio.autorizo}`);
+        
+        if (responsables.length > 0) {
+          pageHTML += `
+            <div style="margin-top: 25px; font-size: 7pt; color: #666; text-align: right; border-top: 1px solid #ddd; padding-top: 6px;">
+              ${responsables.join(" | ")}
+            </div>
+          `;
+        }
+      }
+
+      // FOOTER con número de página
+      pageHTML += generarFooter(numPagina, totalPaginas);
+      
+      pageHTML += `</div>`;
+      allPagesHTML += pageHTML;
+    });
 
     // Crear contenedor para el PDF
     const container = document.createElement('div');
-    container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 800px; background: white; z-index: -1;';
-    container.innerHTML = htmlContent;
+    container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 595px; background: white; z-index: -1;';
+    container.innerHTML = allPagesHTML;
     document.body.appendChild(container);
 
     // Configurar opciones del PDF
@@ -3843,14 +3920,15 @@ async function descargarPDF(id) {
         useCORS: true,
         letterRendering: true,
         logging: false,
-        width: 800,
-        height: container.scrollHeight + 100
+        width: 595,
+        height: 842
       },
       jsPDF: {
         unit: 'px',
-        format: [800, container.scrollHeight + 150],
+        format: [595, 842],
         orientation: 'portrait'
-      }
+      },
+      pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
     };
 
     // Generar PDF
