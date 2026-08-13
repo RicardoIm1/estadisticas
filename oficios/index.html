@@ -3647,8 +3647,42 @@
       }
 
       // ==================== DESCARGAR PDF - CORREGIDO CON CARGO DEL REMITENTE ====================
-      async function descargarPDF(id) {
-  const oficio = todosLosOficios.find((o) => o.id === id);
+      // ==================== DESCARGAR PDF - CORREGIDO CON CARGO DEL REMITENTE ====================
+async function descargarPDF(id) {
+  // Si no hay ID (nuevo oficio), usar datos del formulario
+  let oficio;
+  if (!id) {
+    const contenido = obtenerContenidoEditor();
+    const contenidoFinal = contenido.includes("editor-placeholder") ? "" : contenido;
+    
+    oficio = {
+      id: 'nuevo',
+      clave_opdssj: document.getElementById("clave_opdssj").value || "OPDSSJ.SDGM/000/2026",
+      tipo_documento: document.getElementById("tipo_documento").value || "Oficio",
+      asunto: document.getElementById("asunto").value || "Asunto del oficio",
+      contenido: contenidoFinal || "Redacte el contenido del oficio...",
+      fundamentacion: document.getElementById("fundamentacion").value || "",
+      remitente: document.getElementById("remitente").value || "Nombre del remitente",
+      cargo_remitente: document.getElementById("cargo_remitente").value || "Cargo del remitente",
+      destinatario: document.getElementById("destinatario").value || "Nombre del destinatario",
+      departamento_destino: document.getElementById("departamento_destino").value || "",
+      fecha_emision: document.getElementById("fecha_emision").value || new Date().toISOString().split('T')[0],
+      plazo_respuesta: parseInt(document.getElementById("plazo_respuesta").value) || 5,
+      prioridad: document.getElementById("prioridad").value || "Media",
+      observaciones: document.getElementById("observaciones").value || "",
+      elaboro: document.getElementById("elaboro").value || "",
+      reviso: document.getElementById("reviso").value || "",
+      autorizo: document.getElementById("autorizo").value || "",
+      confidencial: document.getElementById("confidencial").checked || false,
+      estado: "Borrador",
+      archivos: archivosSubidos || [],
+      links: linksAgregados || []
+    };
+  } else {
+    // Buscar en la lista de oficios
+    oficio = todosLosOficios.find((o) => o.id === id);
+  }
+
   if (!oficio) {
     mostrarToast("❌ Oficio no encontrado", "error");
     return;
@@ -3671,7 +3705,7 @@
           resolve(canvas.toDataURL('image/jpeg'));
         };
         img.onerror = function() {
-          resolve(url); // Si falla, usa la URL original
+          resolve(url);
         };
         img.src = url;
       });
@@ -3825,7 +3859,7 @@
     mostrarToast("❌ Error al generar PDF: " + (error.message || "Error desconocido"), "error");
   }
 }
-      
+
       // ==================== DETALLE ====================
       async function verDetalle(id) {
         const oficio = todosLosOficios.find((o) => o.id === id);
