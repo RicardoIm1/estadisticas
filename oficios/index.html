@@ -2872,88 +2872,67 @@
       }
 
       // ==================== VISTA PREVIA - CORREGIDA CON CARGO DEL REMITENTE ====================
-      function actualizarVistaPrevia() {
-        const preview = document.getElementById("previewDocumento");
-        if (!preview) return;
+      // ==================== VISTA PREVIA CON CONTADOR DE PÁGINAS ====================
+function actualizarVistaPrevia() {
+  const preview = document.getElementById("previewDocumento");
+  if (!preview) return;
 
-        const clave =
-          document.getElementById("clave_opdssj")?.value ||
-          "OPDSSJ.SDGM/000/2026";
-        const asunto =
-          document.getElementById("asunto")?.value || "Asunto del oficio";
-        const contenido =
-          obtenerContenidoEditor() || "Redacte el contenido del oficio...";
-        const fundamentacion = document.getElementById("fundamentacion")?.value;
-        const remitente =
-          document.getElementById("remitente")?.value || "Nombre del remitente";
-        const cargoRemitente =
-          document.getElementById("cargo_remitente")?.value ||
-          "Cargo del remitente";
+  const clave = document.getElementById("clave_opdssj")?.value || "OPDSSJ.SDGM/000/2026";
+  const asunto = document.getElementById("asunto")?.value || "Asunto del oficio";
+  const contenido = obtenerContenidoEditor() || "Redacte el contenido del oficio...";
+  const fundamentacion = document.getElementById("fundamentacion")?.value;
+  const remitente = document.getElementById("remitente")?.value || "Nombre del remitente";
+  const cargoRemitente = document.getElementById("cargo_remitente")?.value || "Cargo del remitente";
+  const destinatario = document.getElementById("destinatario")?.value || "Nombre del destinatario";
+  const departamentoDestino = document.getElementById("departamento_destino")?.value || "";
+  const fecha = document.getElementById("fecha_emision")?.value;
+  const elaboro = document.getElementById("elaboro")?.value;
+  const reviso = document.getElementById("reviso")?.value;
+  const autorizo = document.getElementById("autorizo")?.value;
+  const confidencial = document.getElementById("confidencial")?.checked || false;
 
-        // --- DESTINATARIO (nombre) ---
-        const destinatario =
-          document.getElementById("destinatario")?.value ||
-          "Nombre del destinatario";
+  const fechaFormateada = fecha ? formatearFecha(fecha) : "Fecha de emisión";
 
-        // --- DEPARTAMENTO DESTINO (se usará como cargo del destinatario) ---
-        const departamentoDestino =
-          document.getElementById("departamento_destino")?.value || "";
+  const tieneDatos = document.getElementById("asunto")?.value || 
+                     document.getElementById("remitente")?.value || 
+                     document.getElementById("destinatario")?.value;
 
-        const fecha = document.getElementById("fecha_emision")?.value;
-        const elaboro = document.getElementById("elaboro")?.value;
-        const reviso = document.getElementById("reviso")?.value;
-        const autorizo = document.getElementById("autorizo")?.value;
-        const confidencial =
-          document.getElementById("confidencial")?.checked || false;
-
-        const fechaFormateada = fecha
-          ? formatearFecha(fecha)
-          : "Fecha de emisión";
-
-        const tieneDatos =
-          document.getElementById("asunto")?.value ||
-          document.getElementById("remitente")?.value ||
-          document.getElementById("destinatario")?.value;
-
-        if (!tieneDatos) {
-          preview.innerHTML = `
+  if (!tieneDatos) {
+    preview.innerHTML = `
       <div class="empty-message">
         <span class="icono">📝</span>
         Completa el formulario<br>
         <span style="font-size:11px;color:#aaa;">para ver la vista previa</span>
       </div>
     `;
-          return;
-        }
+    return;
+  }
 
-        // Generar HTML de archivos y links
-        let archivosLinksHTML = "";
+  // Generar HTML de archivos y links
+  let archivosLinksHTML = "";
+  if (archivosSubidos.length > 0 || linksAgregados.length > 0) {
+    archivosLinksHTML = `<div class="archivos-links">`;
+    if (archivosSubidos.length > 0) {
+      archivosLinksHTML += `<div class="titulo">📎 Archivos adjuntos:</div>`;
+      archivosSubidos.forEach((arch) => {
+        archivosLinksHTML += `<div class="item">• ${arch.nombre} <span class="tamano">(${(arch.tamano / 1024).toFixed(0)} KB)</span></div>`;
+      });
+    }
+    if (linksAgregados.length > 0) {
+      if (archivosSubidos.length > 0) {
+        archivosLinksHTML += `<div class="titulo" style="margin-top:6px;">🔗 Enlaces relacionados:</div>`;
+      } else {
+        archivosLinksHTML += `<div class="titulo">🔗 Enlaces relacionados:</div>`;
+      }
+      linksAgregados.forEach((link) => {
+        archivosLinksHTML += `<div class="item">• <a href="${link.url}" target="_blank">${link.descripcion}</a></div>`;
+      });
+    }
+    archivosLinksHTML += `</div>`;
+  }
 
-        if (archivosSubidos.length > 0 || linksAgregados.length > 0) {
-          archivosLinksHTML = `<div class="archivos-links">`;
-
-          if (archivosSubidos.length > 0) {
-            archivosLinksHTML += `<div class="titulo">📎 Archivos adjuntos:</div>`;
-            archivosSubidos.forEach((arch) => {
-              archivosLinksHTML += `<div class="item">• ${arch.nombre} <span class="tamano">(${(arch.tamano / 1024).toFixed(0)} KB)</span></div>`;
-            });
-          }
-
-          if (linksAgregados.length > 0) {
-            if (archivosSubidos.length > 0) {
-              archivosLinksHTML += `<div class="titulo" style="margin-top:6px;">🔗 Enlaces relacionados:</div>`;
-            } else {
-              archivosLinksHTML += `<div class="titulo">🔗 Enlaces relacionados:</div>`;
-            }
-            linksAgregados.forEach((link) => {
-              archivosLinksHTML += `<div class="item">• <a href="${link.url}" target="_blank">${link.descripcion}</a></div>`;
-            });
-          }
-
-          archivosLinksHTML += `</div>`;
-        }
-
-        preview.innerHTML = `
+  // Construir el HTML del documento para calcular páginas
+  let documentoHTML = `
     <div class="header-doc">
       <div class="logo-container">
         <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" class="logo-img-left" />
@@ -2967,16 +2946,12 @@
     </div>
     <div class="asunto">Asunto: ${asunto}</div>
     <div class="contenido">${contenido || "Redacte el contenido del oficio..."}</div>
-    ${
-      fundamentacion
-        ? `
+    ${fundamentacion ? `
       <div class="fundamentacion">
         <strong>Fundamentación:</strong><br>
         ${fundamentacion}
       </div>
-      `
-        : ""
-    }
+    ` : ""}
     ${archivosLinksHTML}
     <div class="cierre">
       <div class="atentamente">Atentamente,</div>
@@ -2987,15 +2962,11 @@
         <div class="cargo">${cargoRemitente}</div>
       </div>
     </div>
-    ${
-      confidencial
-        ? `
+    ${confidencial ? `
       <div class="confidencial">
         🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
       </div>
-      `
-        : ""
-    }
+    ` : ""}
     <div class="responsables">
       ${elaboro ? `Elaboró: ${elaboro}` : ""}
       ${reviso ? ` | Revisó: ${reviso}` : ""}
@@ -3009,21 +2980,50 @@
         <div class="footer-text" style="text-align:right;">
           <strong>|</strong><br>
           Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.
-        </div>  
+        </div>
       </div>
       <div class="footer-right">
-        <span class="page-number">Pág. 1 de 1</span>  
+        <span class="page-number" id="pageNumberPreview">Pág. 1 de 1</span>
       </div>
     </div>
   `;
 
-        const papel = document.getElementById("vistaPapel");
-        if (papel) {
-          setTimeout(() => {
-            papel.scrollTop = papel.scrollHeight;
-          }, 50);
-        }
-      }
+  // Mostrar en preview
+  preview.innerHTML = documentoHTML;
+
+  // Calcular número de páginas para la vista previa
+  calcularPaginasPreview();
+
+  // Scroll al final
+  const papel = document.getElementById("vistaPapel");
+  if (papel) {
+    setTimeout(() => {
+      papel.scrollTop = papel.scrollHeight;
+    }, 100);
+  }
+}
+
+// ==================== CALCULAR PÁGINAS PARA VISTA PREVIA ====================
+function calcularPaginasPreview() {
+  setTimeout(() => {
+    const previewContent = document.getElementById("previewDocumento");
+    if (!previewContent) return;
+
+    // Obtener la altura total del contenido
+    const alturaTotal = previewContent.scrollHeight;
+    const alturaVentana = window.innerHeight || 800;
+    
+    // Estimar páginas (asumiendo que una página A4 es ~842px)
+    const ALTURA_PAGINA = 842;
+    const numPaginas = Math.max(1, Math.ceil(alturaTotal / ALTURA_PAGINA));
+    
+    // Actualizar el número de página
+    const pageNumber = document.getElementById("pageNumberPreview");
+    if (pageNumber) {
+      pageNumber.textContent = `Pág. 1 de ${numPaginas}`;
+    }
+  }, 200);
+}
 
       // ==================== CRUD ====================
       async function cargarDatos() {
@@ -3321,68 +3321,112 @@
       }
 
       // ==================== IMPRIMIR - CORREGIDO CON CARGO DEL REMITENTE ====================
-      function imprimirOficio(id) {
-        const oficio = todosLosOficios.find((o) => o.id === id);
-        if (!oficio) {
-          mostrarToast("❌ Oficio no encontrado", "error");
-          return;
-        }
+      // ==================== IMPRIMIR CON CONTADOR DE PÁGINAS ====================
+function imprimirOficio(id) {
+  const oficio = todosLosOficios.find((o) => o.id === id);
+  if (!oficio) {
+    mostrarToast("❌ Oficio no encontrado", "error");
+    return;
+  }
 
-        const clave = oficio.clave_opdssj || "N/A";
-        const cargoRemitente =
-          oficio.cargo_remitente || "Cargo no especificado";
+  const clave = oficio.clave_opdssj || "N/A";
+  const cargoRemitente = oficio.cargo_remitente || "Cargo no especificado";
+  const destinatarioNombre = oficio.destinatario || "Destinatario no especificado";
+  const departamentoDestino = oficio.departamento_destino || "";
+  const fechaFormateada = oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : "";
 
-        // DESTINATARIO (nombre)
-        const destinatarioNombre =
-          oficio.destinatario || "Destinatario no especificado";
+  let contenido = oficio.contenido || "Sin contenido";
+  contenido = contenido.replace(/<span class="editor-placeholder">.*?<\/span>/g, '');
+  if (!contenido.trim()) {
+    contenido = "Sin contenido";
+  }
 
-        // DEPARTAMENTO DESTINO (se usa como cargo del destinatario)
-        const departamentoDestino = oficio.departamento_destino || "";
-
-        const fechaFormateada = oficio.fecha_emision
-          ? formatearFecha(oficio.fecha_emision)
-          : "";
-
-        let archivosHTML = "";
-        if (oficio.archivos && oficio.archivos.length > 0) {
-          archivosHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
+  let archivosHTML = "";
+  if (oficio.archivos && oficio.archivos.length > 0) {
+    archivosHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
       <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">📎 Archivos adjuntos:</div>`;
-          oficio.archivos.forEach((a) => {
-            archivosHTML += `<div style="font-size:9pt;padding:2px 0;">• ${a.nombre} <span style="color:#999;font-size:8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
-          });
-          archivosHTML += `</div>`;
-        }
+    oficio.archivos.forEach((a) => {
+      archivosHTML += `<div style="font-size:9pt;padding:2px 0;">• ${a.nombre} <span style="color:#999;font-size:8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
+    });
+    archivosHTML += `</div>`;
+  }
 
-        let linksHTML = "";
-        if (oficio.links && oficio.links.length > 0) {
-          linksHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
+  let linksHTML = "";
+  if (oficio.links && oficio.links.length > 0) {
+    linksHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
       <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">🔗 Enlaces relacionados:</div>`;
-          oficio.links.forEach((l) => {
-            linksHTML += `<div style="font-size:9pt;padding:2px 0;">• <a href="${l.url}" target="_blank" style="color:#0066cc;text-decoration:underline;">${l.descripcion}</a></div>`;
-          });
-          linksHTML += `</div>`;
-        }
+    oficio.links.forEach((l) => {
+      linksHTML += `<div style="font-size:9pt;padding:2px 0;">• <a href="${l.url}" target="_blank" style="color:#0066cc;text-decoration:underline;">${l.descripcion}</a></div>`;
+    });
+    linksHTML += `</div>`;
+  }
 
-        const ventana = window.open("", "_blank");
-        ventana.document.write(`
+  // Construir el documento completo para calcular páginas
+  let documentoCompleto = `
+    <div class="header-doc">
+      <div class="logo-container">
+        <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" class="logo-img-left" />
+      </div>
+      <div class="clave-doc">${clave}</div>
+    </div>
+    <div class="fecha-lugar">${fechaFormateada}</div>
+    <div class="destinatario">
+      <span class="label">C.</span> ${destinatarioNombre}
+      ${departamentoDestino ? `<span class="cargo-destino">${departamentoDestino}</span>` : ""}
+    </div>
+    <div class="asunto">Asunto: ${oficio.asunto}</div>
+    <div class="contenido">${contenido}</div>
+    ${oficio.fundamentacion ? `<div class="fundamentacion"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
+    ${archivosHTML}
+    ${linksHTML}
+    <div class="cierre">
+      <div class="atentamente">Atentamente,</div>
+      <div class="leyenda">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
+      <div class="firma">
+        <div class="linea"></div>
+        <div class="nombre">${oficio.remitente}</div>
+        <div class="cargo">${cargoRemitente}</div>
+      </div>
+    </div>
+    ${oficio.confidencial ? `<div class="confidencial">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ""}
+    <div class="responsables">${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}</div>
+  `;
+
+  // Abrir ventana para imprimir
+  const ventana = window.open("", "_blank");
+  ventana.document.write(`
     <html>
     <head>
       <title>Oficio ${clave}</title>
       <style>
-        @page { margin: 2.5cm 2.5cm 2.5cm 2.5cm; }
+        @page { 
+          margin: 2.5cm 2.5cm 2.5cm 2.5cm;
+          @bottom-center {
+            content: "Pág. " counter(page) " de " counter(pages);
+            font-size: 7pt;
+            color: #999;
+            font-family: "Arial", Times, serif;
+          }
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
           font-family: "Arial", Times, serif; 
-          padding: 0; 
-          margin: 0; 
           background: white; 
           color: #1a1a1a; 
           font-size: 11pt; 
           line-height: 1.5; 
+          padding: 0;
+          margin: 0;
+        }
+        .documento-print {
+          max-width: 100%;
+          padding: 0;
         }
         .header-doc { 
           text-align: center; 
           margin-bottom: 20px; 
           padding-bottom: 12px; 
+          border-bottom: 2px solid #0f1a2e;
         }
         .header-doc .logo-container { 
           display: flex; 
@@ -3474,7 +3518,7 @@
         }
         .cierre .firma .linea { 
           width: 220px; 
-          border-top: 1px solid #000; 
+          border-top: 2px solid #000; 
           margin: 6px auto 4px; 
         }
         .cierre .firma .nombre { 
@@ -3536,7 +3580,7 @@
           width: 100%;
           margin-top: 20px;
           padding-top: 10px;
-          border-top: 1px solid #ddd;
+          border-top: 2px solid #ddd;
           gap: 0;
         }
         .footer-doc .footer-left {
@@ -3594,57 +3638,46 @@
       </style>
     </head>
     <body>
-      <div class="header-doc">
-        <div class="logo-container">
-          <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" class="logo-img-left" />
-        </div>
-        <div class="clave-doc">${clave}</div>
-      </div>
-      <div class="fecha-lugar">${fechaFormateada}</div>
-      <div class="destinatario">
-        <span class="label">C.</span> ${destinatarioNombre}
-        ${departamentoDestino ? `<span class="cargo-destino">${departamentoDestino}</span>` : ""}
-      </div>
-      <div class="asunto">Asunto: ${oficio.asunto}</div>
-      <div class="contenido">${oficio.contenido || "Contenido no especificado"}</div>
-      ${oficio.fundamentacion ? `<div class="fundamentacion"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
-      ${archivosHTML}
-      ${linksHTML}
-      <div class="cierre">
-        <div class="atentamente">Atentamente,</div>
-        <div class="leyenda">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
-        <div class="firma">
-          <div class="linea"></div>
-          <div class="nombre">${oficio.remitente}</div>
-          <div class="cargo">${cargoRemitente}</div>
-        </div>
-      </div>
-      ${oficio.confidencial ? `<div class="confidencial">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ""}
-      <div class="responsables">${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}</div>
-      <div class="footer-doc">
-        <div class="footer-left">
-          <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Logo del Gobierno de Jalisco" />
-        </div>
-        <div class="footer-center">
-          <div class="footer-text">
-            <strong>|</strong><br>
-            Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.
+      <div class="documento-print">
+        ${documentoCompleto}
+        <div class="footer-doc">
+          <div class="footer-left">
+            <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Logo del Gobierno de Jalisco" />
           </div>
-        </div>
-        <div class="footer-right">
-          <span class="page-number">Pág. 1 de 1</span>
+          <div class="footer-center">
+            <div class="footer-text">
+              <strong>|</strong><br>
+              Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.
+            </div>
+          </div>
+          <div class="footer-right">
+            <span class="page-number"></span>
+          </div>
         </div>
       </div>
       <script>
+        // Contador de páginas automático con CSS
+        // El navegador maneja el contador con @page
         window.onload = function() {
+          // Obtener el número de páginas (aproximado)
+          const pageNumberElement = document.querySelector('.page-number');
+          if (pageNumberElement) {
+            // Usar JavaScript para contar páginas aproximadas
+            const contentHeight = document.querySelector('.documento-print').scrollHeight;
+            const pageHeight = 842; // Aproximado para A4
+            const numPages = Math.max(1, Math.ceil(contentHeight / pageHeight));
+            pageNumberElement.textContent = 'Pág. 1 de ' + numPages;
+          }
+          
+          // Imprimir automáticamente
           window.print();
         };
       <\/script>
     </body>
     </html>
   `);
-        ventana.document.close();
-      }
+  ventana.document.close();
+}
 
       // ==================== DESCARGAR PDF - PRECISO CON CONTADOR DE PÁGINAS ====================
 async function descargarPDF(id) {
