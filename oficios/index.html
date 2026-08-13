@@ -2877,7 +2877,6 @@
         }
       }
 
-      // ==================== VISTA PREVIA - CORREGIDA CON CARGO DEL REMITENTE ====================
       // ==================== VISTA PREVIA CON CONTADOR DE PÁGINAS ====================
 function actualizarVistaPrevia() {
   const preview = document.getElementById("previewDocumento");
@@ -2937,7 +2936,7 @@ function actualizarVistaPrevia() {
     archivosLinksHTML += `</div>`;
   }
 
-  // Construir el HTML del documento para calcular páginas
+  // Construir el HTML del documento
   let documentoHTML = `
     <div class="header-doc">
       <div class="logo-container">
@@ -2945,7 +2944,11 @@ function actualizarVistaPrevia() {
       </div>
       <div class="clave-doc">${clave}</div>
     </div>
-    <div class="fecha-lugar">${fechaFormateada}</div>
+    <!-- ELIMINADO: <div class="fecha-lugar">${fechaFormateada}</div> -->
+    <!-- NUEVA FECHA SIN BORDE -->
+    <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px; border: none; padding: 0;">
+      ${fechaFormateada}
+    </div>
     <div class="destinatario">
       <span class="label">C.</span> ${destinatario}
       ${departamentoDestino ? `<br><span style="font-size:10pt; color:#444; margin-left:18px;">${departamentoDestino}</span>` : ""}
@@ -3326,7 +3329,6 @@ function calcularPaginasPreview() {
         }
       }
 
-      // ==================== IMPRIMIR - CORREGIDO CON CARGO DEL REMITENTE ====================
       // ==================== IMPRIMIR CON CONTADOR DE PÁGINAS ====================
 function imprimirOficio(id) {
   const oficio = todosLosOficios.find((o) => o.id === id);
@@ -3367,7 +3369,7 @@ function imprimirOficio(id) {
     linksHTML += `</div>`;
   }
 
-  // Construir el documento completo para calcular páginas
+  // Construir el documento completo
   let documentoCompleto = `
     <div class="header-doc">
       <div class="logo-container">
@@ -3375,7 +3377,10 @@ function imprimirOficio(id) {
       </div>
       <div class="clave-doc">${clave}</div>
     </div>
-    <div class="fecha-lugar">${fechaFormateada}</div>
+    <!-- FECHA SIN BORDE -->
+    <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px; border: none; padding: 0;">
+      ${fechaFormateada}
+    </div>
     <div class="destinatario">
       <span class="label">C.</span> ${destinatarioNombre}
       ${departamentoDestino ? `<span class="cargo-destino">${departamentoDestino}</span>` : ""}
@@ -3453,12 +3458,6 @@ function imprimirOficio(id) {
           font-weight: bold; 
           color: #0f1a2e; 
           text-align: right; 
-        }
-        .fecha-lugar { 
-          text-align: right; 
-          font-size: 11pt; 
-          margin-bottom: 14px; 
-          margin-top: 8px; 
         }
         .destinatario { 
           margin-bottom: 10px; 
@@ -3662,20 +3661,14 @@ function imprimirOficio(id) {
         </div>
       </div>
       <script>
-        // Contador de páginas automático con CSS
-        // El navegador maneja el contador con @page
         window.onload = function() {
-          // Obtener el número de páginas (aproximado)
+          const contentHeight = document.querySelector('.documento-print').scrollHeight;
+          const pageHeight = 842;
+          const numPages = Math.max(1, Math.ceil(contentHeight / pageHeight));
           const pageNumberElement = document.querySelector('.page-number');
           if (pageNumberElement) {
-            // Usar JavaScript para contar páginas aproximadas
-            const contentHeight = document.querySelector('.documento-print').scrollHeight;
-            const pageHeight = 842; // Aproximado para A4
-            const numPages = Math.max(1, Math.ceil(contentHeight / pageHeight));
             pageNumberElement.textContent = 'Pág. 1 de ' + numPages;
           }
-          
-          // Imprimir automáticamente
           window.print();
         };
       <\/script>
@@ -3685,10 +3678,8 @@ function imprimirOficio(id) {
   ventana.document.close();
 }
 
-      // ==================== DESCARGAR PDF - VERSIÓN CORREGIDA ====================
       // ==================== DESCARGAR PDF - VERSIÓN SIMPLIFICADA ====================
 async function descargarPDF(id) {
-  // Obtener el oficio
   let oficio;
   
   if (!id) {
@@ -3696,25 +3687,19 @@ async function descargarPDF(id) {
     const contenidoFinal = contenido.includes("editor-placeholder") ? "" : contenido;
     
     oficio = {
-      id: 'nuevo',
       clave_opdssj: document.getElementById("clave_opdssj")?.value || "OPDSSJ.SDGM/000/2026",
-      tipo_documento: document.getElementById("tipo_documento")?.value || "Oficio",
       asunto: document.getElementById("asunto")?.value || "Asunto del oficio",
       contenido: contenidoFinal || "Redacte el contenido del oficio...",
-      fundamentacion: document.getElementById("fundamentacion")?.value || "",
       remitente: document.getElementById("remitente")?.value || "Nombre del remitente",
       cargo_remitente: document.getElementById("cargo_remitente")?.value || "Cargo del remitente",
       destinatario: document.getElementById("destinatario")?.value || "Nombre del destinatario",
       departamento_destino: document.getElementById("departamento_destino")?.value || "",
-      fecha_emision: document.getElementById("fecha_emision")?.value || new Date().toISOString().split('T')[0],
-      plazo_respuesta: parseInt(document.getElementById("plazo_respuesta")?.value) || 5,
-      prioridad: document.getElementById("prioridad")?.value || "Media",
-      observaciones: document.getElementById("observaciones")?.value || "",
+      fundamentacion: document.getElementById("fundamentacion")?.value || "",
       elaboro: document.getElementById("elaboro")?.value || "",
       reviso: document.getElementById("reviso")?.value || "",
       autorizo: document.getElementById("autorizo")?.value || "",
       confidencial: document.getElementById("confidencial")?.checked || false,
-      estado: "Borrador",
+      fecha_emision: document.getElementById("fecha_emision")?.value || new Date().toISOString().split('T')[0],
       archivos: archivosSubidos || [],
       links: linksAgregados || []
     };
@@ -3742,7 +3727,7 @@ async function descargarPDF(id) {
       contenido = "Sin contenido";
     }
 
-    // Generar HTML de archivos
+    // Generar archivos
     let archivosHTML = "";
     if (oficio.archivos && oficio.archivos.length > 0) {
       archivosHTML = `
@@ -3755,7 +3740,7 @@ async function descargarPDF(id) {
       archivosHTML += `</div>`;
     }
 
-    // Generar HTML de links
+    // Generar links
     let linksHTML = "";
     if (oficio.links && oficio.links.length > 0) {
       linksHTML = `
@@ -3782,27 +3767,7 @@ async function descargarPDF(id) {
       `;
     }
 
-    // Generar confidencial
-    let confidencialHTML = "";
-    if (oficio.confidencial) {
-      confidencialHTML = `
-        <div style="margin-top: 10px; padding: 5px 10px; background: #fff5f5; border: 1px solid #ffcdd2; color: #c62828; font-size: 8pt; text-align: center;">
-          🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
-        </div>
-      `;
-    }
-
-    // Generar fundamentación
-    let fundamentacionHTML = "";
-    if (oficio.fundamentacion) {
-      fundamentacionHTML = `
-        <div style="margin: 10px 0; padding: 6px 12px; background: #f8f9fa; border-left: 4px solid #0f1a2e; font-style: italic; font-size: 10pt;">
-          <strong>Fundamentación:</strong><br>${oficio.fundamentacion}
-        </div>
-      `;
-    }
-
-    // CONSTRUIR EL DOCUMENTO COMPLETO
+    // Construir el documento HTML
     const documentoHTML = `
       <div style="font-family: 'Arial', Times, serif; background: white; color: #1a1a1a; font-size: 11pt; line-height: 1.5; padding: 40px; max-width: 100%;">
         <!-- HEADER -->
@@ -3813,8 +3778,10 @@ async function descargarPDF(id) {
           <div style="margin-top: 6px; font-size: 11pt; font-weight: bold; color: #0f1a2e; text-align: right;">${clave}</div>
         </div>
 
-        <!-- FECHA -->
-        <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px;">${fechaFormateada}</div>
+        <!-- FECHA SIN BORDE -->
+        <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px; border: none; padding: 0;">
+          ${fechaFormateada}
+        </div>
         
         <!-- DESTINATARIO -->
         <div style="margin-bottom: 10px; font-size: 11pt;">
@@ -3832,7 +3799,12 @@ async function descargarPDF(id) {
           ${contenido}
         </div>
         
-        ${fundamentacionHTML}
+        ${oficio.fundamentacion ? `
+          <div style="margin: 10px 0; padding: 6px 12px; background: #f8f9fa; border-left: 4px solid #0f1a2e; font-style: italic; font-size: 10pt;">
+            <strong>Fundamentación:</strong><br>${oficio.fundamentacion}
+          </div>
+        ` : ""}
+        
         ${archivosHTML}
         ${linksHTML}
         
@@ -3847,7 +3819,12 @@ async function descargarPDF(id) {
           </div>
         </div>
         
-        ${confidencialHTML}
+        ${oficio.confidencial ? `
+          <div style="margin-top: 10px; padding: 5px 10px; background: #fff5f5; border: 1px solid #ffcdd2; color: #c62828; font-size: 8pt; text-align: center;">
+            🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
+          </div>
+        ` : ""}
+        
         ${responsablesHTML}
         
         <!-- FOOTER -->
@@ -3866,49 +3843,27 @@ async function descargarPDF(id) {
       </div>
     `;
 
-    // Crear un elemento temporal para el PDF
+    // Crear elemento para el PDF
     const element = document.createElement('div');
     element.innerHTML = documentoHTML;
     element.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 595px; background: white; z-index: -1;';
     document.body.appendChild(element);
 
-    // Configurar opciones del PDF
-    const opt = {
-      margin: 0,
-      filename: `OPDSSJ_${clave.replace(/[\/\\]/g, '_')}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        letterRendering: true,
-        logging: false,
-        width: 595,
-        height: element.scrollHeight || 842
-      },
-      jsPDF: {
-        unit: 'px',
-        format: [595, element.scrollHeight || 842],
-        orientation: 'portrait'
-      }
-    };
-
     // Generar PDF
     html2pdf()
-      .set(opt)
       .from(element)
-      .save()
+      .save(`OPDSSJ_${clave.replace(/[\/\\]/g, '_')}.pdf`)
       .then(() => {
         document.body.removeChild(element);
         mostrarToast("✅ PDF descargado correctamente", "success");
       })
       .catch((err) => {
         document.body.removeChild(element);
-        console.error("Error:", err);
-        mostrarToast("❌ Error al generar PDF: " + (err.message || "Error desconocido"), "error");
+        throw err;
       });
 
   } catch (error) {
-    console.error("Error detallado:", error);
+    console.error("Error:", error);
     mostrarToast("❌ Error al generar PDF: " + (error.message || "Error desconocido"), "error");
   }
 }
@@ -4311,11 +4266,16 @@ async function descargarPDF(id) {
         if (!fecha) return "-";
         const d = new Date(fecha);
         if (isNaN(d.getTime())) return fecha;
-        return d.toLocaleDateString("es-MX", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
+        
+        const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
+        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+        
+        const diaSemana = diasSemana[d.getDay()];
+        const dia = d.getDate();
+        const mes = meses[d.getMonth()];
+        const año = d.getFullYear();
+        
+        return `${diaSemana} ${dia} de ${mes} de ${año}`;
       }
 
       function mostrarToast(mensaje, tipo = "info") {
