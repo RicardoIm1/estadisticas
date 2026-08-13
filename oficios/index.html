@@ -694,6 +694,48 @@
         padding-top: 8px;
       }
 
+      /* ============================================
+       ARCHIVOS Y LINKS EN PREVIEW
+       ============================================ */
+      .documento-preview .archivos-links {
+        margin: 15px 0 10px 0;
+        padding: 10px 12px;
+        background: #f8f9fa;
+        border-radius: 4px;
+        border: 1px solid #e9ecef;
+      }
+
+      .documento-preview .archivos-links .titulo {
+        font-size: 9pt;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 6px;
+      }
+
+      .documento-preview .archivos-links .item {
+        font-size: 9pt;
+        padding: 2px 0;
+        color: #555;
+      }
+
+      .documento-preview .archivos-links .item a {
+        color: #0066cc;
+        text-decoration: underline;
+      }
+
+      .documento-preview .archivos-links .item .tamano {
+        font-size: 8pt;
+        color: #999;
+        margin-left: 4px;
+      }
+
+      .documento-preview .archivos-links .vacio {
+        font-size: 9pt;
+        color: #ccc;
+        text-align: center;
+        padding: 4px 0;
+      }
+
       /* ============================================================
        FOOTER MODIFICADO - PROPORCIONES 15-70-15
        ============================================================ */
@@ -782,9 +824,9 @@
 
       /* NÚMERO DE PÁGINA MÁS DISCRETO */
       .documento-preview .footer-doc .page-number {
-        font-size: 7.5pt; /* Más pequeño */
-        color: #999; /* Más tenue */
-        font-weight: 400; /* Menos negrita */
+        font-size: 7.5pt;
+        color: #999;
+        font-weight: 400;
         text-align: center;
         letter-spacing: 0.3px;
       }
@@ -2244,6 +2286,45 @@
                     />
                   </div>
 
+                  <!-- ============================================
+                  SECCIÓN: ARCHIVOS Y LINKS (NUEVO)
+                  ============================================ -->
+                  <div class="form-group full-width" style="margin-top: 6px;">
+                    <label style="font-size: 8px; color: rgba(255,255,255,0.3); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 3px;">
+                      📎 Archivos y Enlaces
+                    </label>
+
+                    <!-- Input de archivos -->
+                    <input type="file" id="inputArchivos" multiple
+                           accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.zip"
+                           style="padding: 4px; font-size: 10px; background: rgba(255,255,255,0.04); border: 1px dashed rgba(255,255,255,0.1); border-radius: 6px; color: rgba(255,255,255,0.5); width: 100%;" />
+                    <small style="font-size: 8px; color: rgba(255,255,255,0.15); margin-top: 2px; display: block;">
+                      Puedes seleccionar múltiples archivos (PDF, Excel, Word, imágenes, etc.)
+                    </small>
+
+                    <!-- Lista de archivos -->
+                    <div id="listaArchivos" style="margin: 6px 0 8px 0; display: flex; flex-wrap: wrap; gap: 4px;">
+                      <!-- Se llena con JS -->
+                    </div>
+
+                    <!-- Agregar link -->
+                    <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px;">
+                      <input type="text" id="inputLinkUrl" placeholder="https://ejemplo.com/documento" 
+                             style="flex: 2; min-width: 120px; padding: 4px 8px; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; background: rgba(255,255,255,0.04); color: #fff; font-size: 10px;" />
+                      <input type="text" id="inputLinkDesc" placeholder="Descripción del enlace" 
+                             style="flex: 1; min-width: 80px; padding: 4px 8px; border: 1px solid rgba(255,255,255,0.08); border-radius: 6px; background: rgba(255,255,255,0.04); color: #fff; font-size: 10px;" />
+                      <button type="button" id="btnAgregarLink" 
+                              style="padding: 4px 12px; font-size: 10px; background: rgba(0,123,255,0.2); border: 1px solid rgba(0,123,255,0.2); border-radius: 6px; color: #fff; cursor: pointer;">
+                        + Agregar
+                      </button>
+                    </div>
+
+                    <!-- Lista de links -->
+                    <div id="listaLinks" style="margin: 6px 0 0 0; display: flex; flex-wrap: wrap; gap: 6px;">
+                      <!-- Se llena con JS -->
+                    </div>
+                  </div>
+
                   <div class="full-width">
                     <label
                       style="
@@ -2471,6 +2552,8 @@
 
       // ==================== VARIABLES GLOBALES ====================
       let todosLosOficios = [];
+      let archivosSubidos = [];
+      let linksAgregados = [];
 
       // ==================== INICIALIZACIÓN ====================
       document.addEventListener("DOMContentLoaded", function () {
@@ -2480,6 +2563,8 @@
         cargarDatos();
         mostrarModoTabla();
         setInterval(verificarVencimientos, 300000);
+        renderizarArchivos();
+        renderizarLinks();
 
         const editor = document.getElementById("editorContenido");
         editor.addEventListener("input", function () {
@@ -2507,6 +2592,34 @@
             el.addEventListener("input", actualizarVistaPrevia);
             el.addEventListener("change", actualizarVistaPrevia);
           });
+
+        // Event listeners para archivos y links
+        const inputArchivos = document.getElementById("inputArchivos");
+        if (inputArchivos) {
+          inputArchivos.addEventListener("change", function (e) {
+            if (this.files.length > 0) {
+              procesarArchivos(this.files);
+              this.value = '';
+            }
+          });
+        }
+
+        const btnAgregarLink = document.getElementById("btnAgregarLink");
+        if (btnAgregarLink) {
+          btnAgregarLink.addEventListener("click", agregarLink);
+        }
+
+        ['inputLinkUrl', 'inputLinkDesc'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.addEventListener("keydown", function (e) {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                agregarLink();
+              }
+            });
+          }
+        });
       });
 
       // ==================== EDITOR ====================
@@ -2593,6 +2706,131 @@
         }
       }
 
+      // ==================== GESTIÓN DE ARCHIVOS ====================
+      function procesarArchivos(files) {
+        for (let file of files) {
+          if (file.size > 10 * 1024 * 1024) {
+            mostrarToast(`El archivo ${file.name} supera los 10MB`, 'error');
+            continue;
+          }
+
+          const extension = file.name.split('.').pop();
+          const nombreUnico = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${extension}`;
+          const ruta = `oficios/${document.getElementById('editId').value || 'temp'}/${nombreUnico}`;
+
+          archivosSubidos.push({
+            nombre: file.name,
+            ruta: ruta,
+            tamano: file.size,
+            tipo: file.type
+          });
+        }
+
+        renderizarArchivos();
+        guardarDatosOficio();
+        actualizarVistaPrevia();
+      }
+
+      function renderizarArchivos() {
+        const container = document.getElementById('listaArchivos');
+        if (!container) return;
+
+        if (archivosSubidos.length === 0) {
+          container.innerHTML = `<span style="font-size: 9px; color: rgba(255,255,255,0.15);">No hay archivos adjuntos</span>`;
+          return;
+        }
+
+        container.innerHTML = archivosSubidos.map((arch, idx) => `
+          <div style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.04); padding: 2px 8px 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06); font-size: 9px; color: rgba(255,255,255,0.6);">
+            <span>📎</span>
+            <span style="max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${arch.nombre}</span>
+            <span style="font-size: 7px; color: rgba(255,255,255,0.2);">${(arch.tamano / 1024).toFixed(0)} KB</span>
+            <button onclick="eliminarArchivo(${idx})" style="background: transparent; border: none; color: rgba(255,255,255,0.2); cursor: pointer; font-size: 10px; padding: 0 2px;">×</button>
+          </div>
+        `).join('');
+      }
+
+      function eliminarArchivo(idx) {
+        archivosSubidos.splice(idx, 1);
+        renderizarArchivos();
+        guardarDatosOficio();
+        actualizarVistaPrevia();
+      }
+
+      function agregarLink() {
+        const urlInput = document.getElementById('inputLinkUrl');
+        const descInput = document.getElementById('inputLinkDesc');
+
+        const url = urlInput.value.trim();
+        const desc = descInput.value.trim() || 'Enlace';
+
+        if (!url) {
+          mostrarToast('Ingresa una URL válida', 'warning');
+          return;
+        }
+
+        try {
+          new URL(url);
+        } catch {
+          mostrarToast('URL no válida. Ej: https://ejemplo.com', 'error');
+          return;
+        }
+
+        linksAgregados.push({ url, descripcion: desc });
+        renderizarLinks();
+        guardarDatosOficio();
+        actualizarVistaPrevia();
+
+        urlInput.value = '';
+        descInput.value = '';
+      }
+
+      function renderizarLinks() {
+        const container = document.getElementById('listaLinks');
+        if (!container) return;
+
+        if (linksAgregados.length === 0) {
+          container.innerHTML = `<span style="font-size: 9px; color: rgba(255,255,255,0.15);">No hay enlaces agregados</span>`;
+          return;
+        }
+
+        container.innerHTML = linksAgregados.map((link, idx) => `
+          <div style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.04); padding: 2px 8px 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.06); font-size: 9px; color: rgba(255,255,255,0.6);">
+            <span>🔗</span>
+            <a href="${link.url}" target="_blank" style="color: rgba(100,180,255,0.7); text-decoration: none; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${link.descripcion}</a>
+            <span style="font-size: 7px; color: rgba(255,255,255,0.2);">${new URL(link.url).hostname}</span>
+            <button onclick="eliminarLink(${idx})" style="background: transparent; border: none; color: rgba(255,255,255,0.2); cursor: pointer; font-size: 10px; padding: 0 2px;">×</button>
+          </div>
+        `).join('');
+      }
+
+      function eliminarLink(idx) {
+        linksAgregados.splice(idx, 1);
+        renderizarLinks();
+        guardarDatosOficio();
+        actualizarVistaPrevia();
+      }
+
+      function guardarDatosOficio() {
+        if (typeof window.datosOficio === 'undefined') {
+          window.datosOficio = {};
+        }
+        window.datosOficio.archivos = archivosSubidos;
+        window.datosOficio.links = linksAgregados;
+      }
+
+      function cargarArchivosYLinks(datos) {
+        if (datos?.archivos) {
+          archivosSubidos = datos.archivos;
+          renderizarArchivos();
+        }
+
+        if (datos?.links) {
+          linksAgregados = datos.links;
+          renderizarLinks();
+        }
+      }
+
       // ==================== VISTA PREVIA ====================
       function actualizarVistaPrevia() {
         const preview = document.getElementById("previewDocumento");
@@ -2641,37 +2879,37 @@
           return;
         }
 
-        // Aquí van las imágenes del logo - REEMPLAZA LAS URLS CON LAS TUYAS
-        const logoIzquierda =
-          "data:image/svg+xml," +
-          encodeURIComponent(`
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 80">
-                        <rect width="200" height="80" fill="white"/>
-                        <text x="20" y="30" font-family="Arial" font-size="14" font-weight="bold" fill="#0f1a2e">HOSPITAL REGIONAL</text>
-                        <text x="20" y="48" font-family="Arial" font-size="10" fill="#1a2a4a">Servicios de Salud Jalisco</text>
-                        <text x="20" y="62" font-family="Arial" font-size="9" fill="#2c3e6a">de PUERTO VALLARTA</text>
-                        <circle cx="170" cy="40" r="18" fill="#0f1a2e"/>
-                        <text x="164" y="44" font-family="Arial" font-size="12" fill="white" font-weight="bold">HR</text>
-                    </svg>
-                `);
+        // Generar HTML de archivos y links
+        let archivosLinksHTML = '';
 
-        const logoDerecha =
-          "data:image/svg+xml," +
-          encodeURIComponent(`
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80">
-                        <rect width="120" height="80" fill="white"/>
-                        <text x="10" y="28" font-family="Arial" font-size="12" font-weight="bold" fill="#0f1a2e">OPDSSJ</text>
-                        <text x="10" y="44" font-family="Arial" font-size="8" fill="#1a2a4a">Servicios de Salud</text>
-                        <text x="10" y="56" font-family="Arial" font-size="8" fill="#2c3e6a">Jalisco</text>
-                        <rect x="80" y="15" width="30" height="40" rx="5" fill="#0f1a2e"/>
-                        <text x="88" y="42" font-family="Arial" font-size="14" fill="white" font-weight="bold">SS</text>
-                    </svg>
-                `);
+        if (archivosSubidos.length > 0 || linksAgregados.length > 0) {
+          archivosLinksHTML = `<div class="archivos-links">`;
+
+          if (archivosSubidos.length > 0) {
+            archivosLinksHTML += `<div class="titulo">📎 Archivos adjuntos:</div>`;
+            archivosSubidos.forEach(arch => {
+              archivosLinksHTML += `<div class="item">• ${arch.nombre} <span class="tamano">(${(arch.tamano / 1024).toFixed(0)} KB)</span></div>`;
+            });
+          }
+
+          if (linksAgregados.length > 0) {
+            if (archivosSubidos.length > 0) {
+              archivosLinksHTML += `<div class="titulo" style="margin-top:6px;">🔗 Enlaces relacionados:</div>`;
+            } else {
+              archivosLinksHTML += `<div class="titulo">🔗 Enlaces relacionados:</div>`;
+            }
+            linksAgregados.forEach(link => {
+              archivosLinksHTML += `<div class="item">• <a href="${link.url}" target="_blank">${link.descripcion}</a></div>`;
+            });
+          }
+
+          archivosLinksHTML += `</div>`;
+        }
 
         preview.innerHTML = `
                     <div class="header-doc">
                         <div class="logo-container">
-                          <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" alt="Logo Hospital Regional" class="logo-img-left" />
+                          <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" class="logo-img-left" />
                         </div>
                         <div class="clave-doc">
                             ${clave}
@@ -2699,6 +2937,7 @@
                     `
                         : ""
                     }
+                    ${archivosLinksHTML}
                     <div class="cierre">
                         <div class="atentamente">Atentamente,</div>
                         <div class="leyenda">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
@@ -2724,7 +2963,6 @@
                     </div>
                     <div class="footer-doc">
                       <div class="footer-left">
-                          <!-- ✅ LOGO IZQUIERDO FOOTER (NUEVO) -->
                           <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Logo_del_Gobierno_de_Jalisco" class="footer-logo-left" />
                       </div>
                       <div class="footer-center">
@@ -2734,7 +2972,7 @@
                           </div>  
                       </div>
                       <div class="footer-right">
-                        <span class="page-number">Página 1 de 1</span>  
+                        <span class="page-number">Pág. 1 de 1</span>  
                       </div>
                   </div>
                 `;
@@ -2768,7 +3006,7 @@
             const result = await supabaseClient
               .from("oficios")
               .select(
-                "id, clave_opdssj, tipo_documento, asunto, contenido, remitente, destinatario, fecha_emision, estado, prioridad, created_at",
+                "id, clave_opdssj, tipo_documento, asunto, contenido, remitente, destinatario, fecha_emision, estado, prioridad, created_at, archivos, links",
               )
               .order("created_at", { ascending: false });
 
@@ -2789,6 +3027,8 @@
             confidencial: o.confidencial || false,
             plazo_respuesta: o.plazo_respuesta || 5,
             departamento_destino: o.departamento_destino || "",
+            archivos: o.archivos || [],
+            links: o.links || [],
           }));
 
           renderizarTabla(todosLosOficios);
@@ -2888,6 +3128,8 @@
           confidencial: confidencial,
           numero_oficio: clave,
           estado: "Borrador",
+          archivos: archivosSubidos,
+          links: linksAgregados,
         };
 
         try {
@@ -3075,6 +3317,26 @@
                         <text x="88" y="42" font-family="Arial" font-size="14" fill="white" font-weight="bold">SS</text>
                     </svg>
                 `);
+
+        let archivosHTML = '';
+        if (oficio.archivos && oficio.archivos.length > 0) {
+          archivosHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
+            <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">📎 Archivos adjuntos:</div>`;
+          oficio.archivos.forEach(a => {
+            archivosHTML += `<div style="font-size:9pt;padding:2px 0;">• ${a.nombre} <span style="color:#999;font-size:8pt;">(${(a.tamano/1024).toFixed(0)} KB)</span></div>`;
+          });
+          archivosHTML += `</div>`;
+        }
+
+        let linksHTML = '';
+        if (oficio.links && oficio.links.length > 0) {
+          linksHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
+            <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">🔗 Enlaces relacionados:</div>`;
+          oficio.links.forEach(l => {
+            linksHTML += `<div style="font-size:9pt;padding:2px 0;">• <a href="${l.url}" target="_blank" style="color:#0066cc;text-decoration:underline;">${l.descripcion}</a></div>`;
+          });
+          linksHTML += `</div>`;
+        }
 
         const ventana = window.open("", "_blank");
         ventana.document.write(`
@@ -3275,6 +3537,30 @@
                                 color: #666; 
                                 font-weight: 500; 
                             }
+                            .archivos-section {
+                                margin: 10px 0;
+                                padding: 10px;
+                                background: #f8f9fa;
+                                border: 1px solid #e9ecef;
+                                border-radius: 4px;
+                            }
+                            .archivos-section .titulo {
+                                font-weight: bold;
+                                font-size: 10pt;
+                                margin-bottom: 4px;
+                            }
+                            .archivos-section .item {
+                                font-size: 9pt;
+                                padding: 2px 0;
+                            }
+                            .archivos-section .item a {
+                                color: #0066cc;
+                                text-decoration: underline;
+                            }
+                            .archivos-section .item .tamano {
+                                color: #999;
+                                font-size: 8pt;
+                            }
                             @media print {
                                 .no-print { display: none !important; }
                             }
@@ -3301,6 +3587,8 @@
                         <div class="asunto">Asunto: ${oficio.asunto}</div>
                         <div class="contenido">${oficio.contenido || "Contenido no especificado"}</div>
                         ${oficio.fundamentacion ? `<div class="fundamentacion"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
+                        ${archivosHTML}
+                        ${linksHTML}
                         <div class="cierre">
                             <div class="atentamente">Atentamente,</div>
                             <div class="leyenda">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
@@ -3321,7 +3609,7 @@
                                 </div>
                             </div>
                             <div class="footer-center">
-                                <span class="page-number">Página 1 de 1</span>
+                                <span class="page-number">Pág. 1 de 1</span>
                             </div>
                             <div class="footer-right">
                                 <div class="footer-text" style="text-align:right;">
@@ -3383,6 +3671,26 @@
                         </svg>
                     `);
 
+          let archivosHTML = '';
+          if (oficio.archivos && oficio.archivos.length > 0) {
+            archivosHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
+              <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">📎 Archivos adjuntos:</div>`;
+            oficio.archivos.forEach(a => {
+              archivosHTML += `<div style="font-size:9pt;padding:2px 0;">• ${a.nombre} <span style="color:#999;font-size:8pt;">(${(a.tamano/1024).toFixed(0)} KB)</span></div>`;
+            });
+            archivosHTML += `</div>`;
+          }
+
+          let linksHTML = '';
+          if (oficio.links && oficio.links.length > 0) {
+            linksHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
+              <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">🔗 Enlaces relacionados:</div>`;
+            oficio.links.forEach(l => {
+              linksHTML += `<div style="font-size:9pt;padding:2px 0;">• <a href="${l.url}" target="_blank" style="color:#0066cc;text-decoration:underline;">${l.descripcion}</a></div>`;
+            });
+            linksHTML += `</div>`;
+          }
+
           const element = document.createElement("div");
           element.innerHTML = `
                         <div style="font-family: 'Arial', Times, serif; padding: 0; background: white; color: #1a1a1a; font-size: 12pt; line-height: 1.5; max-width: 100%; margin: 0 auto;">
@@ -3406,6 +3714,8 @@
                             <div style="font-weight:bold; font-size:12pt; margin:12px 0 8px 0; text-transform:uppercase;">Asunto: ${oficio.asunto}</div>
                             <div style="line-height:1.6; font-size:12pt; text-align:justify; margin:14px 0;">${oficio.contenido || "Contenido no especificado"}</div>
                             ${oficio.fundamentacion ? `<div style="margin:12px 0; padding:8px 14px; background:#f8f9fa; border-left:4px solid #0f1a2e; font-style:italic; font-size:11pt;"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
+                            ${archivosHTML}
+                            ${linksHTML}
                             <div style="margin-top:35px; text-align:left;">
                                 <div style="font-size:12pt; margin-bottom:4px;">Atentamente,</div>
                                 <div style="font-style:italic; font-size:10pt; color:#555; margin:4px 0 25px 0;">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
@@ -3426,7 +3736,7 @@
                                     </div>
                                 </div>
                                 <div style="font-size:7pt; color:#999; text-align:center; flex:1;">
-                                    <span style="font-size:8pt; color:#666; font-weight:500;">Página 1 de 1</span>
+                                    <span style="font-size:8pt; color:#666; font-weight:500;">Pág. 1 de 1</span>
                                 </div>
                                 <div style="display:flex; align-items:center; gap:8px;">
                                     <div style="font-size:7pt; color:#999; line-height:1.3; text-align:right;">
@@ -3472,6 +3782,24 @@
 
         document.getElementById("modalTitle").textContent = `Detalle: ${clave}`;
 
+        let archivosDetalle = '';
+        if (oficio.archivos && oficio.archivos.length > 0) {
+          archivosDetalle = `<div style="margin:10px 0;"><strong>📎 Archivos adjuntos:</strong><div style="margin-top:4px;">`;
+          oficio.archivos.forEach(a => {
+            archivosDetalle += `<div style="font-size:10px;padding:2px 0;color:rgba(255,255,255,0.6);">• ${a.nombre} <span style="color:rgba(255,255,255,0.3);font-size:8px;">(${(a.tamano/1024).toFixed(0)} KB)</span></div>`;
+          });
+          archivosDetalle += `</div></div>`;
+        }
+
+        let linksDetalle = '';
+        if (oficio.links && oficio.links.length > 0) {
+          linksDetalle = `<div style="margin:10px 0;"><strong>🔗 Enlaces relacionados:</strong><div style="margin-top:4px;">`;
+          oficio.links.forEach(l => {
+            linksDetalle += `<div style="font-size:10px;padding:2px 0;color:rgba(255,255,255,0.6);">• <a href="${l.url}" target="_blank" style="color:#6ea8fe;text-decoration:underline;">${l.descripcion}</a></div>`;
+          });
+          linksDetalle += `</div></div>`;
+        }
+
         let html = `
                     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
                         <div><strong>📌 Clave:</strong><br>${clave}</div>
@@ -3493,18 +3821,16 @@
                             ${oficio.contenido || "Sin contenido"}
                         </div>
                     </div>
-                    ${
-                      oficio.fundamentacion
-                        ? `
+                    ${oficio.fundamentacion ? `
                     <div style="margin:10px 0;">
                         <strong>⚖️ Fundamentación:</strong>
                         <div style="background:rgba(255,255,255,0.04); padding:8px; border-radius:6px; margin-top:4px; font-size:10px; font-style:italic; border-left:3px solid rgba(255,255,255,0.1);">
                             ${oficio.fundamentacion}
                         </div>
                     </div>
-                    `
-                        : ""
-                    }
+                    ` : ""}
+                    ${archivosDetalle}
+                    ${linksDetalle}
                     <div style="margin:10px 0;">
                         <strong>💬 Observaciones:</strong>
                         <div style="background:rgba(255,255,255,0.04); padding:8px; border-radius:6px; margin-top:4px;">
@@ -3595,6 +3921,17 @@
         document.getElementById("confidencial").checked =
           oficio.confidencial || false;
 
+        // Cargar archivos y links
+        if (oficio.archivos) {
+          archivosSubidos = oficio.archivos;
+          renderizarArchivos();
+        }
+        if (oficio.links) {
+          linksAgregados = oficio.links;
+          renderizarLinks();
+        }
+        guardarDatosOficio();
+
         document.getElementById("formTitle").textContent = "✏️ Editar Oficio";
         document.getElementById("btnGuardar").textContent = "📤 Actualizar";
         document.getElementById("btnCancelar").style.display = "inline-block";
@@ -3623,6 +3960,11 @@
         document.getElementById("btnCancelar").style.display = "none";
         document.getElementById("confidencial").checked = false;
         setContenidoEditor("");
+        archivosSubidos = [];
+        linksAgregados = [];
+        renderizarArchivos();
+        renderizarLinks();
+        guardarDatosOficio();
         generarClaveOPDSSJ();
         setTimeout(actualizarVistaPrevia, 200);
       }
@@ -3760,13 +4102,15 @@
         }
 
         let csv =
-          "Clave OPDSSJ,Tipo,Asunto,Remitente,Cargo Remitente,Destinatario,Fecha Emisión,Estado,Prioridad,Plazo,Elaboró,Revisó,Autorizó,Confidencial,Observaciones\n";
+          "Clave OPDSSJ,Tipo,Asunto,Remitente,Cargo Remitente,Destinatario,Fecha Emisión,Estado,Prioridad,Plazo,Elaboró,Revisó,Autorizó,Confidencial,Observaciones,Archivos,Links\n";
 
         todosLosOficios.forEach((o) => {
           const contenidoPlano = o.contenido
             ? o.contenido.replace(/<[^>]*>/g, "").replace(/\s+/g, " ")
             : "";
-          csv += `"${o.clave_opdssj || ""}","${o.tipo_documento || "Oficio"}","${o.asunto || ""}","${o.remitente || ""}","${o.cargo_remitente || ""}","${o.destinatario || ""}","${formatearFecha(o.fecha_emision)}","${o.estado || "Borrador"}","${o.prioridad || "Media"}","${o.plazo_respuesta || 5}","${o.elaboro || ""}","${o.reviso || ""}","${o.autorizo || ""}","${o.confidencial ? "Sí" : "No"}","${o.observaciones || ""}"\n`;
+          const archivos = o.archivos ? o.archivos.map(a => a.nombre).join('; ') : '';
+          const links = o.links ? o.links.map(l => l.descripcion + ' (' + l.url + ')').join('; ') : '';
+          csv += `"${o.clave_opdssj || ""}","${o.tipo_documento || "Oficio"}","${o.asunto || ""}","${o.remitente || ""}","${o.cargo_remitente || ""}","${o.destinatario || ""}","${formatearFecha(o.fecha_emision)}","${o.estado || "Borrador"}","${o.prioridad || "Media"}","${o.plazo_respuesta || 5}","${o.elaboro || ""}","${o.reviso || ""}","${o.autorizo || ""}","${o.confidencial ? "Sí" : "No"}","${o.observaciones || ""}","${archivos}","${links}"\n`;
         });
 
         const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
@@ -3859,6 +4203,7 @@
       console.log("📐 Márgenes: 3.5cm sup/inf, 3.0cm izq/der");
       console.log("🔢 Numeración de páginas en footer");
       console.log("🏥 Logo como header");
+      console.log("📎 Gestión de archivos y enlaces integrada");
     </script>
   </body>
 </html>
