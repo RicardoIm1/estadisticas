@@ -9,7 +9,7 @@
 
     <!-- Librerías -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
     <!-- Google Fonts -->
     <link
@@ -3648,157 +3648,163 @@
 
       // ==================== DESCARGAR PDF - CORREGIDO CON CARGO DEL REMITENTE ====================
       async function descargarPDF(id) {
-        const oficio = todosLosOficios.find((o) => o.id === id);
-        if (!oficio) {
-          mostrarToast("❌ Oficio no encontrado", "error");
-          return;
-        }
+  const oficio = todosLosOficios.find((o) => o.id === id);
+  if (!oficio) {
+    mostrarToast("❌ Oficio no encontrado", "error");
+    return;
+  }
 
-        try {
-          mostrarToast("Generando PDF...", "info");
+  try {
+    mostrarToast("Generando PDF...", "info");
 
-          const clave = oficio.clave_opdssj || "N/A";
-          const cargoRemitente =
-            oficio.cargo_remitente || "Cargo no especificado";
+    const clave = oficio.clave_opdssj || "N/A";
+    const cargoRemitente = oficio.cargo_remitente || "Cargo no especificado";
+    const destinatarioNombre = oficio.destinatario || "Destinatario no especificado";
+    const departamentoDestino = oficio.departamento_destino || "";
+    const fechaFormateada = oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : "";
 
-          // DESTINATARIO (nombre)
-          const destinatarioNombre =
-            oficio.destinatario || "Destinatario no especificado";
-
-          // DEPARTAMENTO DESTINO (se usa como cargo del destinatario)
-          const departamentoDestino = oficio.departamento_destino || "";
-
-          const fechaFormateada = oficio.fecha_emision
-            ? formatearFecha(oficio.fecha_emision)
-            : "";
-
-          let archivosHTML = "";
-          if (oficio.archivos && oficio.archivos.length > 0) {
-            archivosHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
-        <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">📎 Archivos adjuntos:</div>`;
-            oficio.archivos.forEach((a) => {
-              archivosHTML += `<div style="font-size:9pt;padding:2px 0;">• ${a.nombre} <span style="color:#999;font-size:8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
-            });
-            archivosHTML += `</div>`;
-          }
-
-          let linksHTML = "";
-          if (oficio.links && oficio.links.length > 0) {
-            linksHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
-        <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">🔗 Enlaces relacionados:</div>`;
-            oficio.links.forEach((l) => {
-              linksHTML += `<div style="font-size:9pt;padding:2px 0;">• <a href="${l.url}" target="_blank" style="color:#0066cc;text-decoration:underline;">${l.descripcion}</a></div>`;
-            });
-            linksHTML += `</div>`;
-          }
-
-          // Crear el contenedor del PDF con estilos mejorados
-          const element = document.createElement("div");
-          element.style.cssText = `
-      font-family: 'Arial', Times, serif;
-      background: white;
-      color: #1a1a1a;
-      font-size: 11pt;
-      line-height: 1.5;
-      max-width: 100%;
-      padding: 0;
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    `;
-
-          element.innerHTML = `
-      <div style="flex:1; padding: 0;">
+    // Construir el HTML del documento
+    let contenidoHTML = `
+      <div style="font-family: 'Arial', Times, serif; background: white; color: #1a1a1a; font-size: 11pt; line-height: 1.5; padding: 40px 40px 40px 40px; max-width: 100%;">
         <!-- HEADER -->
-        <div style="text-align:center; margin-bottom:20px; padding-bottom:12px; border-bottom: 1px solid #eee;">
-          <div style="display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; padding-bottom:6px;">
-            <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" style="max-height:60px; width:auto; object-fit:contain;" />
+        <div style="text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #eee;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; padding-bottom: 6px;">
+            <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" style="max-height: 60px; width: auto; object-fit: contain;" />
           </div>
-          <div style="margin-top:6px; font-size:11pt; font-weight:bold; color:#0f1a2e; text-align:right;">${clave}</div>
+          <div style="margin-top: 6px; font-size: 11pt; font-weight: bold; color: #0f1a2e; text-align: right;">${clave}</div>
         </div>
 
         <!-- CUERPO -->
-        <div style="text-align:right; font-size:11pt; margin-bottom:14px; margin-top:8px;">${fechaFormateada}</div>
-        <div style="margin-bottom:10px; font-size:11pt;">
+        <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px;">${fechaFormateada}</div>
+        
+        <div style="margin-bottom: 10px; font-size: 11pt;">
           <strong>C.</strong> ${destinatarioNombre}
-          ${departamentoDestino ? `<br><span style="font-size:10pt; color:#444; margin-left:18px;">${departamentoDestino}</span>` : ""}
+          ${departamentoDestino ? `<br><span style="font-size: 10pt; color: #444; margin-left: 18px;">${departamentoDestino}</span>` : ""}
         </div>
-        <div style="font-weight:bold; font-size:11pt; margin:10px 0 6px 0; text-transform:uppercase;">Asunto: ${oficio.asunto}</div>
-        <div style="line-height:1.6; font-size:11pt; text-align:justify; margin:12px 0;">${oficio.contenido || "Contenido no especificado"}</div>
-        ${oficio.fundamentacion ? `<div style="margin:10px 0; padding:6px 12px; background:#f8f9fa; border-left:4px solid #0f1a2e; font-style:italic; font-size:10pt;"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
-        ${archivosHTML}
-        ${linksHTML}
-        <div style="margin-top:30px; text-align:left;">
-          <div style="font-size:11pt; margin-bottom:4px;">Atentamente,</div>
-          <div style="font-style:italic; font-size:9pt; color:#555; margin:4px 0 20px 0;">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
-          <div style="margin-top:8px; text-align:center;">
-            <div style="width:220px; border-top:1px solid #000; margin:6px auto 4px;"></div>
-            <div style="font-weight:bold; font-size:11pt;">${oficio.remitente}</div>
-            <div style="font-size:10pt; color:#333;">${cargoRemitente}</div>
+        
+        <div style="font-weight: bold; font-size: 11pt; margin: 10px 0 6px 0; text-transform: uppercase;">Asunto: ${oficio.asunto || ""}</div>
+        
+        <div style="line-height: 1.6; font-size: 11pt; text-align: justify; margin: 12px 0;">
+          ${oficio.contenido || "Contenido no especificado"}
+        </div>
+    `;
+
+    // Fundamentación
+    if (oficio.fundamentacion) {
+      contenidoHTML += `
+        <div style="margin: 10px 0; padding: 6px 12px; background: #f8f9fa; border-left: 4px solid #0f1a2e; font-style: italic; font-size: 10pt;">
+          <strong>Fundamentación:</strong><br>${oficio.fundamentacion}
+        </div>
+      `;
+    }
+
+    // Archivos
+    if (oficio.archivos && oficio.archivos.length > 0) {
+      contenidoHTML += `
+        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
+          <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">📎 Archivos adjuntos:</div>
+      `;
+      oficio.archivos.forEach((a) => {
+        contenidoHTML += `<div style="font-size: 9pt; padding: 2px 0;">• ${a.nombre} <span style="color: #999; font-size: 8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
+      });
+      contenidoHTML += `</div>`;
+    }
+
+    // Links
+    if (oficio.links && oficio.links.length > 0) {
+      contenidoHTML += `
+        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
+          <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">🔗 Enlaces relacionados:</div>
+      `;
+      oficio.links.forEach((l) => {
+        contenidoHTML += `<div style="font-size: 9pt; padding: 2px 0;">• <a href="${l.url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${l.descripcion}</a></div>`;
+      });
+      contenidoHTML += `</div>`;
+    }
+
+    // Cierre y firma
+    contenidoHTML += `
+        <div style="margin-top: 30px; text-align: left;">
+          <div style="font-size: 11pt; margin-bottom: 4px;">Atentamente,</div>
+          <div style="font-style: italic; font-size: 9pt; color: #555; margin: 4px 0 20px 0;">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
+          <div style="margin-top: 8px; text-align: center;">
+            <div style="width: 220px; border-top: 1px solid #000; margin: 6px auto 4px;"></div>
+            <div style="font-weight: bold; font-size: 11pt;">${oficio.remitente || ""}</div>
+            <div style="font-size: 10pt; color: #333;">${cargoRemitente}</div>
           </div>
         </div>
-        ${oficio.confidencial ? `<div style="margin-top:10px; padding:5px 10px; background:#fff5f5; border:1px solid #ffcdd2; color:#c62828; font-size:8pt; text-align:center;">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ""}
-        <div style="margin-top:25px; font-size:7pt; color:#666; text-align:right; border-top:1px solid #ddd; padding-top:6px;">${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}</div>
-      </div>
+    `;
 
-      <!-- FOOTER - CON MÁRGENES Y VISIBLE -->
-      <div style="
-        margin-top: 30px;
-        padding-top: 12px;
-        border-top: 2px solid #ddd;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        gap: 0;
-        flex-shrink: 0;
-        background: white;
-      ">
-        <div style="display:flex; align-items:center; justify-content:center; width:15%; flex-shrink:0;">
-          <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Gobierno de Jalisco" style="max-height:45px; width:auto; object-fit:contain;" />
+    // Confidencial
+    if (oficio.confidencial) {
+      contenidoHTML += `
+        <div style="margin-top: 10px; padding: 5px 10px; background: #fff5f5; border: 1px solid #ffcdd2; color: #c62828; font-size: 8pt; text-align: center;">
+          🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
         </div>
-        <div style="width:70%; text-align:center; font-size:8pt; color:#555; padding:0 8px; flex-shrink:0;">
-          <strong>|</strong><br>
-          Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.
+      `;
+    }
+
+    // Responsables
+    contenidoHTML += `
+        <div style="margin-top: 25px; font-size: 7pt; color: #666; text-align: right; border-top: 1px solid #ddd; padding-top: 6px;">
+          ${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}
+          ${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}
+          ${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}
         </div>
-        <div style="width:15%; text-align:center; flex-shrink:0;">
-          <span style="font-size:8pt; color:#999; font-weight:400;">Pág. 1 de 1</span>
+
+        <!-- FOOTER -->
+        <div style="margin-top: 30px; padding-top: 12px; border-top: 2px solid #ddd; display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0; flex-shrink: 0;">
+          <div style="display: flex; align-items: center; justify-content: center; width: 15%; flex-shrink: 0;">
+            <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Gobierno de Jalisco" style="max-height: 45px; width: auto; object-fit: contain;" />
+          </div>
+          <div style="width: 70%; text-align: center; font-size: 8pt; color: #555; padding: 0 8px; flex-shrink: 0;">
+            <strong>|</strong><br>
+            Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.
+          </div>
+          <div style="width: 15%; text-align: center; flex-shrink: 0;">
+            <span style="font-size: 8pt; color: #999; font-weight: 400;">Pág. 1 de 1</span>
+          </div>
         </div>
       </div>
     `;
 
-          // Configuración del PDF con márgenes correctos
-          const opt = {
-            margin: [10, 10, 10, 10],
-            filename: `OPDSSJ_${clave}.pdf`,
-            image: { type: "jpeg", quality: 0.98 },
-            html2canvas: {
-              scale: 2,
-              useCORS: true,
-              letterRendering: true,
-              logging: false,
-              height: element.scrollHeight + 100, // Captura todo el contenido
-              width: element.scrollWidth + 100,
-            },
-            jsPDF: {
-              unit: "mm",
-              format: "letter",
-              orientation: "portrait",
-            },
-          };
+    // Crear un contenedor temporal para el PDF
+    const container = document.createElement('div');
+    container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 800px; background: white; z-index: -1;';
+    container.innerHTML = contenidoHTML;
+    document.body.appendChild(container);
 
-          await html2pdf().set(opt).from(element).save();
-          mostrarToast("✅ PDF descargado correctamente", "success");
-        } catch (error) {
-          console.error("Error:", error);
-          mostrarToast(
-            "❌ Error al generar PDF: " +
-              (error.message || "Error desconocido"),
-            "error",
-          );
-        }
+    // Configuración del PDF
+    const opt = {
+      margin: 0,
+      filename: `OPDSSJ_${clave}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        letterRendering: true,
+        logging: false,
+        width: 800,
+        height: container.scrollHeight + 50
+      },
+      jsPDF: {
+        unit: 'px',
+        format: [800, container.scrollHeight + 100],
+        orientation: 'portrait'
       }
+    };
+
+    await html2pdf().set(opt).from(container).save();
+    
+    // Limpiar
+    document.body.removeChild(container);
+    
+    mostrarToast("✅ PDF descargado correctamente", "success");
+  } catch (error) {
+    console.error("Error:", error);
+    mostrarToast("❌ Error al generar PDF: " + (error.message || "Error desconocido"), "error");
+  }
+}
 
       // ==================== DETALLE ====================
       async function verDetalle(id) {
