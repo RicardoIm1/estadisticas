@@ -1943,6 +1943,13 @@
           font-weight: 400;
         }
       }
+
+      .documento-preview .destinatario .cargo-destino {
+        font-size: 10pt;
+        color: #444;
+        margin-left: 18px;
+        display: block;
+      }
     </style>
   </head>
   <body>
@@ -2883,10 +2890,14 @@
           document.getElementById("cargo_remitente")?.value ||
           "Cargo del remitente";
 
-        // --- DESTINATARIO: se muestra completo con su cargo (ya que el campo lo incluye) ---
+        // --- DESTINATARIO (nombre) ---
         const destinatario =
           document.getElementById("destinatario")?.value ||
-          "Nombre del destinatario (con cargo)";
+          "Nombre del destinatario";
+
+        // --- DEPARTAMENTO DESTINO (se usará como cargo del destinatario) ---
+        const departamentoDestino =
+          document.getElementById("departamento_destino")?.value || "";
 
         const fecha = document.getElementById("fecha_emision")?.value;
         const elaboro = document.getElementById("elaboro")?.value;
@@ -2952,6 +2963,7 @@
     <div class="fecha-lugar">${fechaFormateada}</div>
     <div class="destinatario">
       <span class="label">C.</span> ${destinatario}
+      ${departamentoDestino ? `<br><span style="font-size:10pt; color:#444; margin-left:18px;">${departamentoDestino}</span>` : ""}
     </div>
     <div class="asunto">Asunto: ${asunto}</div>
     <div class="contenido">${contenido || "Redacte el contenido del oficio..."}</div>
@@ -3320,9 +3332,12 @@
         const cargoRemitente =
           oficio.cargo_remitente || "Cargo no especificado";
 
-        // DESTINATARIO: se muestra completo (nombre y cargo)
-        const destinatarioCompleto =
+        // DESTINATARIO (nombre)
+        const destinatarioNombre =
           oficio.destinatario || "Destinatario no especificado";
+
+        // DEPARTAMENTO DESTINO (se usa como cargo del destinatario)
+        const departamentoDestino = oficio.departamento_destino || "";
 
         const fechaFormateada = oficio.fecha_emision
           ? formatearFecha(oficio.fecha_emision)
@@ -3401,6 +3416,12 @@
         }
         .destinatario .label { 
           font-weight: bold; 
+        }
+        .destinatario .cargo-destino {
+          font-size: 10pt;
+          color: #444;
+          margin-left: 18px;
+          display: block;
         }
         .asunto { 
           font-weight: bold; 
@@ -3580,7 +3601,10 @@
         <div class="clave-doc">${clave}</div>
       </div>
       <div class="fecha-lugar">${fechaFormateada}</div>
-      <div class="destinatario"><span class="label">C.</span> ${destinatarioCompleto}</div>
+      <div class="destinatario">
+        <span class="label">C.</span> ${destinatarioNombre}
+        ${departamentoDestino ? `<span class="cargo-destino">${departamentoDestino}</span>` : ""}
+      </div>
       <div class="asunto">Asunto: ${oficio.asunto}</div>
       <div class="contenido">${oficio.contenido || "Contenido no especificado"}</div>
       ${oficio.fundamentacion ? `<div class="fundamentacion"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
@@ -3637,9 +3661,12 @@
           const cargoRemitente =
             oficio.cargo_remitente || "Cargo no especificado";
 
-          // DESTINATARIO: se muestra completo (nombre y cargo)
-          const destinatarioCompleto =
+          // DESTINATARIO (nombre)
+          const destinatarioNombre =
             oficio.destinatario || "Destinatario no especificado";
+
+          // DEPARTAMENTO DESTINO (se usa como cargo del destinatario)
+          const departamentoDestino = oficio.departamento_destino || "";
 
           const fechaFormateada = oficio.fecha_emision
             ? formatearFecha(oficio.fecha_emision)
@@ -3675,7 +3702,10 @@
           <div style="margin-top:6px; font-size:11pt; font-weight:bold; color:#0f1a2e; text-align:right;">${clave}</div>
         </div>
         <div style="text-align:right; font-size:11pt; margin-bottom:14px; margin-top:8px;">${fechaFormateada}</div>
-        <div style="margin-bottom:10px; font-size:11pt;"><strong>C.</strong> ${destinatarioCompleto}</div>
+        <div style="margin-bottom:10px; font-size:11pt;">
+          <strong>C.</strong> ${destinatarioNombre}
+          ${departamentoDestino ? `<br><span style="font-size:10pt; color:#444; margin-left:18px;">${departamentoDestino}</span>` : ""}
+        </div>
         <div style="font-weight:bold; font-size:11pt; margin:10px 0 6px 0; text-transform:uppercase;">Asunto: ${oficio.asunto}</div>
         <div style="line-height:1.6; font-size:11pt; text-align:justify; margin:12px 0;">${oficio.contenido || "Contenido no especificado"}</div>
         ${oficio.fundamentacion ? `<div style="margin:10px 0; padding:6px 12px; background:#f8f9fa; border-left:4px solid #0f1a2e; font-style:italic; font-size:10pt;"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
