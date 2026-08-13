@@ -3657,89 +3657,39 @@
   try {
     mostrarToast("Generando PDF...", "info");
 
-    // Obtener el elemento de la vista previa
-    const previewElement = document.getElementById("previewDocumento");
-    if (!previewElement) {
-      mostrarToast("❌ Error: No se encuentra la vista previa", "error");
-      return;
-    }
-
-    // Clonar el contenido de la vista previa
-    const contenido = previewElement.cloneNode(true);
+    // Usar la vista previa directamente
+    const elemento = document.getElementById('previewDocumento');
     
-    // Eliminar mensajes vacíos si existen
-    const emptyMessage = contenido.querySelector('.empty-message');
-    if (emptyMessage) {
-      emptyMessage.remove();
+    // Quitar el mensaje vacío si existe
+    const emptyMsg = elemento.querySelector('.empty-message');
+    if (emptyMsg) {
+      emptyMsg.style.display = 'none';
     }
 
-    // Crear un contenedor para el PDF
-    const container = document.createElement('div');
-    container.style.cssText = `
-      font-family: 'Arial', Times, serif;
-      background: white;
-      color: #1a1a1a;
-      font-size: 11pt;
-      line-height: 1.5;
-      padding: 20px;
-      max-width: 100%;
-      margin: 0 auto;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    `;
-    
-    // Clonar el contenido dentro del contenedor
-    container.appendChild(contenido);
-
-    // Asegurar que el footer sea visible
-    const footer = container.querySelector('.footer-doc');
-    if (footer) {
-      footer.style.cssText = `
-        display: flex !important;
-        align-items: center !important;
-        justify-content: space-between !important;
-        width: 100% !important;
-        margin-top: 30px !important;
-        padding-top: 12px !important;
-        border-top: 2px solid #ddd !important;
-        gap: 0 !important;
-        flex-shrink: 0 !important;
-        background: white !important;
-        position: relative !important;
-      `;
-    }
-
-    // Configuración del PDF
     const opt = {
-      margin: [15, 15, 15, 15],
+      margin: [10, 10, 10, 10],
       filename: `OPDSSJ_${oficio.clave_opdssj || 'documento'}.pdf`,
-      image: { type: "jpeg", quality: 0.98 },
+      image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { 
         scale: 2, 
-        useCORS: true, 
+        useCORS: true,
         letterRendering: true,
         logging: false,
-        allowTaint: true,
-        width: 800,
-        height: container.scrollHeight || 1200,
-        windowWidth: 800,
-        windowHeight: container.scrollHeight || 1200,
       },
       jsPDF: { 
-        unit: "mm", 
-        format: "letter", 
-        orientation: "portrait" 
+        unit: 'mm', 
+        format: 'letter', 
+        orientation: 'portrait' 
       }
     };
 
-    // Si el contenedor está vacío, mostrar mensaje
-    if (!contenido.innerHTML.trim()) {
-      mostrarToast("❌ El documento está vacío", "error");
-      return;
+    await html2pdf().set(opt).from(elemento).save();
+    
+    // Restaurar el mensaje vacío
+    if (emptyMsg) {
+      emptyMsg.style.display = '';
     }
 
-    await html2pdf().set(opt).from(container).save();
     mostrarToast("✅ PDF descargado correctamente", "success");
   } catch (error) {
     console.error("Error:", error);
@@ -3749,7 +3699,6 @@
     );
   }
 }
-
       // ==================== DETALLE ====================
       async function verDetalle(id) {
         const oficio = todosLosOficios.find((o) => o.id === id);
