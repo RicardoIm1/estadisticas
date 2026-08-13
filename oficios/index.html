@@ -3663,118 +3663,125 @@
     const departamentoDestino = oficio.departamento_destino || "";
     const fechaFormateada = oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : "";
 
-    // Construir el HTML del documento
-    let contenidoHTML = `
-      <div style="font-family: 'Arial', Times, serif; background: white; color: #1a1a1a; font-size: 11pt; line-height: 1.5; padding: 40px 40px 40px 40px; max-width: 100%;">
-        <!-- HEADER -->
-        <div style="text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #eee;">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; padding-bottom: 6px;">
-            <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" style="max-height: 60px; width: auto; object-fit: contain;" />
+    // Crear iframe oculto
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position: absolute; left: -9999px; top: 0; width: 800px; height: 800px; border: none; background: white;';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body { 
+            font-family: 'Arial', Times, serif; 
+            background: white; 
+            color: #1a1a1a; 
+            font-size: 11pt; 
+            line-height: 1.5; 
+            padding: 40px 40px 40px 40px;
+          }
+          .header { text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #eee; }
+          .header .logo-container { display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; padding-bottom: 6px; }
+          .header .logo-container img { max-height: 60px; width: auto; object-fit: contain; }
+          .header .clave { margin-top: 6px; font-size: 11pt; font-weight: bold; color: #0f1a2e; text-align: right; }
+          .fecha { text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px; }
+          .destinatario { margin-bottom: 10px; font-size: 11pt; }
+          .destinatario .label { font-weight: bold; }
+          .destinatario .cargo { font-size: 10pt; color: #444; margin-left: 18px; display: block; }
+          .asunto { font-weight: bold; font-size: 11pt; margin: 10px 0 6px 0; text-transform: uppercase; }
+          .contenido { line-height: 1.6; font-size: 11pt; text-align: justify; margin: 12px 0; }
+          .fundamentacion { margin: 10px 0; padding: 6px 12px; background: #f8f9fa; border-left: 4px solid #0f1a2e; font-style: italic; font-size: 10pt; }
+          .archivos { margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; }
+          .archivos .titulo { font-weight: bold; font-size: 10pt; margin-bottom: 4px; }
+          .archivos .item { font-size: 9pt; padding: 2px 0; }
+          .archivos .item .tamano { color: #999; font-size: 8pt; }
+          .links { margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px; }
+          .links .titulo { font-weight: bold; font-size: 10pt; margin-bottom: 4px; }
+          .links .item { font-size: 9pt; padding: 2px 0; }
+          .links .item a { color: #0066cc; text-decoration: underline; }
+          .cierre { margin-top: 30px; text-align: left; }
+          .cierre .atentamente { font-size: 11pt; margin-bottom: 4px; }
+          .cierre .leyenda { font-style: italic; font-size: 9pt; color: #555; margin: 4px 0 20px 0; }
+          .cierre .firma { margin-top: 8px; text-align: center; }
+          .cierre .firma .linea { width: 220px; border-top: 1px solid #000; margin: 6px auto 4px; }
+          .cierre .firma .nombre { font-weight: bold; font-size: 11pt; }
+          .cierre .firma .cargo { font-size: 10pt; color: #333; }
+          .confidencial { margin-top: 10px; padding: 5px 10px; background: #fff5f5; border: 1px solid #ffcdd2; color: #c62828; font-size: 8pt; text-align: center; }
+          .responsables { margin-top: 25px; font-size: 7pt; color: #666; text-align: right; border-top: 1px solid #ddd; padding-top: 6px; }
+          .footer { margin-top: 30px; padding-top: 12px; border-top: 2px solid #ddd; display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0; }
+          .footer .left, .footer .right { display: flex; align-items: center; justify-content: center; width: 15%; flex-shrink: 0; }
+          .footer .left img, .footer .right img { max-height: 45px; width: auto; object-fit: contain; }
+          .footer .center { width: 70%; text-align: center; font-size: 8pt; color: #555; padding: 0 8px; flex-shrink: 0; }
+          .footer .center strong { color: #333; font-weight: 700; }
+          .footer .page-number { font-size: 8pt; color: #999; font-weight: 400; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="logo-container">
+            <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" />
           </div>
-          <div style="margin-top: 6px; font-size: 11pt; font-weight: bold; color: #0f1a2e; text-align: right;">${clave}</div>
+          <div class="clave">${clave}</div>
         </div>
-
-        <!-- CUERPO -->
-        <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px;">${fechaFormateada}</div>
-        
-        <div style="margin-bottom: 10px; font-size: 11pt;">
-          <strong>C.</strong> ${destinatarioNombre}
-          ${departamentoDestino ? `<br><span style="font-size: 10pt; color: #444; margin-left: 18px;">${departamentoDestino}</span>` : ""}
+        <div class="fecha">${fechaFormateada}</div>
+        <div class="destinatario">
+          <span class="label">C.</span> ${destinatarioNombre}
+          ${departamentoDestino ? `<span class="cargo">${departamentoDestino}</span>` : ""}
         </div>
-        
-        <div style="font-weight: bold; font-size: 11pt; margin: 10px 0 6px 0; text-transform: uppercase;">Asunto: ${oficio.asunto || ""}</div>
-        
-        <div style="line-height: 1.6; font-size: 11pt; text-align: justify; margin: 12px 0;">
-          ${oficio.contenido || "Contenido no especificado"}
-        </div>
-    `;
-
-    // Fundamentación
-    if (oficio.fundamentacion) {
-      contenidoHTML += `
-        <div style="margin: 10px 0; padding: 6px 12px; background: #f8f9fa; border-left: 4px solid #0f1a2e; font-style: italic; font-size: 10pt;">
-          <strong>Fundamentación:</strong><br>${oficio.fundamentacion}
-        </div>
-      `;
-    }
-
-    // Archivos
-    if (oficio.archivos && oficio.archivos.length > 0) {
-      contenidoHTML += `
-        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
-          <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">📎 Archivos adjuntos:</div>
-      `;
-      oficio.archivos.forEach((a) => {
-        contenidoHTML += `<div style="font-size: 9pt; padding: 2px 0;">• ${a.nombre} <span style="color: #999; font-size: 8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
-      });
-      contenidoHTML += `</div>`;
-    }
-
-    // Links
-    if (oficio.links && oficio.links.length > 0) {
-      contenidoHTML += `
-        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
-          <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">🔗 Enlaces relacionados:</div>
-      `;
-      oficio.links.forEach((l) => {
-        contenidoHTML += `<div style="font-size: 9pt; padding: 2px 0;">• <a href="${l.url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${l.descripcion}</a></div>`;
-      });
-      contenidoHTML += `</div>`;
-    }
-
-    // Cierre y firma
-    contenidoHTML += `
-        <div style="margin-top: 30px; text-align: left;">
-          <div style="font-size: 11pt; margin-bottom: 4px;">Atentamente,</div>
-          <div style="font-style: italic; font-size: 9pt; color: #555; margin: 4px 0 20px 0;">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
-          <div style="margin-top: 8px; text-align: center;">
-            <div style="width: 220px; border-top: 1px solid #000; margin: 6px auto 4px;"></div>
-            <div style="font-weight: bold; font-size: 11pt;">${oficio.remitente || ""}</div>
-            <div style="font-size: 10pt; color: #333;">${cargoRemitente}</div>
+        <div class="asunto">Asunto: ${oficio.asunto || ""}</div>
+        <div class="contenido">${oficio.contenido || "Contenido no especificado"}</div>
+        ${oficio.fundamentacion ? `<div class="fundamentacion"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
+        ${oficio.archivos && oficio.archivos.length > 0 ? `
+          <div class="archivos">
+            <div class="titulo">📎 Archivos adjuntos:</div>
+            ${oficio.archivos.map(a => `<div class="item">• ${a.nombre} <span class="tamano">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`).join('')}
+          </div>
+        ` : ""}
+        ${oficio.links && oficio.links.length > 0 ? `
+          <div class="links">
+            <div class="titulo">🔗 Enlaces relacionados:</div>
+            ${oficio.links.map(l => `<div class="item">• <a href="${l.url}" target="_blank">${l.descripcion}</a></div>`).join('')}
+          </div>
+        ` : ""}
+        <div class="cierre">
+          <div class="atentamente">Atentamente,</div>
+          <div class="leyenda">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
+          <div class="firma">
+            <div class="linea"></div>
+            <div class="nombre">${oficio.remitente || ""}</div>
+            <div class="cargo">${cargoRemitente}</div>
           </div>
         </div>
-    `;
-
-    // Confidencial
-    if (oficio.confidencial) {
-      contenidoHTML += `
-        <div style="margin-top: 10px; padding: 5px 10px; background: #fff5f5; border: 1px solid #ffcdd2; color: #c62828; font-size: 8pt; text-align: center;">
-          🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
-        </div>
-      `;
-    }
-
-    // Responsables
-    contenidoHTML += `
-        <div style="margin-top: 25px; font-size: 7pt; color: #666; text-align: right; border-top: 1px solid #ddd; padding-top: 6px;">
+        ${oficio.confidencial ? `<div class="confidencial">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ""}
+        <div class="responsables">
           ${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}
           ${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}
           ${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}
         </div>
-
-        <!-- FOOTER -->
-        <div style="margin-top: 30px; padding-top: 12px; border-top: 2px solid #ddd; display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 0; flex-shrink: 0;">
-          <div style="display: flex; align-items: center; justify-content: center; width: 15%; flex-shrink: 0;">
-            <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Gobierno de Jalisco" style="max-height: 45px; width: auto; object-fit: contain;" />
+        <div class="footer">
+          <div class="left">
+            <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Gobierno de Jalisco" />
           </div>
-          <div style="width: 70%; text-align: center; font-size: 8pt; color: #555; padding: 0 8px; flex-shrink: 0;">
+          <div class="center">
             <strong>|</strong><br>
             Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.
           </div>
-          <div style="width: 15%; text-align: center; flex-shrink: 0;">
-            <span style="font-size: 8pt; color: #999; font-weight: 400;">Pág. 1 de 1</span>
+          <div class="right">
+            <span class="page-number">Pág. 1 de 1</span>
           </div>
         </div>
-      </div>
-    `;
+      </body>
+      </html>
+    `);
+    doc.close();
 
-    // Crear un contenedor temporal para el PDF
-    const container = document.createElement('div');
-    container.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 800px; background: white; z-index: -1;';
-    container.innerHTML = contenidoHTML;
-    document.body.appendChild(container);
+    // Esperar a que carguen las imágenes
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Configuración del PDF
     const opt = {
       margin: 0,
       filename: `OPDSSJ_${clave}.pdf`,
@@ -3785,19 +3792,18 @@
         letterRendering: true,
         logging: false,
         width: 800,
-        height: container.scrollHeight + 50
+        height: doc.body.scrollHeight + 50
       },
       jsPDF: {
         unit: 'px',
-        format: [800, container.scrollHeight + 100],
+        format: [800, doc.body.scrollHeight + 100],
         orientation: 'portrait'
       }
     };
 
-    await html2pdf().set(opt).from(container).save();
+    await html2pdf().set(opt).from(iframe.contentDocument.body).save();
     
-    // Limpiar
-    document.body.removeChild(container);
+    document.body.removeChild(iframe);
     
     mostrarToast("✅ PDF descargado correctamente", "success");
   } catch (error) {
