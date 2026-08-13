@@ -3648,52 +3648,50 @@
 
       // ==================== DESCARGAR PDF - CORREGIDO CON CARGO DEL REMITENTE ====================
       async function descargarPDF(id) {
-        const oficio = todosLosOficios.find((o) => o.id === id);
-        if (!oficio) {
-          mostrarToast("❌ Oficio no encontrado", "error");
-          return;
-        }
+  const oficio = todosLosOficios.find((o) => o.id === id);
+  if (!oficio) {
+    mostrarToast("❌ Oficio no encontrado", "error");
+    return;
+  }
 
-        try {
-          mostrarToast("Generando PDF...", "info");
+  try {
+    mostrarToast("Generando PDF...", "info");
 
-          const clave = oficio.clave_opdssj || "N/A";
-          const cargoRemitente =
-            oficio.cargo_remitente || "Cargo no especificado";
+    const clave = oficio.clave_opdssj || "N/A";
+    const cargoRemitente = oficio.cargo_remitente || "Cargo no especificado";
+    
+    // DESTINATARIO (nombre)
+    const destinatarioNombre = oficio.destinatario || "Destinatario no especificado";
+    
+    // DEPARTAMENTO DESTINO (se usa como cargo del destinatario)
+    const departamentoDestino = oficio.departamento_destino || "";
+    
+    const fechaFormateada = oficio.fecha_emision
+      ? formatearFecha(oficio.fecha_emision)
+      : "";
 
-          // DESTINATARIO (nombre)
-          const destinatarioNombre =
-            oficio.destinatario || "Destinatario no especificado";
-
-          // DEPARTAMENTO DESTINO (se usa como cargo del destinatario)
-          const departamentoDestino = oficio.departamento_destino || "";
-
-          const fechaFormateada = oficio.fecha_emision
-            ? formatearFecha(oficio.fecha_emision)
-            : "";
-
-          let archivosHTML = "";
-          if (oficio.archivos && oficio.archivos.length > 0) {
-            archivosHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
+    let archivosHTML = "";
+    if (oficio.archivos && oficio.archivos.length > 0) {
+      archivosHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
         <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">📎 Archivos adjuntos:</div>`;
-            oficio.archivos.forEach((a) => {
-              archivosHTML += `<div style="font-size:9pt;padding:2px 0;">• ${a.nombre} <span style="color:#999;font-size:8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
-            });
-            archivosHTML += `</div>`;
-          }
+      oficio.archivos.forEach((a) => {
+        archivosHTML += `<div style="font-size:9pt;padding:2px 0;">• ${a.nombre} <span style="color:#999;font-size:8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
+      });
+      archivosHTML += `</div>`;
+    }
 
-          let linksHTML = "";
-          if (oficio.links && oficio.links.length > 0) {
-            linksHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
+    let linksHTML = "";
+    if (oficio.links && oficio.links.length > 0) {
+      linksHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
         <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">🔗 Enlaces relacionados:</div>`;
-            oficio.links.forEach((l) => {
-              linksHTML += `<div style="font-size:9pt;padding:2px 0;">• <a href="${l.url}" target="_blank" style="color:#0066cc;text-decoration:underline;">${l.descripcion}</a></div>`;
-            });
-            linksHTML += `</div>`;
-          }
+      oficio.links.forEach((l) => {
+        linksHTML += `<div style="font-size:9pt;padding:2px 0;">• <a href="${l.url}" target="_blank" style="color:#0066cc;text-decoration:underline;">${l.descripcion}</a></div>`;
+      });
+      linksHTML += `</div>`;
+    }
 
-          const element = document.createElement("div");
-          element.innerHTML = `
+    const element = document.createElement("div");
+    element.innerHTML = `
       <div style="font-family: 'Arial', Times, serif; padding: 0; background: white; color: #1a1a1a; font-size: 11pt; line-height: 1.5; max-width: 100%; margin: 0 auto;">
         <div style="text-align:center; margin-bottom:20px; padding-bottom:12px;">
           <div style="display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; padding-bottom:6px;">
@@ -3737,8 +3735,9 @@
       </div>
     `;
 
-          const opt = {
-            margin: { top: 25, bottom: 25, left: 25, right: 25 },
+    // ✅ Márgenes CORREGIDOS - formato de array [top, left, bottom, right] en mm
+      const opt = {
+            margin: [25, 25, 25, 25], // [top, left, bottom, right] en mm
             filename: `OPDSSJ_${clave}.pdf`,
             image: { type: "jpeg", quality: 0.98 },
             html2canvas: { scale: 2, useCORS: true, letterRendering: true },
@@ -3752,7 +3751,7 @@
           mostrarToast(
             "❌ Error al generar PDF: " +
               (error.message || "Error desconocido"),
-            "error",
+            "error"
           );
         }
       }
