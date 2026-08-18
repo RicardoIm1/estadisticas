@@ -798,81 +798,13 @@
       .cards-grid::-webkit-scrollbar-track {
         background: transparent;
       }
-
-      /* ===== MODAL DE CONFIRMACIÓN DE ELIMINACIÓN ===== */
-      .modal-confirm {
-        max-width: 450px !important;
-      }
-
-      .modal-confirm .modal-body {
-        gap: 10px;
-      }
-
-      .modal-confirm .confirm-data {
-        background: rgba(255, 255, 255, 0.05);
-        border-radius: 10px;
-        padding: 12px 16px;
-        margin: 8px 0;
-        border: 1px solid rgba(255, 255, 255, 0.06);
-      }
-
-      .modal-confirm .confirm-data small {
-        display: block;
-        color: rgba(255, 255, 255, 0.7);
-        font-size: 0.85rem;
-        padding: 2px 0;
-        word-break: break-word;
-      }
-
-      .modal-confirm .confirm-data small strong {
-        color: #fff;
-        font-weight: 600;
-      }
-
-      .modal-confirm .confirm-data .expediente-verde {
-        color: #00ff59 !important;
-        font-weight: bold !important;
-      }
-
-      .modal-confirm .confirm-warning {
-        text-align: center;
-        color: #ff4444;
-        font-size: 0.9rem;
-        margin: 5px 0 10px 0;
-        padding: 10px;
-        background: rgba(255, 50, 50, 0.08);
-        border-radius: 8px;
-        border: 1px solid rgba(255, 50, 50, 0.15);
-      }
-
-      .modal-confirm .confirm-warning i {
-        margin-right: 8px;
-      }
-
-      .modal-confirm .btn-danger {
-        background: linear-gradient(135deg, #ff4444, #cc0000);
-        color: white;
-      }
-      .modal-confirm .btn-danger:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(255, 50, 50, 0.4);
-      }
-
-      .modal-confirm .btn-outline {
-        background: rgba(255, 255, 255, 0.08);
-        color: #eee;
-        border: 1px solid rgba(255, 255, 255, 0.15);
-      }
-      .modal-confirm .btn-outline:hover {
-        background: rgba(255, 255, 255, 0.15);
-      }
     </style>
   </head>
 
   <body>
     <div class="glass" id="dashboard">
       <div class="header-simah">
-        <h5>📋 EXPEDIENTES CLÍNICOS</h5>
+        <h5>EXPEDIENTES CLÍNICOS</h5>
         <div class="header-actions">
           <button class="btn btn-primary" onclick="abrirModal()">
             <i class="fas fa-plus"></i> Nuevo
@@ -947,7 +879,7 @@
       <div id="footer"></div>
     </div>
 
-    <!-- ===== MODAL CRUD ===== -->
+    <!-- ===== MODAL ===== -->
     <div class="modal-overlay" id="modalOverlay">
       <div class="modal">
         <div class="modal-header">
@@ -1031,40 +963,6 @@
       </div>
     </div>
 
-    <!-- ===== MODAL DE CONFIRMACIÓN DE ELIMINACIÓN ===== -->
-    <div class="modal-overlay" id="modalConfirmDelete">
-      <div class="modal modal-confirm">
-        <div class="modal-header">
-          <h2 style="color: #ff4444">
-            <i class="fas fa-trash-alt"></i> Confirmar Eliminación
-          </h2>
-          <button class="modal-close" onclick="cerrarModalConfirm()">
-            &times;
-          </button>
-        </div>
-        <div class="modal-body">
-          <div class="confirm-warning">
-            <i class="fas fa-exclamation-triangle"></i>
-            ¿Estás seguro de eliminar este expediente?<br />
-            <span style="font-size: 0.8rem; opacity: 0.7"
-              >Esta acción no se puede deshacer</span
-            >
-          </div>
-          <div class="confirm-data" id="confirmData">
-            <!-- Los datos se llenarán desde JavaScript -->
-          </div>
-          <div class="modal-actions">
-            <button class="btn btn-danger" onclick="confirmarEliminacion()">
-              <i class="fas fa-trash-alt"></i> Eliminar definitivamente
-            </button>
-            <button class="btn btn-outline" onclick="cerrarModalConfirm()">
-              <i class="fas fa-times"></i> Cancelar
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <!-- ===== TOAST CONTAINER ===== -->
     <div class="toast-container" id="toastContainer"></div>
 
@@ -1088,7 +986,6 @@
       const registrosPorPagina = 12;
       let datosCompletos = [];
       let datosFiltrados = [];
-      let registroAEliminar = null; // Guarda el registro a eliminar
 
       // ============================================================
       // CACHE EN LOCALSTORAGE
@@ -1495,64 +1392,9 @@
         }
       }
 
-      // 🗑️ ELIMINAR - Con confirmación
-      function solicitarEliminarRegistro(id) {
-        // Buscar el registro en los datos completos
-        const registro = datosCompletos.find((r) => r.id === id);
-        if (!registro) {
-          mostrarToast("Registro no encontrado", "error");
+      async function eliminarRegistro(id, nombre) {
+        if (!confirm(`¿Estás seguro de eliminar el expediente de "${nombre}"?`))
           return;
-        }
-
-        // Guardar el registro a eliminar
-        registroAEliminar = registro;
-
-        // Llenar el modal de confirmación con los datos
-        const estado = registro.estado || "";
-        let estadoClass = "";
-        if (estado === "Defunción" || estado === "DEFUNCION")
-          estadoClass = "estado-defuncion";
-        else if (estado === "Activo" || estado === "ACTIVO")
-          estadoClass = "estado-activo";
-        else if (estado === "Inactivo" || estado === "INACTIVO")
-          estadoClass = "estado-inactivo";
-        else if (estado === "Alta" || estado === "ALTA")
-          estadoClass = "estado-alta";
-
-        const confirmData = document.getElementById("confirmData");
-        confirmData.innerHTML = `
-          <small><strong>Nombre:</strong> ${registro.nombre_paciente || "—"}</small>
-          <small><strong>Expediente:</strong> <span class="expediente-verde">${registro.expediente || "—"}</span></small>
-          <small><strong>Servicio:</strong> ${registro.servicio || "—"}</small>
-          <small><strong>Fecha Registro:</strong> ${registro.fecha_registro || "—"}</small>
-          <small><strong>Estado:</strong> <span class="${estadoClass}">${estado || "—"}</span></small>
-          <small><strong>Sexo:</strong> ${registro.sexo || "—"}</small>
-          <small><strong>Fecha Nac.:</strong> ${registro.fecha_nac || "—"}</small>
-          <small><strong>Teléfono:</strong> ${registro.tel_part || "—"}</small>
-        `;
-
-        // Mostrar el modal de confirmación
-        document.getElementById("modalConfirmDelete").classList.add("active");
-      }
-
-      function cerrarModalConfirm() {
-        document
-          .getElementById("modalConfirmDelete")
-          .classList.remove("active");
-        registroAEliminar = null;
-      }
-
-      async function confirmarEliminacion() {
-        if (!registroAEliminar) {
-          cerrarModalConfirm();
-          return;
-        }
-
-        const id = registroAEliminar.id;
-        const nombre = registroAEliminar.nombre_paciente || "sin nombre";
-
-        // Cerrar el modal de confirmación
-        cerrarModalConfirm();
 
         setGlassState("loading");
 
@@ -1573,13 +1415,9 @@
 
           mostrarPagina();
           actualizarEstadisticas();
-          registroAEliminar = null;
 
           setGlassState("success");
-          mostrarToast(
-            `✅ Expediente de "${nombre}" eliminado exitosamente`,
-            "success",
-          );
+          mostrarToast("✅ Expediente eliminado exitosamente", "success");
         } catch (error) {
           setGlassState("error");
           mostrarToast("❌ Error al eliminar: " + error.message, "error");
@@ -1618,23 +1456,15 @@
             estadoClass = "estado-alta";
 
           cont.innerHTML += `
-          <div class="card">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
-              <div style="flex:1; cursor:pointer;" onclick="abrirModalEditar('${r.id}')">
-                <span><b>${r.nombre_paciente || ""}</b></span>
-                <small><strong>Expediente:</strong> <span class="expediente-verde">${r.expediente || ""}</span></small>
-                <small><strong>Servicio:</strong> ${r.servicio || "—"}</small>
-                <small><strong>Fecha Registro:</strong> ${r.fecha_registro || "—"}</small>
-                <small><strong>Estado:</strong> <span class="${estadoClass}">${estado || "—"}</span></small>
-                <small><strong>Sexo:</strong> ${r.sexo || "—"}</small>
-                <small><strong>Fecha Nac.:</strong> ${r.fecha_nac || "—"}</small>
-                <small><strong>Teléfono:</strong> ${r.tel_part || "—"}</small>
-              </div>
-              <button class="btn btn-danger btn-sm" onclick="event.stopPropagation(); solicitarEliminarRegistro('${r.id}')" 
-                      style="flex-shrink:0; padding:4px 10px; font-size:12px; background:rgba(255,50,50,0.15); color:#ff4444; border:1px solid rgba(255,50,50,0.2); border-radius:6px; cursor:pointer; transition:all 0.2s ease;">
-                <i class="fas fa-trash-alt"></i>
-              </button>
-            </div>
+          <div class="card" onclick="abrirModalEditar('${r.id}')">
+            <span><b>${r.nombre_paciente || ""}</b></span>
+            <small><strong>Expediente:</strong> <span class="expediente-verde">${r.expediente || ""}</span></small>
+            <small><strong>Servicio:</strong> ${r.servicio || "—"}</small>
+            <small><strong>Fecha Registro:</strong> ${r.fecha_registro || "—"}</small>
+            <small><strong>Estado:</strong> <span class="${estadoClass}">${estado || "—"}</span></small>
+            <small><strong>Sexo:</strong> ${r.sexo || "—"}</small>
+            <small><strong>Fecha Nac.:</strong> ${r.fecha_nac || "—"}</small>
+            <small><strong>Teléfono:</strong> ${r.tel_part || "—"}</small>
           </div>
         `;
         });
@@ -1733,7 +1563,9 @@
         let usuarioActual = "Sistema";
 
         if (userInfo) {
+          // Intentar obtener el nombre del usuario
           const userText = userInfo.textContent || userInfo.innerText || "";
+          // Si tiene formato "Usuario: Ricardo" o similar
           const match =
             userText.match(/Usuario:\s*([^\s]+)/i) ||
             userText.match(/Bienvenido\s*([^\s]+)/i);
@@ -1744,6 +1576,7 @@
           }
         }
 
+        // Si no se encontró en el DOM, intentar desde localStorage
         if (usuarioActual === "Sistema") {
           const usuarioStorage = localStorage.getItem("usuario");
           if (usuarioStorage) {
@@ -1762,12 +1595,12 @@
           estado: document.getElementById("estado").value,
           sexo: document.getElementById("sexo").value || null,
           tel_part: document.getElementById("telPart").value.trim() || null,
-          usuario_registro: usuarioActual,
+          usuario_registro: usuarioActual, // 🔥 Campo agregado
         };
 
         if (id) {
           delete datosForm.fecha_registro;
-          delete datosForm.usuario_registro;
+          delete datosForm.usuario_registro; // No actualizar en edición
           await actualizarRegistro(id, datosForm);
         } else {
           await crearRegistro(datosForm);
@@ -1815,22 +1648,13 @@
         cargarDatosCompletos();
 
         document.addEventListener("keydown", function (e) {
-          if (e.key === "Escape") {
-            cerrarModal();
-            cerrarModalConfirm();
-          }
+          if (e.key === "Escape") cerrarModal();
         });
 
         document
           .getElementById("modalOverlay")
           .addEventListener("click", function (e) {
             if (e.target === this) cerrarModal();
-          });
-
-        document
-          .getElementById("modalConfirmDelete")
-          .addEventListener("click", function (e) {
-            if (e.target === this) cerrarModalConfirm();
           });
       });
     </script>
