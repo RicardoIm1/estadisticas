@@ -1,1333 +1,989 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Informe de Expedientes · Urgentes vs Regulares</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Informe de Expedientes Clínicos</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+    />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
+      body {
+        background: white;
+        font-family: "Segoe UI", Roboto, system-ui, sans-serif;
+        padding: 0.3in;
+      }
+
+      .paper {
+        max-width: 100%;
+      }
+
+      /* ===== HEADER ===== */
+      .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 3px solid #1a2a3f;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+        flex-wrap: wrap;
+        gap: 0.8rem 1.5rem;
+      }
+
+      .report-header .logo-area {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+      }
+
+      .report-header .logo-icon {
+        width: 52px;
+        height: 52px;
+        background: linear-gradient(135deg, #1a3a5c, #0d2137);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.6rem;
+        flex-shrink: 0;
+      }
+
+      .report-header h1 {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #0b1a2b;
+        letter-spacing: -0.5px;
+      }
+
+      .report-header h1 small {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 400;
+        color: #5a7a9a;
+        letter-spacing: 0.3px;
+        margin-top: 2px;
+      }
+
+      .report-header .meta {
+        color: #2c3e50;
+        font-size: 0.8rem;
+        background: #f0f5fb;
+        padding: 0.4rem 1.2rem;
+        border-radius: 40px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.7rem;
+        flex-wrap: wrap;
+      }
+
+      .report-header .meta i {
+        opacity: 0.5;
+      }
+
+      /* ===== TABLA ===== */
+      .table-responsive {
+        overflow-x: auto;
+        border-radius: 16px;
+        border: 1px solid #e6edf4;
+        background: white;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.75rem;
+        min-width: 1100px;
+      }
+
+      thead {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+      }
+
+      th {
+        background: #eaf0f8;
+        color: #0f2030;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        font-size: 0.6rem;
+        padding: 0.7rem 0.5rem;
+        border-bottom: 2.5px solid #c8d7e6;
+        text-align: left;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+      }
+
+      th i {
+        opacity: 0.5;
+        margin-right: 3px;
+        font-size: 0.55rem;
+      }
+
+      td {
+        padding: 0.4rem 0.5rem;
+        border-bottom: 1px solid #eef3f8;
+        vertical-align: middle;
+        color: #1a2b3c;
+        line-height: 1.3;
+        word-break: break-word;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      /* ===== SEPARADORES ===== */
+      .separador-urgente td {
+        background: #fef0ee !important;
+        border-top: 3px solid #c0392b !important;
+        border-bottom: 3px solid #c0392b !important;
+        padding: 0.6rem 0.7rem;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #8a1a1a;
+      }
+
+      .separador-urgente td i {
+        color: #c0392b;
+        margin-right: 10px;
+      }
+
+      .separador-regular td {
+        background: #f0f6fe !important;
+        border-top: 3px solid #2a6a9e !important;
+        border-bottom: 3px solid #2a6a9e !important;
+        padding: 0.6rem 0.7rem;
+        font-weight: 700;
+        font-size: 0.85rem;
+        color: #0a1e30;
+      }
+
+      .separador-regular td i {
+        color: #2a6a9e;
+        margin-right: 10px;
+      }
+
+      .separador-mes td {
+        background: #e8eef6 !important;
+        border-top: 2px solid #b8c8da !important;
+        border-bottom: 2px solid #b8c8da !important;
+        padding: 0.3rem 0.7rem;
+        font-weight: 600;
+        font-size: 0.75rem;
+        color: #1a3a5a;
+      }
+
+      .separador-mes td i {
+        margin-right: 8px;
+        color: #4a7a9a;
+      }
+
+      .count-badge {
+        padding: 0.1rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        margin-left: 0.8rem;
+        display: inline-block;
+      }
+
+      .count-urg {
+        background: #fdd8d8;
+        color: #8a1a1a;
+      }
+
+      .count-reg {
+        background: #d4e4ff;
+        color: #003b7a;
+      }
+
+      .count-mes {
+        background: #e8eef6;
+        padding: 0.1rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        margin-left: 0.8rem;
+      }
+
+      /* ===== ESTILOS DE CELDAS ===== */
+      .num-col {
+        text-align: center;
+        font-weight: 600;
+        color: #5a7a9a;
+        font-size: 0.7rem;
+        width: 30px;
+        min-width: 30px;
+      }
+
+      .expediente {
+        font-weight: 700;
+        color: #004080;
+        font-family: "Courier New", monospace;
+        font-size: 0.85rem;
+        padding: 0.1rem 0.3rem;
+        display: inline-block;
+      }
+
+      .nombre-paciente {
+        font-weight: 600;
+        color: #0b1a2b;
+      }
+
+      .usuario-registro {
+        color: #1a5a7a;
+        font-weight: 500;
+      }
+
+      .fecha-registro {
+        font-weight: 500;
+        color: #0b1a2b;
+      }
+
+      .estado-badge {
+        display: inline-block;
+        padding: 0.15rem 0.6rem;
+        border-radius: 30px;
+        font-size: 0.6rem;
+        font-weight: 700;
+        text-transform: capitalize;
+        letter-spacing: 0.2px;
+        background: #eef3f8;
+        color: #1a2b3c;
+      }
+
+      .estado-activo {
+        background: #d2f0d9;
+        color: #00542b;
+      }
+
+      .estado-inactivo {
+        background: #fff1cc;
+        color: #7a5800;
+      }
+
+      .estado-defuncion {
+        background: #fdd8d8;
+        color: #a10000;
+      }
+
+      .estado-alta {
+        background: #d4e4ff;
+        color: #003b7a;
+      }
+
+      .fila-vacia {
+        text-align: center;
+        padding: 3rem 0;
+        color: #8a9eb0;
+        font-style: italic;
+      }
+
+      .fila-vacia i {
+        font-size: 2.5rem;
+        display: block;
+        margin-bottom: 0.8rem;
+        opacity: 0.3;
+      }
+
+      .uuid-cell {
+        font-family: "Courier New", monospace;
+        font-size: 0.6rem;
+        color: #5a7a9a;
+        max-width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .fecha-cell {
+        font-size: 0.7rem;
+        white-space: nowrap;
+      }
+
+      /* ===== FOOTER ===== */
+      .report-footer {
+        margin-top: 1.5rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 2px solid #e6edf4;
+        padding-top: 1rem;
+        font-size: 0.8rem;
+        color: #1f384d;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
+
+      .report-footer .footer-left {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+        flex-wrap: wrap;
+      }
+
+      .report-footer .footer-left span {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .report-footer .footer-left i {
+        opacity: 0.5;
+      }
+
+      .total-registros {
+        font-weight: 600;
+        background: #eef4fa;
+        padding: 0.3rem 1.4rem;
+        border-radius: 40px;
+        font-size: 0.85rem;
+        color: #0b1f30;
+      }
+
+      .total-registros strong {
+        font-size: 1.1rem;
+        color: #003b7a;
+      }
+
+      .total-urg {
+        background: #fdd8d8 !important;
+        color: #8a1a1a !important;
+      }
+
+      .total-urg strong {
+        color: #a10000 !important;
+      }
+
+      .total-reg {
+        background: #d4e4ff !important;
+        color: #003b7a !important;
+      }
+
+      .total-reg strong {
+        color: #003b7a !important;
+      }
+
+      /* ===== IMPRESIÓN ===== */
+      @media print {
         body {
-            background: #0a0e17;
-            display: flex;
-            justify-content: center;
-            padding: 1.5rem 1rem;
-            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
-            min-height: 100vh;
+          padding: 0.1in;
+          background: white !important;
         }
 
         .paper {
-            max-width: 1400px;
-            width: 100%;
-            background: #ffffff;
-            border-radius: 28px;
-            padding: 2rem 2rem 1.5rem;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+          max-width: 100% !important;
         }
 
         .report-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid #1a2a3f;
-            padding-bottom: 1rem;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 0.8rem 1.5rem;
-        }
-
-        .report-header .logo-area {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
+          border-bottom-color: #1a2a3f !important;
         }
 
         .report-header .logo-icon {
-            width: 52px;
-            height: 52px;
-            background: linear-gradient(135deg, #1a3a5c, #0d2137);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 1.6rem;
-            flex-shrink: 0;
-        }
-
-        .report-header h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            color: #0b1a2b;
-            letter-spacing: -0.5px;
-        }
-
-        .report-header h1 small {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 400;
-            color: #5a7a9a;
-            letter-spacing: 0.3px;
-            margin-top: 2px;
-        }
-
-        .report-header .meta {
-            color: #2c3e50;
-            font-size: 0.8rem;
-            background: #f0f5fb;
-            padding: 0.4rem 1.2rem;
-            border-radius: 40px;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.7rem;
-            flex-wrap: wrap;
-        }
-
-        .report-header .meta i {
-            opacity: 0.5;
-        }
-
-        .toolbar {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            gap: 0.8rem;
-            background: #f8faff;
-            padding: 0.6rem 1.2rem;
-            border-radius: 16px;
-            border: 1px solid #e8eef6;
-        }
-
-        .toolbar .left {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 0.8rem;
-        }
-
-        .toolbar label {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: #1a2b3c;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .toolbar input[type="month"] {
-            padding: 0.35rem 0.9rem;
-            border-radius: 30px;
-            border: 1.5px solid #d0dce8;
-            background: white;
-            font-size: 0.85rem;
-            font-weight: 500;
-            color: #0b1a2b;
-            outline: none;
-            transition: 0.2s;
-        }
-
-        .toolbar input[type="month"]:focus {
-            border-color: #2a6a9e;
-            box-shadow: 0 0 0 3px rgba(42, 106, 158, 0.15);
-        }
-
-        .badge-mes {
-            background: #e4ecf5;
-            padding: 0.25rem 1.2rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.78rem;
-            color: #0b1f30;
-            letter-spacing: 0.2px;
-        }
-
-        .btn-print {
-            background: #1a2b3c;
-            border: none;
-            color: white;
-            padding: 0.5rem 1.8rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.6rem;
-            cursor: pointer;
-            transition: 0.25s;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-        }
-
-        .btn-print:hover {
-            background: #0f1e2e;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-        }
-
-        .btn-print i {
-            font-size: 0.95rem;
-        }
-
-        .btn-export {
-            background: transparent;
-            border: 1.5px solid #d0dce8;
-            color: #2c3e50;
-            padding: 0.5rem 1.2rem;
-            border-radius: 40px;
-            font-weight: 500;
-            font-size: 0.8rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            cursor: pointer;
-            transition: 0.25s;
-        }
-
-        .btn-export:hover {
-            background: #f0f5fb;
-            border-color: #a0b8d0;
-        }
-
-        .registros-info {
-            font-size: 0.8rem;
-            color: #1a2b3c;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            background: #eaf0f8;
-            padding: 0.2rem 1rem;
-            border-radius: 30px;
-        }
-
-        .registros-info strong {
-            color: #003b7a;
-            font-size: 1rem;
-        }
-
-        .table-responsive {
-            overflow-x: auto;
-            border-radius: 16px;
-            border: 1px solid #e6edf4;
-            background: white;
-            max-height: 70vh;
-            overflow-y: auto;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.78rem;
-            min-width: 1100px;
-        }
-
-        thead {
-            position: sticky;
-            top: 0;
-            z-index: 20;
+          background: #1a3a5c !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
         th {
-            background: #eaf0f8;
-            color: #0f2030;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.4px;
-            font-size: 0.6rem;
-            padding: 0.7rem 0.5rem;
-            border-bottom: 2.5px solid #c8d7e6;
-            text-align: left;
-            white-space: nowrap;
-            position: sticky;
-            top: 0;
+          background: #eaf0f8 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
-        th i {
-            opacity: 0.5;
-            margin-right: 3px;
-            font-size: 0.55rem;
+        .estado-activo,
+        .estado-inactivo,
+        .estado-defuncion,
+        .estado-alta {
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
-        td {
-            padding: 0.45rem 0.5rem;
-            border-bottom: 1px solid #eef3f8;
-            vertical-align: middle;
-            color: #1a2b3c;
-            line-height: 1.3;
-            word-break: break-word;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        /* ===== SEPARADORES ===== */
         .separador-urgente td {
-            background: #fef0ee !important;
-            border-top: 3px solid #c0392b !important;
-            border-bottom: 3px solid #c0392b !important;
-            padding: 0.6rem 0.7rem;
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: #8a1a1a;
-        }
-
-        .separador-urgente td i {
-            color: #c0392b;
-            margin-right: 10px;
+          background: #fef0ee !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
         .separador-regular td {
-            background: #f0f6fe !important;
-            border-top: 3px solid #2a6a9e !important;
-            border-bottom: 3px solid #2a6a9e !important;
-            padding: 0.6rem 0.7rem;
-            font-weight: 700;
-            font-size: 0.85rem;
-            color: #0a1e30;
-        }
-
-        .separador-regular td i {
-            color: #2a6a9e;
-            margin-right: 10px;
+          background: #f0f6fe !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
         .separador-mes td {
-            background: #e8eef6 !important;
-            border-top: 2px solid #b8c8da !important;
-            border-bottom: 2px solid #b8c8da !important;
-            padding: 0.3rem 0.7rem;
-            font-weight: 600;
-            font-size: 0.75rem;
-            color: #1a3a5a;
-        }
-
-        .separador-mes td i {
-            margin-right: 8px;
-            color: #4a7a9a;
-        }
-
-        .count-badge {
-            background: rgba(255, 255, 255, 0.6);
-            padding: 0.1rem 0.8rem;
-            border-radius: 30px;
-            font-size: 0.65rem;
-            font-weight: 600;
-            margin-left: 0.8rem;
+          background: #e8eef6 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
         .count-urg {
-            background: #fdd8d8;
-            color: #8a1a1a;
+          background: #fdd8d8 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
         .count-reg {
-            background: #d4e4ff;
-            color: #003b7a;
+          background: #d4e4ff !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
-        /* ===== ESTILOS UNIFORMES ===== */
-        .num-col {
-            text-align: center;
-            font-weight: 600;
-            color: #5a7a9a;
-            font-size: 0.7rem;
-            width: 30px;
-            min-width: 30px;
-        }
-
-        .expediente {
-            font-weight: 700;
-            color: #004080;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            padding: 0.1rem 0.3rem;
-            display: inline-block;
-        }
-
-        /* MISMO ESTILO PARA URGENTES Y REGULARES */
-        .expediente-urg {
-            font-weight: 700;
-            color: #004080;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            padding: 0.1rem 0.3rem;
-            display: inline-block;
-        }
-
-        .nombre-paciente {
-            font-weight: 600;
-            color: #0b1a2b;
-        }
-
-        .usuario-registro {
-            color: #1a5a7a;
-            font-weight: 500;
-        }
-
-        .fecha-registro {
-            font-weight: 500;
-            color: #0b1a2b;
-        }
-
-        .estado-badge {
-            display: inline-block;
-            padding: 0.15rem 0.6rem;
-            border-radius: 30px;
-            font-size: 0.6rem;
-            font-weight: 700;
-            text-transform: capitalize;
-            letter-spacing: 0.2px;
-            background: #eef3f8;
-            color: #1a2b3c;
-        }
-
-        .estado-activo {
-            background: #d2f0d9;
-            color: #00542b;
-        }
-        .estado-inactivo {
-            background: #fff1cc;
-            color: #7a5800;
-        }
-        .estado-defuncion {
-            background: #fdd8d8;
-            color: #a10000;
-        }
-        .estado-alta {
-            background: #d4e4ff;
-            color: #003b7a;
-        }
-
-        .fila-vacia {
-            text-align: center;
-            padding: 3rem 0;
-            color: #8a9eb0;
-            font-style: italic;
-        }
-
-        .fila-vacia i {
-            font-size: 2.5rem;
-            display: block;
-            margin-bottom: 0.8rem;
-            opacity: 0.3;
-        }
-
-        .uuid-cell {
-            font-family: 'Courier New', monospace;
-            font-size: 0.6rem;
-            color: #5a7a9a;
-            max-width: 100px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .fecha-cell {
-            font-size: 0.7rem;
-            white-space: nowrap;
-        }
-
-        .urg-badge {
-            visibility: hidden;
-            display: inline-block;
-            background: #c0392b;
-            color: white;
-            font-size: 0.5rem;
-            font-weight: 700;
-            padding: 0.1rem 0.5rem;
-            border-radius: 30px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-left: 0.3rem;
-        }
-
-        .report-footer {
-            margin-top: 1.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-top: 2px solid #e6edf4;
-            padding-top: 1rem;
-            font-size: 0.8rem;
-            color: #1f384d;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .report-footer .footer-left {
-            display: flex;
-            align-items: center;
-            gap: 1.5rem;
-            flex-wrap: wrap;
-        }
-
-        .report-footer .footer-left span {
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .report-footer .footer-left i {
-            opacity: 0.5;
+        .count-mes {
+          background: #e8eef6 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
         .total-registros {
-            font-weight: 600;
-            background: #eef4fa;
-            padding: 0.3rem 1.4rem;
-            border-radius: 40px;
-            font-size: 0.85rem;
-            color: #0b1f30;
-        }
-
-        .total-registros strong {
-            font-size: 1.1rem;
-            color: #003b7a;
+          background: #eef4fa !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
         .total-urg {
-            background: #fdd8d8 !important;
-            color: #8a1a1a !important;
-        }
-
-        .total-urg strong {
-            color: #a10000 !important;
+          background: #fdd8d8 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
         .total-reg {
-            background: #d4e4ff !important;
-            color: #003b7a !important;
+          background: #d4e4ff !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
-        .total-reg strong {
-            color: #003b7a !important;
+        .table-responsive {
+          border: 1px solid #ccc !important;
+          border-radius: 0 !important;
         }
 
-        @media (max-width: 768px) {
-            .paper {
-                padding: 1rem;
-            }
-            .report-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .report-header .meta {
-                align-self: flex-start;
-                font-size: 0.7rem;
-                padding: 0.3rem 0.8rem;
-            }
-            .toolbar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            .toolbar .left {
-                flex-wrap: wrap;
-            }
-            .btn-print,
-            .btn-export {
-                justify-content: center;
-            }
-            table {
-                font-size: 0.7rem;
-                min-width: 900px;
-            }
-            th,
-            td {
-                padding: 0.3rem 0.4rem;
-            }
-            .num-col {
-                min-width: 20px;
-                width: 20px;
-            }
+        .report-footer {
+          border-top-color: #d0dce8 !important;
         }
 
-        @media (max-width: 480px) {
-            .report-header h1 {
-                font-size: 1.2rem;
-            }
-            .report-header .logo-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1.2rem;
-            }
+        @page {
+          size: landscape;
+          margin: 0.2in 0.15in;
         }
 
-        @media print {
-            body {
-                background: white !important;
-                padding: 0.05in !important;
-                margin: 0 !important;
-            }
-
-            .paper {
-                box-shadow: none !important;
-                border-radius: 0 !important;
-                padding: 0.1in 0.1in !important;
-                max-width: 100% !important;
-            }
-
-            .toolbar .btn-print,
-            .toolbar .btn-export,
-            .toolbar .left label {
-                display: none !important;
-            }
-
-            .toolbar .left .badge-mes {
-                display: none !important;
-            }
-
-            .toolbar {
-                justify-content: flex-end !important;
-                background: transparent !important;
-                border: none !important;
-                padding: 0 !important;
-                margin-bottom: 0.3rem !important;
-            }
-
-            .report-header {
-                border-bottom-color: #1a2a3f !important;
-            }
-            .report-header .logo-icon {
-                background: #1a3a5c !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            th {
-                background: #eaf0f8 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .estado-activo,
-            .estado-inactivo,
-            .estado-defuncion,
-            .estado-alta {
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .separador-urgente td {
-                background: #fef0ee !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .separador-regular td {
-                background: #f0f6fe !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .separador-mes td {
-                background: #e8eef6 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .count-urg {
-                background: #fdd8d8 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .count-reg {
-                background: #d4e4ff !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .table-responsive {
-                border: 1px solid #ccc !important;
-                border-radius: 0 !important;
-                max-height: none !important;
-                overflow: visible !important;
-            }
-
-            .report-footer {
-                border-top-color: #d0dce8 !important;
-            }
-
-            .total-urg {
-                background: #fdd8d8 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .total-reg {
-                background: #d4e4ff !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            .urg-badge {
-                background: #c0392b !important;
-                color: white !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-            }
-
-            @page {
-                size: landscape;
-                margin: 0.2in 0.15in;
-            }
-
-            .table-responsive {
-                max-height: none !important;
-                overflow: visible !important;
-            }
-
-            table {
-                font-size: 0.6rem !important;
-                min-width: 100% !important;
-            }
-
-            th,
-            td {
-                padding: 0.15rem 0.25rem !important;
-            }
-
-            .num-col {
-                font-size: 0.6rem !important;
-                min-width: 18px !important;
-                width: 18px !important;
-            }
+        table {
+          font-size: 0.6rem !important;
+          min-width: 100% !important;
         }
 
-        .table-responsive::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        .table-responsive::-webkit-scrollbar-track {
-            background: #f0f5fb;
-            border-radius: 10px;
-        }
-        .table-responsive::-webkit-scrollbar-thumb {
-            background: #c8d7e6;
-            border-radius: 10px;
-        }
-        .table-responsive::-webkit-scrollbar-thumb:hover {
-            background: #a8b8c8;
+        th,
+        td {
+          padding: 0.15rem 0.25rem !important;
         }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .num-col {
+          font-size: 0.6rem !important;
+          min-width: 18px !important;
+          width: 18px !important;
         }
-        .paper {
-            animation: fadeIn 0.4s ease;
-        }
+      }
 
-        /* ===== TOGGLES ===== */
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-            background: #eef3f8;
-            padding: 0.2rem 0.6rem 0.2rem 0.2rem;
-            border-radius: 40px;
-            border: 1.5px solid #d0dce8;
-        }
+      /* ===== SCROLLBAR ===== */
+      .table-responsive::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      .table-responsive::-webkit-scrollbar-track {
+        background: #f0f5fb;
+        border-radius: 10px;
+      }
+      .table-responsive::-webkit-scrollbar-thumb {
+        background: #c8d7e6;
+        border-radius: 10px;
+      }
+      .table-responsive::-webkit-scrollbar-thumb:hover {
+        background: #a8b8c8;
+      }
 
-        .toggle-btn {
-            padding: 0.3rem 1rem;
-            border: none;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: 0.2s;
-            background: transparent;
-            color: #5a7a9a;
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
         }
-
-        .toggle-btn.active-urg {
-            background: #c0392b;
-            color: white;
-            box-shadow: 0 2px 8px rgba(192, 57, 43, 0.3);
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
-
-        .toggle-btn.active-reg {
-            background: #2a6a9e;
-            color: white;
-            box-shadow: 0 2px 8px rgba(42, 106, 158, 0.3);
-        }
-
-        .toggle-btn.active-all {
-            background: #1a2b3c;
-            color: white;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-        }
-
-        .toggle-btn:hover {
-            transform: scale(1.02);
-        }
-
-        .modo-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            color: #2c3e50;
-            padding-left: 0.4rem;
-        }
+      }
+      .paper {
+        animation: fadeIn 0.4s ease;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div class="paper" id="reportPaper">
-
-        <!-- ===== HEADER ===== -->
-        <div class="report-header">
-            <div class="logo-area">
-                <div class="logo-icon">
-                    <i class="fas fa-notes-medical"></i>
-                </div>
-                <div>
-                    <h1>
-                        Expedientes Clínicos
-                        <small>Informe · <span style="color:#c0392b;">Urgentes</span> vs <span style="color:#2a6a9e;">Regulares</span></small>
-                    </h1>
-                </div>
-            </div>
-            <div class="meta">
-                <i class="fas fa-calendar-alt"></i>
-                <span id="fechaGeneracion">Cargando...</span>
-                <span style="opacity:0.3; margin:0 4px;">|</span>
-                <i class="fas fa-database"></i>
-                <span id="totalRegistrosMeta">0 registros</span>
-            </div>
+      <!-- ===== HEADER ===== -->
+      <div class="report-header">
+        <div class="logo-area">
+          <div class="logo-icon">
+            <i class="fas fa-notes-medical"></i>
+          </div>
+          <div>
+            <h1>
+              Expedientes Clínicos
+              <small>Informe completo · registros por mes</small>
+            </h1>
+          </div>
         </div>
-
-        <!-- ===== TOOLBAR ===== -->
-        <div class="toolbar">
-            <div class="left">
-                <label for="mesFiltro">
-                    <i class="fas fa-calendar-alt" style="opacity:0.6;"></i>
-                    <span>Mes:</span>
-                    <input type="month" id="mesFiltro" />
-                </label>
-                <span class="badge-mes" id="badgeMesActual">Selecciona un mes</span>
-
-                <!-- ===== TOGGLES ===== -->
-                <div class="toggle-container">
-                    <span class="modo-label">Mostrar:</span>
-                    <button class="toggle-btn active-all" id="btnToggleAll" onclick="setModo('all')">
-                        <i class="fas fa-list"></i> Todos
-                    </button>
-                    <button class="toggle-btn" id="btnToggleUrg" onclick="setModo('urg')">
-                        <i class="fas fa-exclamation-triangle"></i> Urgentes
-                    </button>
-                    <button class="toggle-btn" id="btnToggleReg" onclick="setModo('reg')">
-                        <i class="fas fa-file-medical"></i> Regulares
-                    </button>
-                </div>
-
-                <span class="registros-info" id="registrosInfo">
-                    <i class="fas fa-file-alt"></i>
-                    <strong id="contadorRegistros">0</strong> registros
-                </span>
-            </div>
-            <div style="display:flex; gap:0.6rem; flex-wrap:wrap;">
-                <button class="btn-export" onclick="cargarDatos()" title="Recargar datos desde Supabase">
-                    <i class="fas fa-sync-alt"></i> Actualizar
-                </button>
-                <button class="btn-print" onclick="window.print()">
-                    <i class="fas fa-print"></i> Imprimir / PDF
-                </button>
-            </div>
+        <div class="meta" id="headerMeta">
+          <i class="fas fa-calendar-alt"></i>
+          <span id="fechaGeneracion">Cargando...</span>
+          <span style="opacity: 0.3; margin: 0 4px">|</span>
+          <i class="fas fa-database"></i>
+          <span id="totalRegistrosMeta">0 registros</span>
         </div>
+      </div>
 
-        <!-- ===== TABLA ===== -->
-        <div class="table-responsive" id="tablaContainer">
-            <table id="tablaInforme">
-                <thead>
-                    <tr>
-                        <th style="width:4%;"><i class="fas fa-hashtag"></i> #</th>
-                        <th style="width:6%;"><i class="fas fa-hashtag"></i> ID</th>
-                        <th style="width:14%;"><i class="fas fa-user"></i> Paciente</th>
-                        <th style="width:12%;"><i class="fas fa-file-signature"></i> Expediente</th>
-                        <th style="width:10%;"><i class="fas fa-stethoscope"></i> Servicio</th>
-                        <th style="width:10%;"><i class="fas fa-calendar-plus"></i> Fecha Registro</th>
-                        <th style="width:8%;"><i class="fas fa-circle"></i> Estado</th>
-                        <th style="width:6%;"><i class="fas fa-venus-mars"></i> Sexo</th>
-                        <th style="width:9%;"><i class="fas fa-birthday-cake"></i> Fecha Nac.</th>
-                        <th style="width:8%;"><i class="fas fa-phone"></i> Teléfono</th>
-                        <th style="width:9%;"><i class="fas fa-clock"></i> Creado</th>
-                        <th style="width:9%;"><i class="fas fa-clock"></i> Actualizado</th>
-                        <th style="width:8%;"><i class="fas fa-user-cog"></i> Usuario</th>
-                    </tr>
-                </thead>
-                <tbody id="tbodyInforme">
-                    <!-- Inyectado por JavaScript -->
-                </tbody>
-            </table>
+      <!-- ===== TABLA ===== -->
+      <div class="table-responsive">
+        <table id="tablaInforme">
+          <thead>
+            <tr>
+              <th style="width: 4%"><i class="fas fa-hashtag"></i> #</th>
+              <th style="width: 6%"><i class="fas fa-hashtag"></i> ID</th>
+              <th style="width: 14%"><i class="fas fa-user"></i> Paciente</th>
+              <th style="width: 12%">
+                <i class="fas fa-file-signature"></i> Expediente
+              </th>
+              <th style="width: 10%">
+                <i class="fas fa-stethoscope"></i> Servicio
+              </th>
+              <th style="width: 10%">
+                <i class="fas fa-calendar-plus"></i> Fecha Reg.
+              </th>
+              <th style="width: 8%"><i class="fas fa-circle"></i> Estado</th>
+              <th style="width: 6%"><i class="fas fa-venus-mars"></i> Sexo</th>
+              <th style="width: 9%">
+                <i class="fas fa-birthday-cake"></i> Fecha Nac.
+              </th>
+              <th style="width: 8%"><i class="fas fa-phone"></i> Teléfono</th>
+              <th style="width: 9%"><i class="fas fa-clock"></i> Creado</th>
+              <th style="width: 9%">
+                <i class="fas fa-clock"></i> Actualizado
+              </th>
+              <th style="width: 8%"><i class="fas fa-user-cog"></i> Usuario</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyInforme">
+            <!-- Inyectado por JavaScript -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ===== FOOTER ===== -->
+      <div class="report-footer">
+        <div class="footer-left">
+          <span
+            ><i class="fas fa-calendar-alt"></i> Agrupado por
+            <strong>fecha_registro</strong></span
+          >
+          <span
+            ><i class="fas fa-user-md"></i>
+            <span id="footerUsuario">Sistema</span></span
+          >
+          <span
+            ><i class="fas fa-file-alt"></i>
+            <span id="footerTotalRegistros">0 registros</span></span
+          >
+          <span id="footerUrgCount" style="display: none; color: #c0392b">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="footerUrgNum">0</span> urgentes
+          </span>
+          <span id="footerRegCount" style="display: none; color: #2a6a9e">
+            <i class="fas fa-file-medical"></i>
+            <span id="footerRegNum">0</span> regulares
+          </span>
         </div>
-
-        <!-- ===== FOOTER ===== -->
-        <div class="report-footer">
-            <div class="footer-left">
-                <span><i class="fas fa-calendar-alt"></i> Filtrado por <strong>fecha_registro</strong></span>
-                <span><i class="fas fa-user-md"></i> <span id="footerUsuario">Sistema</span></span>
-                <span><i class="fas fa-file-alt"></i> <span id="footerTotalRegistros">0 registros</span></span>
-                <span id="footerUrgCount" style="display:none; color:#c0392b;">
-                    <i class="fas fa-exclamation-triangle"></i> <span id="footerUrgNum">0</span> urgentes
-                </span>
-                <span id="footerRegCount" style="display:none; color:#2a6a9e;">
-                    <i class="fas fa-file-medical"></i> <span id="footerRegNum">0</span> regulares
-                </span>
-            </div>
-            <span class="total-registros" id="totalRegistrosPie">
-                <strong>0</strong> registros
-            </span>
-            <span class="total-registros total-urg" id="totalUrgPie" style="display:none;">
-                <i class="fas fa-exclamation-triangle"></i> <strong id="urgCountPie">0</strong> urgentes
-            </span>
-            <span class="total-registros total-reg" id="totalRegPie" style="display:none;">
-                <i class="fas fa-file-medical"></i> <strong id="regCountPie">0</strong> regulares
-            </span>
-        </div>
-
+        <span class="total-registros" id="totalRegistrosPie">
+          <strong>0</strong> registros
+        </span>
+        <span
+          class="total-registros total-urg"
+          id="totalUrgPie"
+          style="display: none"
+        >
+          <i class="fas fa-exclamation-triangle"></i>
+          <strong id="urgCountPie">0</strong> urgentes
+        </span>
+        <span
+          class="total-registros total-reg"
+          id="totalRegPie"
+          style="display: none"
+        >
+          <i class="fas fa-file-medical"></i>
+          <strong id="regCountPie">0</strong> regulares
+        </span>
+      </div>
     </div>
 
     <!-- ===== SUPABASE ===== -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <script>
-        // ============================================================
-        // CONFIGURACIÓN SUPABASE
-        // ============================================================
-        const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
-        const SUPABASE_KEY =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
+      // ============================================================
+      // CONFIGURACIÓN SUPABASE
+      // ============================================================
+      const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
+      const SUPABASE_KEY =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-        const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // ============================================================
-        // VARIABLES GLOBALES
-        // ============================================================
-        let todosLosRegistros = [];
-        let modoVisualizacion = 'all';
-        let modoTodos = false;
+      // ============================================================
+      // VARIABLES GLOBALES
+      // ============================================================
+      let todosLosRegistros = [];
 
-        // Elementos DOM
-        const tbody = document.getElementById('tbodyInforme');
-        const mesFiltro = document.getElementById('mesFiltro');
-        const badgeMes = document.getElementById('badgeMesActual');
-        const totalPie = document.getElementById('totalRegistrosPie');
-        const totalUrgPie = document.getElementById('totalUrgPie');
-        const totalRegPie = document.getElementById('totalRegPie');
-        const urgCountPie = document.getElementById('urgCountPie');
-        const regCountPie = document.getElementById('regCountPie');
-        const totalMeta = document.getElementById('totalRegistrosMeta');
-        const fechaGen = document.getElementById('fechaGeneracion');
-        const contadorRegistros = document.getElementById('contadorRegistros');
-        const registrosInfo = document.getElementById('registrosInfo');
-        const footerUsuario = document.getElementById('footerUsuario');
-        const footerTotalRegistros = document.getElementById('footerTotalRegistros');
-        const footerUrgCount = document.getElementById('footerUrgCount');
-        const footerUrgNum = document.getElementById('footerUrgNum');
-        const footerRegCount = document.getElementById('footerRegCount');
-        const footerRegNum = document.getElementById('footerRegNum');
+      // Elementos DOM
+      const tbody = document.getElementById("tbodyInforme");
+      const totalPie = document.getElementById("totalRegistrosPie");
+      const totalUrgPie = document.getElementById("totalUrgPie");
+      const totalRegPie = document.getElementById("totalRegPie");
+      const urgCountPie = document.getElementById("urgCountPie");
+      const regCountPie = document.getElementById("regCountPie");
+      const totalMeta = document.getElementById("totalRegistrosMeta");
+      const fechaGen = document.getElementById("fechaGeneracion");
+      const footerUsuario = document.getElementById("footerUsuario");
+      const footerTotalRegistros = document.getElementById(
+        "footerTotalRegistros",
+      );
+      const footerUrgCount = document.getElementById("footerUrgCount");
+      const footerUrgNum = document.getElementById("footerUrgNum");
+      const footerRegCount = document.getElementById("footerRegCount");
+      const footerRegNum = document.getElementById("footerRegNum");
 
-        // Botones toggle
-        const btnAll = document.getElementById('btnToggleAll');
-        const btnUrg = document.getElementById('btnToggleUrg');
-        const btnReg = document.getElementById('btnToggleReg');
+      // ============================================================
+      // UTILIDADES
+      // ============================================================
+      function esUrgente(expediente) {
+        if (!expediente) return false;
+        return expediente.toLowerCase().startsWith("urg-");
+      }
 
-        // ============================================================
-        // UTILIDADES
-        // ============================================================
-        function esUrgente(expediente) {
-            if (!expediente) return false;
-            return expediente.toLowerCase().startsWith('urg-');
+      function formatearFecha(fechaStr) {
+        if (!fechaStr) return "—";
+        try {
+          if (fechaStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const parts = fechaStr.split("-");
+            return `${parts[2]}/${parts[1]}/${parts[0]}`;
+          }
+          const f = new Date(fechaStr);
+          if (isNaN(f)) return fechaStr;
+          return f.toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          });
+        } catch {
+          return fechaStr;
         }
+      }
 
-        function formatearFecha(fechaStr) {
-            if (!fechaStr) return '—';
-            try {
-                if (fechaStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                    const parts = fechaStr.split('-');
-                    return `${parts[2]}/${parts[1]}/${parts[0]}`;
-                }
-                const f = new Date(fechaStr);
-                if (isNaN(f)) return fechaStr;
-                return f.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            } catch {
-                return fechaStr;
-            }
+      function formatearFechaHora(fechaStr) {
+        if (!fechaStr) return "—";
+        try {
+          const f = new Date(fechaStr);
+          if (isNaN(f)) return fechaStr;
+          return f.toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } catch {
+          return fechaStr;
         }
+      }
 
-        function formatearFechaHora(fechaStr) {
-            if (!fechaStr) return '—';
-            try {
-                const f = new Date(fechaStr);
-                if (isNaN(f)) return fechaStr;
-                return f.toLocaleDateString('es-ES', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-            } catch {
-                return fechaStr;
-            }
+      function obtenerMesAnio(fechaStr) {
+        if (!fechaStr) return null;
+        try {
+          if (fechaStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const parts = fechaStr.split("-");
+            return `${parts[0]}-${parts[1]}`;
+          }
+          const f = new Date(fechaStr);
+          if (isNaN(f)) return null;
+          const mes = String(f.getMonth() + 1).padStart(2, "0");
+          const anio = f.getFullYear();
+          return `${anio}-${mes}`;
+        } catch {
+          return null;
         }
+      }
 
-        function obtenerMesAnio(fechaStr) {
-            if (!fechaStr) return null;
-            try {
-                if (fechaStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                    const parts = fechaStr.split('-');
-                    return `${parts[0]}-${parts[1]}`;
-                }
-                const f = new Date(fechaStr);
-                if (isNaN(f)) return null;
-                const mes = String(f.getMonth() + 1).padStart(2, '0');
-                const anio = f.getFullYear();
-                return `${anio}-${mes}`;
-            } catch {
-                return null;
-            }
-        }
+      function nombreMes(numMes) {
+        const meses = [
+          "enero",
+          "febrero",
+          "marzo",
+          "abril",
+          "mayo",
+          "junio",
+          "julio",
+          "agosto",
+          "septiembre",
+          "octubre",
+          "noviembre",
+          "diciembre",
+        ];
+        return meses[numMes - 1] || "";
+      }
 
-        function nombreMes(numMes) {
-            const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre',
-                'noviembre', 'diciembre'
-            ];
-            return meses[numMes - 1] || '';
-        }
+      function formatearMesAnio(monthValue) {
+        if (!monthValue) return "—";
+        const parts = monthValue.split("-");
+        if (parts.length !== 2) return monthValue;
+        const anio = parts[0];
+        const mesNum = parseInt(parts[1], 10);
+        return `${nombreMes(mesNum)} ${anio}`;
+      }
 
-        function formatearMesAnio(monthValue) {
-            if (!monthValue) return '—';
-            const parts = monthValue.split('-');
-            if (parts.length !== 2) return monthValue;
-            const anio = parts[0];
-            const mesNum = parseInt(parts[1], 10);
-            return `${nombreMes(mesNum)} ${anio}`;
-        }
+      function getEstadoClass(estado) {
+        const lower = (estado || "").toLowerCase();
+        if (lower === "activo") return "estado-activo";
+        if (lower === "inactivo") return "estado-inactivo";
+        if (lower === "defunción" || lower === "defuncion")
+          return "estado-defuncion";
+        if (lower === "alta") return "estado-alta";
+        return "";
+      }
 
-        function getEstadoClass(estado) {
-            const lower = (estado || '').toLowerCase();
-            if (lower === 'activo') return 'estado-activo';
-            if (lower === 'inactivo') return 'estado-inactivo';
-            if (lower === 'defunción' || lower === 'defuncion') return 'estado-defuncion';
-            if (lower === 'alta') return 'estado-alta';
-            return '';
-        }
+      function truncarUUID(uuid) {
+        if (!uuid) return "—";
+        return uuid.substring(0, 8) + "…";
+      }
 
-        function truncarUUID(uuid) {
-            if (!uuid) return '—';
-            return uuid.substring(0, 8) + '…';
-        }
+      // ============================================================
+      // CARGAR DATOS
+      // ============================================================
+      async function cargarDatos() {
+        try {
+          const { data, error } = await sb
+            .from("expedientes")
+            .select("*")
+            .order("fecha_registro", { ascending: false });
 
-        // ============================================================
-        // TOGGLE DE VISUALIZACIÓN
-        // ============================================================
-        function setModo(modo) {
-            modoVisualizacion = modo;
+          if (error) throw error;
 
-            btnAll.className = 'toggle-btn';
-            btnUrg.className = 'toggle-btn';
-            btnReg.className = 'toggle-btn';
+          todosLosRegistros = data || [];
 
-            if (modo === 'all') btnAll.classList.add('active-all');
-            else if (modo === 'urg') btnUrg.classList.add('active-urg');
-            else if (modo === 'reg') btnReg.classList.add('active-reg');
+          const ahora = new Date();
+          fechaGen.textContent = ahora.toLocaleDateString("es-ES", {
+            day: "2-digit",
+            month: "long",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
 
-            renderizarTabla();
-        }
+          try {
+            const user = localStorage.getItem("usuario") || "Sistema";
+            footerUsuario.textContent = user;
+          } catch {
+            footerUsuario.textContent = "Sistema";
+          }
 
-        // ============================================================
-        // CARGAR DATOS
-        // ============================================================
-        async function cargarDatos() {
-            try {
-                const { data, error } = await sb
-                    .from('expedientes')
-                    .select('*')
-                    .order('fecha_registro', { ascending: false });
-
-                if (error) throw error;
-
-                todosLosRegistros = data || [];
-
-                const ahora = new Date();
-                fechaGen.textContent = ahora.toLocaleDateString('es-ES', {
-                    day: '2-digit',
-                    month: 'long',
-                    year: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-
-                try {
-                    const user = localStorage.getItem('usuario') || 'Sistema';
-                    footerUsuario.textContent = user;
-                } catch {
-                    footerUsuario.textContent = 'Sistema';
-                }
-
-                if (todosLosRegistros.length > 0) {
-                    const mesesSet = new Set();
-                    todosLosRegistros.forEach(r => {
-                        const m = obtenerMesAnio(r.fecha_registro);
-                        if (m) mesesSet.add(m);
-                    });
-                    const mesesArray = Array.from(mesesSet).sort();
-                    if (mesesArray.length > 0) {
-                        mesFiltro.value = mesesArray[mesesArray.length - 1];
-                    } else {
-                        const hoy = new Date();
-                        mesFiltro.value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
-                    }
-                } else {
-                    const hoy = new Date();
-                    mesFiltro.value = `${hoy.getFullYear()}-${String(hoy.getMonth()+1).padStart(2,'0')}`;
-                }
-
-                modoTodos = false;
-                setModo('all');
-                actualizarBadge();
-
-            } catch (error) {
-                console.error('Error cargando datos:', error);
-                tbody.innerHTML =
-                    `<tr><td colspan="13" style="text-align:center; padding:2.5rem; color:#b33;">
+          renderizarTabla();
+        } catch (error) {
+          console.error("Error cargando datos:", error);
+          tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:2.5rem; color:#b33;">
                         <i class="fas fa-exclamation-triangle" style="font-size:2rem; display:block; margin-bottom:0.8rem;"></i>
                         Error al cargar datos: ${error.message}
                     </td></tr>`;
-            }
+        }
+      }
+
+      // ============================================================
+      // RENDERIZAR TABLA
+      // ============================================================
+      function renderizarTabla() {
+        if (todosLosRegistros.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="13" class="fila-vacia"><i class="fas fa-inbox"></i>No hay registros para mostrar</td></tr>`;
+          actualizarTotales(0, 0, 0);
+          return;
         }
 
-        // ============================================================
-        // RENDERIZAR TABLA
-        // ============================================================
-        function renderizarTabla() {
-            let registrosBase = [];
+        // Agrupar por mes
+        const grupos = {};
+        todosLosRegistros.forEach((r) => {
+          const mes = obtenerMesAnio(r.fecha_registro) || "sin-fecha";
+          if (!grupos[mes]) grupos[mes] = [];
+          grupos[mes].push(r);
+        });
 
-            if (modoTodos) {
-                registrosBase = [...todosLosRegistros];
-                badgeMes.textContent = '📋 Todos los meses';
-            } else {
-                const mesSeleccionado = mesFiltro.value;
-                if (!mesSeleccionado) {
-                    tbody.innerHTML =
-                        `<tr><td colspan="13" class="fila-vacia"><i class="fas fa-calendar-alt"></i>Selecciona un mes para visualizar</td></tr>`;
-                    actualizarTotales(0, 0, 0);
-                    return;
-                }
-                registrosBase = todosLosRegistros.filter(r => {
-                    const m = obtenerMesAnio(r.fecha_registro);
-                    return m === mesSeleccionado;
-                });
-                actualizarBadge();
-            }
+        const mesesOrdenados = Object.keys(grupos).sort((a, b) => {
+          if (a === "sin-fecha") return 1;
+          if (b === "sin-fecha") return -1;
+          return b.localeCompare(a);
+        });
 
-            let registrosAMostrar = registrosBase;
-            if (modoVisualizacion === 'urg') {
-                registrosAMostrar = registrosBase.filter(r => esUrgente(r.expediente));
-            } else if (modoVisualizacion === 'reg') {
-                registrosAMostrar = registrosBase.filter(r => !esUrgente(r.expediente));
-            }
+        let html = "";
+        let totalRegistros = 0;
+        let totalUrgentes = 0;
+        let totalRegulares = 0;
 
-            if (registrosAMostrar.length === 0) {
-                let mensaje = 'No hay registros en este período';
-                if (modoVisualizacion === 'urg') mensaje = 'No hay expedientes urgentes en este período';
-                if (modoVisualizacion === 'reg') mensaje = 'No hay expedientes regulares en este período';
-                tbody.innerHTML =
-                    `<tr><td colspan="13" class="fila-vacia"><i class="fas fa-inbox"></i>${mensaje}</td></tr>`;
-                actualizarTotales(0, 0, 0);
-                return;
-            }
+        mesesOrdenados.forEach((mes) => {
+          const registrosMes = grupos[mes];
+          const mesLabel =
+            mes === "sin-fecha" ? "Sin fecha" : formatearMesAnio(mes);
 
-            const urgentes = registrosAMostrar.filter(r => esUrgente(r.expediente));
-            const regulares = registrosAMostrar.filter(r => !esUrgente(r.expediente));
+          const urgentes = registrosMes.filter((r) => esUrgente(r.expediente));
+          const regulares = registrosMes.filter(
+            (r) => !esUrgente(r.expediente),
+          );
 
-            const ordenarPorFecha = (a, b) => (b.fecha_registro || '').localeCompare(a.fecha_registro || '');
+          totalUrgentes += urgentes.length;
+          totalRegulares += regulares.length;
 
-            urgentes.sort(ordenarPorFecha);
-            regulares.sort(ordenarPorFecha);
+          const ordenarPorFecha = (a, b) =>
+            (b.fecha_registro || "").localeCompare(a.fecha_registro || "");
+          urgentes.sort(ordenarPorFecha);
+          regulares.sort(ordenarPorFecha);
 
-            let html = '';
-            let numUrg = 0;
-            let numReg = 0;
-
-            // === URGENTES ===
-            if (urgentes.length > 0 && (modoVisualizacion === 'all' || modoVisualizacion === 'urg')) {
-                html += `<tr class="separador-urgente">
+          // === ENCABEZADO DEL MES ===
+          html += `<tr class="separador-mes">
                             <td colspan="13">
-                                <i class="fas fa-exclamation-triangle"></i> 
-                                EXPEDIENTES URGENTES 
-                                <span class="count-badge count-urg">${urgentes.length} expediente${urgentes.length !== 1 ? 's' : ''}</span>
-                                <span style="font-weight:400; font-size:0.7rem; color:#5a7a9a; margin-left:0.8rem;">
-                                    <i class="fas fa-tag"></i> Prefijo "urg-"
-                                </span>
+                                <i class="fas fa-calendar-alt"></i> ${mesLabel}
+                                <span class="count-mes">${registrosMes.length} expediente${registrosMes.length !== 1 ? "s" : ""}</span>
+                                ${urgentes.length > 0 ? `<span class="count-badge count-urg"><i class="fas fa-exclamation-triangle"></i> ${urgentes.length} urgente${urgentes.length !== 1 ? "s" : ""}</span>` : ""}
                             </td>
                         </tr>`;
 
-                urgentes.forEach(r => {
-                    numUrg++;
-                    const estado = r.estado || '—';
-                    const estadoClass = getEstadoClass(estado);
-
-                    html += `<tr>
-                                <td class="num-col">${numUrg}</td>
-                                <td class="uuid-cell" title="${r.id || ''}">${truncarUUID(r.id)}</td>
-                                <td><span class="nombre-paciente">${r.nombre_paciente || '—'}</span></td>
-                                <td>
-                                    <span class="expediente">${r.expediente || '—'}</span>
-                                </td>
-                                <td>${r.servicio || '—'}</td>
-                                <td class="fecha-registro fecha-cell"><strong>${formatearFecha(r.fecha_registro)}</strong></td>
-                                <td><span class="estado-badge ${estadoClass}">${estado}</span></td>
-                                <td>${r.sexo || '—'}</td>
-                                <td class="fecha-cell">${formatearFecha(r.fecha_nac)}</td>
-                                <td>${r.tel_part || '—'}</td>
-                                <td class="fecha-cell">${formatearFechaHora(r.created_at)}</td>
-                                <td class="fecha-cell">${formatearFechaHora(r.updated_at)}</td>
-                                <td><span class="usuario-registro">${r.usuario_registro || '—'}</span></td>
-                            </tr>`;
-                });
-            }
-
-            // === SEPARADOR ===
-            if (modoVisualizacion === 'all' && urgentes.length > 0 && regulares.length > 0) {
-                html += `<tr class="separador-mes">
-                            <td colspan="13">
-                                <i class="fas fa-arrow-down"></i> 
-                                ——— REGULARES ———
-                                <span class="count-badge count-reg">${regulares.length} expediente${regulares.length !== 1 ? 's' : ''}</span>
-                            </td>
-                        </tr>`;
-            }
-
-            // === REGULARES ===
-            if (regulares.length > 0 && (modoVisualizacion === 'all' || modoVisualizacion === 'reg')) {
-                if (modoVisualizacion === 'reg') {
-                    html += `<tr class="separador-regular">
+          // === URGENTES ===
+          if (urgentes.length > 0) {
+            html += `<tr class="separador-urgente">
                                 <td colspan="13">
-                                    <i class="fas fa-file-medical"></i> 
-                                    EXPEDIENTES REGULARES
-                                    <span class="count-badge count-reg">${regulares.length} expediente${regulares.length !== 1 ? 's' : ''}</span>
+                                    <i class="fas fa-exclamation-triangle"></i> 
+                                    URGENTES 
+                                    <span class="count-badge count-urg">${urgentes.length} expediente${urgentes.length !== 1 ? "s" : ""}</span>
                                 </td>
                             </tr>`;
-                }
 
-                regulares.forEach(r => {
-                    numReg++;
-                    const estado = r.estado || '—';
-                    const estadoClass = getEstadoClass(estado);
+            urgentes.forEach((r, i) => {
+              totalRegistros++;
+              const estado = r.estado || "—";
+              const estadoClass = getEstadoClass(estado);
 
-                    html += `<tr>
-                                <td class="num-col">${numReg}</td>
-                                <td class="uuid-cell" title="${r.id || ''}">${truncarUUID(r.id)}</td>
-                                <td><span class="nombre-paciente">${r.nombre_paciente || '—'}</span></td>
-                                <td><span class="expediente">${r.expediente || '—'}</span></td>
-                                <td>${r.servicio || '—'}</td>
-                                <td class="fecha-registro fecha-cell"><strong>${formatearFecha(r.fecha_registro)}</strong></td>
-                                <td><span class="estado-badge ${estadoClass}">${estado}</span></td>
-                                <td>${r.sexo || '—'}</td>
-                                <td class="fecha-cell">${formatearFecha(r.fecha_nac)}</td>
-                                <td>${r.tel_part || '—'}</td>
-                                <td class="fecha-cell">${formatearFechaHora(r.created_at)}</td>
-                                <td class="fecha-cell">${formatearFechaHora(r.updated_at)}</td>
-                                <td><span class="usuario-registro">${r.usuario_registro || '—'}</span></td>
-                            </tr>`;
-                });
-            }
+              html += `<tr>
+                                    <td class="num-col">${i + 1}</td>
+                                    <td class="uuid-cell" title="${r.id || ""}">${truncarUUID(r.id)}</td>
+                                    <td><span class="nombre-paciente">${r.nombre_paciente || "—"}</span></td>
+                                    <td><span class="expediente">${r.expediente || "—"}</span></td>
+                                    <td>${r.servicio || "—"}</td>
+                                    <td class="fecha-registro fecha-cell"><strong>${formatearFecha(r.fecha_registro)}</strong></td>
+                                    <td><span class="estado-badge ${estadoClass}">${estado}</span></td>
+                                    <td>${r.sexo || "—"}</td>
+                                    <td class="fecha-cell">${formatearFecha(r.fecha_nac)}</td>
+                                    <td>${r.tel_part || "—"}</td>
+                                    <td class="fecha-cell">${formatearFechaHora(r.created_at)}</td>
+                                    <td class="fecha-cell">${formatearFechaHora(r.updated_at)}</td>
+                                    <td><span class="usuario-registro">${r.usuario_registro || "—"}</span></td>
+                                </tr>`;
+            });
+          }
 
-            tbody.innerHTML = html;
-            actualizarTotales(registrosAMostrar.length, urgentes.length, regulares.length);
-        }
-
-        // ============================================================
-        // ACTUALIZAR TOTALES
-        // ============================================================
-        function actualizarTotales(cantidad, urgentes, regulares) {
-            const texto = `${cantidad} registro${cantidad !== 1 ? 's' : ''}`;
-            totalPie.innerHTML = `<strong>${cantidad}</strong> registros`;
-            totalMeta.textContent = texto;
-            footerTotalRegistros.textContent = texto;
-            contadorRegistros.textContent = cantidad;
-
-            if (urgentes > 0) {
-                totalUrgPie.style.display = 'inline-flex';
-                urgCountPie.textContent = urgentes;
-                footerUrgCount.style.display = 'inline';
-                footerUrgNum.textContent = urgentes;
+          // === REGULARES ===
+          if (regulares.length > 0) {
+            if (urgentes.length > 0) {
+              html += `<tr class="separador-mes">
+                                    <td colspan="13">
+                                        <i class="fas fa-arrow-down"></i> ——— REGULARES ———
+                                        <span class="count-badge count-reg">${regulares.length} expediente${regulares.length !== 1 ? "s" : ""}</span>
+                                    </td>
+                                </tr>`;
             } else {
-                totalUrgPie.style.display = 'none';
-                footerUrgCount.style.display = 'none';
+              html += `<tr class="separador-regular">
+                                    <td colspan="13">
+                                        <i class="fas fa-file-medical"></i> 
+                                        REGULARES
+                                        <span class="count-badge count-reg">${regulares.length} expediente${regulares.length !== 1 ? "s" : ""}</span>
+                                    </td>
+                                </tr>`;
             }
 
-            if (regulares > 0) {
-                totalRegPie.style.display = 'inline-flex';
-                regCountPie.textContent = regulares;
-                footerRegCount.style.display = 'inline';
-                footerRegNum.textContent = regulares;
-            } else {
-                totalRegPie.style.display = 'none';
-                footerRegCount.style.display = 'none';
-            }
+            regulares.forEach((r, i) => {
+              totalRegistros++;
+              const estado = r.estado || "—";
+              const estadoClass = getEstadoClass(estado);
 
-            let infoTexto = '';
-            if (modoTodos) {
-                infoTexto = `<i class="fas fa-list"></i> <strong>${cantidad}</strong> registros (todos)`;
-            } else {
-                const mes = formatearMesAnio(mesFiltro.value) || 'seleccionado';
-                infoTexto = `<i class="fas fa-file-alt"></i> <strong>${cantidad}</strong> registros en ${mes}`;
-            }
-
-            if (modoVisualizacion === 'urg' && urgentes > 0) {
-                infoTexto += ` · <span style="color:#c0392b;"><i class="fas fa-exclamation-triangle"></i> ${urgentes} urgentes</span>`;
-            } else if (modoVisualizacion === 'reg' && regulares > 0) {
-                infoTexto += ` · <span style="color:#2a6a9e;"><i class="fas fa-file-medical"></i> ${regulares} regulares</span>`;
-            } else if (modoVisualizacion === 'all') {
-                if (urgentes > 0) infoTexto += ` · <span style="color:#c0392b;"><i class="fas fa-exclamation-triangle"></i> ${urgentes} urgentes</span>`;
-                if (regulares > 0) infoTexto += ` · <span style="color:#2a6a9e;"><i class="fas fa-file-medical"></i> ${regulares} regulares</span>`;
-            }
-
-            registrosInfo.innerHTML = infoTexto;
-        }
-
-        function actualizarBadge() {
-            const val = mesFiltro.value;
-            badgeMes.textContent = val ? formatearMesAnio(val) : 'Selecciona un mes';
-        }
-
-        // ============================================================
-        // EVENTOS
-        // ============================================================
-        mesFiltro.addEventListener('change', function() {
-            if (modoTodos) {
-                modoTodos = false;
-            }
-            actualizarBadge();
-            renderizarTabla();
+              html += `<tr>
+                                    <td class="num-col">${i + 1}</td>
+                                    <td class="uuid-cell" title="${r.id || ""}">${truncarUUID(r.id)}</td>
+                                    <td><span class="nombre-paciente">${r.nombre_paciente || "—"}</span></td>
+                                    <td><span class="expediente">${r.expediente || "—"}</span></td>
+                                    <td>${r.servicio || "—"}</td>
+                                    <td class="fecha-registro fecha-cell"><strong>${formatearFecha(r.fecha_registro)}</strong></td>
+                                    <td><span class="estado-badge ${estadoClass}">${estado}</span></td>
+                                    <td>${r.sexo || "—"}</td>
+                                    <td class="fecha-cell">${formatearFecha(r.fecha_nac)}</td>
+                                    <td>${r.tel_part || "—"}</td>
+                                    <td class="fecha-cell">${formatearFechaHora(r.created_at)}</td>
+                                    <td class="fecha-cell">${formatearFechaHora(r.updated_at)}</td>
+                                    <td><span class="usuario-registro">${r.usuario_registro || "—"}</span></td>
+                                </tr>`;
+            });
+          }
         });
 
-        // ============================================================
-        // INICIO
-        // ============================================================
-        document.addEventListener('DOMContentLoaded', () => {
-            cargarDatos();
-        });
+        tbody.innerHTML = html;
+        actualizarTotales(totalRegistros, totalUrgentes, totalRegulares);
+      }
 
-        window.recargarInforme = cargarDatos;
+      // ============================================================
+      // ACTUALIZAR TOTALES
+      // ============================================================
+      function actualizarTotales(cantidad, urgentes, regulares) {
+        const texto = `${cantidad} registro${cantidad !== 1 ? "s" : ""}`;
+        totalPie.innerHTML = `<strong>${cantidad}</strong> registros`;
+        totalMeta.textContent = texto;
+        footerTotalRegistros.textContent = texto;
+
+        if (urgentes > 0) {
+          totalUrgPie.style.display = "inline-flex";
+          urgCountPie.textContent = urgentes;
+          footerUrgCount.style.display = "inline";
+          footerUrgNum.textContent = urgentes;
+        } else {
+          totalUrgPie.style.display = "none";
+          footerUrgCount.style.display = "none";
+        }
+
+        if (regulares > 0) {
+          totalRegPie.style.display = "inline-flex";
+          regCountPie.textContent = regulares;
+          footerRegCount.style.display = "inline";
+          footerRegNum.textContent = regulares;
+        } else {
+          totalRegPie.style.display = "none";
+          footerRegCount.style.display = "none";
+        }
+      }
+
+      // ============================================================
+      // INICIO
+      // ============================================================
+      document.addEventListener("DOMContentLoaded", () => {
+        cargarDatos();
+      });
     </script>
-
-</body>
+  </body>
 </html>
