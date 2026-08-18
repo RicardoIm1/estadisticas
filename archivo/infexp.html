@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Informe de Expedientes · Filtro por mes</title>
+    <title>Informe de Expedientes · Numerados y Urgentes</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -221,6 +221,31 @@
         background: #6a8aae;
       }
 
+      .btn-filter-urg {
+        background: #c0392b;
+        border: none;
+        color: white;
+        padding: 0.4rem 1.2rem;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: 0.25s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .btn-filter-urg:hover {
+        background: #a93226;
+        transform: translateY(-1px);
+      }
+
+      .btn-filter-urg.active {
+        background: #e74c3c;
+        box-shadow: 0 0 0 2px #c0392b;
+      }
+
       .registros-info {
         font-size: 0.8rem;
         color: #1a2b3c;
@@ -250,7 +275,7 @@
         width: 100%;
         border-collapse: collapse;
         font-size: 0.78rem;
-        min-width: 1000px;
+        min-width: 1100px;
       }
 
       thead {
@@ -293,6 +318,80 @@
         border-bottom: none;
       }
 
+      /* ===== FILAS URGENTES ===== */
+      tr.fila-urgente {
+        background: #fff5f5 !important;
+        border-left: 4px solid #c0392b;
+      }
+
+      tr.fila-urgente td:first-child {
+        border-left: 4px solid #c0392b;
+        padding-left: 0.3rem;
+      }
+
+      tr.fila-urgente:hover {
+        background: #ffebeb !important;
+      }
+
+      .urg-badge {
+        display: inline-block;
+        background: #c0392b;
+        color: white;
+        font-size: 0.5rem;
+        font-weight: 700;
+        padding: 0.1rem 0.5rem;
+        border-radius: 30px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-left: 0.3rem;
+      }
+
+      /* ===== GRUPO DE MES ===== */
+      .grupo-mes td {
+        background: #f4f9ff;
+        font-weight: 700;
+        color: #0a1e30;
+        border-top: 2.5px solid #b8c8da;
+        border-bottom: 2px solid #b8c8da;
+        padding: 0.4rem 0.7rem;
+        font-size: 0.82rem;
+      }
+
+      .grupo-mes td i {
+        margin-right: 10px;
+        color: #2a5a7a;
+      }
+
+      .grupo-mes td .mes-count {
+        background: #dce6f0;
+        padding: 0.1rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        margin-left: 0.8rem;
+        color: #1a3a5a;
+      }
+
+      .grupo-mes td .urg-count {
+        background: #fdd8d8;
+        padding: 0.1rem 0.8rem;
+        border-radius: 30px;
+        font-size: 0.65rem;
+        font-weight: 600;
+        margin-left: 0.5rem;
+        color: #a10000;
+      }
+
+      /* ===== ESTILOS DE CELDAS ===== */
+      .num-col {
+        text-align: center;
+        font-weight: 600;
+        color: #5a7a9a;
+        font-size: 0.7rem;
+        width: 30px;
+        min-width: 30px;
+      }
+
       .expediente {
         font-weight: 700;
         color: #004080;
@@ -302,6 +401,11 @@
         padding: 0.1rem 0.5rem;
         border-radius: 4px;
         display: inline-block;
+      }
+
+      .expediente-urg {
+        background: #ffd9d9 !important;
+        color: #8a1a1a !important;
       }
 
       .nombre-paciente {
@@ -335,17 +439,14 @@
         background: #d2f0d9;
         color: #00542b;
       }
-
       .estado-inactivo {
         background: #fff1cc;
         color: #7a5800;
       }
-
       .estado-defuncion {
         background: #fdd8d8;
         color: #a10000;
       }
-
       .estado-alta {
         background: #d4e4ff;
         color: #003b7a;
@@ -424,6 +525,15 @@
         color: #003b7a;
       }
 
+      .total-urg {
+        background: #fdd8d8 !important;
+        color: #8a1a1a !important;
+      }
+
+      .total-urg strong {
+        color: #a10000 !important;
+      }
+
       @media (max-width: 768px) {
         .paper {
           padding: 1rem;
@@ -450,11 +560,15 @@
         }
         table {
           font-size: 0.7rem;
-          min-width: 800px;
+          min-width: 900px;
         }
         th,
         td {
           padding: 0.3rem 0.4rem;
+        }
+        .num-col {
+          min-width: 20px;
+          width: 20px;
         }
       }
 
@@ -486,7 +600,8 @@
         .toolbar .btn-print,
         .toolbar .btn-export,
         .toolbar .left label,
-        .toolbar .btn-show-all {
+        .toolbar .btn-show-all,
+        .toolbar .btn-filter-urg {
           display: none !important;
         }
 
@@ -505,7 +620,6 @@
         .report-header {
           border-bottom-color: #1a2a3f !important;
         }
-
         .report-header .logo-icon {
           background: #1a3a5c !important;
           -webkit-print-color-adjust: exact !important;
@@ -532,6 +646,30 @@
           print-color-adjust: exact !important;
         }
 
+        .total-urg {
+          background: #fdd8d8 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        .grupo-mes td {
+          background: #f4f9ff !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        .grupo-mes td .mes-count {
+          background: #dce6f0 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        .grupo-mes td .urg-count {
+          background: #fdd8d8 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
         .table-responsive {
           border: 1px solid #ccc !important;
           border-radius: 0 !important;
@@ -541,6 +679,25 @@
 
         .report-footer {
           border-top-color: #d0dce8 !important;
+        }
+
+        tr.fila-urgente {
+          background: #fff5f5 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        .expediente-urg {
+          background: #ffd9d9 !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
+        }
+
+        .urg-badge {
+          background: #c0392b !important;
+          color: white !important;
+          -webkit-print-color-adjust: exact !important;
+          print-color-adjust: exact !important;
         }
 
         @page {
@@ -554,13 +711,19 @@
         }
 
         table {
-          font-size: 0.65rem !important;
+          font-size: 0.6rem !important;
           min-width: 100% !important;
         }
 
         th,
         td {
-          padding: 0.2rem 0.3rem !important;
+          padding: 0.15rem 0.25rem !important;
+        }
+
+        .num-col {
+          font-size: 0.6rem !important;
+          min-width: 18px !important;
+          width: 18px !important;
         }
 
         .expediente {
@@ -612,7 +775,10 @@
           <div>
             <h1>
               Expedientes Clínicos
-              <small>Registros filtrados por mes de alta</small>
+              <small
+                >Registros numerados por mes ·
+                <span style="color: #c0392b">Urgentes destacados</span></small
+              >
             </h1>
           </div>
         </div>
@@ -637,9 +803,17 @@
           <button
             class="btn-show-all"
             id="btnMostrarTodos"
-            onclick="mostrarTodos()"
+            onclick="toggleMostrarTodos()"
           >
             <i class="fas fa-list"></i> Ver todos
+          </button>
+          <button
+            class="btn-filter-urg"
+            id="btnFiltrarUrg"
+            onclick="toggleFiltrarUrg()"
+          >
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="urgBtnText">Urgentes</span>
           </button>
           <span class="registros-info" id="registrosInfo">
             <i class="fas fa-file-alt"></i>
@@ -665,8 +839,9 @@
         <table id="tablaInforme">
           <thead>
             <tr>
+              <th style="width: 4%"><i class="fas fa-hashtag"></i> #</th>
               <th style="width: 6%"><i class="fas fa-hashtag"></i> ID</th>
-              <th style="width: 15%"><i class="fas fa-user"></i> Paciente</th>
+              <th style="width: 14%"><i class="fas fa-user"></i> Paciente</th>
               <th style="width: 12%">
                 <i class="fas fa-file-signature"></i> Expediente
               </th>
@@ -686,9 +861,7 @@
               <th style="width: 9%">
                 <i class="fas fa-clock"></i> Actualizado
               </th>
-              <th style="width: 8%">
-                <i class="fas fa-user-cog"></i> Usuario Registro
-              </th>
+              <th style="width: 8%"><i class="fas fa-user-cog"></i> Usuario</th>
             </tr>
           </thead>
           <tbody id="tbodyInforme">
@@ -712,9 +885,21 @@
             ><i class="fas fa-file-alt"></i>
             <span id="footerTotalRegistros">0 registros</span></span
           >
+          <span id="footerUrgCount" style="display: none; color: #c0392b">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span id="footerUrgNum">0</span> urgentes
+          </span>
         </div>
         <span class="total-registros" id="totalRegistrosPie">
           <strong>0</strong> registros
+        </span>
+        <span
+          class="total-registros total-urg"
+          id="totalUrgPie"
+          style="display: none"
+        >
+          <i class="fas fa-exclamation-triangle"></i>
+          <strong id="urgCountPie">0</strong> urgentes
         </span>
       </div>
     </div>
@@ -737,12 +922,15 @@
       // ============================================================
       let todosLosRegistros = [];
       let modoTodos = false;
+      let filtrarUrgentes = false;
 
       // Elementos DOM
       const tbody = document.getElementById("tbodyInforme");
       const mesFiltro = document.getElementById("mesFiltro");
       const badgeMes = document.getElementById("badgeMesActual");
       const totalPie = document.getElementById("totalRegistrosPie");
+      const totalUrgPie = document.getElementById("totalUrgPie");
+      const urgCountPie = document.getElementById("urgCountPie");
       const totalMeta = document.getElementById("totalRegistrosMeta");
       const fechaGen = document.getElementById("fechaGeneracion");
       const contadorRegistros = document.getElementById("contadorRegistros");
@@ -751,11 +939,20 @@
       const footerTotalRegistros = document.getElementById(
         "footerTotalRegistros",
       );
+      const footerUrgCount = document.getElementById("footerUrgCount");
+      const footerUrgNum = document.getElementById("footerUrgNum");
       const btnMostrarTodos = document.getElementById("btnMostrarTodos");
+      const btnFiltrarUrg = document.getElementById("btnFiltrarUrg");
+      const urgBtnText = document.getElementById("urgBtnText");
 
       // ============================================================
       // UTILIDADES
       // ============================================================
+      function esUrgente(expediente) {
+        if (!expediente) return false;
+        return expediente.toLowerCase().startsWith("urg-");
+      }
+
       function formatearFecha(fechaStr) {
         if (!fechaStr) return "—";
         try {
@@ -865,7 +1062,6 @@
 
           todosLosRegistros = data || [];
 
-          // Fecha de generación
           const ahora = new Date();
           fechaGen.textContent = ahora.toLocaleDateString("es-ES", {
             day: "2-digit",
@@ -875,7 +1071,6 @@
             minute: "2-digit",
           });
 
-          // Usuario
           try {
             const user = localStorage.getItem("usuario") || "Sistema";
             footerUsuario.textContent = user;
@@ -883,7 +1078,7 @@
             footerUsuario.textContent = "Sistema";
           }
 
-          // Establecer mes por defecto: el más reciente con registros
+          // Mes por defecto: el más reciente con registros
           if (todosLosRegistros.length > 0) {
             const mesesSet = new Set();
             todosLosRegistros.forEach((r) => {
@@ -903,14 +1098,17 @@
           }
 
           modoTodos = false;
+          filtrarUrgentes = false;
           btnMostrarTodos.classList.remove("active");
           btnMostrarTodos.innerHTML = '<i class="fas fa-list"></i> Ver todos';
+          btnFiltrarUrg.classList.remove("active");
+          urgBtnText.textContent = "Urgentes";
 
           actualizarBadge();
           renderizarTabla();
         } catch (error) {
           console.error("Error cargando datos:", error);
-          tbody.innerHTML = `<tr><td colspan="12" style="text-align:center; padding:2.5rem; color:#b33;">
+          tbody.innerHTML = `<tr><td colspan="13" style="text-align:center; padding:2.5rem; color:#b33;">
                         <i class="fas fa-exclamation-triangle" style="font-size:2rem; display:block; margin-bottom:0.8rem;"></i>
                         Error al cargar datos: ${error.message}
                     </td></tr>`;
@@ -918,9 +1116,9 @@
       }
 
       // ============================================================
-      // MOSTRAR TODOS LOS REGISTROS
+      // TOGGLES
       // ============================================================
-      function mostrarTodos() {
+      function toggleMostrarTodos() {
         modoTodos = !modoTodos;
         if (modoTodos) {
           btnMostrarTodos.classList.add("active");
@@ -929,78 +1127,163 @@
         } else {
           btnMostrarTodos.classList.remove("active");
           btnMostrarTodos.innerHTML = '<i class="fas fa-list"></i> Ver todos';
-          // Restaurar el mes seleccionado
-          if (mesFiltro.value) {
-            actualizarBadge();
-          }
+          if (mesFiltro.value) actualizarBadge();
+        }
+        renderizarTabla();
+      }
+
+      function toggleFiltrarUrg() {
+        filtrarUrgentes = !filtrarUrgentes;
+        if (filtrarUrgentes) {
+          btnFiltrarUrg.classList.add("active");
+          urgBtnText.textContent = "Mostrar todos";
+        } else {
+          btnFiltrarUrg.classList.remove("active");
+          urgBtnText.textContent = "Urgentes";
         }
         renderizarTabla();
       }
 
       // ============================================================
-      // RENDERIZAR TABLA
+      // RENDERIZAR TABLA CON NUMERACIÓN POR MES
       // ============================================================
       function renderizarTabla() {
-        let registrosAMostrar = [];
+        let registrosBase = [];
 
         if (modoTodos) {
-          registrosAMostrar = [...todosLosRegistros];
+          registrosBase = [...todosLosRegistros];
           badgeMes.textContent = "📋 Todos los meses";
         } else {
           const mesSeleccionado = mesFiltro.value;
           if (!mesSeleccionado) {
-            tbody.innerHTML = `<tr><td colspan="12" class="fila-vacia"><i class="fas fa-calendar-alt"></i>Selecciona un mes para visualizar</td></tr>`;
-            actualizarTotales(0);
+            tbody.innerHTML = `<tr><td colspan="13" class="fila-vacia"><i class="fas fa-calendar-alt"></i>Selecciona un mes para visualizar</td></tr>`;
+            actualizarTotales(0, 0);
             return;
           }
-          registrosAMostrar = todosLosRegistros.filter((r) => {
+          registrosBase = todosLosRegistros.filter((r) => {
             const m = obtenerMesAnio(r.fecha_registro);
             return m === mesSeleccionado;
           });
           actualizarBadge();
         }
 
+        // Aplicar filtro de urgentes
+        let registrosAMostrar = registrosBase;
+        if (filtrarUrgentes) {
+          registrosAMostrar = registrosBase.filter((r) =>
+            esUrgente(r.expediente),
+          );
+        }
+
         if (registrosAMostrar.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="12" class="fila-vacia"><i class="fas fa-inbox"></i>No hay registros en este período</td></tr>`;
-          actualizarTotales(0);
+          tbody.innerHTML = `<tr><td colspan="13" class="fila-vacia"><i class="fas fa-inbox"></i>No hay registros en este período</td></tr>`;
+          actualizarTotales(0, 0);
           return;
         }
 
-        let html = "";
+        // Ordenar: primero urgentes, luego por fecha (más reciente primero)
+        registrosAMostrar.sort((a, b) => {
+          const aUrg = esUrgente(a.expediente);
+          const bUrg = esUrgente(b.expediente);
+          if (aUrg && !bUrg) return -1;
+          if (!aUrg && bUrg) return 1;
+          return (b.fecha_registro || "").localeCompare(a.fecha_registro || "");
+        });
 
+        // Agrupar por mes para la numeración
+        const grupos = {};
         registrosAMostrar.forEach((r) => {
-          const estado = r.estado || "—";
-          const estadoClass = getEstadoClass(estado);
+          const mes = obtenerMesAnio(r.fecha_registro) || "sin-fecha";
+          if (!grupos[mes]) grupos[mes] = [];
+          grupos[mes].push(r);
+        });
 
-          html += `<tr>
-                            <td class="uuid-cell" title="${r.id || ""}">${truncarUUID(r.id)}</td>
-                            <td><span class="nombre-paciente">${r.nombre_paciente || "—"}</span></td>
-                            <td><span class="expediente">${r.expediente || "—"}</span></td>
-                            <td>${r.servicio || "—"}</td>
-                            <td class="fecha-registro fecha-cell"><strong>${formatearFecha(r.fecha_registro)}</strong></td>
-                            <td><span class="estado-badge ${estadoClass}">${estado}</span></td>
-                            <td>${r.sexo || "—"}</td>
-                            <td class="fecha-cell">${formatearFecha(r.fecha_nac)}</td>
-                            <td>${r.tel_part || "—"}</td>
-                            <td class="fecha-cell">${formatearFechaHora(r.created_at)}</td>
-                            <td class="fecha-cell">${formatearFechaHora(r.updated_at)}</td>
-                            <td><span class="usuario-registro">${r.usuario_registro || "—"}</span></td>
+        let html = "";
+        let totalRegistros = 0;
+        let totalUrgentes = 0;
+
+        // Ordenar grupos por mes (más reciente primero)
+        const mesesOrdenados = Object.keys(grupos).sort((a, b) => {
+          if (a === "sin-fecha") return 1;
+          if (b === "sin-fecha") return -1;
+          return b.localeCompare(a);
+        });
+
+        mesesOrdenados.forEach((mes) => {
+          const registros = grupos[mes];
+          const mesLabel =
+            mes === "sin-fecha" ? "Sin fecha" : formatearMesAnio(mes);
+          const urgentesEnMes = registros.filter((r) =>
+            esUrgente(r.expediente),
+          );
+
+          html += `<tr class="grupo-mes">
+                            <td colspan="13">
+                                <i class="fas fa-calendar-alt"></i> ${mesLabel}
+                                <span class="mes-count">${registros.length} expediente${registros.length !== 1 ? "s" : ""}</span>
+                                ${urgentesEnMes.length > 0 ? `<span class="urg-count"><i class="fas fa-exclamation-triangle"></i> ${urgentesEnMes.length} urgente${urgentesEnMes.length !== 1 ? "s" : ""}</span>` : ""}
+                            </td>
                         </tr>`;
+
+          let numRegistro = 1;
+          registros.forEach((r) => {
+            const esUrg = esUrgente(r.expediente);
+            if (esUrg) totalUrgentes++;
+            totalRegistros++;
+
+            const estado = r.estado || "—";
+            const estadoClass = getEstadoClass(estado);
+            const expedienteClass = esUrg
+              ? "expediente expediente-urg"
+              : "expediente";
+            const filaClass = esUrg ? "fila-urgente" : "";
+
+            html += `<tr class="${filaClass}">
+                                <td class="num-col">${numRegistro}</td>
+                                <td class="uuid-cell" title="${r.id || ""}">${truncarUUID(r.id)}</td>
+                                <td><span class="nombre-paciente">${r.nombre_paciente || "—"}</span></td>
+                                <td>
+                                    <span class="${expedienteClass}">${r.expediente || "—"}</span>
+                                    ${esUrg ? '<span class="urg-badge"><i class="fas fa-exclamation-triangle"></i> URG</span>' : ""}
+                                </td>
+                                <td>${r.servicio || "—"}</td>
+                                <td class="fecha-registro fecha-cell"><strong>${formatearFecha(r.fecha_registro)}</strong></td>
+                                <td><span class="estado-badge ${estadoClass}">${estado}</span></td>
+                                <td>${r.sexo || "—"}</td>
+                                <td class="fecha-cell">${formatearFecha(r.fecha_nac)}</td>
+                                <td>${r.tel_part || "—"}</td>
+                                <td class="fecha-cell">${formatearFechaHora(r.created_at)}</td>
+                                <td class="fecha-cell">${formatearFechaHora(r.updated_at)}</td>
+                                <td><span class="usuario-registro">${r.usuario_registro || "—"}</span></td>
+                            </tr>`;
+            numRegistro++;
+          });
         });
 
         tbody.innerHTML = html;
-        actualizarTotales(registrosAMostrar.length);
+        actualizarTotales(totalRegistros, totalUrgentes);
       }
 
       // ============================================================
       // ACTUALIZAR TOTALES
       // ============================================================
-      function actualizarTotales(cantidad) {
+      function actualizarTotales(cantidad, urgentes) {
         const texto = `${cantidad} registro${cantidad !== 1 ? "s" : ""}`;
         totalPie.innerHTML = `<strong>${cantidad}</strong> registros`;
         totalMeta.textContent = texto;
         footerTotalRegistros.textContent = texto;
         contadorRegistros.textContent = cantidad;
+
+        // Mostrar/ocultar contador de urgentes
+        if (urgentes > 0) {
+          totalUrgPie.style.display = "inline-flex";
+          urgCountPie.textContent = urgentes;
+          footerUrgCount.style.display = "inline";
+          footerUrgNum.textContent = urgentes;
+        } else {
+          totalUrgPie.style.display = "none";
+          footerUrgCount.style.display = "none";
+        }
 
         let infoTexto = "";
         if (modoTodos) {
@@ -1008,6 +1291,9 @@
         } else {
           const mes = formatearMesAnio(mesFiltro.value) || "seleccionado";
           infoTexto = `<i class="fas fa-file-alt"></i> <strong>${cantidad}</strong> registros en ${mes}`;
+        }
+        if (filtrarUrgentes && urgentes > 0) {
+          infoTexto += ` · <span style="color:#c0392b;"><i class="fas fa-exclamation-triangle"></i> ${urgentes} urgentes</span>`;
         }
         registrosInfo.innerHTML = infoTexto;
       }
