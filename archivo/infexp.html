@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Informe de Expedientes · Registros completos</title>
+    <title>Informe de Expedientes · Filtro por mes</title>
     <link
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
@@ -115,6 +115,42 @@
         gap: 0.8rem;
       }
 
+      .toolbar label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #1a2b3c;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .toolbar input[type="month"] {
+        padding: 0.35rem 0.9rem;
+        border-radius: 30px;
+        border: 1.5px solid #d0dce8;
+        background: white;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #0b1a2b;
+        outline: none;
+        transition: 0.2s;
+      }
+
+      .toolbar input[type="month"]:focus {
+        border-color: #2a6a9e;
+        box-shadow: 0 0 0 3px rgba(42, 106, 158, 0.15);
+      }
+
+      .badge-mes {
+        background: #e4ecf5;
+        padding: 0.25rem 1.2rem;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.78rem;
+        color: #0b1f30;
+        letter-spacing: 0.2px;
+      }
+
       .btn-print {
         background: #1a2b3c;
         border: none;
@@ -159,6 +195,30 @@
       .btn-export:hover {
         background: #f0f5fb;
         border-color: #a0b8d0;
+      }
+
+      .btn-show-all {
+        background: #2a6a9e;
+        border: none;
+        color: white;
+        padding: 0.4rem 1.2rem;
+        border-radius: 40px;
+        font-weight: 600;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: 0.25s;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
+      .btn-show-all:hover {
+        background: #1a4a7a;
+        transform: translateY(-1px);
+      }
+
+      .btn-show-all.active {
+        background: #6a8aae;
       }
 
       .registros-info {
@@ -233,7 +293,6 @@
         border-bottom: none;
       }
 
-      /* Estilos destacados para campos clave */
       .expediente {
         font-weight: 700;
         color: #004080;
@@ -425,7 +484,13 @@
         }
 
         .toolbar .btn-print,
-        .toolbar .btn-export {
+        .toolbar .btn-export,
+        .toolbar .left label,
+        .toolbar .btn-show-all {
+          display: none !important;
+        }
+
+        .toolbar .left .badge-mes {
           display: none !important;
         }
 
@@ -534,12 +599,6 @@
       .paper {
         animation: fadeIn 0.4s ease;
       }
-
-      .highlight-key {
-        background: #f0f7ff;
-        border-left: 3px solid #2a6a9e;
-        padding-left: 0.3rem;
-      }
     </style>
   </head>
   <body>
@@ -553,7 +612,7 @@
           <div>
             <h1>
               Expedientes Clínicos
-              <small>Listado completo de registros</small>
+              <small>Registros filtrados por mes de alta</small>
             </h1>
           </div>
         </div>
@@ -569,9 +628,22 @@
       <!-- ===== TOOLBAR ===== -->
       <div class="toolbar">
         <div class="left">
+          <label for="mesFiltro">
+            <i class="fas fa-calendar-alt" style="opacity: 0.6"></i>
+            <span>Mes de registro:</span>
+            <input type="month" id="mesFiltro" />
+          </label>
+          <span class="badge-mes" id="badgeMesActual">Selecciona un mes</span>
+          <button
+            class="btn-show-all"
+            id="btnMostrarTodos"
+            onclick="mostrarTodos()"
+          >
+            <i class="fas fa-list"></i> Ver todos
+          </button>
           <span class="registros-info" id="registrosInfo">
             <i class="fas fa-file-alt"></i>
-            <strong id="contadorRegistros">0</strong> registros totales
+            <strong id="contadorRegistros">0</strong> registros
           </span>
         </div>
         <div style="display: flex; gap: 0.6rem; flex-wrap: wrap">
@@ -594,7 +666,7 @@
           <thead>
             <tr>
               <th style="width: 6%"><i class="fas fa-hashtag"></i> ID</th>
-              <th style="width: 14%"><i class="fas fa-user"></i> Paciente</th>
+              <th style="width: 15%"><i class="fas fa-user"></i> Paciente</th>
               <th style="width: 12%">
                 <i class="fas fa-file-signature"></i> Expediente
               </th>
@@ -614,7 +686,7 @@
               <th style="width: 9%">
                 <i class="fas fa-clock"></i> Actualizado
               </th>
-              <th style="width: 9%">
+              <th style="width: 8%">
                 <i class="fas fa-user-cog"></i> Usuario Registro
               </th>
             </tr>
@@ -629,7 +701,7 @@
       <div class="report-footer">
         <div class="footer-left">
           <span
-            ><i class="fas fa-calendar-alt"></i> Ordenado por
+            ><i class="fas fa-calendar-alt"></i> Filtrado por
             <strong>fecha_registro</strong></span
           >
           <span
@@ -642,7 +714,7 @@
           >
         </div>
         <span class="total-registros" id="totalRegistrosPie">
-          <strong>0</strong> registros totales
+          <strong>0</strong> registros
         </span>
       </div>
     </div>
@@ -664,9 +736,12 @@
       // VARIABLES GLOBALES
       // ============================================================
       let todosLosRegistros = [];
+      let modoTodos = false;
 
       // Elementos DOM
       const tbody = document.getElementById("tbodyInforme");
+      const mesFiltro = document.getElementById("mesFiltro");
+      const badgeMes = document.getElementById("badgeMesActual");
       const totalPie = document.getElementById("totalRegistrosPie");
       const totalMeta = document.getElementById("totalRegistrosMeta");
       const fechaGen = document.getElementById("fechaGeneracion");
@@ -676,6 +751,7 @@
       const footerTotalRegistros = document.getElementById(
         "footerTotalRegistros",
       );
+      const btnMostrarTodos = document.getElementById("btnMostrarTodos");
 
       // ============================================================
       // UTILIDADES
@@ -714,6 +790,50 @@
         } catch {
           return fechaStr;
         }
+      }
+
+      function obtenerMesAnio(fechaStr) {
+        if (!fechaStr) return null;
+        try {
+          if (fechaStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            const parts = fechaStr.split("-");
+            return `${parts[0]}-${parts[1]}`;
+          }
+          const f = new Date(fechaStr);
+          if (isNaN(f)) return null;
+          const mes = String(f.getMonth() + 1).padStart(2, "0");
+          const anio = f.getFullYear();
+          return `${anio}-${mes}`;
+        } catch {
+          return null;
+        }
+      }
+
+      function nombreMes(numMes) {
+        const meses = [
+          "enero",
+          "febrero",
+          "marzo",
+          "abril",
+          "mayo",
+          "junio",
+          "julio",
+          "agosto",
+          "septiembre",
+          "octubre",
+          "noviembre",
+          "diciembre",
+        ];
+        return meses[numMes - 1] || "";
+      }
+
+      function formatearMesAnio(monthValue) {
+        if (!monthValue) return "—";
+        const parts = monthValue.split("-");
+        if (parts.length !== 2) return monthValue;
+        const anio = parts[0];
+        const mesNum = parseInt(parts[1], 10);
+        return `${nombreMes(mesNum)} ${anio}`;
       }
 
       function getEstadoClass(estado) {
@@ -763,7 +883,30 @@
             footerUsuario.textContent = "Sistema";
           }
 
-          actualizarTotales();
+          // Establecer mes por defecto: el más reciente con registros
+          if (todosLosRegistros.length > 0) {
+            const mesesSet = new Set();
+            todosLosRegistros.forEach((r) => {
+              const m = obtenerMesAnio(r.fecha_registro);
+              if (m) mesesSet.add(m);
+            });
+            const mesesArray = Array.from(mesesSet).sort();
+            if (mesesArray.length > 0) {
+              mesFiltro.value = mesesArray[mesesArray.length - 1];
+            } else {
+              const hoy = new Date();
+              mesFiltro.value = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+            }
+          } else {
+            const hoy = new Date();
+            mesFiltro.value = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, "0")}`;
+          }
+
+          modoTodos = false;
+          btnMostrarTodos.classList.remove("active");
+          btnMostrarTodos.innerHTML = '<i class="fas fa-list"></i> Ver todos';
+
+          actualizarBadge();
           renderizarTabla();
         } catch (error) {
           console.error("Error cargando datos:", error);
@@ -775,17 +918,57 @@
       }
 
       // ============================================================
-      // RENDERIZAR TABLA CON TODOS LOS REGISTROS
+      // MOSTRAR TODOS LOS REGISTROS
+      // ============================================================
+      function mostrarTodos() {
+        modoTodos = !modoTodos;
+        if (modoTodos) {
+          btnMostrarTodos.classList.add("active");
+          btnMostrarTodos.innerHTML =
+            '<i class="fas fa-filter"></i> Filtrar por mes';
+        } else {
+          btnMostrarTodos.classList.remove("active");
+          btnMostrarTodos.innerHTML = '<i class="fas fa-list"></i> Ver todos';
+          // Restaurar el mes seleccionado
+          if (mesFiltro.value) {
+            actualizarBadge();
+          }
+        }
+        renderizarTabla();
+      }
+
+      // ============================================================
+      // RENDERIZAR TABLA
       // ============================================================
       function renderizarTabla() {
-        if (todosLosRegistros.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="12" class="fila-vacia"><i class="fas fa-inbox"></i>No hay registros en la tabla</td></tr>`;
+        let registrosAMostrar = [];
+
+        if (modoTodos) {
+          registrosAMostrar = [...todosLosRegistros];
+          badgeMes.textContent = "📋 Todos los meses";
+        } else {
+          const mesSeleccionado = mesFiltro.value;
+          if (!mesSeleccionado) {
+            tbody.innerHTML = `<tr><td colspan="12" class="fila-vacia"><i class="fas fa-calendar-alt"></i>Selecciona un mes para visualizar</td></tr>`;
+            actualizarTotales(0);
+            return;
+          }
+          registrosAMostrar = todosLosRegistros.filter((r) => {
+            const m = obtenerMesAnio(r.fecha_registro);
+            return m === mesSeleccionado;
+          });
+          actualizarBadge();
+        }
+
+        if (registrosAMostrar.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="12" class="fila-vacia"><i class="fas fa-inbox"></i>No hay registros en este período</td></tr>`;
+          actualizarTotales(0);
           return;
         }
 
         let html = "";
 
-        todosLosRegistros.forEach((r) => {
+        registrosAMostrar.forEach((r) => {
           const estado = r.estado || "—";
           const estadoClass = getEstadoClass(estado);
 
@@ -806,23 +989,48 @@
         });
 
         tbody.innerHTML = html;
+        actualizarTotales(registrosAMostrar.length);
       }
 
       // ============================================================
       // ACTUALIZAR TOTALES
       // ============================================================
-      function actualizarTotales() {
-        const total = todosLosRegistros.length;
-        const texto = `${total} registro${total !== 1 ? "s" : ""}`;
-        totalPie.innerHTML = `<strong>${total}</strong> registros totales`;
+      function actualizarTotales(cantidad) {
+        const texto = `${cantidad} registro${cantidad !== 1 ? "s" : ""}`;
+        totalPie.innerHTML = `<strong>${cantidad}</strong> registros`;
         totalMeta.textContent = texto;
         footerTotalRegistros.textContent = texto;
-        contadorRegistros.textContent = total;
-        registrosInfo.innerHTML = `
-                        <i class="fas fa-file-alt"></i>
-                        <strong>${total}</strong> registros totales
-                    `;
+        contadorRegistros.textContent = cantidad;
+
+        let infoTexto = "";
+        if (modoTodos) {
+          infoTexto = `<i class="fas fa-list"></i> <strong>${cantidad}</strong> registros (todos)`;
+        } else {
+          const mes = formatearMesAnio(mesFiltro.value) || "seleccionado";
+          infoTexto = `<i class="fas fa-file-alt"></i> <strong>${cantidad}</strong> registros en ${mes}`;
+        }
+        registrosInfo.innerHTML = infoTexto;
       }
+
+      function actualizarBadge() {
+        const val = mesFiltro.value;
+        badgeMes.textContent = val
+          ? formatearMesAnio(val)
+          : "Selecciona un mes";
+      }
+
+      // ============================================================
+      // EVENTOS
+      // ============================================================
+      mesFiltro.addEventListener("change", function () {
+        if (modoTodos) {
+          modoTodos = false;
+          btnMostrarTodos.classList.remove("active");
+          btnMostrarTodos.innerHTML = '<i class="fas fa-list"></i> Ver todos';
+        }
+        actualizarBadge();
+        renderizarTabla();
+      });
 
       // ============================================================
       // INICIO
@@ -831,7 +1039,6 @@
         cargarDatos();
       });
 
-      // Exponer función para recarga externa
       window.recargarInforme = cargarDatos;
     </script>
   </body>
