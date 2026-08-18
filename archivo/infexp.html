@@ -194,30 +194,6 @@
             border-color: #a0b8d0;
         }
 
-        .btn-show-all {
-            background: #2a6a9e;
-            border: none;
-            color: white;
-            padding: 0.4rem 1.2rem;
-            border-radius: 40px;
-            font-weight: 600;
-            font-size: 0.75rem;
-            cursor: pointer;
-            transition: 0.25s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .btn-show-all:hover {
-            background: #1a4a7a;
-            transform: translateY(-1px);
-        }
-
-        .btn-show-all.active {
-            background: #6a8aae;
-        }
-
         .registros-info {
             font-size: 0.8rem;
             color: #1a2b3c;
@@ -292,7 +268,7 @@
 
         /* ===== SEPARADORES ===== */
         .separador-urgente td {
-            background: #fff0ee !important;
+            background: #fef0ee !important;
             border-top: 3px solid #c0392b !important;
             border-bottom: 3px solid #c0392b !important;
             padding: 0.6rem 0.7rem;
@@ -307,7 +283,7 @@
         }
 
         .separador-regular td {
-            background: #f4f9ff !important;
+            background: #f0f6fe !important;
             border-top: 3px solid #2a6a9e !important;
             border-bottom: 3px solid #2a6a9e !important;
             padding: 0.6rem 0.7rem;
@@ -337,7 +313,7 @@
         }
 
         .count-badge {
-            background: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.6);
             padding: 0.1rem 0.8rem;
             border-radius: 30px;
             font-size: 0.65rem;
@@ -355,7 +331,7 @@
             color: #003b7a;
         }
 
-        /* ===== FILAS ===== */
+        /* ===== ESTILOS UNIFORMES ===== */
         .num-col {
             text-align: center;
             font-weight: 600;
@@ -370,16 +346,18 @@
             color: #004080;
             font-family: 'Courier New', monospace;
             font-size: 0.85rem;
-            background: #f0f7ff;
-            padding: 0.1rem 0.5rem;
-            border-radius: 4px;
+            padding: 0.1rem 0.3rem;
             display: inline-block;
         }
 
+        /* MISMO ESTILO PARA URGENTES Y REGULARES */
         .expediente-urg {
-            background: #ffd9d9 !important;
-            color: #8a1a1a !important;
-            border: 1px solid #c0392b;
+            font-weight: 700;
+            color: #004080;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85rem;
+            padding: 0.1rem 0.3rem;
+            display: inline-block;
         }
 
         .nombre-paciente {
@@ -595,8 +573,7 @@
 
             .toolbar .btn-print,
             .toolbar .btn-export,
-            .toolbar .left label,
-            .toolbar .btn-show-all {
+            .toolbar .left label {
                 display: none !important;
             }
 
@@ -636,13 +613,13 @@
             }
 
             .separador-urgente td {
-                background: #fff0ee !important;
+                background: #fef0ee !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
 
             .separador-regular td {
-                background: #f4f9ff !important;
+                background: #f0f6fe !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -686,13 +663,6 @@
                 background: #d4e4ff !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
-            }
-
-            .expediente-urg {
-                background: #ffd9d9 !important;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                border: 1px solid #c0392b !important;
             }
 
             .urg-badge {
@@ -759,6 +729,7 @@
             animation: fadeIn 0.4s ease;
         }
 
+        /* ===== TOGGLES ===== */
         .toggle-container {
             display: flex;
             align-items: center;
@@ -824,7 +795,7 @@
                 <div>
                     <h1>
                         Expedientes Clínicos
-                        <small>Informe con separación · <span style="color:#c0392b;">Urgentes</span> vs <span style="color:#2a6a9e;">Regulares</span></small>
+                        <small>Informe · <span style="color:#c0392b;">Urgentes</span> vs <span style="color:#2a6a9e;">Regulares</span></small>
                     </h1>
                 </div>
             </div>
@@ -847,7 +818,7 @@
                 </label>
                 <span class="badge-mes" id="badgeMesActual">Selecciona un mes</span>
 
-                <!-- ===== TOGGLE DE VISUALIZACIÓN ===== -->
+                <!-- ===== TOGGLES ===== -->
                 <div class="toggle-container">
                     <span class="modo-label">Mostrar:</span>
                     <button class="toggle-btn active-all" id="btnToggleAll" onclick="setModo('all')">
@@ -876,7 +847,7 @@
             </div>
         </div>
 
-        <!-- ===== TABLA CON TODOS LOS CAMPOS ===== -->
+        <!-- ===== TABLA ===== -->
         <div class="table-responsive" id="tablaContainer">
             <table id="tablaInforme">
                 <thead>
@@ -946,7 +917,7 @@
         // VARIABLES GLOBALES
         // ============================================================
         let todosLosRegistros = [];
-        let modoVisualizacion = 'all'; // 'all' | 'urg' | 'reg'
+        let modoVisualizacion = 'all';
         let modoTodos = false;
 
         // Elementos DOM
@@ -968,7 +939,6 @@
         const footerUrgNum = document.getElementById('footerUrgNum');
         const footerRegCount = document.getElementById('footerRegCount');
         const footerRegNum = document.getElementById('footerRegNum');
-        const btnMostrarTodos = document.getElementById('btnMostrarTodos');
 
         // Botones toggle
         const btnAll = document.getElementById('btnToggleAll');
@@ -1068,7 +1038,6 @@
         function setModo(modo) {
             modoVisualizacion = modo;
 
-            // Resetear clases
             btnAll.className = 'toggle-btn';
             btnUrg.className = 'toggle-btn';
             btnReg.className = 'toggle-btn';
@@ -1081,7 +1050,7 @@
         }
 
         // ============================================================
-        // CARGAR DATOS DESDE SUPABASE
+        // CARGAR DATOS
         // ============================================================
         async function cargarDatos() {
             try {
@@ -1131,7 +1100,6 @@
                 modoTodos = false;
                 setModo('all');
                 actualizarBadge();
-                renderizarTabla();
 
             } catch (error) {
                 console.error('Error cargando datos:', error);
@@ -1144,7 +1112,7 @@
         }
 
         // ============================================================
-        // RENDERIZAR TABLA CON SEPARACIÓN URGENTES / REGULARES
+        // RENDERIZAR TABLA
         // ============================================================
         function renderizarTabla() {
             let registrosBase = [];
@@ -1167,7 +1135,6 @@
                 actualizarBadge();
             }
 
-            // Aplicar modo de visualización
             let registrosAMostrar = registrosBase;
             if (modoVisualizacion === 'urg') {
                 registrosAMostrar = registrosBase.filter(r => esUrgente(r.expediente));
@@ -1185,22 +1152,19 @@
                 return;
             }
 
-            // Separar urgentes y regulares
             const urgentes = registrosAMostrar.filter(r => esUrgente(r.expediente));
             const regulares = registrosAMostrar.filter(r => !esUrgente(r.expediente));
 
-            // Ordenar por fecha dentro de cada grupo
             const ordenarPorFecha = (a, b) => (b.fecha_registro || '').localeCompare(a.fecha_registro || '');
 
             urgentes.sort(ordenarPorFecha);
             regulares.sort(ordenarPorFecha);
 
             let html = '';
-            let numGlobal = 1;
             let numUrg = 0;
             let numReg = 0;
 
-            // === MOSTRAR URGENTES ===
+            // === URGENTES ===
             if (urgentes.length > 0 && (modoVisualizacion === 'all' || modoVisualizacion === 'urg')) {
                 html += `<tr class="separador-urgente">
                             <td colspan="13">
@@ -1218,12 +1182,12 @@
                     const estado = r.estado || '—';
                     const estadoClass = getEstadoClass(estado);
 
-                    html += `<tr class="fila-urgente">
+                    html += `<tr>
                                 <td class="num-col">${numUrg}</td>
                                 <td class="uuid-cell" title="${r.id || ''}">${truncarUUID(r.id)}</td>
                                 <td><span class="nombre-paciente">${r.nombre_paciente || '—'}</span></td>
                                 <td>
-                                    <span class="expediente expediente-urg">${r.expediente || '—'}</span>
+                                    <span class="expediente">${r.expediente || '—'}</span>
                                     <span class="urg-badge"><i class="fas fa-exclamation-triangle"></i> URG</span>
                                 </td>
                                 <td>${r.servicio || '—'}</td>
@@ -1236,11 +1200,10 @@
                                 <td class="fecha-cell">${formatearFechaHora(r.updated_at)}</td>
                                 <td><span class="usuario-registro">${r.usuario_registro || '—'}</span></td>
                             </tr>`;
-                    numGlobal++;
                 });
             }
 
-            // === SEPARADOR ENTRE URGENTES Y REGULARES (solo en modo 'all') ===
+            // === SEPARADOR ===
             if (modoVisualizacion === 'all' && urgentes.length > 0 && regulares.length > 0) {
                 html += `<tr class="separador-mes">
                             <td colspan="13">
@@ -1251,7 +1214,7 @@
                         </tr>`;
             }
 
-            // === MOSTRAR REGULARES ===
+            // === REGULARES ===
             if (regulares.length > 0 && (modoVisualizacion === 'all' || modoVisualizacion === 'reg')) {
                 if (modoVisualizacion === 'reg') {
                     html += `<tr class="separador-regular">
@@ -1283,7 +1246,6 @@
                                 <td class="fecha-cell">${formatearFechaHora(r.updated_at)}</td>
                                 <td><span class="usuario-registro">${r.usuario_registro || '—'}</span></td>
                             </tr>`;
-                    numGlobal++;
                 });
             }
 
@@ -1301,7 +1263,6 @@
             footerTotalRegistros.textContent = texto;
             contadorRegistros.textContent = cantidad;
 
-            // Contadores de urgentes
             if (urgentes > 0) {
                 totalUrgPie.style.display = 'inline-flex';
                 urgCountPie.textContent = urgentes;
@@ -1312,7 +1273,6 @@
                 footerUrgCount.style.display = 'none';
             }
 
-            // Contadores de regulares
             if (regulares > 0) {
                 totalRegPie.style.display = 'inline-flex';
                 regCountPie.textContent = regulares;
