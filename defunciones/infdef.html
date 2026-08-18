@@ -528,7 +528,6 @@
           display: none !important;
         }
 
-        /* OCULTAR header-right Y stats-grid EN IMPRESIÓN */
         .header-right {
           display: none !important;
         }
@@ -570,7 +569,6 @@
           border-radius: 4px;
         }
 
-        /* TABLA MÁS COMPACTA PARA IMPRESIÓN */
         table {
           font-size: 10.5px !important;
           min-width: 100%;
@@ -952,17 +950,29 @@
           return true;
         });
 
+        // ============================================================
+        // ORDENAMIENTO: CRONOLÓGICO ASCENDENTE (fecha antigua → reciente)
+        // y luego por folio de manera ascendente
+        // ============================================================
         filteredRecords.sort((a, b) => {
           const fechaA = parseFecha(a.fechaDefuncion);
           const fechaB = parseFecha(b.fechaDefuncion);
+
+          // Primero ordenar por fecha (ascendente)
           if (fechaA && fechaB) {
-            if (fechaA.getTime() !== fechaB.getTime()) {
-              return fechaB.getTime() - fechaA.getTime();
-            }
+            const diff = fechaA.getTime() - fechaB.getTime();
+            if (diff !== 0) return diff;
           }
+
+          // Si la fecha es igual o no se pudo parsear, ordenar por folio (ascendente)
           const numA = extraerNumeroFolio(a.folio);
           const numB = extraerNumeroFolio(b.folio);
-          if (numA !== null && numB !== null) return numA - numB;
+
+          if (numA !== null && numB !== null) {
+            return numA - numB;
+          }
+
+          // Fallback: orden alfabético por folio como string
           return String(a.folio || "").localeCompare(String(b.folio || ""));
         });
 
