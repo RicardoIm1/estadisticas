@@ -1562,15 +1562,13 @@
       }
 
       /* ============================================================
-   PRINT STYLES - CON BORDES PARA RECORTAR
+   PRINT STYLES - CON MARCAS DE CORTE PROFESIONALES
    ============================================================ */
       @media print {
-        /* Ocultar TODO el contenido de la página */
         body * {
           visibility: hidden;
         }
 
-        /* Mostrar SOLO el modal y su contenido */
         .modal-overlay,
         .modal-overlay * {
           visibility: visible;
@@ -1594,8 +1592,8 @@
 
         .modal {
           box-shadow: none !important;
-          padding: 8px !important;
-          max-width: 360px !important;
+          padding: 12px !important;
+          max-width: 380px !important;
           width: 100% !important;
           margin: 0 auto !important;
           border-radius: 0 !important;
@@ -1603,60 +1601,60 @@
           background: white !important;
           overflow: hidden !important;
           max-height: 100vh !important;
-          border: 2px dashed #333 !important;
-          /* ← BORDE PARA RECORTAR */
+          border: 1px solid #ccc !important;
+          /* Borde suave para guía */
         }
 
-        /* Ocultar elementos no deseados del modal en impresión */
         .modal-close,
         .modal-actions,
         .modal-actions * {
           display: none !important;
         }
 
-        /* Credencial con borde completo */
+        /* Contenedor con márgenes de corte */
+        .credencial-wrapper {
+          position: relative !important;
+          padding: 8px !important;
+          margin: -4px !important;
+        }
+
+        /* Líneas de corte en las esquinas (marcas de guillotina) */
+        .credencial-wrapper::before,
+        .credencial-wrapper::after {
+          content: "" !important;
+          position: absolute !important;
+          width: 15px !important;
+          height: 15px !important;
+          border: 2px solid #666 !important;
+          z-index: 10 !important;
+        }
+
+        .credencial-wrapper::before {
+          top: 0 !important;
+          left: 0 !important;
+          border-right: none !important;
+          border-bottom: none !important;
+        }
+
+        .credencial-wrapper::after {
+          bottom: 0 !important;
+          right: 0 !important;
+          border-left: none !important;
+          border-top: none !important;
+        }
+
         .credencial {
           max-width: 320px !important;
           margin: 0 auto !important;
           page-break-inside: avoid !important;
-          border-radius: 12px !important;
+          border-radius: 10px !important;
           box-shadow: none !important;
           break-inside: avoid !important;
           border: 3px solid #1a56db !important;
-          /* ← BORDE AZUL VISIBLE */
           padding: 16px 18px !important;
           background: linear-gradient(145deg, #0f2b5e, #1a56db) !important;
-          position: relative !important;
         }
 
-        /* Agregar marcas de corte en las esquinas */
-        .credencial::before,
-        .credencial::after {
-          content: "" !important;
-          position: absolute !important;
-          width: 20px !important;
-          height: 20px !important;
-          border: 3px solid #ffffff !important;
-          opacity: 0.6 !important;
-        }
-
-        .credencial::before {
-          top: -2px !important;
-          left: -2px !important;
-          border-right: none !important;
-          border-bottom: none !important;
-          border-radius: 4px 0 0 0 !important;
-        }
-
-        .credencial::after {
-          bottom: -2px !important;
-          right: -2px !important;
-          border-left: none !important;
-          border-top: none !important;
-          border-radius: 0 0 4px 0 !important;
-        }
-
-        /* Asegurar que el QR se vea bien */
         .credencial .credencial-footer .qr-container {
           background: white !important;
           padding: 4px !important;
@@ -1669,18 +1667,15 @@
           height: 55px !important;
         }
 
-        /* Ocultar notificaciones */
         .toast-container {
           display: none !important;
         }
 
-        /* Configuración de página */
         @page {
           size: auto;
           margin: 10mm;
         }
 
-        /* Evitar saltos de página */
         .credencial,
         .modal,
         .modal-overlay {
@@ -3053,34 +3048,36 @@
             .toUpperCase();
 
           document.getElementById("credencialContent").innerHTML = `
-            <div class="credencial">
-                <div class="credencial-header">
-                    <h3>Hospital Regional Puerto Vallarta</h3>
-                    <p>Credencial de Interno</p>
-                </div>
-                <div class="credencial-body">
-                    ${
-                      data.foto_url
-                        ? `<img src="${data.foto_url}" class="credencial-foto" />`
-                        : `<div class="credencial-foto-placeholder">${iniciales}</div>`
-                    }
-                    <div class="credencial-info">
-                        <div class="name">${data.nombre}</div>
-                        <div class="detail"><i class="fas fa-id-card"></i> ${data.matricula}</div>
-                        <div class="detail"><i class="fas fa-university"></i> ${data.universidad}</div>
-                        <div class="detail"><i class="fas fa-graduation-cap"></i> ${data.carrera}</div>
-                        <div class="detail"><i class="fas fa-layer-group"></i> ${data.semestre}</div>
-                        <div class="detail"><i class="fas fa-calendar"></i> ${data.generacion}</div>
-                    </div>
-                </div>
-                <div class="credencial-footer">
-                    <div class="qr-container" id="modalQR"></div>
-                    <span class="status-badge ${data.estatus}">
-                        ${data.estatus.toUpperCase()}
-                    </span>
-                </div>
-            </div>
-        `;
+  <div class="credencial-wrapper">  <!-- ← NUEVO CONTENEDOR -->
+    <div class="credencial">
+      <div class="credencial-header">
+        <h3>Hospital Regional Puerto Vallarta</h3>
+        <p>Credencial de Interno</p>
+      </div>
+      <div class="credencial-body">
+        ${
+          data.foto_url
+            ? `<img src="${data.foto_url}" class="credencial-foto" />`
+            : `<div class="credencial-foto-placeholder">${iniciales}</div>`
+        }
+        <div class="credencial-info">
+          <div class="name">${data.nombre}</div>
+          <div class="detail"><i class="fas fa-id-card"></i> ${data.matricula}</div>
+          <div class="detail"><i class="fas fa-university"></i> ${data.universidad}</div>
+          <div class="detail"><i class="fas fa-graduation-cap"></i> ${data.carrera}</div>
+          <div class="detail"><i class="fas fa-layer-group"></i> ${data.semestre}</div>
+          <div class="detail"><i class="fas fa-calendar"></i> ${data.generacion}</div>
+        </div>
+      </div>
+      <div class="credencial-footer">
+        <div class="qr-container" id="modalQR"></div>
+        <span class="status-badge ${data.estatus}">
+          ${data.estatus.toUpperCase()}
+        </span>
+      </div>
+    </div>
+  </div>
+`;
 
           setTimeout(() => {
             const qrContainer = document.getElementById("modalQR");
