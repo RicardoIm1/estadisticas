@@ -2150,6 +2150,9 @@
       let isEditing = false;
       let allInternos = [];
       let stream = null;
+      let isSubmitting = false;
+      let lastSubmitTime = 0;
+      const SUBMIT_COOLDOWN = 3000;
 
       const form = document.getElementById("internoForm");
       const submitBtn = document.getElementById("submitBtn");
@@ -2351,6 +2354,32 @@
 
         return sanitized;
       }
+
+      // ============================================================
+      // VALIDAR DUPLICADOS
+      // ============================================================
+      async function verificarDuplicado(nombre, universidad, idActual = null) {
+        try {
+          let query = supabaseClient
+            .from("internos")
+            .select("id, nombre, universidad")
+            .eq("nombre", nombre.trim().toUpperCase())
+            .eq("universidad", universidad.trim().toUpperCase());
+
+          if (idActual) {
+            query = query.neq("id", idActual);
+          }
+
+          const { data, error } = await query;
+
+          if (error) throw error;
+          return data && data.length > 0;
+        } catch (error) {
+          console.error("Error verificando duplicado:", error);
+          return false;
+        }
+      }
+
       // ============================================================
       // GENERAR MATRÍCULA AUTOMÁTICA
       // ============================================================
@@ -2394,7 +2423,6 @@
           const matricula = await generarMatricula();
           matriculaInput.value = matricula;
 
-          // Asegurar que el select de estatus esté oculto
           document.getElementById("estatusGroup").style.display = "none";
           document.getElementById("estatus").value = "activo";
         } catch (error) {
@@ -2567,7 +2595,7 @@
       }
 
       // ============================================================
-      // GENERAR QR - AHORA LIMPIA EL CONTENEDOR ANTES DE GENERAR
+      // GENERAR QR
       // ============================================================
       function generarQR(elementId, interno, size = 60) {
         const container = document.getElementById(elementId);
@@ -2576,7 +2604,6 @@
           return;
         }
 
-        // ✅ LIMPIAR TODO EL CONTENIDO PREVIO
         container.innerHTML = "";
 
         const formatos = [
@@ -2631,7 +2658,7 @@
       }
 
       // ============================================================
-      // CRUD - OBTENER TODOS (Ordenado alfabéticamente)
+      // CRUD - OBTENER TODOS
       // ============================================================
       async function loadInternos() {
         try {
@@ -2658,10 +2685,9 @@
       }
 
       // ============================================================
-      // RENDER CARDS - Actualiza el contador
+      // RENDER CARDS
       // ============================================================
       function renderCards(internos) {
-        // Actualizar el contador con los resultados mostrados
         totalCount.textContent = internos ? internos.length : 0;
 
         if (!internos || internos.length === 0) {
@@ -2745,12 +2771,10 @@
           })
           .join("");
 
-        // Generar QR para cada tarjeta - asegurando que el contenedor esté limpio
         setTimeout(() => {
           internos.forEach((interno) => {
             const container = document.getElementById(`qr-${interno.id}`);
             if (container) {
-              // Limpiar antes de generar (por si acaso)
               container.innerHTML = "";
               generarQR(`qr-${interno.id}`, interno, 50);
             }
@@ -2759,7 +2783,7 @@
       }
 
       // ============================================================
-      // FILTRAR CARDS - Mantiene orden alfabético
+      // FILTRAR CARDS
       // ============================================================
       function filterCards() {
         const search = searchInput.value.toLowerCase().trim();
@@ -2842,7 +2866,7 @@
       }
 
       // ============================================================
-      // EDITAR - Muestra el select de estatus
+      // EDITAR
       // ============================================================
       async function editInterno(id) {
         event.stopPropagation();
@@ -2874,7 +2898,6 @@
           document.getElementById("telefono_emergencia").value =
             data.telefono_emergencia || "";
 
-          // MOSTRAR el select de estatus en modo edición
           document.getElementById("estatusGroup").style.display = "block";
           document.getElementById("estatus").value = data.estatus || "activo";
 
@@ -2901,7 +2924,7 @@
       }
 
       // ============================================================
-      // RESET FORM - Oculta el select de estatus
+      // RESET FORM
       // ============================================================
       function resetForm() {
         form.reset();
@@ -2919,7 +2942,6 @@
                 <span>Guardar</span>
             `;
 
-        // OCULTAR el select de estatus en modo creación
         document.getElementById("estatusGroup").style.display = "none";
         document.getElementById("estatus").value = "activo";
 
@@ -2978,12 +3000,11 @@
             </div>
         `;
 
-          // En openModal(), generar el QR con el tamaño justo
           setTimeout(() => {
             const qrContainer = document.getElementById("modalQR");
             if (qrContainer) {
               qrContainer.innerHTML = "";
-              generarQR("modalQR", data, 60); // 60px es el tamaño justo
+              generarQR("modalQR", data, 60);
             }
           }, 50);
 
@@ -3015,11 +3036,19 @@
       });
 
       // ============================================================
-      // ENVÍO DEL FORMULARIO
+      // ENVÍO DEL FORMULARIO (CON PROTECCIÓN CONTRA DUPLICADOS)
       // ============================================================
       form.addEventListener("submit", async function (e) {
         e.preventDefault();
 
+        const now = Date.now();
+        if (isSubmitting || (now - lastSubmitTime < SUBMIT_COOLDOWN)) {
+          showAlert("⏳ Espera un momento antes de guardar nuevamente", "warning");
+          return;
+        }
+
+        isSubmitting = true;
+        lastSubmitTime = now;
         submitBtn.disabled = true;
         submitBtn.innerHTML = `
                 <span class="spinner"></span> 
@@ -3060,6 +3089,7 @@
             !correo
           ) {
             showAlert("Completa todos los campos obligatorios (*)", "error");
+            isSubmitting = false;
             submitBtn.disabled = false;
             submitBtn.innerHTML = `
                         <i class="fas fa-save"></i> 
@@ -3071,6 +3101,20 @@
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           if (!emailRegex.test(correo)) {
             showAlert("Correo electrónico inválido", "error");
+            isSubmitting = false;
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `
+                        <i class="fas fa-save"></i> 
+                        <span>${isEditing ? "Actualizar" : "Guardar"}</span>
+                    `;
+            return;
+          }
+
+          // ✅ VERIFICAR DUPLICADOS
+          const existeDuplicado = await verificarDuplicado(nombre, universidad, id || null);
+          if (existeDuplicado) {
+            showAlert("⚠️ Ya existe un interno con el mismo nombre y universidad", "warning");
+            isSubmitting = false;
             submitBtn.disabled = false;
             submitBtn.innerHTML = `
                         <i class="fas fa-save"></i> 
@@ -3090,6 +3134,7 @@
                 "Error al subir la foto: " + uploadError.message,
                 "error",
               );
+              isSubmitting = false;
               submitBtn.disabled = false;
               submitBtn.innerHTML = `
                             <i class="fas fa-save"></i> 
@@ -3142,6 +3187,7 @@
           console.error("Error:", error);
           showAlert("Error al guardar: " + error.message, "error");
         } finally {
+          isSubmitting = false;
           submitBtn.disabled = false;
           submitBtn.innerHTML = `
                     <i class="fas fa-save"></i> 
@@ -3166,7 +3212,7 @@
       });
 
       // ============================================================
-      // FOOTER - Manejo del clic (por si acaso)
+      // FOOTER
       // ============================================================
       document.addEventListener("click", function (e) {
         const link = e.target.closest("#footerLink");
