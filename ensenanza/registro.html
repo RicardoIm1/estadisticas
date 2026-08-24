@@ -1564,11 +1564,16 @@
       /* ============================================================
    PRINT STYLES
    ============================================================ */
+      /* ============================================================
+   PRINT STYLES - CORREGIDO
+   ============================================================ */
       @media print {
+        /* Ocultar TODO el contenido de la página */
         body * {
           visibility: hidden;
         }
 
+        /* Mostrar SOLO el modal y su contenido */
         .modal-overlay,
         .modal-overlay * {
           visibility: visible;
@@ -1585,34 +1590,69 @@
           height: 100%;
           z-index: 9999;
           padding: 20px;
+          margin: 0;
+          /* Asegurar que ocupe toda la página */
+          justify-content: center;
+          align-items: center;
         }
 
         .modal {
           box-shadow: none !important;
-          padding: 16px !important;
+          padding: 12px !important;
           max-width: 340px !important;
           width: 100% !important;
-          margin: auto;
+          margin: 0 auto !important;
           border-radius: 0 !important;
           animation: none !important;
           background: white !important;
+          overflow: hidden !important;
+          /* Evitar scroll en impresión */
+          max-height: 100vh !important;
         }
 
+        /* Ocultar elementos no deseados del modal en impresión */
         .modal-close,
-        .modal-actions {
+        .modal-actions,
+        .modal-actions * {
           display: none !important;
         }
 
+        /* Asegurar que la credencial ocupe el espacio correcto */
         .credencial {
           max-width: 300px !important;
-          margin: 0 auto;
-          page-break-inside: avoid;
+          margin: 0 auto !important;
+          page-break-inside: avoid !important;
           border-radius: 12px !important;
+          box-shadow: none !important;
+          break-inside: avoid !important;
+          /* Evitar que se parta en dos páginas */
         }
 
         .credencial .credencial-footer .qr-container canvas {
           width: 55px !important;
           height: 55px !important;
+        }
+
+        /* Ocultar el contenedor de notificaciones en impresión */
+        .toast-container {
+          display: none !important;
+        }
+
+        /* Forzar que todo quede en una sola página */
+        html,
+        body {
+          margin: 0;
+          padding: 0;
+          height: 100%;
+          overflow: hidden;
+        }
+
+        /* Asegurar que no haya saltos de página extraños */
+        .credencial,
+        .modal,
+        .modal-overlay {
+          page-break-after: avoid !important;
+          page-break-before: avoid !important;
         }
       }
 
@@ -3042,8 +3082,11 @@
         e.preventDefault();
 
         const now = Date.now();
-        if (isSubmitting || (now - lastSubmitTime < SUBMIT_COOLDOWN)) {
-          showAlert("⏳ Espera un momento antes de guardar nuevamente", "warning");
+        if (isSubmitting || now - lastSubmitTime < SUBMIT_COOLDOWN) {
+          showAlert(
+            "⏳ Espera un momento antes de guardar nuevamente",
+            "warning",
+          );
           return;
         }
 
@@ -3111,9 +3154,16 @@
           }
 
           // ✅ VERIFICAR DUPLICADOS
-          const existeDuplicado = await verificarDuplicado(nombre, universidad, id || null);
+          const existeDuplicado = await verificarDuplicado(
+            nombre,
+            universidad,
+            id || null,
+          );
           if (existeDuplicado) {
-            showAlert("⚠️ Ya existe un interno con el mismo nombre y universidad", "warning");
+            showAlert(
+              "⚠️ Ya existe un interno con el mismo nombre y universidad",
+              "warning",
+            );
             isSubmitting = false;
             submitBtn.disabled = false;
             submitBtn.innerHTML = `
