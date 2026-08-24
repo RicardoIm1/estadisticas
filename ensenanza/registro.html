@@ -3593,15 +3593,16 @@
       });
 
       // ============================================================
-      // IMPRIMIR MÚLTIPLES CREDENCIALES
+      // IMPRIMIR MÚLTIPLES CREDENCIALES (SOLO ACTIVOS)
       // ============================================================
       async function imprimirMultiplesCredenciales() {
         try {
-          let internos =
-            filteredInternos.length > 0
-              ? filteredInternos
-              : getFilteredInternos();
+          // 🔴 SIEMPRE EXCLUIR INACTIVOS - SOLO ACTIVOS
+          let internos = allInternos.filter(
+            (interno) => interno.estatus === "activo",
+          );
 
+          // Si hay búsqueda activa, aplicar el filtro de búsqueda
           const search = searchInput.value.toLowerCase().trim();
           if (search) {
             internos = internos.filter(
@@ -3613,17 +3614,12 @@
           }
 
           if (!internos || internos.length === 0) {
-            showAlert(
-              "No hay internos para imprimir con el filtro actual",
-              "warning",
-            );
+            showAlert("No hay internos activos para imprimir", "warning");
             return;
           }
 
-          const filterLabel =
-            currentFilter === "todos" ? "todos" : currentFilter;
           showAlert(
-            `🖨️ Imprimiendo ${internos.length} internos (${filterLabel})`,
+            `🖨️ Imprimiendo ${internos.length} internos activos`,
             "info",
           );
 
@@ -3663,8 +3659,8 @@
             </div>
             <div class="credencial-footer">
               <div class="qr-container" id="${qrId}"></div>
-              <span class="status-badge ${interno.estatus}">
-                ${interno.estatus.toUpperCase()}
+              <span class="status-badge activo">
+                ACTIVO
               </span>
             </div>
           </div>
@@ -3691,12 +3687,8 @@
           document.getElementById("modalCredencial").classList.add("active");
           document.body.style.overflow = "hidden";
 
-          const filterLabel2 =
-            currentFilter === "todos"
-              ? "Todos"
-              : currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1);
           document.querySelector(".modal-actions .btn-print").innerHTML = `
-      <i class="fas fa-print"></i> Imprimir (${internos.length} · ${filterLabel2})
+      <i class="fas fa-print"></i> Imprimir (${internos.length} · Activos)
     `;
           document.querySelector(".modal-actions .btn-print").onclick =
             function () {
