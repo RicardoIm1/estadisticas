@@ -1562,10 +1562,7 @@
       }
 
       /* ============================================================
-   PRINT STYLES
-   ============================================================ */
-      /* ============================================================
-   PRINT STYLES - CORREGIDO
+   PRINT STYLES - CON BORDES PARA RECORTAR
    ============================================================ */
       @media print {
         /* Ocultar TODO el contenido de la página */
@@ -1591,23 +1588,23 @@
           z-index: 9999;
           padding: 20px;
           margin: 0;
-          /* Asegurar que ocupe toda la página */
           justify-content: center;
           align-items: center;
         }
 
         .modal {
           box-shadow: none !important;
-          padding: 12px !important;
-          max-width: 340px !important;
+          padding: 8px !important;
+          max-width: 360px !important;
           width: 100% !important;
           margin: 0 auto !important;
           border-radius: 0 !important;
           animation: none !important;
           background: white !important;
           overflow: hidden !important;
-          /* Evitar scroll en impresión */
           max-height: 100vh !important;
+          border: 2px dashed #333 !important;
+          /* ← BORDE PARA RECORTAR */
         }
 
         /* Ocultar elementos no deseados del modal en impresión */
@@ -1617,15 +1614,54 @@
           display: none !important;
         }
 
-        /* Asegurar que la credencial ocupe el espacio correcto */
+        /* Credencial con borde completo */
         .credencial {
-          max-width: 300px !important;
+          max-width: 320px !important;
           margin: 0 auto !important;
           page-break-inside: avoid !important;
           border-radius: 12px !important;
           box-shadow: none !important;
           break-inside: avoid !important;
-          /* Evitar que se parta en dos páginas */
+          border: 3px solid #1a56db !important;
+          /* ← BORDE AZUL VISIBLE */
+          padding: 16px 18px !important;
+          background: linear-gradient(145deg, #0f2b5e, #1a56db) !important;
+          position: relative !important;
+        }
+
+        /* Agregar marcas de corte en las esquinas */
+        .credencial::before,
+        .credencial::after {
+          content: "" !important;
+          position: absolute !important;
+          width: 20px !important;
+          height: 20px !important;
+          border: 3px solid #ffffff !important;
+          opacity: 0.6 !important;
+        }
+
+        .credencial::before {
+          top: -2px !important;
+          left: -2px !important;
+          border-right: none !important;
+          border-bottom: none !important;
+          border-radius: 4px 0 0 0 !important;
+        }
+
+        .credencial::after {
+          bottom: -2px !important;
+          right: -2px !important;
+          border-left: none !important;
+          border-top: none !important;
+          border-radius: 0 0 4px 0 !important;
+        }
+
+        /* Asegurar que el QR se vea bien */
+        .credencial .credencial-footer .qr-container {
+          background: white !important;
+          padding: 4px !important;
+          border-radius: 8px !important;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
         }
 
         .credencial .credencial-footer .qr-container canvas {
@@ -1633,26 +1669,32 @@
           height: 55px !important;
         }
 
-        /* Ocultar el contenedor de notificaciones en impresión */
+        /* Ocultar notificaciones */
         .toast-container {
           display: none !important;
         }
 
-        /* Forzar que todo quede en una sola página */
+        /* Configuración de página */
+        @page {
+          size: auto;
+          margin: 10mm;
+        }
+
+        /* Evitar saltos de página */
+        .credencial,
+        .modal,
+        .modal-overlay {
+          page-break-after: avoid !important;
+          page-break-before: avoid !important;
+          page-break-inside: avoid !important;
+        }
+
         html,
         body {
           margin: 0;
           padding: 0;
           height: 100%;
           overflow: hidden;
-        }
-
-        /* Asegurar que no haya saltos de página extraños */
-        .credencial,
-        .modal,
-        .modal-overlay {
-          page-break-after: avoid !important;
-          page-break-before: avoid !important;
         }
       }
 
