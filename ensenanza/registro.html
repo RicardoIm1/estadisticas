@@ -1789,6 +1789,66 @@
         }
       }
     </style>
+    <style>
+      /* ============================================================
+   TOGGLE FILTRO DE ESTATUS
+   ============================================================ */
+      .filter-toggle-group {
+        display: flex;
+        gap: 4px;
+        background: #f1f4f9;
+        padding: 3px;
+        border-radius: 9999px;
+        border: 2px solid var(--border);
+        flex-shrink: 0;
+      }
+
+      .filter-toggle-btn {
+        padding: 5px 14px;
+        border: none;
+        border-radius: 9999px;
+        font-size: 11px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: var(--transition);
+        background: transparent;
+        color: var(--text-secondary);
+        white-space: nowrap;
+      }
+
+      .filter-toggle-btn:hover {
+        color: var(--text-primary);
+      }
+
+      .filter-toggle-btn.active {
+        background: var(--primary-gradient);
+        color: white;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+      }
+
+      .filter-toggle-btn.active:hover {
+        background: var(--primary-gradient-hover);
+        color: white;
+      }
+
+      .filter-toggle-btn .count {
+        display: inline-block;
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0 6px;
+        border-radius: 10px;
+        font-size: 9px;
+        margin-left: 4px;
+      }
+
+      .filter-toggle-btn.active .count {
+        background: rgba(255, 255, 255, 0.25);
+      }
+
+      .filter-toggle-btn:not(.active) .count {
+        background: #e2e8f0;
+        color: var(--text-muted);
+      }
+    </style>
   </head>
 
   <body>
@@ -2129,12 +2189,52 @@
             <span class="badge" id="totalCount">0</span>
           </h2>
           <div class="list-search">
+            <div class="filter-toggle-group" id="filterToggleGroup">
+              <button
+                class="filter-toggle-btn active"
+                data-filter="todos"
+                onclick="setFilter('todos')"
+              >
+                Todos <span class="count" id="countTodos">0</span>
+              </button>
+              <button
+                class="filter-toggle-btn"
+                data-filter="activo"
+                onclick="setFilter('activo')"
+              >
+                <i
+                  class="fas fa-check-circle"
+                  style="color: #22c55e; font-size: 10px"
+                ></i>
+                Activos
+                <span class="count" id="countActivos">0</span>
+              </button>
+              <button
+                class="filter-toggle-btn"
+                data-filter="inactivo"
+                onclick="setFilter('inactivo')"
+              >
+                <i
+                  class="fas fa-times-circle"
+                  style="color: #ef4444; font-size: 10px"
+                ></i>
+                Inactivos
+                <span class="count" id="countInactivos">0</span>
+              </button>
+            </div>
             <input
               type="text"
               id="searchInput"
               placeholder="Buscar interno..."
               oninput="filterCards()"
             />
+            <button
+              class="btn-print-all"
+              onclick="imprimirMultiplesCredenciales()"
+              title="Imprimir credenciales de los filtrados"
+            >
+              <i class="fas fa-print"></i> Imprimir
+            </button>
           </div>
         </div>
         <div class="list-scroll" id="listScroll">
@@ -2229,6 +2329,8 @@
       let stream = null;
       let isSubmitting = false;
       let lastSubmitTime = 0;
+      let currentFilter = "todos"; // 'todos', 'activo', 'inactivo'
+      let filteredInternos = [];
       const SUBMIT_COOLDOWN = 3000;
 
       const form = document.getElementById("internoForm");
@@ -2747,20 +2849,19 @@
           if (error) throw error;
 
           allInternos = data;
-          renderCards(data);
-          totalCount.textContent = data.length;
+          updateFilterCounts(); // ← Actualizar contadores
+          filterCards(); // ← Aplicar filtro actual
         } catch (error) {
           console.error("Error:", error);
           internosList.innerHTML = `
-            <div class="empty-state">
-                <i class="fas fa-exclamation-circle" style="color:#ef4444;"></i>
-                <h3 style="color:#ef4444;">Error</h3>
-                <p>${error.message}</p>
-            </div>
-        `;
+      <div class="empty-state">
+        <i class="fas fa-exclamation-circle" style="color:#ef4444;"></i>
+        <h3 style="color:#ef4444;">Error</h3>
+        <p>${error.message}</p>
+      </div>
+    `;
         }
       }
-
       // ============================================================
       // RENDER CARDS
       // ============================================================
@@ -2864,18 +2965,26 @@
       // ============================================================
       function filterCards() {
         const search = searchInput.value.toLowerCase().trim();
-        const filtered = allInternos
-          .filter(
+
+        // Primero filtrar por estatus
+        let filtered = getFilteredInternos();
+
+        // Luego por búsqueda
+        if (search) {
+          filtered = filtered.filter(
             (interno) =>
               interno.nombre.toLowerCase().includes(search) ||
               interno.matricula.includes(search) ||
               interno.carrera.toLowerCase().includes(search),
-          )
-          .sort((a, b) => a.nombre.localeCompare(b.nombre));
+          );
+        }
 
+        // Ordenar alfabéticamente
+        filtered.sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+        filteredInternos = filtered;
         renderCards(filtered);
       }
-
       // ============================================================
       // CRUD - CREAR
       // ============================================================
@@ -3310,6 +3419,198 @@
           window.open(link.href, "_blank");
         }
       });
+
+      // ============================================================
+      // FILTRO POR ESTATUS
+      // ============================================================
+      function setFilter(filter) {
+        currentFilter = filter;
+
+        // Actualizar botones
+        document.querySelectorAll(".filter-toggle-btn").forEach((btn) => {
+          btn.classList.toggle("active", btn.dataset.filter === filter);
+        });
+
+        filterCards();
+      }
+
+      function getFilteredInternos() {
+        if (currentFilter === "todos") {
+          return allInternos;
+        }
+        return allInternos.filter(
+          (interno) => interno.estatus === currentFilter,
+        );
+      }
+
+      // ============================================================
+      // ACTUALIZAR CONTADORES DEL FILTRO
+      // ============================================================
+      function updateFilterCounts() {
+        const total = allInternos.length;
+        const activos = allInternos.filter(
+          (i) => i.estatus === "activo",
+        ).length;
+        const inactivos = allInternos.filter(
+          (i) => i.estatus === "inactivo",
+        ).length;
+
+        document.getElementById("countTodos").textContent = total;
+        document.getElementById("countActivos").textContent = activos;
+        document.getElementById("countInactivos").textContent = inactivos;
+      }
+
+      async function imprimirMultiplesCredenciales() {
+        try {
+          // Usar los internos ya filtrados (por estatus y búsqueda)
+          let internos =
+            filteredInternos.length > 0
+              ? filteredInternos
+              : getFilteredInternos();
+
+          // Si hay búsqueda activa, usar los filtrados
+          const search = searchInput.value.toLowerCase().trim();
+          if (search) {
+            internos = internos.filter(
+              (interno) =>
+                interno.nombre.toLowerCase().includes(search) ||
+                interno.matricula.includes(search) ||
+                interno.carrera.toLowerCase().includes(search),
+            );
+          }
+
+          if (!internos || internos.length === 0) {
+            showAlert(
+              "No hay internos para imprimir con el filtro actual",
+              "warning",
+            );
+            return;
+          }
+
+          // Mostrar cuántos se van a imprimir
+          const filterLabel =
+            currentFilter === "todos" ? "todos" : currentFilter;
+          showAlert(
+            `🖨️ Imprimiendo ${internos.length} internos (${filterLabel})`,
+            "info",
+          );
+
+          // Generar HTML con todas las credenciales
+          let credencialesHTML = `<div class="credenciales-grid">`;
+
+          internos.forEach((interno, index) => {
+            const iniciales = interno.nombre
+              .split(" ")
+              .filter((p) => p.length > 0)
+              .map((p) => p[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase();
+
+            const qrId = `modalQR-${index}`;
+
+            credencialesHTML += `
+        <div class="credencial-item">
+          <div class="credencial">
+            <div class="credencial-header">
+              <h3>Hospital Regional PV</h3>
+              <p>Credencial de Interno</p>
+            </div>
+            <div class="credencial-body">
+              ${
+                interno.foto_url
+                  ? `<img src="${interno.foto_url}" class="credencial-foto" />`
+                  : `<div class="credencial-foto-placeholder">${iniciales}</div>`
+              }
+              <div class="credencial-info">
+                <div class="name">${interno.nombre}</div>
+                <div class="detail"><i class="fas fa-id-card"></i> ${interno.matricula}</div>
+                <div class="detail"><i class="fas fa-university"></i> ${interno.universidad}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
+                <div class="detail"><i class="fas fa-layer-group"></i> ${interno.semestre}</div>
+              </div>
+            </div>
+            <div class="credencial-footer">
+              <div class="qr-container" id="${qrId}"></div>
+              <span class="status-badge ${interno.estatus}">
+                ${interno.estatus.toUpperCase()}
+              </span>
+            </div>
+          </div>
+        </div>
+      `;
+          });
+
+          credencialesHTML += `</div>`;
+
+          document.getElementById("credencialContent").innerHTML =
+            credencialesHTML;
+
+          setTimeout(() => {
+            internos.forEach((interno, index) => {
+              const qrId = `modalQR-${index}`;
+              const container = document.getElementById(qrId);
+              if (container) {
+                container.innerHTML = "";
+                generarQR(qrId, interno, 45);
+              }
+            });
+          }, 100);
+
+          document.getElementById("modalCredencial").classList.add("active");
+          document.body.style.overflow = "hidden";
+
+          const filterLabel2 =
+            currentFilter === "todos"
+              ? "Todos"
+              : currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1);
+          document.querySelector(".modal-actions .btn-print").innerHTML = `
+      <i class="fas fa-print"></i> Imprimir (${internos.length} · ${filterLabel2})
+    `;
+          document.querySelector(".modal-actions .btn-print").onclick =
+            function () {
+              window.print();
+            };
+        } catch (error) {
+          console.error("Error:", error);
+          showAlert(
+            "Error al cargar las credenciales: " + error.message,
+            "error",
+          );
+        }
+      }
     </script>
+    <style>
+      @media (max-width: 768px) {
+        .list-search {
+          flex-direction: column;
+          width: 100%;
+          gap: 8px;
+        }
+
+        .filter-toggle-group {
+          width: 100%;
+          justify-content: center;
+        }
+
+        .filter-toggle-btn {
+          font-size: 10px;
+          padding: 4px 10px;
+        }
+
+        .btn-print-all {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+
+      .filter-toggle-btn {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .filter-toggle-btn.active {
+        transform: scale(1.02);
+      }
+    </style>
   </body>
 </html>
