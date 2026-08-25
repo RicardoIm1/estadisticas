@@ -1391,7 +1391,7 @@ function generarReconocimientoPonente(id) {
 // ============================================================
 async function imprimirMultiplesCredenciales() {
   try {
-    const internos = state.internos.filter(i => i.estatus === "activo");
+    const internos = state.internos.filter((i) => i.estatus === "activo");
     if (!internos || internos.length === 0) {
       showToast("No hay internos activos para imprimir", "warning");
       return;
@@ -1422,8 +1422,8 @@ async function imprimirMultiplesCredenciales() {
         const globalIndex = pageIndex * chunkSize + index;
         const iniciales = interno.nombre
           .split(" ")
-          .filter(p => p.length > 0)
-          .map(p => p[0])
+          .filter((p) => p.length > 0)
+          .map((p) => p[0])
           .join("")
           .slice(0, 2)
           .toUpperCase();
@@ -1439,9 +1439,10 @@ async function imprimirMultiplesCredenciales() {
               </div>
               <div class="body">
                 <div class="foto">
-                  ${interno.foto_url
-                    ? `<img src="${interno.foto_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`
-                    : iniciales
+                  ${
+                    interno.foto_url
+                      ? `<img src="${interno.foto_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`
+                      : iniciales
                   }
                 </div>
                 <div class="info">
@@ -1490,7 +1491,7 @@ async function imprimirMultiplesCredenciales() {
               height: 30,
               colorDark: "#000000",
               colorLight: "#ffffff",
-              correctLevel: QRCode.CorrectLevel.L
+              correctLevel: QRCode.CorrectLevel.L,
             });
           } catch (e) {
             console.warn("Error generando QR:", e);
@@ -1498,7 +1499,6 @@ async function imprimirMultiplesCredenciales() {
         }
       });
     }, 100);
-
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar credenciales: " + error.message, "error");
@@ -1826,3 +1826,150 @@ function generarQRSimple(container, interno, size) {
     container.innerHTML = `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;background:#fef2f2;border-radius:8px;font-size:10px;color:#dc2626;">QR Error</div>`;
   }
 }
+
+// ============================================================
+// FUNCIONES DE CÁMARA
+// ============================================================
+let stream = null;
+
+async function abrirCamara() {
+  try {
+    const overlay = document.getElementById("cameraOverlay");
+    const video = document.getElementById("video");
+    const status = document.getElementById("cameraStatus");
+    const btnCapture = document.getElementById("btnCapture");
+
+    overlay.classList.add("active");
+    status.textContent = "📷 Solicitando acceso a la cámara...";
+    btnCapture.disabled = true;
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      status.textContent = "❌ Tu navegador no soporta la cámara";
+      return;
+    }
+
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "environment",
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
+        audio: false,
+      });
+    } catch (e) {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 640 },
+          height: { ideal: 480 },
+        },
+        audio: false,
+      });
+    }
+
+    video.srcObject = stream;
+    await video.play();
+
+    status.textContent = "📸 Listo para capturar";
+    btnCapture.disabled = false;
+  } catch (error) {
+    console.error("Error al abrir cámara:", error);
+    const status = document.getElementById("cameraStatus");
+    status.textContent = "❌ No se pudo acceder a la cámara: " + error.message;
+    showToast(
+      "No se pudo acceder a la cámara. Verifica los permisos.",
+      "error",
+    );
+  }
+}
+
+function cerrarCamara() {
+  const overlay = document.getElementById("cameraOverlay");
+  const video = document.getElementById("video");
+  const btnCapture = document.getElementById("btnCapture");
+
+  if (stream) {
+    stream.getTracks().forEach((track) => track.stop());
+    stream = null;
+  }
+  video.srcObject = null;
+  overlay.classList.remove("active");
+  btnCapture.disabled = true;
+}
+
+function capturarFoto() {
+  const video = document.getElementById("video");
+  const status = document.getElementById("cameraStatus");
+
+  if (!stream) {
+    showToast("La cámara no está activa", "error");
+    return;
+  }
+
+  try {
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    const videoWidth = video.videoWidth || 640;
+    const videoHeight = video.videoHeight || 480;
+    const maxSize = 800;
+
+    let width = videoWidth;
+    let height = videoHeight;
+
+    if (width > maxSize) {
+      height = (height * maxSize) / width;
+      width = maxSize;
+    }
+    if (height > maxSize) {
+      width = (width * maxSize) / height;
+      height = maxSize;
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    context.drawImage(video, 0, 0, width, height);
+
+    canvas.toBlob(
+      function (blob) {
+        if (!blob) {
+          showToast("Error al capturar la foto", "error");
+          return;
+        }
+
+        const file = new File([blob], `foto-camara-${Date.now()}.jpg`, {
+          type: "image/jpeg",
+        });
+
+        // Simular selección de archivo
+        const input = document.getElementById("f_foto");
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        input.files = dataTransfer.files;
+
+        // Disparar evento de cambio
+        const event = new Event("change", { bubbles: true });
+        input.dispatchEvent(event);
+
+        cerrarCamara();
+        showToast("✅ Foto capturada correctamente", "success");
+      },
+      "image/jpeg",
+      0.85,
+    );
+  } catch (error) {
+    console.error("Error al capturar:", error);
+    showToast("Error al capturar la foto: " + error.message, "error");
+  }
+}
+
+// Cerrar cámara con ESC
+document.addEventListener("keydown", function (e) {
+  if (e.key === "Escape") {
+    const overlay = document.getElementById("cameraOverlay");
+    if (overlay.classList.contains("active")) {
+      cerrarCamara();
+    }
+  }
+});
