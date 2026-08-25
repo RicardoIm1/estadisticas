@@ -1923,7 +1923,6 @@ function imprimirCredencialIndividual(id) {
       <div class="credencial-individual">
         <div class="credencial-premium">
           <div class="header">
-            <span class="logo-icon">🏥</span>
             <h3>Hospital Regional PV</h3>
             <p>Credencial de Interno</p>
           </div>
