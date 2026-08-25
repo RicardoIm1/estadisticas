@@ -350,20 +350,33 @@ async function guardarInterno(event) {
   event.preventDefault();
 
   const formData = {
-    nombre: document.getElementById('f_nombre').value.trim().toUpperCase(),
-    universidad: document.getElementById('f_universidad').value.trim().toUpperCase(),
-    carrera: document.getElementById('f_carrera').value.trim().toUpperCase(),
-    semestre: document.getElementById('f_semestre').value.trim().toUpperCase(),
-    generacion: document.getElementById('f_generacion').value.trim().toUpperCase(),
-    correo: document.getElementById('f_correo').value.trim().toLowerCase(),
-    curp: document.getElementById('f_curp').value.trim().toUpperCase() || null,
-    rfc: document.getElementById('f_rfc').value.trim().toUpperCase() || null,
-    telefono: document.getElementById('f_telefono').value.trim().toUpperCase() || null,
-    tipo_sanguineo: document.getElementById('f_tipo_sanguineo').value || null,
-    alergias: document.getElementById('f_alergias').value.trim().toUpperCase() || null,
-    contacto_emergencia: document.getElementById('f_contacto').value.trim().toUpperCase() || null,
-    telefono_emergencia: document.getElementById('f_telefono_emergencia').value.trim().toUpperCase() || null,
-    estatus: document.getElementById('f_estatus')?.value || 'activo'
+    nombre: document.getElementById("f_nombre").value.trim().toUpperCase(),
+    universidad: document
+      .getElementById("f_universidad")
+      .value.trim()
+      .toUpperCase(),
+    carrera: document.getElementById("f_carrera").value.trim().toUpperCase(),
+    semestre: document.getElementById("f_semestre").value.trim().toUpperCase(),
+    generacion: document
+      .getElementById("f_generacion")
+      .value.trim()
+      .toUpperCase(),
+    correo: document.getElementById("f_correo").value.trim().toLowerCase(),
+    curp: document.getElementById("f_curp").value.trim().toUpperCase() || null,
+    rfc: document.getElementById("f_rfc").value.trim().toUpperCase() || null,
+    telefono:
+      document.getElementById("f_telefono").value.trim().toUpperCase() || null,
+    tipo_sanguineo: document.getElementById("f_tipo_sanguineo").value || null,
+    alergias:
+      document.getElementById("f_alergias").value.trim().toUpperCase() || null,
+    contacto_emergencia:
+      document.getElementById("f_contacto").value.trim().toUpperCase() || null,
+    telefono_emergencia:
+      document
+        .getElementById("f_telefono_emergencia")
+        .value.trim()
+        .toUpperCase() || null,
+    estatus: document.getElementById("f_estatus")?.value || "activo",
   };
 
   try {
@@ -372,18 +385,18 @@ async function guardarInterno(event) {
     // Si hay foto, subirla
     let foto_url = null;
     if (currentPhotoFile) {
-      const fileExt = currentPhotoFile.name.split('.').pop();
+      const fileExt = currentPhotoFile.name.split(".").pop();
       const fileName = `${Date.now()}.${fileExt}`;
       const filePath = `internos/${fileName}`;
 
       const { error: uploadError } = await supabaseClient.storage
-        .from('fotos-internos')
+        .from("fotos-internos")
         .upload(filePath, currentPhotoFile, { upsert: true });
 
       if (uploadError) throw uploadError;
 
       const { data: urlData } = supabaseClient.storage
-        .from('fotos-internos')
+        .from("fotos-internos")
         .getPublicUrl(filePath);
 
       foto_url = urlData.publicUrl;
@@ -393,31 +406,34 @@ async function guardarInterno(event) {
 
     if (state.editingId) {
       const { data, error } = await supabaseClient
-        .from('internos')
+        .from("internos")
         .update(formData)
-        .eq('id', state.editingId)
+        .eq("id", state.editingId)
         .select()
         .single();
       if (error) throw error;
       result = data;
-      showToast('Interno actualizado correctamente', 'success');
+      showToast("Interno actualizado correctamente", "success");
     } else {
       formData.matricula = await generarMatricula();
       const { data, error } = await supabaseClient
-        .from('internos')
+        .from("internos")
         .insert([formData])
         .select()
         .single();
       if (error) throw error;
       result = data;
-      showToast(`✅ Interno registrado. Matrícula: ${result.matricula}`, 'success');
+      showToast(
+        `✅ Interno registrado. Matrícula: ${result.matricula}`,
+        "success",
+      );
     }
 
     closeModal();
     cargarInternos();
   } catch (error) {
-    console.error('Error:', error);
-    showToast('Error al guardar: ' + error.message, 'error');
+    console.error("Error:", error);
+    showToast("Error al guardar: " + error.message, "error");
   }
 }
 
@@ -1316,90 +1332,223 @@ async function eliminarPonente(id) {
 // ============================================================
 // GENERAR RECONOCIMIENTO
 // ============================================================
-function generarReconocimiento(internoId) {
-  const interno = state.internos.find((i) => i.id === internoId);
-  if (!interno) return;
+// ============================================================
+// GENERAR RECONOCIMIENTO (USANDO DATOS DE LA TABLA EVENTOS)
+// ============================================================
+async function generarReconocimiento(internoId) {
+  try {
+    const interno = state.internos.find((i) => i.id === internoId);
+    if (!interno) {
+      showToast("Interno no encontrado", "error");
+      return;
+    }
 
-  const nombrePonente = prompt("Nombre del ponente:");
-  if (!nombrePonente) return;
+    // Obtener eventos del interno
+    const participaciones = await cargarParticipacionesInternos(internoId);
 
-  const evento = prompt("Nombre del evento:");
-  if (!evento) return;
+    if (!participaciones || participaciones.length === 0) {
+      showToast("Este interno no tiene eventos registrados", "warning");
+      return;
+    }
 
-  const fecha = prompt("Fecha del evento (DD/MM/AAAA):");
-  if (!fecha) return;
+    // Crear lista de eventos para seleccionar
+    let eventosList = participaciones
+      .map((p, i) => {
+        const evento = p.eventos || {};
+        return `${i + 1}. ${evento.nombre || "Sin nombre"} (${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX") : "Sin fecha"}) - ${evento.horas || 0}h`;
+      })
+      .join("\n");
 
-  const horas = prompt("Horas impartidas:");
-  if (!horas) return;
+    // Mostrar selector de eventos
+    const eventoIndex = prompt(
+      `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participaciones.length}):`,
+    );
 
-  const contenido = `
-    <div style="text-align: center; padding: 30px; border: 3px solid #1a56db; border-radius: 16px; max-width: 600px; margin: 0 auto; background: white;">
-      <div style="font-size: 56px; color: #f59e0b; margin-bottom: 10px;"><i class="fas fa-award"></i></div>
-      <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Reconocimiento</h2>
-      <p style="color: #475569; font-size: 14px; margin: 12px 0;">Se otorga el presente reconocimiento a:</p>
-      <h3 style="font-size: 24px; font-weight: 700; color: #1a56db; text-transform: uppercase; margin: 12px 0;">${nombrePonente}</h3>
-      <p style="color: #475569; font-size: 14px; margin: 8px 0;">Por su valiosa participación como <strong>PONENTE</strong> en el evento:</p>
-      <h4 style="font-size: 20px; font-weight: 700; color: #0f172a; text-transform: uppercase;">${evento}</h4>
-      <p style="color: #475569; font-size: 13px; margin: 8px 0;">Impartiendo <strong>${horas} horas</strong> de formación académica.</p>
-      <p style="color: #475569; font-size: 13px; margin: 8px 0;">Fecha: ${fecha}</p>
-      <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
-        <p style="font-size: 12px; color: #94a3b8;">Hospital Regional Puerto Vallarta</p>
+    if (!eventoIndex) return;
+
+    const idx = parseInt(eventoIndex) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= participaciones.length) {
+      showToast("Selección inválida", "error");
+      return;
+    }
+
+    const eventoSeleccionado = participaciones[idx].eventos || {};
+
+    // Solicitar solo el nombre del ponente (lo demás viene de la tabla)
+    const nombrePonente = prompt("Nombre del ponente:");
+    if (!nombrePonente) return;
+
+    // Datos del evento desde la tabla
+    const nombreEvento = eventoSeleccionado.nombre || "Evento sin nombre";
+    const fecha = eventoSeleccionado.fecha_inicio
+      ? new Date(eventoSeleccionado.fecha_inicio).toLocaleDateString("es-MX")
+      : "Fecha no especificada";
+    const horas = eventoSeleccionado.horas || 0;
+    const lugar =
+      eventoSeleccionado.lugar || "Hospital Regional Puerto Vallarta";
+
+    const contenido = `
+      <div style="text-align: center; padding: 30px; border: 3px solid #1a56db; border-radius: 16px; max-width: 600px; margin: 0 auto; background: white;">
+        <div style="font-size: 56px; color: #f59e0b; margin-bottom: 10px;">
+          <i class="fas fa-award"></i>
+        </div>
+        <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Reconocimiento</h2>
+        <p style="color: #475569; font-size: 14px; margin: 12px 0;">Se otorga el presente reconocimiento a:</p>
+        <h3 style="font-size: 24px; font-weight: 700; color: #1a56db; text-transform: uppercase; margin: 12px 0;">${nombrePonente}</h3>
+        <p style="color: #475569; font-size: 14px; margin: 8px 0;">Por su valiosa participación como <strong>PONENTE</strong> en el evento:</p>
+        <h4 style="font-size: 20px; font-weight: 700; color: #0f172a; text-transform: uppercase;">${nombreEvento}</h4>
+        <div style="margin: 12px 0; padding: 8px; background: #f8fafc; border-radius: 8px; font-size: 13px; color: #475569;">
+          <p><i class="fas fa-calendar-alt"></i> Fecha: ${fecha}</p>
+          <p><i class="fas fa-clock"></i> Duración: ${horas} horas</p>
+          <p><i class="fas fa-map-marker-alt"></i> Lugar: ${lugar}</p>
+        </div>
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
+          <p style="font-size: 12px; color: #94a3b8;">Hospital Regional Puerto Vallarta</p>
+          <p style="font-size: 10px; color: #cbd5e1; margin-top: 4px;">Documento generado electrónicamente</p>
+        </div>
       </div>
-    </div>
-  `;
+    `;
 
-  openModal(contenido);
-  document.querySelector(".modal .modal-actions")?.remove();
-  const actions = document.createElement("div");
-  actions.className = "form-actions";
-  actions.innerHTML = `
-    <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
-    <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
-  `;
-  document.querySelector(".modal").appendChild(actions);
+    // Cerrar modal actual y abrir reconocimiento
+    closeModal();
+    openModal(contenido);
+
+    // Cambiar botón de impresión
+    document.querySelector(".modal .modal-actions")?.remove();
+    const actions = document.createElement("div");
+    actions.className = "form-actions";
+    actions.innerHTML = `
+      <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
+      <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
+    `;
+    document.querySelector(".modal").appendChild(actions);
+  } catch (error) {
+    console.error("Error:", error);
+    showToast("Error al generar reconocimiento: " + error.message, "error");
+  }
 }
 
-function generarReconocimientoPonente(id) {
-  const ponente = state.ponentes.find((p) => p.id === id);
-  if (!ponente) {
-    showToast("Ponente no encontrado", "error");
-    return;
+// ============================================================
+// FUNCIÓN PARA CARGAR PARTICIPACIONES DE UN INTERNO
+// ============================================================
+async function cargarParticipacionesInternos(internoId) {
+  try {
+    const { data, error } = await supabaseClient
+      .from("participaciones_internos")
+      .select(
+        `
+        *,
+        eventos:evento_id (*)
+      `,
+      )
+      .eq("interno_id", internoId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error("Error cargando participaciones:", error);
+    return [];
   }
+}
 
-  const evento = prompt("Nombre del evento:");
-  if (!evento) return;
+// ============================================================
+// GENERAR RECONOCIMIENTO PARA PONENTE (USANDO TABLA EVENTOS)
+// ============================================================
+async function generarReconocimientoPonente(id) {
+  try {
+    const ponente = state.ponentes.find((p) => p.id === id);
+    if (!ponente) {
+      showToast("Ponente no encontrado", "error");
+      return;
+    }
 
-  const fecha = prompt("Fecha del evento (DD/MM/AAAA):");
-  if (!fecha) return;
+    // Obtener eventos del ponente
+    const { data: participaciones, error } = await supabaseClient
+      .from("participaciones_ponentes")
+      .select(
+        `
+        *,
+        eventos:evento_id (*)
+      `,
+      )
+      .eq("ponente_id", id)
+      .order("created_at", { ascending: false });
 
-  const horas = prompt("Horas impartidas:");
-  if (!horas) return;
+    if (error) throw error;
 
-  const contenido = `
-    <div style="text-align: center; padding: 30px; border: 3px solid #1a56db; border-radius: 16px; max-width: 600px; margin: 0 auto; background: white;">
-      <div style="font-size: 56px; color: #f59e0b; margin-bottom: 10px;"><i class="fas fa-award"></i></div>
-      <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Reconocimiento</h2>
-      <p style="color: #475569; font-size: 14px; margin: 12px 0;">Se otorga el presente reconocimiento a:</p>
-      <h3 style="font-size: 24px; font-weight: 700; color: #1a56db; text-transform: uppercase; margin: 12px 0;">${ponente.nombre}</h3>
-      <p style="color: #475569; font-size: 14px; margin: 8px 0;">Por su valiosa participación como <strong>PONENTE</strong> en el evento:</p>
-      <h4 style="font-size: 20px; font-weight: 700; color: #0f172a; text-transform: uppercase;">${evento}</h4>
-      <p style="color: #475569; font-size: 13px; margin: 8px 0;">Impartiendo <strong>${horas} horas</strong> de formación académica.</p>
-      <p style="color: #475569; font-size: 13px; margin: 8px 0;">Fecha: ${fecha}</p>
-      <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
-        <p style="font-size: 12px; color: #94a3b8;">Hospital Regional Puerto Vallarta</p>
+    if (!participaciones || participaciones.length === 0) {
+      showToast("Este ponente no tiene eventos registrados", "warning");
+      return;
+    }
+
+    // Crear lista de eventos
+    let eventosList = participaciones
+      .map((p, i) => {
+        const evento = p.eventos || {};
+        return `${i + 1}. ${evento.nombre || "Sin nombre"} (${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX") : "Sin fecha"}) - Rol: ${p.rol || "ponente"}`;
+      })
+      .join("\n");
+
+    const eventoIndex = prompt(
+      `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participaciones.length}):`,
+    );
+
+    if (!eventoIndex) return;
+
+    const idx = parseInt(eventoIndex) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= participaciones.length) {
+      showToast("Selección inválida", "error");
+      return;
+    }
+
+    const seleccion = participaciones[idx];
+    const evento = seleccion.eventos || {};
+
+    const nombreEvento = evento.nombre || "Evento sin nombre";
+    const fecha = evento.fecha_inicio
+      ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX")
+      : "Fecha no especificada";
+    const horas = seleccion.horas_impartidas || evento.horas || 0;
+    const rol = seleccion.rol || "ponente";
+
+    const contenido = `
+      <div style="text-align: center; padding: 30px; border: 3px solid #1a56db; border-radius: 16px; max-width: 600px; margin: 0 auto; background: white;">
+        <div style="font-size: 56px; color: #f59e0b; margin-bottom: 10px;">
+          <i class="fas fa-award"></i>
+        </div>
+        <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Reconocimiento</h2>
+        <p style="color: #475569; font-size: 14px; margin: 12px 0;">Se otorga el presente reconocimiento a:</p>
+        <h3 style="font-size: 24px; font-weight: 700; color: #1a56db; text-transform: uppercase; margin: 12px 0;">${ponente.nombre}</h3>
+        <p style="color: #475569; font-size: 14px; margin: 8px 0;">Por su valiosa participación como <strong>${rol.toUpperCase()}</strong> en el evento:</p>
+        <h4 style="font-size: 20px; font-weight: 700; color: #0f172a; text-transform: uppercase;">${nombreEvento}</h4>
+        <div style="margin: 12px 0; padding: 8px; background: #f8fafc; border-radius: 8px; font-size: 13px; color: #475569;">
+          <p><i class="fas fa-calendar-alt"></i> Fecha: ${fecha}</p>
+          <p><i class="fas fa-clock"></i> Horas impartidas: ${horas}</p>
+          <p><i class="fas fa-map-marker-alt"></i> Lugar: ${evento.lugar || "Hospital Regional Puerto Vallarta"}</p>
+        </div>
+        <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
+          <p style="font-size: 12px; color: #94a3b8;">Hospital Regional Puerto Vallarta</p>
+          <p style="font-size: 10px; color: #cbd5e1; margin-top: 4px;">Documento generado electrónicamente</p>
+        </div>
       </div>
-    </div>
-  `;
+    `;
 
-  openModal(contenido);
-  document.querySelector(".modal .modal-actions")?.remove();
-  const actions = document.createElement("div");
-  actions.className = "form-actions";
-  actions.innerHTML = `
-    <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
-    <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
-  `;
-  document.querySelector(".modal").appendChild(actions);
+    closeModal();
+    openModal(contenido);
+
+    document.querySelector(".modal .modal-actions")?.remove();
+    const actions = document.createElement("div");
+    actions.className = "form-actions";
+    actions.innerHTML = `
+      <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
+      <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
+    `;
+    document.querySelector(".modal").appendChild(actions);
+  } catch (error) {
+    console.error("Error:", error);
+    showToast("Error al generar reconocimiento: " + error.message, "error");
+  }
 }
 
 // ============================================================
@@ -1635,14 +1784,6 @@ function previsualizarFoto(event) {
 
 function eliminarFoto() {
   currentPhotoFile = null;
-  const preview = document.getElementById("previewFoto");
-  preview.innerHTML = `<i class="fas fa-user-circle" style="font-size: 40px; color: #94a3b8;"></i>`;
-  preview.style.border = "2px dashed var(--border)";
-  document.getElementById("f_foto").value = "";
-}
-
-// Eliminar foto seleccionada
-function eliminarFoto() {
   const preview = document.getElementById("previewFoto");
   preview.innerHTML = `<i class="fas fa-user-circle" style="font-size: 40px; color: #94a3b8;"></i>`;
   preview.style.border = "2px dashed var(--border)";
