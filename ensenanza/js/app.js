@@ -5,7 +5,7 @@ const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
 const SUPABASE_ANON_KEY =
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-const supabase = supabaseClient.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ============================================================
 // ESTADO GLOBAL
@@ -64,18 +64,14 @@ function showToast(message, type = "info", duration = 4000) {
 // NAVEGACIÓN
 // ============================================================
 function showSection(section) {
-  // Ocultar todas las secciones
   document.querySelectorAll(".section").forEach(el => el.classList.remove("active"));
 
-  // Mostrar la sección seleccionada
   const target = document.getElementById(`section-${section}`);
   if (target) target.classList.add("active");
 
-  // Actualizar navegación
   document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
   document.querySelector(`.nav-btn[data-section="${section}"]`)?.classList.add("active");
 
-  // Cargar datos según la sección
   state.currentTable = section;
   switch (section) {
     case "internos":
@@ -107,12 +103,10 @@ function closeModal() {
   document.body.style.overflow = "";
 }
 
-// Cerrar modal con ESC
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") closeModal();
 });
 
-// Cerrar modal al hacer clic fuera
 document.getElementById("modal").addEventListener("click", (e) => {
   if (e.target === e.currentTarget) closeModal();
 });
@@ -122,7 +116,7 @@ document.getElementById("modal").addEventListener("click", (e) => {
 // ============================================================
 async function cargarInternos() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("internos")
       .select("*")
       .order("nombre", { ascending: true });
@@ -323,7 +317,7 @@ async function guardarInterno(event) {
   try {
     let result;
     if (state.editingId) {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("internos")
         .update(data)
         .eq("id", state.editingId)
@@ -333,9 +327,8 @@ async function guardarInterno(event) {
       result = data;
       showToast("Interno actualizado correctamente", "success");
     } else {
-      // Generar matrícula
       data.matricula = await generarMatricula();
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("internos")
         .insert([data])
         .select()
@@ -357,7 +350,7 @@ async function generarMatricula() {
   let intentos = 0;
   while (intentos < 100) {
     const matricula = Math.floor(100000 + Math.random() * 900000).toString();
-    const { data } = await supabase
+    const { data } = await supabaseClient
       .from("internos")
       .select("matricula")
       .eq("matricula", matricula)
@@ -370,7 +363,7 @@ async function generarMatricula() {
 
 async function editarInterno(id) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("internos")
       .select("*")
       .eq("id", id)
@@ -462,7 +455,7 @@ async function editarInterno(id) {
 async function eliminarInterno(id) {
   if (!confirm("¿Estás seguro de eliminar este interno?")) return;
   try {
-    const { error } = await supabase.from("internos").delete().eq("id", id);
+    const { error } = await supabaseClient.from("internos").delete().eq("id", id);
     if (error) throw error;
     showToast("Interno eliminado correctamente", "success");
     cargarInternos();
@@ -520,7 +513,7 @@ function verExpediente(id) {
 // ============================================================
 async function cargarEventos() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("eventos")
       .select("*")
       .order("fecha_inicio", { ascending: false });
@@ -618,14 +611,14 @@ async function guardarEvento(event) {
 
   try {
     if (state.editingId) {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("eventos")
         .update(data)
         .eq("id", state.editingId);
       if (error) throw error;
       showToast("Evento actualizado correctamente", "success");
     } else {
-      const { error } = await supabase.from("eventos").insert([data]);
+      const { error } = await supabaseClient.from("eventos").insert([data]);
       if (error) throw error;
       showToast("Evento creado correctamente", "success");
     }
@@ -639,7 +632,7 @@ async function guardarEvento(event) {
 
 async function editarEvento(id) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("eventos")
       .select("*")
       .eq("id", id)
@@ -690,7 +683,7 @@ async function editarEvento(id) {
 async function eliminarEvento(id) {
   if (!confirm("¿Estás seguro de eliminar este evento?")) return;
   try {
-    const { error } = await supabase.from("eventos").delete().eq("id", id);
+    const { error } = await supabaseClient.from("eventos").delete().eq("id", id);
     if (error) throw error;
     showToast("Evento eliminado correctamente", "success");
     cargarEventos();
@@ -705,7 +698,7 @@ async function eliminarEvento(id) {
 // ============================================================
 async function cargarParticipaciones() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("participaciones_internos")
       .select(`
         *,
@@ -827,7 +820,7 @@ async function guardarParticipacion(event) {
   }
 
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from("participaciones_internos")
       .insert([data]);
     if (error) throw error;
@@ -842,7 +835,7 @@ async function guardarParticipacion(event) {
 
 async function editarParticipacion(id) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("participaciones_internos")
       .select("*")
       .eq("id", id)
@@ -903,7 +896,7 @@ async function actualizarParticipacion(event, id) {
   };
 
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from("participaciones_internos")
       .update(data)
       .eq("id", id);
@@ -920,7 +913,7 @@ async function actualizarParticipacion(event, id) {
 async function eliminarParticipacion(id) {
   if (!confirm("¿Estás seguro de eliminar esta participación?")) return;
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from("participaciones_internos")
       .delete()
       .eq("id", id);
@@ -938,7 +931,7 @@ async function eliminarParticipacion(id) {
 // ============================================================
 async function cargarPonentes() {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("ponentes")
       .select("*")
       .order("nombre", { ascending: true });
@@ -949,7 +942,6 @@ async function cargarPonentes() {
     document.getElementById("navCountPonentes").textContent = data.length;
   } catch (error) {
     console.error("Error cargando ponentes:", error);
-    // Si la tabla no existe, mostrar mensaje amigable
     if (error.message.includes("relation") && error.message.includes("does not exist")) {
       document.getElementById("tbodyPonentes").innerHTML = `
         <tr><td colspan="5" class="empty-state">
@@ -1034,7 +1026,7 @@ async function guardarPonente(event) {
   };
 
   try {
-    const { error } = await supabase.from("ponentes").insert([data]);
+    const { error } = await supabaseClient.from("ponentes").insert([data]);
     if (error) throw error;
     showToast("Ponente registrado correctamente", "success");
     closeModal();
@@ -1047,7 +1039,7 @@ async function guardarPonente(event) {
 
 async function editarPonente(id) {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from("ponentes")
       .select("*")
       .eq("id", id)
@@ -1096,7 +1088,7 @@ async function actualizarPonente(event, id) {
   };
 
   try {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from("ponentes")
       .update(data)
       .eq("id", id);
@@ -1113,7 +1105,7 @@ async function actualizarPonente(event, id) {
 async function eliminarPonente(id) {
   if (!confirm("¿Estás seguro de eliminar este ponente?")) return;
   try {
-    const { error } = await supabase.from("ponentes").delete().eq("id", id);
+    const { error } = await supabaseClient.from("ponentes").delete().eq("id", id);
     if (error) throw error;
     showToast("Ponente eliminado correctamente", "success");
     cargarPonentes();
@@ -1159,7 +1151,6 @@ function generarReconocimiento(internoId) {
   `;
 
   openModal(contenido);
-  // Cambiar botón de impresión
   document.querySelector(".modal .modal-actions")?.remove();
   const actions = document.createElement("div");
   actions.className = "form-actions";
@@ -1276,7 +1267,6 @@ async function imprimirMultiplesCredenciales() {
 
     openModal(html);
 
-    // Generar QR después de renderizar
     setTimeout(() => {
       internos.forEach((interno, index) => {
         const container = document.getElementById(`qr-${index}`);
@@ -1369,7 +1359,6 @@ function imprimirCredencialIndividual(id) {
 // INICIALIZAR
 // ============================================================
 document.addEventListener("DOMContentLoaded", async function() {
-  // Cargar datos de todas las tablas
   await Promise.all([
     cargarInternos(),
     cargarEventos(),
