@@ -1502,7 +1502,7 @@ async function generarReconocimientoPonente(id) {
 }
 
 // ============================================================
-// IMPRIMIR CREDENCIALES
+// IMPRIMIR CREDENCIALES - TAMAÑO FIJO
 // ============================================================
 async function imprimirMultiplesCredenciales() {
   try {
@@ -1520,51 +1520,85 @@ async function imprimirMultiplesCredenciales() {
 
     let printContent = `
       <style>
-        @media print {
-          .credenciales-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8mm !important; padding: 5mm !important; }
-          .credencial-print { border: 2px solid #1a56db !important; border-radius: 8px !important; padding: 12px !important; background: white !important; page-break-inside: avoid !important; break-inside: avoid !important; }
-          .credencial-print .header { text-align: center; border-bottom: 2px solid #1a56db; padding-bottom: 6px; margin-bottom: 10px; }
-          .credencial-print .header h3 { font-size: 12px; font-weight: 800; color: #0f172a; margin: 0; }
-          .credencial-print .header p { font-size: 8px; color: #64748b; margin: 0; }
-          .credencial-print .body { display: flex; gap: 10px; align-items: center; }
-          .credencial-print .foto { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #e2e8f0; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f1f4f9; font-weight: 700; font-size: 18px; }
-          .credencial-print .foto img { width: 100%; height: 100%; object-fit: cover; }
-          .credencial-print .info { flex: 1; min-width: 0; }
-          .credencial-print .info .nombre { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #0f172a; line-height: 1.2; }
-          .credencial-print .info .detail { font-size: 8px; color: #475569; line-height: 1.3; }
-          .credencial-print .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
-          .credencial-print .footer .qr { width: 35px; height: 35px; }
-          .credencial-print .footer .status { font-size: 7px; font-weight: 700; padding: 2px 10px; border-radius: 12px; text-transform: uppercase; }
-          .credencial-print .footer .status.activo { background: #dcfce7; color: #166534; }
-          .credencial-print .footer .status.inactivo { background: #fee2e2; color: #991b1b; }
-          .print-buttons { display: none !important; }
-          .modal-close { display: none !important; }
-          @page { size: Letter portrait; margin: 5mm; }
+        /* Estilos ya definidos en el CSS principal */
+        /* Solo estilos adicionales para el contenedor del modal */
+        .cred-modal-header {
+          text-align: center;
+          margin-bottom: 16px;
+          padding: 12px;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
         }
-        .credenciales-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 16px; max-width: 1000px; margin: 0 auto; }
-        .credencial-print { border: 2px solid #1a56db; border-radius: 12px; padding: 16px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-        .credencial-print .header { text-align: center; border-bottom: 2px solid #1a56db; padding-bottom: 8px; margin-bottom: 12px; }
-        .credencial-print .header h3 { font-size: 14px; font-weight: 800; color: #0f172a; margin: 0; }
-        .credencial-print .header p { font-size: 10px; color: #64748b; margin: 0; }
-        .credencial-print .body { display: flex; gap: 12px; align-items: center; }
-        .credencial-print .foto { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #e2e8f0; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f1f4f9; font-weight: 700; font-size: 22px; }
-        .credencial-print .foto img { width: 100%; height: 100%; object-fit: cover; }
-        .credencial-print .info { flex: 1; min-width: 0; }
-        .credencial-print .info .nombre { font-size: 12px; font-weight: 800; text-transform: uppercase; color: #0f172a; }
-        .credencial-print .info .detail { font-size: 10px; color: #475569; }
-        .credencial-print .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0; }
-        .credencial-print .footer .qr { width: 40px; height: 40px; }
-        .credencial-print .footer .status { font-size: 9px; font-weight: 700; padding: 3px 12px; border-radius: 12px; text-transform: uppercase; }
-        .credencial-print .footer .status.activo { background: #dcfce7; color: #166534; }
-        .credencial-print .footer .status.inactivo { background: #fee2e2; color: #991b1b; }
-        .print-buttons { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
-        .print-buttons button { padding: 10px 32px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; margin: 0 8px; }
-        .print-buttons .btn-print { background: #2563eb; color: white; }
-        .print-buttons .btn-print:hover { background: #1d4ed8; }
-        .print-buttons .btn-cerrar { background: #f1f4f9; color: #475569; }
-        .print-buttons .btn-cerrar:hover { background: #e2e8f0; }
+        .cred-modal-header h3 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 800;
+          color: #0f172a;
+        }
+        .cred-modal-header p {
+          margin: 4px 0 0 0;
+          font-size: 13px;
+          color: #64748b;
+        }
+        .cred-contador {
+          text-align: center;
+          font-size: 13px;
+          color: #64748b;
+          margin-bottom: 12px;
+        }
+        .cred-contador strong {
+          color: #0f172a;
+        }
+        .print-buttons {
+          text-align: center;
+          margin-top: 20px;
+          padding-top: 16px;
+          border-top: 1px solid #e2e8f0;
+        }
+        .print-buttons button {
+          padding: 10px 32px;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 14px;
+          margin: 0 8px;
+        }
+        .print-buttons .btn-print {
+          background: #2563eb;
+          color: white;
+        }
+        .print-buttons .btn-print:hover {
+          background: #1d4ed8;
+        }
+        .print-buttons .btn-cerrar {
+          background: #f1f4f9;
+          color: #475569;
+        }
+        .print-buttons .btn-cerrar:hover {
+          background: #e2e8f0;
+        }
+        @media print {
+          .no-print { display: none !important; }
+          .modal-close { display: none !important; }
+          .credenciales-grid { max-height: none !important; overflow: visible !important; }
+          .cred-modal-header { background: #f8fafc !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .credencial-print .footer .status.activo { background: #dcfce7 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .credencial-print .footer .status.inactivo { background: #fee2e2 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          @page { size: Letter portrait; margin: 4mm; }
+          .credencial-print { page-break-inside: avoid !important; break-inside: avoid !important; }
+        }
       </style>
-      <h3 style="text-align:center; margin-bottom:16px;"><i class="fas fa-id-card"></i> Credenciales de Internos Activos</h3>
+      
+      <div class="cred-modal-header no-print">
+        <h3><i class="fas fa-id-card"></i> Credenciales de Internos Activos</h3>
+        <p>Total: <strong>${internos.length}</strong> internos activos · ${Math.ceil(internos.length / chunkSize)} páginas</p>
+      </div>
+      
+      <div class="cred-contador no-print">
+        <i class="fas fa-print"></i> Vista previa - <strong>${internos.length}</strong> credenciales
+      </div>
     `;
 
     chunks.forEach((chunk, pageIndex) => {
@@ -1586,7 +1620,7 @@ async function imprimirMultiplesCredenciales() {
         printContent += `
           <div class="credencial-print">
             <div class="header">
-              <h3>Hospital Regional PV</h3>
+              <h3>🏥 Hospital Regional PV</h3>
               <p>Credencial de Interno</p>
             </div>
             <div class="body">
@@ -1595,9 +1629,9 @@ async function imprimirMultiplesCredenciales() {
               </div>
               <div class="info">
                 <div class="nombre">${interno.nombre}</div>
-                <div class="detail"><i class="fas fa-id-card" style="width:14px;"></i> ${interno.matricula}</div>
-                <div class="detail"><i class="fas fa-university" style="width:14px;"></i> ${interno.universidad}</div>
-                <div class="detail"><i class="fas fa-graduation-cap" style="width:14px;"></i> ${interno.carrera}</div>
+                <div class="detail"><i class="fas fa-id-card"></i> ${interno.matricula}</div>
+                <div class="detail"><i class="fas fa-university"></i> ${interno.universidad}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
               </div>
             </div>
             <div class="footer">
@@ -1611,9 +1645,9 @@ async function imprimirMultiplesCredenciales() {
     });
 
     printContent += `
-      <div class="print-buttons">
-        <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Imprimir</button>
-        <button class="btn-cerrar" onclick="closeModal()">Cerrar</button>
+      <div class="print-buttons no-print">
+        <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Imprimir (${internos.length} credenciales)</button>
+        <button class="btn-cerrar" onclick="closeModal()"><i class="fas fa-times"></i> Cerrar</button>
       </div>
     `;
 
@@ -1628,16 +1662,15 @@ async function imprimirMultiplesCredenciales() {
             const credencial = container.closest(".credencial-print");
             const nombre =
               credencial?.querySelector(".nombre")?.textContent || "";
+            const matriculaEl =
+              credencial?.querySelector(".detail")?.textContent || "";
             const matricula =
-              credencial
-                ?.querySelector(".detail")
-                ?.textContent?.replace("", "")
-                ?.trim() || "";
+              matriculaEl.replace(/[^0-9]/g, "").trim() || "000000";
             const texto = `HRPV|${matricula}|${nombre.substring(0, 15)}`;
             new QRCode(container, {
               text: texto,
-              width: 35,
-              height: 35,
+              width: 36,
+              height: 36,
               colorDark: "#000000",
               colorLight: "#ffffff",
               correctLevel: QRCode.CorrectLevel.L,
@@ -1646,7 +1679,7 @@ async function imprimirMultiplesCredenciales() {
             console.warn("Error generando QR:", e);
           }
         });
-    }, 200);
+    }, 300);
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar credenciales: " + error.message, "error");
@@ -1655,7 +1688,10 @@ async function imprimirMultiplesCredenciales() {
 
 function imprimirCredencialIndividual(id) {
   const interno = state.internos.find((i) => i.id === id);
-  if (!interno) return;
+  if (!interno) {
+    showToast("Interno no encontrado", "error");
+    return;
+  }
 
   const iniciales = interno.nombre
     .split(" ")
@@ -1667,33 +1703,186 @@ function imprimirCredencialIndividual(id) {
 
   const html = `
     <style>
+      /* Credencial individual - tamaño fijo */
+      .credencial-individual {
+        max-width: 340px;
+        margin: 0 auto;
+        background: linear-gradient(145deg, #0f2b5e, #1a56db);
+        border-radius: 16px;
+        padding: 20px;
+        color: white;
+        height: 440px;
+        min-height: 440px;
+        max-height: 440px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .credencial-individual .header {
+        text-align: center;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+        flex-shrink: 0;
+      }
+      .credencial-individual .header h3 {
+        font-size: 16px;
+        font-weight: 800;
+        margin: 0;
+      }
+      .credencial-individual .header p {
+        font-size: 11px;
+        opacity: 0.7;
+        margin: 0;
+      }
+      .credencial-individual .body {
+        display: flex;
+        gap: 14px;
+        align-items: center;
+        flex: 1;
+        padding: 8px 0;
+      }
+      .credencial-individual .foto {
+        width: 75px;
+        height: 75px;
+        min-width: 75px;
+        min-height: 75px;
+        max-width: 75px;
+        max-height: 75px;
+        border-radius: 50%;
+        border: 3px solid rgba(255,255,255,0.3);
+        flex-shrink: 0;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.1);
+        font-size: 30px;
+        font-weight: 700;
+      }
+      .credencial-individual .foto img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .credencial-individual .info {
+        flex: 1;
+        min-width: 0;
+      }
+      .credencial-individual .info .nombre {
+        font-size: 16px;
+        font-weight: 800;
+        text-transform: uppercase;
+        line-height: 1.2;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        max-height: 58px;
+      }
+      .credencial-individual .info .detail {
+        font-size: 12px;
+        opacity: 0.85;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .credencial-individual .footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 14px;
+        padding-top: 14px;
+        border-top: 1px solid rgba(255,255,255,0.12);
+        flex-shrink: 0;
+        height: 60px;
+        min-height: 60px;
+        max-height: 60px;
+      }
+      .credencial-individual .footer .qr {
+        background: white;
+        padding: 4px;
+        border-radius: 8px;
+        width: 50px;
+        height: 50px;
+        min-width: 50px;
+        min-height: 50px;
+        max-width: 50px;
+        max-height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .credencial-individual .footer .qr canvas {
+        width: 42px !important;
+        height: 42px !important;
+      }
+      .credencial-individual .footer .status {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 16px;
+        border-radius: 20px;
+        text-transform: uppercase;
+      }
+      .credencial-individual .footer .status.activo {
+        background: #dcfce7;
+        color: #166534;
+      }
+      .credencial-individual .footer .status.inactivo {
+        background: #fee2e2;
+        color: #991b1b;
+      }
       @media print {
         .no-print { display: none !important; }
         .modal-close { display: none !important; }
-        .credencial-card { border: 2px solid #1a56db !important; box-shadow: none !important; max-width: 320px !important; margin: 0 auto !important; }
+        .credencial-individual { 
+          border: 2px solid #1a56db !important;
+          box-shadow: none !important;
+          border-radius: 12px !important;
+          height: 380px !important;
+          min-height: 380px !important;
+          max-height: 380px !important;
+          padding: 14px !important;
+        }
+        .credencial-individual .foto {
+          width: 60px !important;
+          height: 60px !important;
+          min-width: 60px !important;
+          min-height: 60px !important;
+          max-width: 60px !important;
+          max-height: 60px !important;
+          font-size: 24px !important;
+        }
+        .credencial-individual .info .nombre {
+          font-size: 13px !important;
+          max-height: 48px !important;
+        }
+        .credencial-individual .info .detail {
+          font-size: 10px !important;
+        }
+        .credencial-individual .footer .status {
+          font-size: 9px !important;
+          padding: 2px 12px !important;
+        }
+        .credencial-individual .footer .qr {
+          width: 40px !important;
+          height: 40px !important;
+          min-width: 40px !important;
+          min-height: 40px !important;
+          max-width: 40px !important;
+          max-height: 40px !important;
+        }
+        .credencial-individual .footer .qr canvas {
+          width: 32px !important;
+          height: 32px !important;
+        }
         @page { size: A6 portrait; margin: 5mm; }
       }
-      .credencial-card { max-width: 340px; margin: 0 auto; background: linear-gradient(145deg, #0f2b5e, #1a56db); border-radius: 16px; padding: 20px; color: white; }
-      .credencial-card .header { text-align: center; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 10px; margin-bottom: 14px; }
-      .credencial-card .header h3 { font-size: 16px; font-weight: 800; margin: 0; }
-      .credencial-card .header p { font-size: 11px; opacity: 0.7; margin: 0; }
-      .credencial-card .body { display: flex; gap: 14px; align-items: center; }
-      .credencial-card .foto { width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); font-size: 28px; font-weight: 700; }
-      .credencial-card .foto img { width: 100%; height: 100%; object-fit: cover; }
-      .credencial-card .info { flex: 1; min-width: 0; }
-      .credencial-card .info .nombre { font-size: 15px; font-weight: 800; text-transform: uppercase; line-height: 1.2; }
-      .credencial-card .info .detail { font-size: 11px; opacity: 0.85; }
-      .credencial-card .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.12); }
-      .credencial-card .footer .qr { background: white; padding: 4px; border-radius: 8px; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
-      .credencial-card .footer .qr canvas { width: 42px !important; height: 42px !important; }
-      .credencial-card .footer .status { font-size: 10px; font-weight: 700; padding: 3px 14px; border-radius: 20px; text-transform: uppercase; }
-      .credencial-card .footer .status.activo { background: #dcfce7; color: #166534; }
-      .credencial-card .footer .status.inactivo { background: #fee2e2; color: #991b1b; }
     </style>
-    <h3 style="text-align:center; margin-bottom:16px;"><i class="fas fa-id-card"></i> Credencial Individual</h3>
-    <div class="credencial-card">
+    <h3 style="text-align:center; margin-bottom:16px;" class="no-print"><i class="fas fa-id-card"></i> Credencial Individual</h3>
+    <div class="credencial-individual">
       <div class="header">
-        <h3>Hospital Regional PV</h3>
+        <h3>🏥 Hospital Regional PV</h3>
         <p>Credencial de Interno</p>
       </div>
       <div class="body">
@@ -1702,9 +1891,9 @@ function imprimirCredencialIndividual(id) {
         </div>
         <div class="info">
           <div class="nombre">${interno.nombre}</div>
-          <div class="detail"><i class="fas fa-id-card" style="width:14px;"></i> ${interno.matricula}</div>
-          <div class="detail"><i class="fas fa-university" style="width:14px;"></i> ${interno.universidad}</div>
-          <div class="detail"><i class="fas fa-graduation-cap" style="width:14px;"></i> ${interno.carrera}</div>
+          <div class="detail"><i class="fas fa-id-card" style="width:16px;"></i> ${interno.matricula}</div>
+          <div class="detail"><i class="fas fa-university" style="width:16px;"></i> ${interno.universidad}</div>
+          <div class="detail"><i class="fas fa-graduation-cap" style="width:16px;"></i> ${interno.carrera}</div>
         </div>
       </div>
       <div class="footer">
