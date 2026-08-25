@@ -1586,7 +1586,7 @@ async function imprimirMultiplesCredenciales() {
         printContent += `
           <div class="credencial-print">
             <div class="header">
-              <h3>🏥 Hospital Regional PV</h3>
+              <h3>Hospital Regional PV</h3>
               <p>Credencial de Interno</p>
             </div>
             <div class="body">
@@ -1693,7 +1693,7 @@ function imprimirCredencialIndividual(id) {
     <h3 style="text-align:center; margin-bottom:16px;"><i class="fas fa-id-card"></i> Credencial Individual</h3>
     <div class="credencial-card">
       <div class="header">
-        <h3>🏥 Hospital Regional PV</h3>
+        <h3>Hospital Regional PV</h3>
         <p>Credencial de Interno</p>
       </div>
       <div class="body">
@@ -2359,7 +2359,7 @@ async function imprimirMultiplesCredenciales() {
         printContent += `
           <div class="credencial-print">
             <div class="header">
-              <h3>🏥 Hospital Regional PV</h3>
+              <h3>Hospital Regional PV</h3>
               <p>Credencial de Interno</p>
             </div>
             <div class="body">
