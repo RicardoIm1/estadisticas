@@ -247,70 +247,9 @@ function openFormInterno() {
   const content = `
     <h3><i class="fas fa-user-plus"></i> Nuevo Interno</h3>
     <form id="formInterno" onsubmit="guardarInterno(event)">
-      <div class="form-group">
-        <label>Nombre Completo *</label>
-        <input type="text" id="f_nombre" placeholder="Nombre completo" required autofocus />
-      </div>
-      <div class="form-group">
-        <label>Universidad *</label>
-        <input type="text" id="f_universidad" placeholder="Universidad" required />
-      </div>
-      <div class="form-group">
-        <label>Carrera *</label>
-        <input type="text" id="f_carrera" placeholder="Carrera" required />
-      </div>
-      <div class="form-group">
-        <label>Semestre *</label>
-        <input type="text" id="f_semestre" placeholder="8° Semestre" required />
-      </div>
-      <div class="form-group">
-        <label>Generación *</label>
-        <input type="text" id="f_generacion" placeholder="2020-2025" required />
-      </div>
-      <div class="form-group">
-        <label>Correo *</label>
-        <input type="email" id="f_correo" placeholder="correo@ejemplo.com" required />
-      </div>
-      <div class="form-group">
-        <label>CURP</label>
-        <input type="text" id="f_curp" placeholder="CURP" />
-      </div>
-      <div class="form-group">
-        <label>RFC</label>
-        <input type="text" id="f_rfc" placeholder="RFC" />
-      </div>
-      <div class="form-group">
-        <label>Teléfono</label>
-        <input type="text" id="f_telefono" placeholder="(55) 1234-5678" />
-      </div>
-      <div class="form-group">
-        <label>Tipo Sanguíneo</label>
-        <select id="f_tipo_sanguineo">
-          <option value="">Seleccionar</option>
-          <option value="A+">A+</option>
-          <option value="A-">A-</option>
-          <option value="B+">B+</option>
-          <option value="B-">B-</option>
-          <option value="AB+">AB+</option>
-          <option value="AB-">AB-</option>
-          <option value="O+">O+</option>
-          <option value="O-">O-</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Alergias</label>
-        <input type="text" id="f_alergias" placeholder="Ej: Penicilina, Polen" />
-      </div>
-      <div class="form-group">
-        <label>Contacto de Emergencia</label>
-        <input type="text" id="f_contacto" placeholder="Nombre del contacto" />
-      </div>
-      <div class="form-group">
-        <label>Teléfono de Emergencia</label>
-        <input type="text" id="f_telefono_emergencia" placeholder="(55) 1234-5678" />
-      </div>
+      <!-- ... campos existentes ... -->
 
-      <!-- 👇 CAMPO DE FOTO AGREGADO -->
+      <!-- 👇 CAMPO DE FOTO CON BOTÓN CÁMARA -->
       <div class="form-group photo-group">
         <label>Foto</label>
         <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
@@ -319,12 +258,17 @@ function openFormInterno() {
           </div>
           <div>
             <input type="file" id="f_foto" accept="image/jpeg,image/png,image/webp" onchange="previsualizarFoto(event)" style="display: none;" />
-            <button type="button" onclick="document.getElementById('f_foto').click()" style="background: var(--primary-gradient); color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-              <i class="fas fa-upload"></i> Subir Foto
-            </button>
-            <button type="button" onclick="eliminarFoto()" style="background: #fee2e2; color: #dc2626; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: 8px;">
-              <i class="fas fa-trash"></i> Eliminar
-            </button>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+              <button type="button" onclick="document.getElementById('f_foto').click()" style="background: var(--primary-gradient); color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                <i class="fas fa-upload"></i> Subir
+              </button>
+              <button type="button" onclick="abrirCamara()" style="background: linear-gradient(135deg, #059669, #10b981); color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                <i class="fas fa-camera"></i> Cámara
+              </button>
+              <button type="button" onclick="eliminarFoto()" style="background: #fee2e2; color: #dc2626; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                <i class="fas fa-trash"></i> Eliminar
+              </button>
+            </div>
             <p style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Formatos: JPG, PNG, WEBP · Max: 5MB</p>
           </div>
         </div>
@@ -375,8 +319,30 @@ async function guardarInterno(event) {
 
   try {
     let result;
+
+    // Si hay foto, subirla
+    let foto_url = null;
+    const fotoInput = document.getElementById("f_foto");
+    if (fotoInput && fotoInput.files && fotoInput.files.length > 0) {
+      const file = fotoInput.files[0];
+      const fileName = `${Date.now()}_${file.name}`;
+      const { data: uploadData, error: uploadError } =
+        await supabaseClient.storage
+          .from("fotos-internos")
+          .upload(`internos/${fileName}`, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabaseClient.storage
+        .from("fotos-internos")
+        .getPublicUrl(`internos/${fileName}`);
+
+      foto_url = urlData.publicUrl;
+    }
+
+    formData.foto_url = foto_url;
+
     if (state.editingId) {
-      // Actualizar interno existente
       const { data, error } = await supabaseClient
         .from("internos")
         .update(formData)
@@ -387,7 +353,6 @@ async function guardarInterno(event) {
       result = data;
       showToast("Interno actualizado correctamente", "success");
     } else {
-      // Crear nuevo interno con matrícula generada
       formData.matricula = await generarMatricula();
       const { data, error } = await supabaseClient
         .from("internos")
@@ -1613,6 +1578,9 @@ function previsualizarFoto(event) {
     preview.style.border = "2px solid #22c55e";
   };
   reader.readAsDataURL(file);
+
+  // Guardar la foto para subir después
+  currentPhotoFile = file;
 }
 
 // Eliminar foto seleccionada
