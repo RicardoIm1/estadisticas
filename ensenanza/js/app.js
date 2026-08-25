@@ -1566,7 +1566,7 @@ async function mostrarReconocimientoFinal(interno, seleccion) {
       <div class="footer-rec">
         <div class="firma">
           <div class="linea"></div>
-          <span class="nombre-firma">Dr. Carlos Méndez R.</span>
+          <span class="nombre-firma">Dr. Fernando Márquez Vela.</span>
           <span class="cargo">Director Médico</span>
         </div>
         
@@ -1576,8 +1576,8 @@ async function mostrarReconocimientoFinal(interno, seleccion) {
         
         <div class="firma">
           <div class="linea"></div>
-          <span class="nombre-firma">Lic. Ana Valenzuela</span>
-          <span class="cargo">Coordinación Académica</span>
+          <span class="nombre-firma">Dra. Mónica Patricia Joya Quinteros.</span>
+          <span class="cargo">Encargada de Enseñanza</span>
         </div>
       </div>
     </div>
@@ -1876,7 +1876,7 @@ async function mostrarReconocimientoFinalPonente(ponente, seleccion) {
       <div class="footer-rec">
         <div class="firma">
           <div class="linea"></div>
-          <span class="nombre-firma">Dr. Carlos Méndez R.</span>
+          <span class="nombre-firma">Dr. Fernando Márquez Vela.</span>
           <span class="cargo">Director Médico</span>
         </div>
         
@@ -1886,7 +1886,7 @@ async function mostrarReconocimientoFinalPonente(ponente, seleccion) {
         
         <div class="firma">
           <div class="linea"></div>
-          <span class="nombre-firma">Lic. Ana Valenzuela</span>
+          <span class="nombre-firma">Dra. Mónica Patricia Joya Quinteros.</span>
           <span class="cargo">Coordinación Académica</span>
         </div>
       </div>
@@ -2039,7 +2039,7 @@ async function mostrarReconocimientoFinalPonente(ponente, seleccion) {
       <div class="footer-rec">
         <div class="firma">
           <div class="linea"></div>
-          <span class="nombre-firma">Dr. Carlos Méndez R.</span>
+          <span class="nombre-firma">Dr. Fernando Márquez Vela.</span>
           <span class="cargo">Director Médico</span>
         </div>
         
@@ -2049,7 +2049,7 @@ async function mostrarReconocimientoFinalPonente(ponente, seleccion) {
         
         <div class="firma">
           <div class="linea"></div>
-          <span class="nombre-firma">Lic. Ana Valenzuela</span>
+          <span class="nombre-firma">Dra. Mónica Patricia Joya Quinteros.</span>
           <span class="cargo">Coordinación Académica</span>
         </div>
       </div>
