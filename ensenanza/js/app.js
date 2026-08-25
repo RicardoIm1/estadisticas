@@ -346,42 +346,30 @@ function openFormInterno() {
 async function guardarInterno(event) {
   event.preventDefault();
 
-  const data = {
+  const formData = {
     nombre: document.getElementById("f_nombre").value.trim().toUpperCase(),
-    universidad: document
-      .getElementById("f_universidad")
-      .value.trim()
-      .toUpperCase(),
+    universidad: document.getElementById("f_universidad").value.trim().toUpperCase(),
     carrera: document.getElementById("f_carrera").value.trim().toUpperCase(),
     semestre: document.getElementById("f_semestre").value.trim().toUpperCase(),
-    generacion: document
-      .getElementById("f_generacion")
-      .value.trim()
-      .toUpperCase(),
+    generacion: document.getElementById("f_generacion").value.trim().toUpperCase(),
     correo: document.getElementById("f_correo").value.trim().toLowerCase(),
     curp: document.getElementById("f_curp").value.trim().toUpperCase() || null,
     rfc: document.getElementById("f_rfc").value.trim().toUpperCase() || null,
-    telefono:
-      document.getElementById("f_telefono").value.trim().toUpperCase() || null,
+    telefono: document.getElementById("f_telefono").value.trim().toUpperCase() || null,
     tipo_sanguineo: document.getElementById("f_tipo_sanguineo").value || null,
-    alergias:
-      document.getElementById("f_alergias").value.trim().toUpperCase() || null,
-    contacto_emergencia:
-      document.getElementById("f_contacto").value.trim().toUpperCase() || null,
-    telefono_emergencia:
-      document
-        .getElementById("f_telefono_emergencia")
-        .value.trim()
-        .toUpperCase() || null,
-    estatus: "activo",
+    alergias: document.getElementById("f_alergias").value.trim().toUpperCase() || null,
+    contacto_emergencia: document.getElementById("f_contacto").value.trim().toUpperCase() || null,
+    telefono_emergencia: document.getElementById("f_telefono_emergencia").value.trim().toUpperCase() || null,
+    estatus: "activo"
   };
 
   try {
     let result;
     if (state.editingId) {
+      // Actualizar interno existente
       const { data, error } = await supabaseClient
         .from("internos")
-        .update(data)
+        .update(formData)
         .eq("id", state.editingId)
         .select()
         .single();
@@ -389,18 +377,16 @@ async function guardarInterno(event) {
       result = data;
       showToast("Interno actualizado correctamente", "success");
     } else {
-      data.matricula = await generarMatricula();
+      // Crear nuevo interno con matrícula generada
+      formData.matricula = await generarMatricula();
       const { data, error } = await supabaseClient
         .from("internos")
-        .insert([data])
+        .insert([formData])
         .select()
         .single();
       if (error) throw error;
       result = data;
-      showToast(
-        `✅ Interno registrado. Matrícula: ${result.matricula}`,
-        "success",
-      );
+      showToast(`✅ Interno registrado. Matrícula: ${result.matricula}`, "success");
     }
 
     closeModal();
