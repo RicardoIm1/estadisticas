@@ -3217,7 +3217,7 @@ function openFormParticipacionPonente(ponenteId) {
 }
 
 // ============================================================
-// GUARDAR PARTICIPACIÓN DEL PONENTE
+// GUARDAR PARTICIPACIÓN DEL PONENTE - Con función RPC
 // ============================================================
 async function guardarParticipacionPonente(event, ponenteId) {
   event.preventDefault();
@@ -3231,7 +3231,7 @@ async function guardarParticipacionPonente(event, ponenteId) {
     return;
   }
 
-  // Verificar si ya existe esta participación
+  // Verificar si ya existe esta participación (SELECT funciona ✅)
   const { data: existente, error: checkError } = await supabaseClient
     .from("participaciones_ponentes")
     .select("*")
@@ -3245,24 +3245,24 @@ async function guardarParticipacionPonente(event, ponenteId) {
   }
 
   try {
+    // Usar la función RPC en lugar de INSERT directo
     const { data, error } = await supabaseClient
-      .from("participaciones_ponentes")
-      .insert([{
-        ponente_id: ponenteId,
-        evento_id: eventoId,
-        rol: rol,
-        horas_impartidas: horas
-      }]);
+      .rpc('insertar_part_ponente', {
+        p_ponente_id: ponenteId,
+        p_evento_id: eventoId,
+        p_rol: rol,
+        p_horas_impartidas: horas
+      });
     
     if (error) throw error;
     
     showToast(`✅ ${rol} asignado al evento correctamente`, "success");
     closeModal();
     
-    // Actualizar el estado global
+    // Recargar datos
     await cargarPonentes();
+    await cargarParticipacionesPonentes();
     
-    // Preguntar si quiere ver el cardex actualizado
     setTimeout(() => {
       if (confirm("¿Quieres ver el cardex actualizado del ponente?")) {
         abrirCardexPonente(ponenteId);
