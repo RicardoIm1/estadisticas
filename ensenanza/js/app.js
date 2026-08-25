@@ -2710,7 +2710,7 @@ async function imprimirMultiplesCredenciales() {
                 <div class="detail"><i class="fas fa-university"></i> ${interno.universidad}</div>
                 <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
                 <div class="detail"><i class="fas fa-phone"></i> ${interno.telefono}</div>
-                <div class="detail"><i class="fas fa-emergency"></i> ${interno.telefono_emergencia}</div>
+                <div class="detail"><i class="fas fa-health"></i> ${interno.telefono_emergencia}</div>
                 <div class="detail"><i class="fas fa-blood"></i> ${interno.tipo_sanguineo}</div>
               </div>
             </div>
