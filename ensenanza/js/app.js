@@ -116,7 +116,7 @@ function showSection(section) {
 // ============================================================
 function openModal(content) {
   document.getElementById("modalContent").innerHTML = content;
-  document.getElementById("modal").classList.add("active");  // ← overlay
+  document.getElementById("modal").classList.add("active"); // ← overlay
   document.body.style.overflow = "hidden";
 }
 
@@ -345,19 +345,32 @@ async function guardarInterno(event) {
 
   const formData = {
     nombre: document.getElementById("f_nombre").value.trim().toUpperCase(),
-    universidad: document.getElementById("f_universidad").value.trim().toUpperCase(),
+    universidad: document
+      .getElementById("f_universidad")
+      .value.trim()
+      .toUpperCase(),
     carrera: document.getElementById("f_carrera").value.trim().toUpperCase(),
     semestre: document.getElementById("f_semestre").value.trim().toUpperCase(),
-    generacion: document.getElementById("f_generacion").value.trim().toUpperCase(),
+    generacion: document
+      .getElementById("f_generacion")
+      .value.trim()
+      .toUpperCase(),
     correo: document.getElementById("f_correo").value.trim().toLowerCase(),
     curp: document.getElementById("f_curp").value.trim().toUpperCase() || null,
     rfc: document.getElementById("f_rfc").value.trim().toUpperCase() || null,
-    telefono: document.getElementById("f_telefono").value.trim().toUpperCase() || null,
+    telefono:
+      document.getElementById("f_telefono").value.trim().toUpperCase() || null,
     tipo_sanguineo: document.getElementById("f_tipo_sanguineo").value || null,
-    alergias: document.getElementById("f_alergias").value.trim().toUpperCase() || null,
-    contacto_emergencia: document.getElementById("f_contacto").value.trim().toUpperCase() || null,
-    telefono_emergencia: document.getElementById("f_telefono_emergencia").value.trim().toUpperCase() || null,
-    estatus: "activo"
+    alergias:
+      document.getElementById("f_alergias").value.trim().toUpperCase() || null,
+    contacto_emergencia:
+      document.getElementById("f_contacto").value.trim().toUpperCase() || null,
+    telefono_emergencia:
+      document
+        .getElementById("f_telefono_emergencia")
+        .value.trim()
+        .toUpperCase() || null,
+    estatus: "activo",
   };
 
   try {
@@ -383,7 +396,10 @@ async function guardarInterno(event) {
         .single();
       if (error) throw error;
       result = data;
-      showToast(`✅ Interno registrado. Matrícula: ${result.matricula}`, "success");
+      showToast(
+        `✅ Interno registrado. Matrícula: ${result.matricula}`,
+        "success",
+      );
     }
 
     closeModal();
@@ -806,17 +822,20 @@ async function cargarParticipaciones() {
 
     const { data, error } = await supabaseClient
       .from("participaciones_internos")
-      .select(`
+      .select(
+        `
         *,
         internos:interno_id (id, nombre, matricula),
         eventos:evento_id (id, nombre, tipo)
-      `)
+      `,
+      )
       .order("created_at", { ascending: false });
 
     if (error) throw error;
     state.participaciones = data;
     renderParticipaciones(data);
-    document.getElementById("navCountParticipaciones").textContent = data.length;
+    document.getElementById("navCountParticipaciones").textContent =
+      data.length;
   } catch (error) {
     console.error("Error cargando participaciones:", error);
     // No mostrar toast para no molestar al usuario
@@ -835,16 +854,17 @@ function renderParticipaciones(participaciones) {
     return;
   }
 
-  tbody.innerHTML = participaciones.map(p => {
-    const interno = p.internos || {};
-    const evento = p.eventos || {};
-    return `
+  tbody.innerHTML = participaciones
+    .map((p) => {
+      const interno = p.internos || {};
+      const evento = p.eventos || {};
+      return `
       <tr>
-        <td>${interno.nombre || 'N/A'}</td>
-        <td>${evento.nombre || 'N/A'}</td>
-        <td><span style="color: ${getColorDesempenio(p.desempenio)}; font-weight: 600;">${p.desempenio || 'Pendiente'}</span></td>
-        <td>${p.calificacion ? p.calificacion + '%' : '-'}</td>
-        <td>${p.certificado_url ? '✅' : '❌'}</td>
+        <td>${interno.nombre || "N/A"}</td>
+        <td>${evento.nombre || "N/A"}</td>
+        <td><span style="color: ${getColorDesempenio(p.desempenio)}; font-weight: 600;">${p.desempenio || "Pendiente"}</span></td>
+        <td>${p.calificacion ? p.calificacion + "%" : "-"}</td>
+        <td>${p.certificado_url ? "✅" : "❌"}</td>
         <td>
           <div class="acciones-cell">
             <button class="btn-edit btn-sm" onclick="editarParticipacion('${p.id}')"><i class="fas fa-pen"></i></button>
@@ -853,7 +873,8 @@ function renderParticipaciones(participaciones) {
         </td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 }
 
 function getColorDesempenio(desempenio) {
@@ -1580,10 +1601,12 @@ async function abrirExpedienteCompleto(id) {
     try {
       const { data, error } = await supabaseClient
         .from("participaciones_internos")
-        .select(`
+        .select(
+          `
           *,
           eventos:evento_id (*)
-        `)
+        `,
+        )
         .eq("interno_id", id)
         .order("created_at", { ascending: false });
 
@@ -1594,32 +1617,34 @@ async function abrirExpedienteCompleto(id) {
 
     const iniciales = interno.nombre
       .split(" ")
-      .filter(p => p.length > 0)
-      .map(p => p[0])
+      .filter((p) => p.length > 0)
+      .map((p) => p[0])
       .join("")
       .slice(0, 2)
       .toUpperCase();
 
     // Generar HTML de eventos
-    let eventosHTML = '';
+    let eventosHTML = "";
     if (participaciones && participaciones.length > 0) {
-      eventosHTML = participaciones.map(part => {
-        const evento = part.eventos || {};
-        const tipoClass = evento.tipo || 'otro';
-        const desempenioColor = getColorDesempenio(part.desempenio);
-        return `
+      eventosHTML = participaciones
+        .map((part) => {
+          const evento = part.eventos || {};
+          const tipoClass = evento.tipo || "otro";
+          const desempenioColor = getColorDesempenio(part.desempenio);
+          return `
           <tr>
-            <td><strong>${evento.nombre || 'Sin nombre'}</strong></td>
-            <td>${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString('es-MX') : '-'}</td>
-            <td><span class="tipo-badge ${tipoClass}">${evento.tipo || 'otro'}</span></td>
-            <td style="text-align:center;">${evento.horas || '-'}</td>
+            <td><strong>${evento.nombre || "Sin nombre"}</strong></td>
+            <td>${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX") : "-"}</td>
+            <td><span class="tipo-badge ${tipoClass}">${evento.tipo || "otro"}</span></td>
+            <td style="text-align:center;">${evento.horas || "-"}</td>
             <td style="text-align:center; font-weight:600; color:${desempenioColor};">
-              ${part.calificacion ? part.calificacion + '%' : '-'}
-              <br><span style="font-size:10px; color:#94a3b8;">${part.desempenio || 'Pendiente'}</span>
+              ${part.calificacion ? part.calificacion + "%" : "-"}
+              <br><span style="font-size:10px; color:#94a3b8;">${part.desempenio || "Pendiente"}</span>
             </td>
           </tr>
         `;
-      }).join('');
+        })
+        .join("");
     } else {
       eventosHTML = `
         <tr>
@@ -1631,6 +1656,7 @@ async function abrirExpedienteCompleto(id) {
       `;
     }
 
+    // ✅ CORREGIDO: Mostrar los datos reales del interno
     const content = `
       <div class="expediente-container">
         <div class="expediente-card">
@@ -1655,12 +1681,14 @@ async function abrirExpedienteCompleto(id) {
               <div class="info">
                 <div class="nombre">${interno.nombre}</div>
                 <div class="detalles">
-                  <div><i class="fas fa-university"></i> ${interno.universidad}</div>
-                  <div><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
-                  <div><i class="fas fa-layer-group"></i> ${interno.semestre}</div>
-                  <div><i class="fas fa-calendar"></i> ${interno.generacion}</div>
-                  <div><i class="fas fa-envelope"></i> ${interno.correo}</div>
-                  <div><i class="fas fa-phone"></i> ${interno.telefono || 'N/A'}</div>
+                  <div><i class="fas fa-university"></i> ${interno.universidad || "No registrada"}</div>
+                  <div><i class="fas fa-graduation-cap"></i> ${interno.carrera || "No registrada"}</div>
+                  <div><i class="fas fa-layer-group"></i> ${interno.semestre || "No registrado"}</div>
+                  <div><i class="fas fa-calendar"></i> ${interno.generacion || "No registrada"}</div>
+                  <div><i class="fas fa-envelope"></i> ${interno.correo || "No registrado"}</div>
+                  <div><i class="fas fa-phone"></i> ${interno.telefono || "No registrado"}</div>
+                  ${interno.curp ? `<div><i class="fas fa-id-card"></i> CURP: ${interno.curp}</div>` : ""}
+                  ${interno.rfc ? `<div><i class="fas fa-file-invoice"></i> RFC: ${interno.rfc}</div>` : ""}
                 </div>
               </div>
               <div>
@@ -1733,7 +1761,6 @@ async function abrirExpedienteCompleto(id) {
         generarQRSimple(qrContainer, interno, 60);
       }
     }, 100);
-
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al cargar el expediente: " + error.message, "error");
@@ -1752,7 +1779,7 @@ function generarQRSimple(container, interno, size) {
       height: size,
       colorDark: "#000000",
       colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.L
+      correctLevel: QRCode.CorrectLevel.L,
     });
   } catch (e) {
     console.warn("Error generando QR:", e);
