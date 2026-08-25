@@ -1096,13 +1096,13 @@ function renderPonentes(ponentes) {
   tbody.innerHTML = ponentes
     .map(
       (p) => `
-    <tr>
+    <tr onclick="abrirCardexPonente('${p.id}')" style="cursor:pointer;">
       <td><strong>${p.nombre}</strong></td>
       <td>${p.especialidad || "-"}</td>
       <td>${p.institucion || "-"}</td>
       <td>${p.correo || "-"}</td>
       <td>
-        <div class="acciones-cell">
+        <div class="acciones-cell" onclick="event.stopPropagation();">
           <button class="btn-edit btn-sm" onclick="editarPonente('${p.id}')"><i class="fas fa-pen"></i></button>
           <button class="btn-delete btn-sm" onclick="eliminarPonente('${p.id}')"><i class="fas fa-trash"></i></button>
           <button class="btn-view btn-sm" onclick="generarReconocimientoPonente('${p.id}')"><i class="fas fa-award"></i></button>
@@ -1216,8 +1216,11 @@ async function editarPonente(id) {
           <label>Correo</label>
           <input type="email" id="f_ponente_correo" value="${data.correo || ""}" />
         </div>
-        <div class="form-actions">
+        <div class="form-actions" style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
           <button type="submit" class="btn-save"><i class="fas fa-save"></i> Actualizar</button>
+          <button type="button" class="btn-view" onclick="abrirCardexPonente('${data.id}')" style="background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; transition: var(--transition); font-size: 14px; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fas fa-id-card"></i> Ver Cardex
+          </button>
           <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
         </div>
       </form>
@@ -2940,5 +2943,167 @@ async function imprimirMultiplesCredenciales() {
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar credenciales: " + error.message, "error");
+  }
+}
+
+
+// ============================================================
+// ABRIR CARDEX DEL PONENTE
+// ============================================================
+async function abrirCardexPonente(id) {
+  try {
+    // Obtener datos del ponente
+    const { data: ponente, error: errorPonente } = await supabaseClient
+      .from("ponentes")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (errorPonente) throw errorPonente;
+
+    // Obtener participaciones del ponente con eventos
+    const { data: participaciones, error: errorPart } = await supabaseClient
+      .from("participaciones_ponentes")
+      .select("*")
+      .eq("ponente_id", id)
+      .order("created_at", { ascending: false });
+
+    if (errorPart) throw errorPart;
+
+    // Obtener eventos completos para cada participación
+    let eventosCompletos = [];
+    for (const p of participaciones || []) {
+      const { data: evento, error: eventError } = await supabaseClient
+        .from("eventos")
+        .select("*")
+        .eq("id", p.evento_id)
+        .single();
+
+      if (!eventError && evento) {
+        eventosCompletos.push({
+          ...p,
+          eventos: evento
+        });
+      }
+    }
+
+    // Calcular estadísticas
+    const totalEventos = eventosCompletos.length;
+    const totalHoras = eventosCompletos.reduce((sum, p) => {
+      return sum + (p.horas_impartidas || p.eventos?.horas || 0);
+    }, 0);
+    
+    const roles = eventosCompletos.map(p => p.rol || "ponente");
+    const rolesUnicos = [...new Set(roles)];
+    const tipos = eventosCompletos.map(p => p.eventos?.tipo || "otro");
+    const tiposUnicos = [...new Set(tipos)];
+
+    // Generar HTML de eventos
+    let eventosHTML = "";
+    if (eventosCompletos && eventosCompletos.length > 0) {
+      eventosHTML = eventosCompletos
+        .map((p) => {
+          const evento = p.eventos || {};
+          const tipoClass = evento.tipo || "otro";
+          const fecha = evento.fecha_inicio
+            ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX")
+            : "-";
+          return `
+          <tr>
+            <td><strong>${evento.nombre || "Sin nombre"}</strong></td>
+            <td>${fecha}</td>
+            <td><span class="tipo-badge ${tipoClass}">${evento.tipo || "otro"}</span></td>
+            <td style="text-align:center;">${p.horas_impartidas || evento.horas || "-"}</td>
+            <td><span class="rol-badge">${p.rol || "ponente"}</span></td>
+          </tr>
+        `;
+        })
+        .join("");
+    } else {
+      eventosHTML = `
+        <tr>
+          <td colspan="5" class="empty-state">
+            <i class="fas fa-calendar-alt"></i>
+            No hay eventos registrados para este ponente
+          </td>
+        </tr>
+      `;
+    }
+
+    // Iniciales del ponente
+    const iniciales = ponente.nombre
+      .split(" ")
+      .filter((p) => p.length > 0)
+      .map((p) => p[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+
+    // Contenido del Cardex
+    const contenido = `
+      <div class="cardex-ponente">
+        <div class="cardex-card">
+          
+          <!-- HEADER -->
+          <div class="cardex-header">
+            <div>
+              <h2><i class="fas fa-chalkboard-teacher"></i> Cardex del Ponente</h2>
+              <p>Hospital Regional Puerto Vallarta</p>
+            </div>
+            <div class="badge-ponente">
+              <i class="fas fa-id-card"></i> ${ponente.id ? ponente.id.substring(0, 8) : "N/A"}
+            </div>
+          </div>
+
+          <!-- BODY -->
+          <div class="cardex-body">
+            <!-- PERFIL, ESTADÍSTICAS, EVENTOS... -->
+          </div>
+
+          <!-- ============================================== -->
+          <!-- ↓↓↓ FOOTER - AQUÍ VA EL BOTÓN DE EDITAR ↓↓↓   -->
+          <!-- ============================================== -->
+          <div class="cardex-footer">
+            <div class="fecha-registro">
+              <i class="fas fa-info-circle"></i>
+              Última actualización: ${new Date().toLocaleDateString("es-MX")}
+            </div>
+            <div class="acciones-cardex">
+              <!-- Botón Reconocimiento -->
+              <button class="btn-rec" onclick="generarReconocimientoPonente('${ponente.id}')">
+                <i class="fas fa-award"></i> Reconocimiento
+              </button>
+              
+              <!-- ✅ BOTÓN EDITAR - AQUÍ VA -->
+              <button class="btn-edit" onclick="editarPonente('${ponente.id}')" 
+                      style="background: #dbeafe; color: #1a56db; border: none; 
+                             padding: 6px 16px; border-radius: 6px; font-weight: 600; 
+                             cursor: pointer; transition: all 0.3s; font-size: 12px; 
+                             display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-pen"></i> Editar
+              </button>
+            </div>
+          </div>
+          <!-- ↑↑↑ FIN DEL FOOTER ↑↑↑ -->
+          <!-- ============================================== -->
+
+        </div>
+
+        <div class="expediente-modal-actions" style="margin-top:12px;">
+          <button class="btn-print-exp" onclick="window.print()">
+            <i class="fas fa-print"></i> Imprimir Cardex
+          </button>
+          <button class="btn-cerrar-exp" onclick="closeModal()">
+            <i class="fas fa-times"></i> Cerrar
+          </button>
+        </div>
+      </div>
+    `;
+
+    openModal(contenido);
+    
+  } catch (error) {
+    console.error("Error:", error);
+    showToast("Error al cargar el cardex: " + error.message, "error");
   }
 }
