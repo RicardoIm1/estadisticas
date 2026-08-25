@@ -1283,7 +1283,7 @@ async function eliminarPonente(id) {
 }
 
 // ============================================================
-// GENERAR RECONOCIMIENTO PREMIUM - CORREGIDO
+// GENERAR RECONOCIMIENTO PREMIUM - CON SELECTOR VISUAL
 // ============================================================
 async function generarReconocimiento(internoId) {
   try {
@@ -1293,7 +1293,7 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
-    // Obtener participaciones del interno (SIN JOIN)
+    // Obtener participaciones del interno
     const { data: participaciones, error } = await supabaseClient
       .from("participaciones_internos")
       .select("*")
@@ -1307,7 +1307,7 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
-    // Obtener los eventos manualmente (uno por uno)
+    // Obtener los eventos manualmente
     let participacionesConEventos = [];
     for (const p of participaciones) {
       const { data: evento, error: eventError } = await supabaseClient
@@ -1329,187 +1329,86 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
-    // Mostrar selector de eventos
-    let eventosList = participacionesConEventos
-      .map((p, i) => {
-        const evento = p.eventos || {};
-        const fecha = evento.fecha_inicio
-          ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX")
-          : "Sin fecha";
-        return `${i + 1}. ${evento.nombre || "Sin nombre"} - ${fecha} (${evento.horas || 0}h)`;
-      })
-      .join("\n");
-
-    const eventoIndex = prompt(
-      `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participacionesConEventos.length}):`
-    );
-
-    if (!eventoIndex) return;
-
-    const idx = parseInt(eventoIndex) - 1;
-    if (isNaN(idx) || idx < 0 || idx >= participacionesConEventos.length) {
-      showToast("Selección inválida", "error");
+    // Si solo hay un evento, seleccionarlo automáticamente
+    if (participacionesConEventos.length === 1) {
+      mostrarReconocimientoFinal(interno, participacionesConEventos[0]);
       return;
     }
 
-    const seleccion = participacionesConEventos[idx];
-    const evento = seleccion.eventos || {};
-
-    // Obtener el ponente del evento
-    let ponenteNombre = "Ponente no asignado";
-    let ponenteEspecialidad = "";
-    let ponenteInstitucion = "";
-
-    if (evento.ponente_id) {
-      const { data: ponenteData } = await supabaseClient
-        .from("ponentes")
-        .select("nombre, especialidad, institucion")
-        .eq("id", evento.ponente_id)
-        .single();
-      if (ponenteData) {
-        ponenteNombre = ponenteData.nombre || "Ponente no asignado";
-        ponenteEspecialidad = ponenteData.especialidad || "";
-        ponenteInstitucion = ponenteData.institucion || "";
-      }
-    }
-
-    // Datos del evento
-    const nombreEvento = evento.nombre || "Evento sin nombre";
-    const fecha = evento.fecha_inicio
-      ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        })
-      : "Fecha no especificada";
-    const horas = seleccion.horas_impartidas || evento.horas || 0;
-    const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
-    const tipoEvento = evento.tipo || "evento";
-
-    // Mostrar el reconocimiento
-    const contenido = `
-      <div class="reconocimiento-premium">
-        <div class="borde-superior"></div>
+    // Mostrar selector visual de eventos
+    let eventosHTML = participacionesConEventos
+      .map((p, i) => {
+        const evento = p.eventos || {};
+        const fecha = evento.fecha_inicio
+          ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "Sin fecha";
         
-        <div class="contenido">
-          <div class="icono-award">
-            <i class="fas fa-award"></i>
-          </div>
-          
-          <h2 class="titulo">Reconocimiento</h2>
-          <p class="subtitulo">Por su valiosa participación académica</p>
-          
-          <div class="linea-oro"></div>
-          
-          <p style="font-size:14px; color:#475569; margin:8px 0 4px 0;">Se otorga el presente reconocimiento a:</p>
-          
-          <div class="nombre-persona">${interno.nombre}</div>
-          <div class="detalle-persona">
-            ${interno.matricula} · ${interno.universidad} · ${interno.carrera}
-          </div>
-          
-          <p style="font-size:14px; color:#475569; margin:12px 0 4px 0;">Por su participación como <strong>INTERNO</strong> en el ${tipoEvento}:</p>
-          
-          <div class="evento-nombre">${nombreEvento}</div>
-          
-          <div class="info-evento">
-            <div class="item">
-              <i class="fas fa-calendar-alt"></i>
-              <div class="label">Fecha</div>
-              <div class="valor">${fecha}</div>
-            </div>
-            <div class="item">
-              <i class="fas fa-clock"></i>
-              <div class="label">Duración</div>
-              <div class="valor">${horas} horas</div>
-            </div>
-            <div class="item">
-              <i class="fas fa-map-marker-alt"></i>
-              <div class="label">Lugar</div>
-              <div class="valor">${lugar}</div>
-            </div>
-          </div>
-          
-          <div style="display:flex; justify-content:center; gap:20px; align-items:center; flex-wrap:wrap; margin-top:4px;">
-            <div style="font-size:13px; color:#475569;">
-              <i class="fas fa-chalkboard-teacher" style="color:#1a56db;"></i>
-              <strong>Ponente:</strong> ${ponenteNombre}
-              ${ponenteEspecialidad ? ` · ${ponenteEspecialidad}` : ""}
-              ${ponenteInstitucion ? ` · ${ponenteInstitucion}` : ""}
-            </div>
-            <div class="sello">
-              <i class="fas fa-check-circle"></i>
-              <span style="display:block; font-size:8px; margin-top:-2px;">VÁLIDO</span>
-            </div>
-          </div>
-        </div>
+        const tipoColors = {
+          curso: '#dbeafe',
+          taller: '#dcfce7',
+          conferencia: '#fef3c7',
+          seminario: '#fce7f3',
+          otro: '#f1f5f9'
+        };
+        const bgColor = tipoColors[evento.tipo] || '#f1f5f9';
         
-        <div class="footer-rec">
-          <div class="firma">
-            <div class="linea"></div>
-            <span class="nombre-firma">Dr. Carlos Méndez R.</span>
-            <span class="cargo">Director Médico</span>
+        return `
+          <div onclick="seleccionarEventoReconocimiento('${interno.id}', ${i})" 
+               style="cursor:pointer; padding:14px 18px; margin-bottom:10px; 
+                      background:${bgColor}; border-radius:10px; 
+                      border:2px solid #e2e8f0; transition:all 0.2s;
+                      display:flex; justify-content:space-between; align-items:center;
+                      hover:border-color:#1a56db; hover:shadow-md;">
+            <div>
+              <div style="font-weight:700; color:#0f172a; font-size:15px;">${evento.nombre || "Sin nombre"}</div>
+              <div style="font-size:12px; color:#64748b; margin-top:4px;">
+                <i class="fas fa-calendar-alt" style="width:16px;"></i> ${fecha}
+                <span style="margin:0 8px;">|</span>
+                <i class="fas fa-clock" style="width:16px;"></i> ${evento.horas || 0}h
+                <span style="margin:0 8px;">|</span>
+                <i class="fas fa-map-marker-alt" style="width:16px;"></i> ${evento.lugar || "No especificado"}
+              </div>
+            </div>
+            <div style="background:#1a56db; color:white; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:600;">
+              Seleccionar
+            </div>
           </div>
-          
-          <div class="codigo-qr" id="qr-rec-${Date.now()}">
-            <span class="qr-label">Hospital Regional PV</span>
-          </div>
-          
-          <div class="firma">
-            <div class="linea"></div>
-            <span class="nombre-firma">Lic. Ana Valenzuela</span>
-            <span class="cargo">Coordinación Académica</span>
-          </div>
+        `;
+      })
+      .join("");
+
+    const contenidoSelector = `
+      <div style="max-width:600px; margin:0 auto;">
+        <h3 style="text-align:center; margin-bottom:8px;">
+          <i class="fas fa-calendar-alt" style="color:#1a56db;"></i> 
+          Selecciona el evento para el reconocimiento
+        </h3>
+        <p style="text-align:center; color:#64748b; font-size:14px; margin-bottom:20px;">
+          ${interno.nombre} · ${interno.matricula}
+        </p>
+        <div style="max-height:50vh; overflow-y:auto; padding-right:8px;">
+          ${eventosHTML}
         </div>
-      </div>
-      
-      <div class="form-actions no-print" style="margin-top:20px; justify-content:center;">
-        <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
-        <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
+        <div style="text-align:center; margin-top:20px;">
+          <button onclick="closeModal()" class="btn-cancel" style="padding:10px 32px;">
+            Cancelar
+          </button>
+        </div>
       </div>
     `;
 
-    closeModal();
-    openModal(contenido);
+    // Guardar datos para usar en la selección
+    window._reconocimientoData = {
+      interno,
+      participaciones: participacionesConEventos
+    };
 
-    // Generar QR
-    setTimeout(() => {
-      const qrContainer = document.querySelector('.reconocimiento-premium .codigo-qr');
-      if (qrContainer) {
-        try {
-          const texto = `REC|${interno.matricula}|${interno.nombre.substring(0, 15)}|${nombreEvento.substring(0, 20)}`;
-          qrContainer.innerHTML = '';
-          
-          const qrDiv = document.createElement('div');
-          qrDiv.style.display = 'flex';
-          qrDiv.style.flexDirection = 'column';
-          qrDiv.style.alignItems = 'center';
-          qrDiv.style.gap = '2px';
-          
-          const canvas = document.createElement('div');
-          canvas.id = `qr-rec-${Date.now()}`;
-          qrDiv.appendChild(canvas);
-          
-          const label = document.createElement('span');
-          label.className = 'qr-label';
-          label.textContent = 'Hospital Regional PV';
-          qrDiv.appendChild(label);
-          
-          qrContainer.appendChild(qrDiv);
-          
-          new QRCode(canvas, {
-            text: texto,
-            width: 44,
-            height: 44,
-            colorDark: "#1a56db",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M,
-          });
-        } catch (e) {
-          console.warn("Error generando QR:", e);
-        }
-      }
-    }, 200);
+    openModal(contenidoSelector);
+
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar reconocimiento: " + error.message, "error");
@@ -1517,7 +1416,185 @@ async function generarReconocimiento(internoId) {
 }
 
 // ============================================================
-// GENERAR RECONOCIMIENTO PARA PONENTE - CORREGIDO
+// FUNCIÓN PARA SELECCIONAR EVENTO DESDE EL MODAL
+// ============================================================
+function seleccionarEventoReconocimiento(internoId, index) {
+  const data = window._reconocimientoData;
+  if (!data) return;
+
+  const seleccion = data.participaciones[index];
+  if (!seleccion) {
+    showToast("Error al seleccionar evento", "error");
+    return;
+  }
+
+  mostrarReconocimientoFinal(data.interno, seleccion);
+}
+
+// ============================================================
+// MOSTRAR RECONOCIMIENTO FINAL
+// ============================================================
+async function mostrarReconocimientoFinal(interno, seleccion) {
+  const evento = seleccion.eventos || {};
+
+  // Obtener el ponente del evento
+  let ponenteNombre = "Ponente no asignado";
+  let ponenteEspecialidad = "";
+  let ponenteInstitucion = "";
+
+  if (evento.ponente_id) {
+    const { data: ponenteData } = await supabaseClient
+      .from("ponentes")
+      .select("nombre, especialidad, institucion")
+      .eq("id", evento.ponente_id)
+      .single();
+    if (ponenteData) {
+      ponenteNombre = ponenteData.nombre || "Ponente no asignado";
+      ponenteEspecialidad = ponenteData.especialidad || "";
+      ponenteInstitucion = ponenteData.institucion || "";
+    }
+  }
+
+  // Datos del evento
+  const nombreEvento = evento.nombre || "Evento sin nombre";
+  const fecha = evento.fecha_inicio
+    ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "Fecha no especificada";
+  const horas = seleccion.horas_impartidas || evento.horas || 0;
+  const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
+  const tipoEvento = evento.tipo || "evento";
+
+  const contenido = `
+    <div class="reconocimiento-premium">
+      <div class="borde-superior"></div>
+      
+      <div class="contenido">
+        <div class="icono-award">
+          <i class="fas fa-award"></i>
+        </div>
+        
+        <h2 class="titulo">Reconocimiento</h2>
+        <p class="subtitulo">Por su valiosa participación académica</p>
+        
+        <div class="linea-oro"></div>
+        
+        <p style="font-size:14px; color:#475569; margin:8px 0 4px 0;">Se otorga el presente reconocimiento a:</p>
+        
+        <div class="nombre-persona">${interno.nombre}</div>
+        <div class="detalle-persona">
+          ${interno.matricula} · ${interno.universidad} · ${interno.carrera}
+        </div>
+        
+        <p style="font-size:14px; color:#475569; margin:12px 0 4px 0;">Por su participación como <strong>INTERNO</strong> en el ${tipoEvento}:</p>
+        
+        <div class="evento-nombre">${nombreEvento}</div>
+        
+        <div class="info-evento">
+          <div class="item">
+            <i class="fas fa-calendar-alt"></i>
+            <div class="label">Fecha</div>
+            <div class="valor">${fecha}</div>
+          </div>
+          <div class="item">
+            <i class="fas fa-clock"></i>
+            <div class="label">Duración</div>
+            <div class="valor">${horas} horas</div>
+          </div>
+          <div class="item">
+            <i class="fas fa-map-marker-alt"></i>
+            <div class="label">Lugar</div>
+            <div class="valor">${lugar}</div>
+          </div>
+        </div>
+        
+        <div style="display:flex; justify-content:center; gap:20px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+          <div style="font-size:13px; color:#475569;">
+            <i class="fas fa-chalkboard-teacher" style="color:#1a56db;"></i>
+            <strong>Ponente:</strong> ${ponenteNombre}
+            ${ponenteEspecialidad ? ` · ${ponenteEspecialidad}` : ""}
+            ${ponenteInstitucion ? ` · ${ponenteInstitucion}` : ""}
+          </div>
+          <div class="sello">
+            <i class="fas fa-check-circle"></i>
+            <span style="display:block; font-size:8px; margin-top:-2px;">VÁLIDO</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-rec">
+        <div class="firma">
+          <div class="linea"></div>
+          <span class="nombre-firma">Dr. Carlos Méndez R.</span>
+          <span class="cargo">Director Médico</span>
+        </div>
+        
+        <div class="codigo-qr" id="qr-rec-${Date.now()}">
+          <span class="qr-label">Hospital Regional PV</span>
+        </div>
+        
+        <div class="firma">
+          <div class="linea"></div>
+          <span class="nombre-firma">Lic. Ana Valenzuela</span>
+          <span class="cargo">Coordinación Académica</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-actions no-print" style="margin-top:20px; justify-content:center;">
+      <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
+      <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
+    </div>
+  `;
+
+  closeModal();
+  openModal(contenido);
+
+  // Generar QR
+  setTimeout(() => {
+    const qrContainer = document.querySelector('.reconocimiento-premium .codigo-qr');
+    if (qrContainer) {
+      try {
+        const texto = `REC|${interno.matricula}|${interno.nombre.substring(0, 15)}|${nombreEvento.substring(0, 20)}`;
+        qrContainer.innerHTML = '';
+        
+        const qrDiv = document.createElement('div');
+        qrDiv.style.display = 'flex';
+        qrDiv.style.flexDirection = 'column';
+        qrDiv.style.alignItems = 'center';
+        qrDiv.style.gap = '2px';
+        
+        const canvas = document.createElement('div');
+        canvas.id = `qr-rec-${Date.now()}`;
+        qrDiv.appendChild(canvas);
+        
+        const label = document.createElement('span');
+        label.className = 'qr-label';
+        label.textContent = 'Hospital Regional PV';
+        qrDiv.appendChild(label);
+        
+        qrContainer.appendChild(qrDiv);
+        
+        new QRCode(canvas, {
+          text: texto,
+          width: 44,
+          height: 44,
+          colorDark: "#1a56db",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      } catch (e) {
+        console.warn("Error generando QR:", e);
+      }
+    }
+  }, 200);
+}
+
+// ============================================================
+// GENERAR RECONOCIMIENTO PARA PONENTE - CON SELECTOR VISUAL
 // ============================================================
 async function generarReconocimientoPonente(id) {
   try {
@@ -1527,7 +1604,7 @@ async function generarReconocimientoPonente(id) {
       return;
     }
 
-    // Obtener participaciones del ponente (SIN JOIN)
+    // Obtener participaciones del ponente
     const { data: participaciones, error } = await supabaseClient
       .from("participaciones_ponentes")
       .select("*")
@@ -1563,172 +1640,248 @@ async function generarReconocimientoPonente(id) {
       return;
     }
 
-    // Mostrar selector de eventos
-    let eventosList = participacionesConEventos
-      .map((p, i) => {
-        const evento = p.eventos || {};
-        const fecha = evento.fecha_inicio
-          ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX")
-          : "Sin fecha";
-        return `${i + 1}. ${evento.nombre || "Sin nombre"} - ${fecha} (${p.rol || "ponente"})`;
-      })
-      .join("\n");
-
-    const eventoIndex = prompt(
-      `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participacionesConEventos.length}):`
-    );
-
-    if (!eventoIndex) return;
-
-    const idx = parseInt(eventoIndex) - 1;
-    if (isNaN(idx) || idx < 0 || idx >= participacionesConEventos.length) {
-      showToast("Selección inválida", "error");
+    // Si solo hay un evento, seleccionarlo automáticamente
+    if (participacionesConEventos.length === 1) {
+      mostrarReconocimientoFinalPonente(ponente, participacionesConEventos[0]);
       return;
     }
 
-    const seleccion = participacionesConEventos[idx];
-    const evento = seleccion.eventos || {};
-
-    // Datos del evento
-    const nombreEvento = evento.nombre || "Evento sin nombre";
-    const fecha = evento.fecha_inicio
-      ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
-          day: "2-digit",
-          month: "long",
-          year: "numeric",
-        })
-      : "Fecha no especificada";
-    const horas = seleccion.horas_impartidas || evento.horas || 0;
-    const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
-    const rol = seleccion.rol || "PONENTE";
-    const tipoEvento = evento.tipo || "evento";
-
-    const contenido = `
-      <div class="reconocimiento-premium">
-        <div class="borde-superior"></div>
+    // Mostrar selector visual de eventos
+    let eventosHTML = participacionesConEventos
+      .map((p, i) => {
+        const evento = p.eventos || {};
+        const fecha = evento.fecha_inicio
+          ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
+              day: "2-digit",
+              month: "short",
+              year: "numeric",
+            })
+          : "Sin fecha";
         
-        <div class="contenido">
-          <div class="icono-award">
-            <i class="fas fa-award"></i>
-          </div>
-          
-          <h2 class="titulo">Reconocimiento</h2>
-          <p class="subtitulo">Por su destacada labor académica</p>
-          
-          <div class="linea-oro"></div>
-          
-          <p style="font-size:14px; color:#475569; margin:8px 0 4px 0;">Se otorga el presente reconocimiento a:</p>
-          
-          <div class="nombre-persona">${ponente.nombre}</div>
-          <div class="detalle-persona">
-            ${ponente.especialidad ? ponente.especialidad : ""}
-            ${ponente.institucion ? ` · ${ponente.institucion}` : ""}
-          </div>
-          
-          <p style="font-size:14px; color:#475569; margin:12px 0 4px 0;">Por su valiosa participación como <strong>${rol.toUpperCase()}</strong> en el ${tipoEvento}:</p>
-          
-          <div class="evento-nombre">${nombreEvento}</div>
-          
-          <div class="info-evento">
-            <div class="item">
-              <i class="fas fa-calendar-alt"></i>
-              <div class="label">Fecha</div>
-              <div class="valor">${fecha}</div>
-            </div>
-            <div class="item">
-              <i class="fas fa-clock"></i>
-              <div class="label">Horas impartidas</div>
-              <div class="valor">${horas}</div>
-            </div>
-            <div class="item">
-              <i class="fas fa-map-marker-alt"></i>
-              <div class="label">Lugar</div>
-              <div class="valor">${lugar}</div>
-            </div>
-          </div>
-          
-          <div style="display:flex; justify-content:center; gap:20px; align-items:center; flex-wrap:wrap; margin-top:4px;">
-            <div style="font-size:13px; color:#475569;">
-              <i class="fas fa-user-graduate" style="color:#1a56db;"></i>
-              <strong>Rol:</strong> ${rol.toUpperCase()}
-            </div>
-            <div class="sello">
-              <i class="fas fa-check-circle"></i>
-              <span style="display:block; font-size:8px; margin-top:-2px;">VÁLIDO</span>
-            </div>
-          </div>
-        </div>
+        const tipoColors = {
+          curso: '#dbeafe',
+          taller: '#dcfce7',
+          conferencia: '#fef3c7',
+          seminario: '#fce7f3',
+          otro: '#f1f5f9'
+        };
+        const bgColor = tipoColors[evento.tipo] || '#f1f5f9';
         
-        <div class="footer-rec">
-          <div class="firma">
-            <div class="linea"></div>
-            <span class="nombre-firma">Dr. Carlos Méndez R.</span>
-            <span class="cargo">Director Médico</span>
+        return `
+          <div onclick="seleccionarEventoReconocimientoPonente(${i})" 
+               style="cursor:pointer; padding:14px 18px; margin-bottom:10px; 
+                      background:${bgColor}; border-radius:10px; 
+                      border:2px solid #e2e8f0; transition:all 0.2s;
+                      display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <div style="font-weight:700; color:#0f172a; font-size:15px;">${evento.nombre || "Sin nombre"}</div>
+              <div style="font-size:12px; color:#64748b; margin-top:4px;">
+                <i class="fas fa-calendar-alt" style="width:16px;"></i> ${fecha}
+                <span style="margin:0 8px;">|</span>
+                <i class="fas fa-clock" style="width:16px;"></i> ${evento.horas || 0}h
+                <span style="margin:0 8px;">|</span>
+                <i class="fas fa-user-tag" style="width:16px;"></i> ${p.rol || "ponente"}
+              </div>
+            </div>
+            <div style="background:#1a56db; color:white; padding:4px 14px; border-radius:20px; font-size:12px; font-weight:600;">
+              Seleccionar
+            </div>
           </div>
-          
-          <div class="codigo-qr" id="qr-rec-${Date.now()}">
-            <span class="qr-label">Hospital Regional PV</span>
-          </div>
-          
-          <div class="firma">
-            <div class="linea"></div>
-            <span class="nombre-firma">Lic. Ana Valenzuela</span>
-            <span class="cargo">Coordinación Académica</span>
-          </div>
+        `;
+      })
+      .join("");
+
+    const contenidoSelector = `
+      <div style="max-width:600px; margin:0 auto;">
+        <h3 style="text-align:center; margin-bottom:8px;">
+          <i class="fas fa-calendar-alt" style="color:#1a56db;"></i> 
+          Selecciona el evento para el reconocimiento
+        </h3>
+        <p style="text-align:center; color:#64748b; font-size:14px; margin-bottom:20px;">
+          ${ponente.nombre} · ${ponente.especialidad || "Sin especialidad"}
+        </p>
+        <div style="max-height:50vh; overflow-y:auto; padding-right:8px;">
+          ${eventosHTML}
         </div>
-      </div>
-      
-      <div class="form-actions no-print" style="margin-top:20px; justify-content:center;">
-        <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
-        <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
+        <div style="text-align:center; margin-top:20px;">
+          <button onclick="closeModal()" class="btn-cancel" style="padding:10px 32px;">
+            Cancelar
+          </button>
+        </div>
       </div>
     `;
 
-    closeModal();
-    openModal(contenido);
+    // Guardar datos para usar en la selección
+    window._reconocimientoPonenteData = {
+      ponente,
+      participaciones: participacionesConEventos
+    };
 
-    // Generar QR
-    setTimeout(() => {
-      const qrContainer = document.querySelector('.reconocimiento-premium .codigo-qr');
-      if (qrContainer) {
-        try {
-          const texto = `REC|${ponente.nombre.substring(0, 15)}|${nombreEvento.substring(0, 20)}`;
-          qrContainer.innerHTML = '';
-          
-          const qrDiv = document.createElement('div');
-          qrDiv.style.display = 'flex';
-          qrDiv.style.flexDirection = 'column';
-          qrDiv.style.alignItems = 'center';
-          qrDiv.style.gap = '2px';
-          
-          const canvas = document.createElement('div');
-          canvas.id = `qr-rec-${Date.now()}`;
-          qrDiv.appendChild(canvas);
-          
-          const label = document.createElement('span');
-          label.className = 'qr-label';
-          label.textContent = 'Hospital Regional PV';
-          qrDiv.appendChild(label);
-          
-          qrContainer.appendChild(qrDiv);
-          
-          new QRCode(canvas, {
-            text: texto,
-            width: 44,
-            height: 44,
-            colorDark: "#1a56db",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M,
-          });
-        } catch (e) {
-          console.warn("Error generando QR:", e);
-        }
-      }
-    }, 200);
+    openModal(contenidoSelector);
+
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar reconocimiento: " + error.message, "error");
   }
+}
+
+// ============================================================
+// FUNCIÓN PARA SELECCIONAR EVENTO DEL PONENTE
+// ============================================================
+function seleccionarEventoReconocimientoPonente(index) {
+  const data = window._reconocimientoPonenteData;
+  if (!data) return;
+
+  const seleccion = data.participaciones[index];
+  if (!seleccion) {
+    showToast("Error al seleccionar evento", "error");
+    return;
+  }
+
+  mostrarReconocimientoFinalPonente(data.ponente, seleccion);
+}
+
+// ============================================================
+// MOSTRAR RECONOCIMIENTO FINAL PARA PONENTE
+// ============================================================
+async function mostrarReconocimientoFinalPonente(ponente, seleccion) {
+  const evento = seleccion.eventos || {};
+
+  const nombreEvento = evento.nombre || "Evento sin nombre";
+  const fecha = evento.fecha_inicio
+    ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "Fecha no especificada";
+  const horas = seleccion.horas_impartidas || evento.horas || 0;
+  const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
+  const rol = seleccion.rol || "PONENTE";
+  const tipoEvento = evento.tipo || "evento";
+
+  const contenido = `
+    <div class="reconocimiento-premium">
+      <div class="borde-superior"></div>
+      
+      <div class="contenido">
+        <div class="icono-award">
+          <i class="fas fa-award"></i>
+        </div>
+        
+        <h2 class="titulo">Reconocimiento</h2>
+        <p class="subtitulo">Por su destacada labor académica</p>
+        
+        <div class="linea-oro"></div>
+        
+        <p style="font-size:14px; color:#475569; margin:8px 0 4px 0;">Se otorga el presente reconocimiento a:</p>
+        
+        <div class="nombre-persona">${ponente.nombre}</div>
+        <div class="detalle-persona">
+          ${ponente.especialidad ? ponente.especialidad : ""}
+          ${ponente.institucion ? ` · ${ponente.institucion}` : ""}
+        </div>
+        
+        <p style="font-size:14px; color:#475569; margin:12px 0 4px 0;">Por su valiosa participación como <strong>${rol.toUpperCase()}</strong> en el ${tipoEvento}:</p>
+        
+        <div class="evento-nombre">${nombreEvento}</div>
+        
+        <div class="info-evento">
+          <div class="item">
+            <i class="fas fa-calendar-alt"></i>
+            <div class="label">Fecha</div>
+            <div class="valor">${fecha}</div>
+          </div>
+          <div class="item">
+            <i class="fas fa-clock"></i>
+            <div class="label">Horas impartidas</div>
+            <div class="valor">${horas}</div>
+          </div>
+          <div class="item">
+            <i class="fas fa-map-marker-alt"></i>
+            <div class="label">Lugar</div>
+            <div class="valor">${lugar}</div>
+          </div>
+        </div>
+        
+        <div style="display:flex; justify-content:center; gap:20px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+          <div style="font-size:13px; color:#475569;">
+            <i class="fas fa-user-graduate" style="color:#1a56db;"></i>
+            <strong>Rol:</strong> ${rol.toUpperCase()}
+          </div>
+          <div class="sello">
+            <i class="fas fa-check-circle"></i>
+            <span style="display:block; font-size:8px; margin-top:-2px;">VÁLIDO</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-rec">
+        <div class="firma">
+          <div class="linea"></div>
+          <span class="nombre-firma">Dr. Carlos Méndez R.</span>
+          <span class="cargo">Director Médico</span>
+        </div>
+        
+        <div class="codigo-qr" id="qr-rec-${Date.now()}">
+          <span class="qr-label">Hospital Regional PV</span>
+        </div>
+        
+        <div class="firma">
+          <div class="linea"></div>
+          <span class="nombre-firma">Lic. Ana Valenzuela</span>
+          <span class="cargo">Coordinación Académica</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-actions no-print" style="margin-top:20px; justify-content:center;">
+      <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
+      <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
+    </div>
+  `;
+
+  closeModal();
+  openModal(contenido);
+
+  // Generar QR
+  setTimeout(() => {
+    const qrContainer = document.querySelector('.reconocimiento-premium .codigo-qr');
+    if (qrContainer) {
+      try {
+        const texto = `REC|${ponente.nombre.substring(0, 15)}|${nombreEvento.substring(0, 20)}`;
+        qrContainer.innerHTML = '';
+        
+        const qrDiv = document.createElement('div');
+        qrDiv.style.display = 'flex';
+        qrDiv.style.flexDirection = 'column';
+        qrDiv.style.alignItems = 'center';
+        qrDiv.style.gap = '2px';
+        
+        const canvas = document.createElement('div');
+        canvas.id = `qr-rec-${Date.now()}`;
+        qrDiv.appendChild(canvas);
+        
+        const label = document.createElement('span');
+        label.className = 'qr-label';
+        label.textContent = 'Hospital Regional PV';
+        qrDiv.appendChild(label);
+        
+        qrContainer.appendChild(qrDiv);
+        
+        new QRCode(canvas, {
+          text: texto,
+          width: 44,
+          height: 44,
+          colorDark: "#1a56db",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      } catch (e) {
+        console.warn("Error generando QR:", e);
+      }
+    }
+  }, 200);
 }
 
 // ============================================================
