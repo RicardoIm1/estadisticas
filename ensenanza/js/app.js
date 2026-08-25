@@ -3217,7 +3217,7 @@ function openFormParticipacionPonente(ponenteId) {
 }
 
 // ============================================================
-// GUARDAR PARTICIPACIÓN DEL PONENTE - Con función RPC
+// GUARDAR PARTICIPACIÓN DEL PONENTE - VERSIÓN DIRECTA (SIN FUNCIÓN)
 // ============================================================
 async function guardarParticipacionPonente(event, ponenteId) {
   event.preventDefault();
@@ -3231,7 +3231,7 @@ async function guardarParticipacionPonente(event, ponenteId) {
     return;
   }
 
-  // Verificar si ya existe esta participación (SELECT funciona ✅)
+  // Verificar si ya existe esta participación
   const { data: existente, error: checkError } = await supabaseClient
     .from("participaciones_ponentes")
     .select("*")
@@ -3245,14 +3245,16 @@ async function guardarParticipacionPonente(event, ponenteId) {
   }
 
   try {
-    // Usar la función RPC en lugar de INSERT directo
+    // ✅ INSERT DIRECTO (ya que RLS está deshabilitado)
     const { data, error } = await supabaseClient
-      .rpc('insertar_part_ponente', {
-        p_ponente_id: ponenteId,
-        p_evento_id: eventoId,
-        p_rol: rol,
-        p_horas_impartidas: horas
-      });
+      .from("participaciones_ponentes")
+      .insert({
+        ponente_id: ponenteId,
+        evento_id: eventoId,
+        rol: rol,
+        horas_impartidas: horas
+      })
+      .select();
     
     if (error) throw error;
     
