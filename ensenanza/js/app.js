@@ -15,7 +15,7 @@ let state = {
   eventos: [],
   participaciones: [],
   ponentes: [],
-  participacionesPonentes: [],
+  participacionesPonentes: [], // ✅ NUEVO
   currentFilter: "todos",
   editingId: null,
   currentTable: "internos",
@@ -1086,30 +1086,65 @@ async function cargarPonentes() {
   }
 }
 
+// ============================================================
+// CARGAR PARTICIPACIONES DE PONENTES
+// ============================================================
+async function cargarParticipacionesPonentes() {
+  try {
+    const { data, error } = await supabaseClient
+      .from("participaciones_ponentes")
+      .select("*");
+    
+    if (error) throw error;
+    state.participacionesPonentes = data || [];
+    console.log(`📊 ${state.participacionesPonentes.length} participaciones de ponentes cargadas`);
+  } catch (error) {
+    console.error("Error cargando participaciones de ponentes:", error);
+    state.participacionesPonentes = [];
+  }
+}
+
 function renderPonentes(ponentes) {
   const tbody = document.getElementById("tbodyPonentes");
   if (!ponentes || ponentes.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="empty-state">No hay ponentes registrados</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No hay ponentes registrados</td></tr>`;
     return;
   }
 
   tbody.innerHTML = ponentes
     .map(
-      (p) => `
-    <tr onclick="abrirCardexPonente('${p.id}')" style="cursor:pointer;">
-      <td><strong>${p.nombre}</strong></td>
-      <td>${p.especialidad || "-"}</td>
-      <td>${p.institucion || "-"}</td>
-      <td>${p.correo || "-"}</td>
-      <td>
-        <div class="acciones-cell" onclick="event.stopPropagation();">
-          <button class="btn-edit btn-sm" onclick="editarPonente('${p.id}')"><i class="fas fa-pen"></i></button>
-          <button class="btn-delete btn-sm" onclick="eliminarPonente('${p.id}')"><i class="fas fa-trash"></i></button>
-          <button class="btn-view btn-sm" onclick="generarReconocimientoPonente('${p.id}')"><i class="fas fa-award"></i></button>
-        </div>
-      </td>
-    </tr>
-  `,
+      (p) => {
+        // Contar participaciones de este ponente
+        const participaciones = state.participacionesPonentes?.filter(pp => pp.ponente_id === p.id) || [];
+        const count = participaciones.length;
+        
+        return `
+        <tr onclick="abrirCardexPonente('${p.id}')" style="cursor:pointer;">
+          <td><strong>${p.nombre}</strong></td>
+          <td>${p.especialidad || "-"}</td>
+          <td>${p.institucion || "-"}</td>
+          <td>${p.correo || "-"}</td>
+          <td style="text-align:center;">
+            <span style="background:${count > 0 ? '#dcfce7' : '#f1f5f9'}; 
+                         color:${count > 0 ? '#166534' : '#94a3b8'}; 
+                         padding:2px 12px; border-radius:12px; font-size:11px; font-weight:600;">
+              ${count} ${count === 1 ? 'evento' : 'eventos'}
+            </span>
+          </td>
+          <td>
+            <div class="acciones-cell" onclick="event.stopPropagation();">
+              <button class="btn-edit btn-sm" onclick="editarPonente('${p.id}')"><i class="fas fa-pen"></i></button>
+              <button class="btn-delete btn-sm" onclick="eliminarPonente('${p.id}')"><i class="fas fa-trash"></i></button>
+              <button class="btn-view btn-sm" onclick="generarReconocimientoPonente('${p.id}')"><i class="fas fa-award"></i></button>
+              <button class="btn-primary btn-sm" onclick="openFormParticipacionPonente('${p.id}')" 
+                      style="background:#059669; color:white; border:none; padding:4px 10px; border-radius:6px; cursor:pointer; font-size:11px; font-weight:600;">
+                <i class="fas fa-link"></i> Asignar
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+      }
     )
     .join("");
 }
@@ -2710,11 +2745,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     cargarEventos(),
     cargarParticipaciones(),
     cargarPonentes(),
+    cargarParticipacionesPonentes(), // 👈 Agregar esta línea
   ]);
 
-  console.log("🔍 Panel de Control conectado a Supabase");
+    console.log("🔍 Panel de Control conectado a Supabase");
   console.log(
-    `📊 ${state.internos.length} internos, ${state.eventos.length} eventos, ${state.participaciones.length} participaciones, ${state.ponentes.length} ponentes`,
+    `📊 ${state.internos.length} internos, ${state.eventos.length} eventos, ${state.participaciones.length} participaciones, ${state.ponentes.length} ponentes, ${state.participacionesPonentes.length} participaciones de ponentes`
   );
 });
 
@@ -3105,5 +3141,136 @@ async function abrirCardexPonente(id) {
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al cargar el cardex: " + error.message, "error");
+  }
+}
+
+// ============================================================
+// ABRIR FORMULARIO PARA ASIGNAR EVENTO A PONENTE
+// ============================================================
+function openFormParticipacionPonente(ponenteId) {
+  // Obtener el nombre del ponente desde el estado global
+  const ponente = state.ponentes.find(p => p.id === ponenteId);
+  if (!ponente) {
+    showToast("Ponente no encontrado", "error");
+    return;
+  }
+
+  // Verificar si hay eventos disponibles
+  if (!state.eventos || state.eventos.length === 0) {
+    showToast("No hay eventos registrados. Crea un evento primero.", "warning");
+    return;
+  }
+
+  // Opciones de eventos
+  const eventosOptions = state.eventos
+    .map((e) => `<option value="${e.id}">${e.nombre} (${e.tipo || 'evento'})</option>`)
+    .join("");
+
+  const content = `
+    <h3><i class="fas fa-chalkboard-teacher"></i> Asignar Evento a Ponente</h3>
+    
+    <div style="background:#f8fafc; padding:12px 16px; border-radius:8px; margin-bottom:16px; border:1px solid #e2e8f0;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:40px; height:40px; border-radius:50%; background:#1a56db; color:white; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px; flex-shrink:0;">
+          ${ponente.nombre.charAt(0)}
+        </div>
+        <div>
+          <div style="font-weight:700; color:#0f172a;">${ponente.nombre}</div>
+          <div style="font-size:12px; color:#64748b;">${ponente.especialidad || "Sin especialidad"} ${ponente.institucion ? `· ${ponente.institucion}` : ""}</div>
+        </div>
+      </div>
+    </div>
+
+    <form id="formParticipacionPonente" onsubmit="guardarParticipacionPonente(event, '${ponenteId}')">
+      <div class="form-group">
+        <label>Seleccionar Evento *</label>
+        <select id="f_part_ponente_evento" required>
+          <option value="">-- Seleccionar evento --</option>
+          ${eventosOptions}
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Rol del Ponente *</label>
+        <select id="f_part_ponente_rol" required>
+          <option value="Ponente">Ponente</option>
+          <option value="Instructor">Instructor</option>
+          <option value="Conferencista">Conferencista</option>
+          <option value="Moderador">Moderador</option>
+          <option value="Panelista">Panelista</option>
+          <option value="Expositor">Expositor</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Horas Impartidas</label>
+        <input type="number" id="f_part_ponente_horas" placeholder="Ej: 20" min="0" step="0.5" />
+        <div style="font-size:11px; color:#94a3b8; margin-top:4px;">
+          <i class="fas fa-info-circle"></i> Dejar en 0 si no aplica
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn-save"><i class="fas fa-save"></i> Asignar</button>
+        <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
+      </div>
+    </form>
+  `;
+  openModal(content);
+}
+
+// ============================================================
+// GUARDAR PARTICIPACIÓN DEL PONENTE
+// ============================================================
+async function guardarParticipacionPonente(event, ponenteId) {
+  event.preventDefault();
+  
+  const eventoId = document.getElementById("f_part_ponente_evento").value;
+  const rol = document.getElementById("f_part_ponente_rol").value;
+  const horas = parseInt(document.getElementById("f_part_ponente_horas").value) || 0;
+
+  if (!eventoId) {
+    showToast("Selecciona un evento", "warning");
+    return;
+  }
+
+  // Verificar si ya existe esta participación
+  const { data: existente, error: checkError } = await supabaseClient
+    .from("participaciones_ponentes")
+    .select("*")
+    .eq("ponente_id", ponenteId)
+    .eq("evento_id", eventoId)
+    .maybeSingle();
+
+  if (existente) {
+    showToast("Este ponente ya está asignado a este evento", "warning");
+    return;
+  }
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("participaciones_ponentes")
+      .insert([{
+        ponente_id: ponenteId,
+        evento_id: eventoId,
+        rol: rol,
+        horas_impartidas: horas
+      }]);
+    
+    if (error) throw error;
+    
+    showToast(`✅ ${rol} asignado al evento correctamente`, "success");
+    closeModal();
+    
+    // Actualizar el estado global
+    await cargarPonentes();
+    
+    // Preguntar si quiere ver el cardex actualizado
+    setTimeout(() => {
+      if (confirm("¿Quieres ver el cardex actualizado del ponente?")) {
+        abrirCardexPonente(ponenteId);
+      }
+    }, 300);
+    
+  } catch (error) {
+    console.error("Error:", error);
+    showToast("Error al guardar: " + error.message, "error");
   }
 }
