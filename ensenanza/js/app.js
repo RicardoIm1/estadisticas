@@ -798,46 +798,53 @@ async function eliminarEvento(id) {
 // ============================================================
 async function cargarParticipaciones() {
   try {
+    const tbody = document.getElementById("tbodyParticipaciones");
+    if (!tbody) {
+      console.warn("⚠️ Elemento #tbodyParticipaciones no encontrado en el DOM");
+      return;
+    }
+
     const { data, error } = await supabaseClient
       .from("participaciones_internos")
-      .select(
-        `
+      .select(`
         *,
         internos:interno_id (id, nombre, matricula),
         eventos:evento_id (id, nombre, tipo)
-      `,
-      )
+      `)
       .order("created_at", { ascending: false });
 
     if (error) throw error;
     state.participaciones = data;
     renderParticipaciones(data);
-    document.getElementById("navCountParticipaciones").textContent =
-      data.length;
+    document.getElementById("navCountParticipaciones").textContent = data.length;
   } catch (error) {
     console.error("Error cargando participaciones:", error);
-    showToast("Error al cargar participaciones: " + error.message, "error");
+    // No mostrar toast para no molestar al usuario
   }
 }
 
 function renderParticipaciones(participaciones) {
   const tbody = document.getElementById("tbodyParticipaciones");
+  if (!tbody) {
+    console.warn("⚠️ #tbodyParticipaciones no encontrado");
+    return;
+  }
+
   if (!participaciones || participaciones.length === 0) {
     tbody.innerHTML = `<tr><td colspan="6" class="empty-state">No hay participaciones registradas</td></tr>`;
     return;
   }
 
-  tbody.innerHTML = participaciones
-    .map((p) => {
-      const interno = p.internos || {};
-      const evento = p.eventos || {};
-      return `
+  tbody.innerHTML = participaciones.map(p => {
+    const interno = p.internos || {};
+    const evento = p.eventos || {};
+    return `
       <tr>
-        <td>${interno.nombre || "N/A"}</td>
-        <td>${evento.nombre || "N/A"}</td>
-        <td><span style="color: ${getColorDesempenio(p.desempenio)}; font-weight: 600;">${p.desempenio || "Pendiente"}</span></td>
-        <td>${p.calificacion ? p.calificacion + "%" : "-"}</td>
-        <td>${p.certificado_url ? "✅" : "❌"}</td>
+        <td>${interno.nombre || 'N/A'}</td>
+        <td>${evento.nombre || 'N/A'}</td>
+        <td><span style="color: ${getColorDesempenio(p.desempenio)}; font-weight: 600;">${p.desempenio || 'Pendiente'}</span></td>
+        <td>${p.calificacion ? p.calificacion + '%' : '-'}</td>
+        <td>${p.certificado_url ? '✅' : '❌'}</td>
         <td>
           <div class="acciones-cell">
             <button class="btn-edit btn-sm" onclick="editarParticipacion('${p.id}')"><i class="fas fa-pen"></i></button>
@@ -846,8 +853,7 @@ function renderParticipaciones(participaciones) {
         </td>
       </tr>
     `;
-    })
-    .join("");
+  }).join("");
 }
 
 function getColorDesempenio(desempenio) {
