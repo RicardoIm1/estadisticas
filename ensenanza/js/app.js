@@ -117,7 +117,7 @@ function showSection(section) {
 // ============================================================
 function openModal(content) {
   document.getElementById("modalContent").innerHTML = content;
-  document.getElementById("modal").classList.add("active"); // ← overlay
+  document.getElementById("modal").classList.add("active");
   document.body.style.overflow = "hidden";
 }
 
@@ -1569,20 +1569,16 @@ async function imprimirMultiplesCredenciales() {
       chunks.push(internos.slice(i, i + chunkSize));
     }
 
-    let html = `
-      <div style="padding: 10px;">
-        <h3 style="font-size:18px; font-weight:800; margin-bottom:16px; text-align:center; color:#0f172a;">
-          <i class="fas fa-print"></i> Credenciales (${internos.length} activos)
-        </h3>
+    // 🔹 CONTENIDO PARA IMPRIMIR (sin botones)
+    let printContent = `
+      <div class="credenciales-print">
     `;
 
     chunks.forEach((chunk, pageIndex) => {
       if (pageIndex > 0) {
-        html += `<div style="page-break-after: always;"></div>`;
+        printContent += `<div style="page-break-after: always;"></div>`;
       }
-
-      html += `<div class="credenciales-grid">`;
-
+      printContent += `<div class="credenciales-grid">`;
       chunk.forEach((interno, index) => {
         const globalIndex = pageIndex * chunkSize + index;
         const iniciales = interno.nombre
@@ -1595,7 +1591,7 @@ async function imprimirMultiplesCredenciales() {
 
         const qrId = `qr-${globalIndex}`;
 
-        html += `
+        printContent += `
           <div class="credencial-item">
             <div class="credencial-print">
               <div class="header">
@@ -1625,12 +1621,14 @@ async function imprimirMultiplesCredenciales() {
           </div>
         `;
       });
-
-      html += `</div>`;
+      printContent += `</div>`;
     });
 
-    html += `
-      <div style="text-align:center; margin-top:16px; padding-top:16px; border-top:1px solid #e2e8f0;">
+    printContent += `</div>`;
+
+    // 🔹 BOTONES (solo para pantalla)
+    const buttonsHTML = `
+      <div class="print-buttons" style="text-align:center; margin-top:16px; padding-top:16px; border-top:1px solid #e2e8f0;">
         <button onclick="window.print()" style="background:#2563eb; color:white; border:none; padding:10px 32px; border-radius:8px; font-weight:600; cursor:pointer; font-size:14px;">
           <i class="fas fa-print"></i> Imprimir
         </button>
@@ -1638,8 +1636,10 @@ async function imprimirMultiplesCredenciales() {
           Cerrar
         </button>
       </div>
-    </div>`;
+    `;
 
+    // 🔹 UNIR TODO
+    const html = printContent + buttonsHTML;
     openModal(html);
 
     // Generar QR después de renderizar
