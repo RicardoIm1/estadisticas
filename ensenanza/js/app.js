@@ -1283,7 +1283,7 @@ async function eliminarPonente(id) {
 }
 
 // ============================================================
-// GENERAR RECONOCIMIENTO PARA INTERNO (USA DATOS DE LA BD)
+// GENERAR RECONOCIMIENTO PREMIUM
 // ============================================================
 async function generarReconocimiento(internoId) {
   try {
@@ -1293,7 +1293,6 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
-    // Obtener participaciones del interno con datos del evento
     const { data: participaciones, error } = await supabaseClient
       .from("participaciones_internos")
       .select(
@@ -1312,7 +1311,6 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
-    // Mostrar selector de eventos
     let eventosList = participaciones
       .map((p, i) => {
         const evento = p.eventos || {};
@@ -1335,7 +1333,6 @@ async function generarReconocimiento(internoId) {
     const seleccion = participaciones[idx];
     const evento = seleccion.eventos || {};
 
-    // Obtener el ponente asociado a este evento (si existe)
     let ponenteNombre = "Ponente no asignado";
     if (evento.ponente_id) {
       const { data: ponenteData } = await supabaseClient
@@ -1346,7 +1343,6 @@ async function generarReconocimiento(internoId) {
       if (ponenteData) ponenteNombre = ponenteData.nombre;
     }
 
-    // Datos del evento
     const nombreEvento = evento.nombre || "Evento sin nombre";
     const fecha = evento.fecha_inicio
       ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
@@ -1360,30 +1356,80 @@ async function generarReconocimiento(internoId) {
     const tipoEvento = evento.tipo || "evento";
 
     const contenido = `
-      <div class="reconocimiento-container" style="max-width: 650px; margin: 0 auto; padding: 40px 30px; border: 3px solid #1a56db; border-radius: 16px; background: white; text-align: center;">
-        <div style="font-size: 64px; color: #f59e0b; margin-bottom: 10px;">
-          <i class="fas fa-award"></i>
+      <div class="reconocimiento-premium">
+        <div class="borde-superior"></div>
+        
+        <div class="contenido">
+          <div class="icono-award">
+            <i class="fas fa-award"></i>
+          </div>
+          
+          <h2 class="titulo">Reconocimiento</h2>
+          <p class="subtitulo">Por su valiosa participación académica</p>
+          
+          <div class="linea-oro"></div>
+          
+          <p style="font-size:14px; color:#475569; margin:8px 0 4px 0;">Se otorga el presente reconocimiento a:</p>
+          
+          <div class="nombre-persona">${interno.nombre}</div>
+          <div class="detalle-persona">
+            ${interno.matricula} · ${interno.universidad} · ${interno.carrera}
+          </div>
+          
+          <p style="font-size:14px; color:#475569; margin:12px 0 4px 0;">Por su participación como <strong>INTERNO</strong> en el ${tipoEvento}:</p>
+          
+          <div class="evento-nombre">${nombreEvento}</div>
+          
+          <div class="info-evento">
+            <div class="item">
+              <i class="fas fa-calendar-alt"></i>
+              <div class="label">Fecha</div>
+              <div class="valor">${fecha}</div>
+            </div>
+            <div class="item">
+              <i class="fas fa-clock"></i>
+              <div class="label">Duración</div>
+              <div class="valor">${horas} horas</div>
+            </div>
+            <div class="item">
+              <i class="fas fa-map-marker-alt"></i>
+              <div class="label">Lugar</div>
+              <div class="valor">${lugar}</div>
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:center; gap:20px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+            <div style="font-size:13px; color:#475569;">
+              <i class="fas fa-chalkboard-teacher" style="color:#1a56db;"></i>
+              <strong>Ponente:</strong> ${ponenteNombre}
+            </div>
+            <div class="sello">
+              <i class="fas fa-check-circle"></i>
+              <span style="display:block; font-size:8px; margin-top:-2px;">VÁLIDO</span>
+            </div>
+          </div>
         </div>
-        <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 1px;">Reconocimiento</h2>
-        <p style="color: #475569; font-size: 15px; margin: 16px 0 8px 0;">Se otorga el presente reconocimiento a:</p>
-        <h3 style="font-size: 26px; font-weight: 700; color: #1a56db; text-transform: uppercase; margin: 8px 0 4px 0;">${interno.nombre}</h3>
-        <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
-          <i class="fas fa-id-card"></i> ${interno.matricula} &nbsp;|&nbsp; ${interno.universidad}
-        </p>
-        <p style="color: #475569; font-size: 15px; margin: 8px 0;">Por su valiosa participación como <strong>INTERNO</strong> en el ${tipoEvento}:</p>
-        <h4 style="font-size: 22px; font-weight: 700; color: #0f172a; text-transform: uppercase; margin: 8px 0;">${nombreEvento}</h4>
-        <div style="margin: 16px auto; padding: 14px 20px; background: #f8fafc; border-radius: 12px; max-width: 450px; font-size: 14px; color: #475569; text-align: left; border: 1px solid #e2e8f0;">
-          <p style="margin: 4px 0;"><i class="fas fa-calendar-alt" style="width: 24px; color: #1a56db;"></i> <strong>Fecha:</strong> ${fecha}</p>
-          <p style="margin: 4px 0;"><i class="fas fa-clock" style="width: 24px; color: #1a56db;"></i> <strong>Duración:</strong> ${horas} horas</p>
-          <p style="margin: 4px 0;"><i class="fas fa-map-marker-alt" style="width: 24px; color: #1a56db;"></i> <strong>Lugar:</strong> ${lugar}</p>
-          <p style="margin: 4px 0;"><i class="fas fa-chalkboard-teacher" style="width: 24px; color: #1a56db;"></i> <strong>Ponente:</strong> ${ponenteNombre}</p>
-        </div>
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
-          <p style="font-size: 14px; font-weight: 600; color: #0f172a;">Hospital Regional Puerto Vallarta</p>
-          <p style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Documento generado electrónicamente</p>
+        
+        <div class="footer-rec">
+          <div class="firma">
+            <div class="linea"></div>
+            <span class="nombre-firma">Dr. Carlos Méndez R.</span>
+            <span class="cargo">Director Médico</span>
+          </div>
+          
+          <div class="codigo-qr" id="qr-rec-${Date.now()}">
+            <span class="qr-label">Hospital Regional PV</span>
+          </div>
+          
+          <div class="firma">
+            <div class="linea"></div>
+            <span class="nombre-firma">Lic. Ana Valenzuela</span>
+            <span class="cargo">Coordinación Académica</span>
+          </div>
         </div>
       </div>
-      <div class="form-actions" style="margin-top: 20px; justify-content: center;">
+      
+      <div class="form-actions no-print" style="margin-top:20px; justify-content:center;">
         <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
         <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
       </div>
@@ -1391,6 +1437,47 @@ async function generarReconocimiento(internoId) {
 
     closeModal();
     openModal(contenido);
+
+    // Generar QR para el reconocimiento
+    setTimeout(() => {
+      const qrContainer = document.querySelector(
+        ".reconocimiento-premium .codigo-qr",
+      );
+      if (qrContainer) {
+        try {
+          const texto = `REC|${interno.matricula}|${interno.nombre.substring(0, 15)}|${nombreEvento.substring(0, 20)}`;
+          qrContainer.innerHTML = "";
+
+          const qrDiv = document.createElement("div");
+          qrDiv.style.display = "flex";
+          qrDiv.style.flexDirection = "column";
+          qrDiv.style.alignItems = "center";
+          qrDiv.style.gap = "2px";
+
+          const canvas = document.createElement("div");
+          canvas.id = `qr-rec-${Date.now()}`;
+          qrDiv.appendChild(canvas);
+
+          const label = document.createElement("span");
+          label.className = "qr-label";
+          label.textContent = "Hospital Regional PV";
+          qrDiv.appendChild(label);
+
+          qrContainer.appendChild(qrDiv);
+
+          new QRCode(canvas, {
+            text: texto,
+            width: 44,
+            height: 44,
+            colorDark: "#1a56db",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M,
+          });
+        } catch (e) {
+          console.warn("Error generando QR:", e);
+        }
+      }
+    }, 200);
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar reconocimiento: " + error.message, "error");
@@ -1398,7 +1485,7 @@ async function generarReconocimiento(internoId) {
 }
 
 // ============================================================
-// GENERAR RECONOCIMIENTO PARA PONENTE (USA DATOS DE LA BD)
+// GENERAR RECONOCIMIENTO PREMIUM PARA PONENTE
 // ============================================================
 async function generarReconocimientoPonente(id) {
   try {
@@ -1408,7 +1495,6 @@ async function generarReconocimientoPonente(id) {
       return;
     }
 
-    // Obtener eventos del ponente desde la tabla participaciones_ponentes
     const { data: participaciones, error } = await supabaseClient
       .from("participaciones_ponentes")
       .select(
@@ -1427,7 +1513,6 @@ async function generarReconocimientoPonente(id) {
       return;
     }
 
-    // Mostrar selector de eventos
     let eventosList = participaciones
       .map((p, i) => {
         const evento = p.eventos || {};
@@ -1461,33 +1546,83 @@ async function generarReconocimientoPonente(id) {
     const horas = seleccion.horas_impartidas || evento.horas || 0;
     const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
     const rol = seleccion.rol || "PONENTE";
-    const tipoEvento = evento.tipo || "evento";
 
     const contenido = `
-      <div class="reconocimiento-container" style="max-width: 650px; margin: 0 auto; padding: 40px 30px; border: 3px solid #1a56db; border-radius: 16px; background: white; text-align: center;">
-        <div style="font-size: 64px; color: #f59e0b; margin-bottom: 10px;">
-          <i class="fas fa-award"></i>
+      <div class="reconocimiento-premium">
+        <div class="borde-superior"></div>
+        
+        <div class="contenido">
+          <div class="icono-award">
+            <i class="fas fa-award"></i>
+          </div>
+          
+          <h2 class="titulo">Reconocimiento</h2>
+          <p class="subtitulo">Por su destacada labor académica</p>
+          
+          <div class="linea-oro"></div>
+          
+          <p style="font-size:14px; color:#475569; margin:8px 0 4px 0;">Se otorga el presente reconocimiento a:</p>
+          
+          <div class="nombre-persona">${ponente.nombre}</div>
+          <div class="detalle-persona">
+            ${ponente.especialidad ? ponente.especialidad : ""}
+            ${ponente.institucion ? ` · ${ponente.institucion}` : ""}
+          </div>
+          
+          <p style="font-size:14px; color:#475569; margin:12px 0 4px 0;">Por su valiosa participación como <strong>${rol.toUpperCase()}</strong> en el evento:</p>
+          
+          <div class="evento-nombre">${nombreEvento}</div>
+          
+          <div class="info-evento">
+            <div class="item">
+              <i class="fas fa-calendar-alt"></i>
+              <div class="label">Fecha</div>
+              <div class="valor">${fecha}</div>
+            </div>
+            <div class="item">
+              <i class="fas fa-clock"></i>
+              <div class="label">Horas impartidas</div>
+              <div class="valor">${horas}</div>
+            </div>
+            <div class="item">
+              <i class="fas fa-map-marker-alt"></i>
+              <div class="label">Lugar</div>
+              <div class="valor">${lugar}</div>
+            </div>
+          </div>
+          
+          <div style="display:flex; justify-content:center; gap:20px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+            <div style="font-size:13px; color:#475569;">
+              <i class="fas fa-user-graduate" style="color:#1a56db;"></i>
+              <strong>Rol:</strong> ${rol.toUpperCase()}
+            </div>
+            <div class="sello">
+              <i class="fas fa-check-circle"></i>
+              <span style="display:block; font-size:8px; margin-top:-2px;">VÁLIDO</span>
+            </div>
+          </div>
         </div>
-        <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 1px;">Reconocimiento</h2>
-        <p style="color: #475569; font-size: 15px; margin: 16px 0 8px 0;">Se otorga el presente reconocimiento a:</p>
-        <h3 style="font-size: 26px; font-weight: 700; color: #1a56db; text-transform: uppercase; margin: 8px 0 4px 0;">${ponente.nombre}</h3>
-        <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
-          ${ponente.especialidad ? `<i class="fas fa-stethoscope"></i> ${ponente.especialidad} &nbsp;|&nbsp;` : ""}
-          ${ponente.institucion ? ponente.institucion : ""}
-        </p>
-        <p style="color: #475569; font-size: 15px; margin: 8px 0;">Por su valiosa participación como <strong>${rol.toUpperCase()}</strong> en el ${tipoEvento}:</p>
-        <h4 style="font-size: 22px; font-weight: 700; color: #0f172a; text-transform: uppercase; margin: 8px 0;">${nombreEvento}</h4>
-        <div style="margin: 16px auto; padding: 14px 20px; background: #f8fafc; border-radius: 12px; max-width: 450px; font-size: 14px; color: #475569; text-align: left; border: 1px solid #e2e8f0;">
-          <p style="margin: 4px 0;"><i class="fas fa-calendar-alt" style="width: 24px; color: #1a56db;"></i> <strong>Fecha:</strong> ${fecha}</p>
-          <p style="margin: 4px 0;"><i class="fas fa-clock" style="width: 24px; color: #1a56db;"></i> <strong>Horas impartidas:</strong> ${horas}</p>
-          <p style="margin: 4px 0;"><i class="fas fa-map-marker-alt" style="width: 24px; color: #1a56db;"></i> <strong>Lugar:</strong> ${lugar}</p>
-        </div>
-        <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
-          <p style="font-size: 14px; font-weight: 600; color: #0f172a;">Hospital Regional Puerto Vallarta</p>
-          <p style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Documento generado electrónicamente</p>
+        
+        <div class="footer-rec">
+          <div class="firma">
+            <div class="linea"></div>
+            <span class="nombre-firma">Dr. Carlos Méndez R.</span>
+            <span class="cargo">Director Médico</span>
+          </div>
+          
+          <div class="codigo-qr" id="qr-rec-${Date.now()}">
+            <span class="qr-label">Hospital Regional PV</span>
+          </div>
+          
+          <div class="firma">
+            <div class="linea"></div>
+            <span class="nombre-firma">Lic. Ana Valenzuela</span>
+            <span class="cargo">Coordinación Académica</span>
+          </div>
         </div>
       </div>
-      <div class="form-actions" style="margin-top: 20px; justify-content: center;">
+      
+      <div class="form-actions no-print" style="margin-top:20px; justify-content:center;">
         <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
         <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
       </div>
@@ -1495,6 +1630,44 @@ async function generarReconocimientoPonente(id) {
 
     closeModal();
     openModal(contenido);
+
+    setTimeout(() => {
+      const qrContainer = document.querySelector('.reconocimiento-premium .codigo-qr');
+      if (qrContainer) {
+        try {
+          const texto = `REC|${ponente.nombre.substring(0, 15)}|${nombreEvento.substring(0, 20)}`;
+          qrContainer.innerHTML = '';
+          
+          const qrDiv = document.createElement('div');
+          qrDiv.style.display = 'flex';
+          qrDiv.style.flexDirection = 'column';
+          qrDiv.style.alignItems = 'center';
+          qrDiv.style.gap = '2px';
+          
+          const canvas = document.createElement('div');
+          canvas.id = `qr-rec-${Date.now()}`;
+          qrDiv.appendChild(canvas);
+          
+          const label = document.createElement('span');
+          label.className = 'qr-label';
+          label.textContent = 'Hospital Regional PV';
+          qrDiv.appendChild(label);
+          
+          qrContainer.appendChild(qrDiv);
+          
+          new QRCode(canvas, {
+            text: texto,
+            width: 44,
+            height: 44,
+            colorDark: "#1a56db",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.M,
+          });
+        } catch (e) {
+          console.warn("Error generando QR:", e);
+        }
+      }
+    }, 200);
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar reconocimiento: " + error.message, "error");
@@ -1690,7 +1863,7 @@ async function imprimirMultiplesCredenciales() {
 }
 
 // ============================================================
-// IMPRIMIR CREDENCIAL INDIVIDUAL - UNIFICADA
+// IMPRIMIR CREDENCIAL INDIVIDUAL PREMIUM
 // ============================================================
 function imprimirCredencialIndividual(id) {
   const interno = state.internos.find((i) => i.id === id);
@@ -1709,15 +1882,17 @@ function imprimirCredencialIndividual(id) {
 
   const html = `
     <style>
-      /* Estilos ya definidos en el CSS principal */
       .cred-individual-wrapper {
-        max-width: 360px;
+        max-width: 320px;
         margin: 0 auto;
         padding: 10px;
       }
       .cred-individual-wrapper h3 {
         text-align: center;
         margin-bottom: 16px;
+        font-size: 18px;
+        font-weight: 800;
+        color: #0f172a;
       }
       .cred-individual-wrapper .form-actions {
         margin-top: 20px;
@@ -1745,11 +1920,11 @@ function imprimirCredencialIndividual(id) {
     <div class="cred-individual-wrapper">
       <h3 class="no-print"><i class="fas fa-id-card"></i> Credencial Individual</h3>
       
-      <!-- Usa la misma estructura que la credencial múltiple -->
       <div class="credencial-individual">
-        <div class="credencial-base">
+        <div class="credencial-premium">
           <div class="header">
-            <h3>🏥 Hospital Regional PV</h3>
+            <span class="logo-icon">🏥</span>
+            <h3>Hospital Regional PV</h3>
             <p>Credencial de Interno</p>
           </div>
           <div class="body">
@@ -1762,10 +1937,11 @@ function imprimirCredencialIndividual(id) {
               <div class="detail"><i class="fas fa-university"></i> ${interno.universidad}</div>
               <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
               ${interno.telefono ? `<div class="detail"><i class="fas fa-phone"></i> ${interno.telefono}</div>` : ""}
+              <span class="matricula-badge">${interno.estatus.toUpperCase()}</span>
             </div>
           </div>
           <div class="footer">
-            <div class="qr" id="qr-individual"></div>
+            <div class="qr" id="qr-individual-${interno.id}"></div>
             <span class="status ${interno.estatus}">${interno.estatus}</span>
           </div>
         </div>
@@ -1781,15 +1957,15 @@ function imprimirCredencialIndividual(id) {
   openModal(html);
 
   setTimeout(() => {
-    const container = document.getElementById("qr-individual");
+    const container = document.getElementById(`qr-individual-${interno.id}`);
     if (container) {
       try {
         container.innerHTML = "";
         const texto = `HRPV|${interno.matricula}|${interno.nombre.substring(0, 15)}`;
         new QRCode(container, {
           text: texto,
-          width: 36,
-          height: 36,
+          width: 38,
+          height: 38,
           colorDark: "#000000",
           colorLight: "#ffffff",
           correctLevel: QRCode.CorrectLevel.L,
@@ -2179,7 +2355,7 @@ function eliminarFoto() {
 }
 
 // ============================================================
-// IMPRIMIR MÚLTIPLES CREDENCIALES - UNIFICADA
+// IMPRIMIR MÚLTIPLES CREDENCIALES PREMIUM
 // ============================================================
 async function imprimirMultiplesCredenciales() {
   try {
@@ -2200,20 +2376,23 @@ async function imprimirMultiplesCredenciales() {
         .cred-multiple-header {
           text-align: center;
           margin-bottom: 16px;
-          padding: 12px;
-          background: #f8fafc;
+          padding: 16px 20px;
+          background: linear-gradient(135deg, #f8fafc, #eef2f7);
           border-radius: 12px;
           border: 1px solid #e2e8f0;
         }
         .cred-multiple-header h3 {
           margin: 0;
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 800;
           color: #0f172a;
         }
+        .cred-multiple-header h3 i {
+          color: #1a56db;
+        }
         .cred-multiple-header p {
           margin: 4px 0 0 0;
-          font-size: 13px;
+          font-size: 14px;
           color: #64748b;
         }
         .cred-multiple-header .total {
@@ -2224,7 +2403,13 @@ async function imprimirMultiplesCredenciales() {
           text-align: center;
           font-size: 13px;
           color: #64748b;
-          margin-bottom: 12px;
+          margin-bottom: 16px;
+          padding: 8px;
+          background: #f1f5f9;
+          border-radius: 8px;
+        }
+        .cred-contador strong {
+          color: #0f172a;
         }
         .print-buttons {
           text-align: center;
@@ -2261,17 +2446,19 @@ async function imprimirMultiplesCredenciales() {
           .cred-multiple-header { display: none !important; }
           .cred-contador { display: none !important; }
           .print-buttons { display: none !important; }
-          .credenciales-grid { max-height: none !important; overflow: visible !important; padding: 3mm !important; gap: 4mm !important; }
+          .credenciales-grid { max-height: none !important; overflow: visible !important; padding: 3mm !important; gap: 3mm !important; }
         }
       </style>
       
       <div class="cred-multiple-header no-print">
         <h3><i class="fas fa-id-card"></i> Credenciales de Internos Activos</h3>
-        <p>Total: <span class="total">${internos.length}</span> internos activos · <span class="total">${Math.ceil(internos.length / chunkSize)}</span> páginas</p>
+        <p>Total: <span class="total">${internos.length}</span> internos · 
+        <span class="total">${Math.ceil(internos.length / chunkSize)}</span> páginas · 
+        6 credenciales por página</p>
       </div>
       
       <div class="cred-contador no-print">
-        <i class="fas fa-print"></i> Vista previa - <strong>${internos.length}</strong> credenciales · 6 por página
+        <i class="fas fa-print"></i> Vista previa - <strong>${internos.length}</strong> credenciales listas para imprimir
       </div>
     `;
 
@@ -2292,9 +2479,10 @@ async function imprimirMultiplesCredenciales() {
         const qrId = `qr-${Math.random().toString(36).substr(2, 6)}`;
 
         printContent += `
-          <div class="credencial-base">
+          <div class="credencial-premium">
             <div class="header">
-              <h3>🏥 Hospital Regional PV</h3>
+              <span class="logo-icon">🏥</span>
+              <h3>Hospital Regional PV</h3>
               <p>Credencial de Interno</p>
             </div>
             <div class="body">
@@ -2306,6 +2494,7 @@ async function imprimirMultiplesCredenciales() {
                 <div class="detail"><i class="fas fa-id-card"></i> ${interno.matricula}</div>
                 <div class="detail"><i class="fas fa-university"></i> ${interno.universidad}</div>
                 <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
+                <span class="matricula-badge">${interno.estatus.toUpperCase()}</span>
               </div>
             </div>
             <div class="footer">
@@ -2320,28 +2509,29 @@ async function imprimirMultiplesCredenciales() {
 
     printContent += `
       <div class="print-buttons no-print">
-        <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Imprimir (${internos.length} credenciales)</button>
-        <button class="btn-cerrar" onclick="closeModal()"><i class="fas fa-times"></i> Cerrar</button>
+        <button class="btn-print" onclick="window.print()">
+          <i class="fas fa-print"></i> Imprimir (${internos.length} credenciales)
+        </button>
+        <button class="btn-cerrar" onclick="closeModal()">
+          <i class="fas fa-times"></i> Cerrar
+        </button>
       </div>
     `;
 
     openModal(printContent);
 
     setTimeout(() => {
-      document.querySelectorAll(".credencial-base .qr").forEach((container) => {
+      document.querySelectorAll('.credencial-premium .qr').forEach((container) => {
         try {
-          const credencial = container.closest(".credencial-base");
-          const nombre =
-            credencial?.querySelector(".nombre")?.textContent || "";
-          const matriculaEl =
-            credencial?.querySelector(".detail")?.textContent || "";
-          const matricula =
-            matriculaEl.replace(/[^0-9]/g, "").trim() || "000000";
+          const credencial = container.closest('.credencial-premium');
+          const nombre = credencial?.querySelector('.nombre')?.textContent || '';
+          const matriculaEl = credencial?.querySelector('.detail')?.textContent || '';
+          const matricula = matriculaEl.replace(/[^0-9]/g, '').trim() || '000000';
           const texto = `HRPV|${matricula}|${nombre.substring(0, 15)}`;
           new QRCode(container, {
             text: texto,
-            width: 36,
-            height: 36,
+            width: 38,
+            height: 38,
             colorDark: "#000000",
             colorLight: "#ffffff",
             correctLevel: QRCode.CorrectLevel.L,
