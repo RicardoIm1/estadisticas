@@ -1632,6 +1632,9 @@ async function imprimirMultiplesCredenciales() {
                 <div class="detail"><i class="fas fa-id-card"></i> ${interno.matricula}</div>
                 <div class="detail"><i class="fas fa-university"></i> ${interno.universidad}</div>
                 <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.telefono}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.telefono_emergencia}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.tipo_sanguineo}</div>
               </div>
             </div>
             <div class="footer">
@@ -1891,9 +1894,12 @@ function imprimirCredencialIndividual(id) {
         </div>
         <div class="info">
           <div class="nombre">${interno.nombre}</div>
-          <div class="detail"><i class="fas fa-id-card" style="width:16px;"></i> ${interno.matricula}</div>
-          <div class="detail"><i class="fas fa-university" style="width:16px;"></i> ${interno.universidad}</div>
-          <div class="detail"><i class="fas fa-graduation-cap" style="width:16px;"></i> ${interno.carrera}</div>
+                <div class="detail"><i class="fas fa-id-card"></i> ${interno.matricula}</div>
+                <div class="detail"><i class="fas fa-university"></i> ${interno.universidad}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.telefono}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.telefono_emergencia}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.tipo_sanguineo}</div>
         </div>
       </div>
       <div class="footer">
@@ -2703,6 +2709,9 @@ async function imprimirMultiplesCredenciales() {
                 <div class="detail"><i class="fas fa-id-card"></i> ${interno.matricula}</div>
                 <div class="detail"><i class="fas fa-university"></i> ${interno.universidad}</div>
                 <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.telefono}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.telefono_emergencia}</div>
+                <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.tipo_sanguineo}</div>
               </div>
             </div>
             <div class="footer">
@@ -2730,25 +2739,30 @@ async function imprimirMultiplesCredenciales() {
 
     // Generar QR después de renderizar
     setTimeout(() => {
-      document.querySelectorAll('.credencial-print .qr').forEach((container) => {
-        try {
-          const credencial = container.closest('.credencial-print');
-          const nombre = credencial?.querySelector('.nombre')?.textContent || '';
-          const matriculaEl = credencial?.querySelector('.detail')?.textContent || '';
-          const matricula = matriculaEl.replace(/[^0-9]/g, '').trim() || '000000';
-          const texto = `HRPV|${matricula}|${nombre.substring(0, 15)}`;
-          new QRCode(container, {
-            text: texto,
-            width: 36,
-            height: 36,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.L,
-          });
-        } catch (e) {
-          console.warn("Error generando QR:", e);
-        }
-      });
+      document
+        .querySelectorAll(".credencial-print .qr")
+        .forEach((container) => {
+          try {
+            const credencial = container.closest(".credencial-print");
+            const nombre =
+              credencial?.querySelector(".nombre")?.textContent || "";
+            const matriculaEl =
+              credencial?.querySelector(".detail")?.textContent || "";
+            const matricula =
+              matriculaEl.replace(/[^0-9]/g, "").trim() || "000000";
+            const texto = `HRPV|${matricula}|${nombre.substring(0, 15)}`;
+            new QRCode(container, {
+              text: texto,
+              width: 36,
+              height: 36,
+              colorDark: "#000000",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.L,
+            });
+          } catch (e) {
+            console.warn("Error generando QR:", e);
+          }
+        });
     }, 300);
   } catch (error) {
     console.error("Error:", error);
