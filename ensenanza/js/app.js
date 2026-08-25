@@ -116,7 +116,7 @@ function showSection(section) {
 // ============================================================
 function openModal(content) {
   document.getElementById("modalContent").innerHTML = content;
-  document.getElementById("modal").classList.add("active");
+  document.getElementById("modal").classList.add("active");  // ← overlay
   document.body.style.overflow = "hidden";
 }
 
