@@ -173,7 +173,7 @@ function renderInternos(internos) {
         .toUpperCase();
 
       return `
-      <tr>
+      <tr onclick="abrirExpedienteCompleto('${interno.id}')" style="cursor:pointer;">
         <td>
           <div class="avatar">
             ${interno.foto_url ? `<img src="${interno.foto_url}" />` : iniciales}
@@ -186,12 +186,9 @@ function renderInternos(internos) {
         <td>${interno.semestre}</td>
         <td><span class="status-badge ${interno.estatus}">${interno.estatus}</span></td>
         <td>
-          <div class="acciones-cell">
+          <div class="acciones-cell" onclick="event.stopPropagation();">
             <button class="btn-edit btn-sm" onclick="editarInterno('${interno.id}')">
               <i class="fas fa-pen"></i>
-            </button>
-            <button class="btn-view btn-sm" onclick="verExpediente('${interno.id}')">
-              <i class="fas fa-eye"></i>
             </button>
             <button class="btn-delete btn-sm" onclick="eliminarInterno('${interno.id}')">
               <i class="fas fa-trash"></i>
@@ -1557,4 +1554,202 @@ function eliminarFoto() {
   preview.innerHTML = `<i class="fas fa-user-circle" style="font-size: 40px; color: #94a3b8;"></i>`;
   preview.style.border = "2px dashed var(--border)";
   document.getElementById("f_foto").value = "";
+}
+
+// ============================================================
+// ABRIR EXPEDIENTE COMPLETO (CLICK EN FILA)
+// ============================================================
+async function abrirExpedienteCompleto(id) {
+  try {
+    const { data: interno, error: errorInterno } = await supabaseClient
+      .from("internos")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (errorInterno) throw errorInterno;
+
+    // Obtener participaciones
+    let participaciones = [];
+    try {
+      const { data, error } = await supabaseClient
+        .from("participaciones_internos")
+        .select(`
+          *,
+          eventos:evento_id (*)
+        `)
+        .eq("interno_id", id)
+        .order("created_at", { ascending: false });
+
+      if (!error) participaciones = data || [];
+    } catch (e) {
+      console.warn("No se pudieron cargar participaciones:", e);
+    }
+
+    const iniciales = interno.nombre
+      .split(" ")
+      .filter(p => p.length > 0)
+      .map(p => p[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase();
+
+    // Generar HTML de eventos
+    let eventosHTML = '';
+    if (participaciones && participaciones.length > 0) {
+      eventosHTML = participaciones.map(part => {
+        const evento = part.eventos || {};
+        const tipoClass = evento.tipo || 'otro';
+        const desempenioColor = getColorDesempenio(part.desempenio);
+        return `
+          <tr>
+            <td><strong>${evento.nombre || 'Sin nombre'}</strong></td>
+            <td>${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString('es-MX') : '-'}</td>
+            <td><span class="tipo-badge ${tipoClass}">${evento.tipo || 'otro'}</span></td>
+            <td style="text-align:center;">${evento.horas || '-'}</td>
+            <td style="text-align:center; font-weight:600; color:${desempenioColor};">
+              ${part.calificacion ? part.calificacion + '%' : '-'}
+              <br><span style="font-size:10px; color:#94a3b8;">${part.desempenio || 'Pendiente'}</span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    } else {
+      eventosHTML = `
+        <tr>
+          <td colspan="5" style="text-align:center; padding:30px; color:#94a3b8;">
+            <i class="fas fa-book-open" style="font-size:32px; display:block; margin-bottom:12px; opacity:0.4;"></i>
+            No hay eventos registrados
+          </td>
+        </tr>
+      `;
+    }
+
+    const content = `
+      <div class="expediente-container">
+        <div class="expediente-card">
+          <!-- HEADER -->
+          <div class="expediente-header">
+            <div>
+              <h2><i class="fas fa-id-card"></i> Expediente del Interno</h2>
+              <p>Hospital Regional Puerto Vallarta</p>
+            </div>
+            <div class="matricula-badge">
+              <i class="fas fa-id-card"></i> ${interno.matricula}
+            </div>
+          </div>
+
+          <!-- BODY -->
+          <div class="expediente-body">
+            <!-- PERFIL -->
+            <div class="expediente-perfil">
+              <div class="avatar-large">
+                ${interno.foto_url ? `<img src="${interno.foto_url}" />` : iniciales}
+              </div>
+              <div class="info">
+                <div class="nombre">${interno.nombre}</div>
+                <div class="detalles">
+                  <div><i class="fas fa-university"></i> ${interno.universidad}</div>
+                  <div><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
+                  <div><i class="fas fa-layer-group"></i> ${interno.semestre}</div>
+                  <div><i class="fas fa-calendar"></i> ${interno.generacion}</div>
+                  <div><i class="fas fa-envelope"></i> ${interno.correo}</div>
+                  <div><i class="fas fa-phone"></i> ${interno.telefono || 'N/A'}</div>
+                </div>
+              </div>
+              <div>
+                <span class="status-badge-large ${interno.estatus}">${interno.estatus}</span>
+              </div>
+            </div>
+
+            <!-- EVENTOS -->
+            <div class="expediente-eventos">
+              <div class="eventos-header">
+                <h3><i class="fas fa-calendar-alt"></i> Eventos y Cursos</h3>
+                <span class="badge-eventos">
+                  <i class="fas fa-star"></i> ${participaciones ? participaciones.length : 0} eventos
+                </span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Evento</th>
+                      <th>Fecha</th>
+                      <th>Tipo</th>
+                      <th style="text-align:center;">Horas</th>
+                      <th style="text-align:center;">Desempeño</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${eventosHTML}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- FOOTER -->
+          <div class="expediente-footer">
+            <div class="qr-section">
+              <div class="qr-container" id="modalQR"></div>
+              <span class="qr-label"><i class="fas fa-qrcode"></i> Código QR</span>
+            </div>
+            <div class="acciones-footer">
+              <button class="btn-reconocimiento" onclick="generarReconocimiento('${interno.id}')">
+                <i class="fas fa-award"></i> Reconocimiento
+              </button>
+              <button class="btn-credencial" onclick="imprimirCredencialIndividual('${interno.id}')">
+                <i class="fas fa-id-card"></i> Credencial
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="expediente-modal-actions">
+          <button class="btn-print-exp" onclick="window.print()">
+            <i class="fas fa-print"></i> Imprimir Expediente
+          </button>
+          <button class="btn-cerrar-exp" onclick="closeModal()">
+            <i class="fas fa-times"></i> Cerrar
+          </button>
+        </div>
+      </div>
+    `;
+
+    openModal(content);
+
+    // Generar QR
+    setTimeout(() => {
+      const qrContainer = document.getElementById("modalQR");
+      if (qrContainer) {
+        qrContainer.innerHTML = "";
+        generarQRSimple(qrContainer, interno, 60);
+      }
+    }, 100);
+
+  } catch (error) {
+    console.error("Error:", error);
+    showToast("Error al cargar el expediente: " + error.message, "error");
+  }
+}
+
+// ============================================================
+// GENERAR QR SIMPLE (para el expediente)
+// ============================================================
+function generarQRSimple(container, interno, size) {
+  try {
+    const texto = `HRPV|${interno.matricula}|${interno.nombre.substring(0, 15)}`;
+    new QRCode(container, {
+      text: texto,
+      width: size,
+      height: size,
+      colorDark: "#000000",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.L
+    });
+  } catch (e) {
+    console.warn("Error generando QR:", e);
+    container.innerHTML = `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;background:#fef2f2;border-radius:8px;font-size:10px;color:#dc2626;">QR Error</div>`;
+  }
 }
