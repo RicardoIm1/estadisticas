@@ -1283,7 +1283,7 @@ async function eliminarPonente(id) {
 }
 
 // ============================================================
-// GENERAR RECONOCIMIENTO PREMIUM
+// GENERAR RECONOCIMIENTO PREMIUM - TOMA TODOS LOS DATOS DE LA BD
 // ============================================================
 async function generarReconocimiento(internoId) {
   try {
@@ -1293,12 +1293,21 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
+    // Obtener participaciones del interno con datos del evento
     const { data: participaciones, error } = await supabaseClient
       .from("participaciones_internos")
       .select(
         `
         *,
-        eventos:evento_id (*)
+        eventos:evento_id (
+          id,
+          nombre,
+          tipo,
+          fecha_inicio,
+          horas,
+          lugar,
+          ponente_id
+        )
       `,
       )
       .eq("interno_id", internoId)
@@ -1311,10 +1320,14 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
+    // Mostrar selector de eventos con datos de la BD
     let eventosList = participaciones
       .map((p, i) => {
         const evento = p.eventos || {};
-        return `${i + 1}. ${evento.nombre || "Sin nombre"} - ${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX") : "Sin fecha"}`;
+        const fecha = evento.fecha_inicio
+          ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX")
+          : "Sin fecha";
+        return `${i + 1}. ${evento.nombre || "Sin nombre"} - ${fecha} (${evento.horas || 0}h)`;
       })
       .join("\n");
 
@@ -1333,16 +1346,25 @@ async function generarReconocimiento(internoId) {
     const seleccion = participaciones[idx];
     const evento = seleccion.eventos || {};
 
+    // Obtener el ponente del evento AUTOMÁTICAMENTE
     let ponenteNombre = "Ponente no asignado";
+    let ponenteEspecialidad = "";
+    let ponenteInstitucion = "";
+
     if (evento.ponente_id) {
       const { data: ponenteData } = await supabaseClient
         .from("ponentes")
-        .select("nombre")
+        .select("nombre, especialidad, institucion")
         .eq("id", evento.ponente_id)
         .single();
-      if (ponenteData) ponenteNombre = ponenteData.nombre;
+      if (ponenteData) {
+        ponenteNombre = ponenteData.nombre || "Ponente no asignado";
+        ponenteEspecialidad = ponenteData.especialidad || "";
+        ponenteInstitucion = ponenteData.institucion || "";
+      }
     }
 
+    // Datos del evento DESDE LA BD
     const nombreEvento = evento.nombre || "Evento sin nombre";
     const fecha = evento.fecha_inicio
       ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
@@ -1355,6 +1377,7 @@ async function generarReconocimiento(internoId) {
     const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
     const tipoEvento = evento.tipo || "evento";
 
+    // Mostrar el reconocimiento con TODOS los datos de la BD
     const contenido = `
       <div class="reconocimiento-premium">
         <div class="borde-superior"></div>
@@ -1402,6 +1425,8 @@ async function generarReconocimiento(internoId) {
             <div style="font-size:13px; color:#475569;">
               <i class="fas fa-chalkboard-teacher" style="color:#1a56db;"></i>
               <strong>Ponente:</strong> ${ponenteNombre}
+              ${ponenteEspecialidad ? ` · ${ponenteEspecialidad}` : ""}
+              ${ponenteInstitucion ? ` · ${ponenteInstitucion}` : ""}
             </div>
             <div class="sello">
               <i class="fas fa-check-circle"></i>
@@ -1438,7 +1463,7 @@ async function generarReconocimiento(internoId) {
     closeModal();
     openModal(contenido);
 
-    // Generar QR para el reconocimiento
+    // Generar QR
     setTimeout(() => {
       const qrContainer = document.querySelector(
         ".reconocimiento-premium .codigo-qr",
@@ -1485,7 +1510,7 @@ async function generarReconocimiento(internoId) {
 }
 
 // ============================================================
-// GENERAR RECONOCIMIENTO PREMIUM PARA PONENTE
+// GENERAR RECONOCIMIENTO PARA PONENTE - DATOS DE LA BD
 // ============================================================
 async function generarReconocimientoPonente(id) {
   try {
@@ -1495,13 +1520,21 @@ async function generarReconocimientoPonente(id) {
       return;
     }
 
+    // Obtener participaciones del ponente con datos del evento
     const { data: participaciones, error } = await supabaseClient
       .from("participaciones_ponentes")
       .select(
         `
         *,
-        eventos:evento_id (*)
-      `,
+        eventos:evento_id (
+          id,
+          nombre,
+          tipo,
+          fecha_inicio,
+          horas,
+          lugar
+        )
+      `
       )
       .eq("ponente_id", id)
       .order("created_at", { ascending: false });
@@ -1513,15 +1546,19 @@ async function generarReconocimientoPonente(id) {
       return;
     }
 
+    // Mostrar selector de eventos
     let eventosList = participaciones
       .map((p, i) => {
         const evento = p.eventos || {};
-        return `${i + 1}. ${evento.nombre || "Sin nombre"} - ${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX") : "Sin fecha"} (${p.rol || "ponente"})`;
+        const fecha = evento.fecha_inicio
+          ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX")
+          : "Sin fecha";
+        return `${i + 1}. ${evento.nombre || "Sin nombre"} - ${fecha} (${p.rol || "ponente"})`;
       })
       .join("\n");
 
     const eventoIndex = prompt(
-      `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participaciones.length}):`,
+      `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participaciones.length}):`
     );
 
     if (!eventoIndex) return;
@@ -1535,6 +1572,7 @@ async function generarReconocimientoPonente(id) {
     const seleccion = participaciones[idx];
     const evento = seleccion.eventos || {};
 
+    // Datos del evento DESDE LA BD
     const nombreEvento = evento.nombre || "Evento sin nombre";
     const fecha = evento.fecha_inicio
       ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
@@ -1546,6 +1584,7 @@ async function generarReconocimientoPonente(id) {
     const horas = seleccion.horas_impartidas || evento.horas || 0;
     const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
     const rol = seleccion.rol || "PONENTE";
+    const tipoEvento = evento.tipo || "evento";
 
     const contenido = `
       <div class="reconocimiento-premium">
@@ -1569,7 +1608,7 @@ async function generarReconocimientoPonente(id) {
             ${ponente.institucion ? ` · ${ponente.institucion}` : ""}
           </div>
           
-          <p style="font-size:14px; color:#475569; margin:12px 0 4px 0;">Por su valiosa participación como <strong>${rol.toUpperCase()}</strong> en el evento:</p>
+          <p style="font-size:14px; color:#475569; margin:12px 0 4px 0;">Por su valiosa participación como <strong>${rol.toUpperCase()}</strong> en el ${tipoEvento}:</p>
           
           <div class="evento-nombre">${nombreEvento}</div>
           
@@ -1631,6 +1670,7 @@ async function generarReconocimientoPonente(id) {
     closeModal();
     openModal(contenido);
 
+    // Generar QR
     setTimeout(() => {
       const qrContainer = document.querySelector('.reconocimiento-premium .codigo-qr');
       if (qrContainer) {
@@ -2520,25 +2560,30 @@ async function imprimirMultiplesCredenciales() {
     openModal(printContent);
 
     setTimeout(() => {
-      document.querySelectorAll('.credencial-premium .qr').forEach((container) => {
-        try {
-          const credencial = container.closest('.credencial-premium');
-          const nombre = credencial?.querySelector('.nombre')?.textContent || '';
-          const matriculaEl = credencial?.querySelector('.detail')?.textContent || '';
-          const matricula = matriculaEl.replace(/[^0-9]/g, '').trim() || '000000';
-          const texto = `HRPV|${matricula}|${nombre.substring(0, 15)}`;
-          new QRCode(container, {
-            text: texto,
-            width: 38,
-            height: 38,
-            colorDark: "#000000",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.L,
-          });
-        } catch (e) {
-          console.warn("Error generando QR:", e);
-        }
-      });
+      document
+        .querySelectorAll(".credencial-premium .qr")
+        .forEach((container) => {
+          try {
+            const credencial = container.closest(".credencial-premium");
+            const nombre =
+              credencial?.querySelector(".nombre")?.textContent || "";
+            const matriculaEl =
+              credencial?.querySelector(".detail")?.textContent || "";
+            const matricula =
+              matriculaEl.replace(/[^0-9]/g, "").trim() || "000000";
+            const texto = `HRPV|${matricula}|${nombre.substring(0, 15)}`;
+            new QRCode(container, {
+              text: texto,
+              width: 38,
+              height: 38,
+              colorDark: "#000000",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.L,
+            });
+          } catch (e) {
+            console.warn("Error generando QR:", e);
+          }
+        });
     }, 300);
   } catch (error) {
     console.error("Error:", error);
