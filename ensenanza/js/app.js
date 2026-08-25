@@ -1589,7 +1589,7 @@ function imprimirCredencialIndividual(id) {
     const container = document.getElementById("qr-individual");
     if (container) {
       container.innerHTML = "";
-      generarQR(container, interno, 60);
+      generarQR(container, interno, 35);
     }
   }, 100);
 }
