@@ -1283,7 +1283,7 @@ async function eliminarPonente(id) {
 }
 
 // ============================================================
-// GENERAR RECONOCIMIENTO PREMIUM - TOMA TODOS LOS DATOS DE LA BD
+// GENERAR RECONOCIMIENTO PREMIUM - CORREGIDO
 // ============================================================
 async function generarReconocimiento(internoId) {
   try {
@@ -1293,23 +1293,10 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
-    // Obtener participaciones del interno con datos del evento
+    // Obtener participaciones del interno (SIN JOIN)
     const { data: participaciones, error } = await supabaseClient
       .from("participaciones_internos")
-      .select(
-        `
-        *,
-        eventos:evento_id (
-          id,
-          nombre,
-          tipo,
-          fecha_inicio,
-          horas,
-          lugar,
-          ponente_id
-        )
-      `,
-      )
+      .select("*")
       .eq("interno_id", internoId)
       .order("created_at", { ascending: false });
 
@@ -1320,8 +1307,30 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
-    // Mostrar selector de eventos con datos de la BD
-    let eventosList = participaciones
+    // Obtener los eventos manualmente (uno por uno)
+    let participacionesConEventos = [];
+    for (const p of participaciones) {
+      const { data: evento, error: eventError } = await supabaseClient
+        .from("eventos")
+        .select("*")
+        .eq("id", p.evento_id)
+        .single();
+
+      if (!eventError && evento) {
+        participacionesConEventos.push({
+          ...p,
+          eventos: evento
+        });
+      }
+    }
+
+    if (participacionesConEventos.length === 0) {
+      showToast("No se encontraron eventos asociados", "warning");
+      return;
+    }
+
+    // Mostrar selector de eventos
+    let eventosList = participacionesConEventos
       .map((p, i) => {
         const evento = p.eventos || {};
         const fecha = evento.fecha_inicio
@@ -1332,21 +1341,21 @@ async function generarReconocimiento(internoId) {
       .join("\n");
 
     const eventoIndex = prompt(
-      `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participaciones.length}):`,
+      `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participacionesConEventos.length}):`
     );
 
     if (!eventoIndex) return;
 
     const idx = parseInt(eventoIndex) - 1;
-    if (isNaN(idx) || idx < 0 || idx >= participaciones.length) {
+    if (isNaN(idx) || idx < 0 || idx >= participacionesConEventos.length) {
       showToast("Selección inválida", "error");
       return;
     }
 
-    const seleccion = participaciones[idx];
+    const seleccion = participacionesConEventos[idx];
     const evento = seleccion.eventos || {};
 
-    // Obtener el ponente del evento AUTOMÁTICAMENTE
+    // Obtener el ponente del evento
     let ponenteNombre = "Ponente no asignado";
     let ponenteEspecialidad = "";
     let ponenteInstitucion = "";
@@ -1364,7 +1373,7 @@ async function generarReconocimiento(internoId) {
       }
     }
 
-    // Datos del evento DESDE LA BD
+    // Datos del evento
     const nombreEvento = evento.nombre || "Evento sin nombre";
     const fecha = evento.fecha_inicio
       ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
@@ -1377,7 +1386,7 @@ async function generarReconocimiento(internoId) {
     const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
     const tipoEvento = evento.tipo || "evento";
 
-    // Mostrar el reconocimiento con TODOS los datos de la BD
+    // Mostrar el reconocimiento
     const contenido = `
       <div class="reconocimiento-premium">
         <div class="borde-superior"></div>
@@ -1465,31 +1474,29 @@ async function generarReconocimiento(internoId) {
 
     // Generar QR
     setTimeout(() => {
-      const qrContainer = document.querySelector(
-        ".reconocimiento-premium .codigo-qr",
-      );
+      const qrContainer = document.querySelector('.reconocimiento-premium .codigo-qr');
       if (qrContainer) {
         try {
           const texto = `REC|${interno.matricula}|${interno.nombre.substring(0, 15)}|${nombreEvento.substring(0, 20)}`;
-          qrContainer.innerHTML = "";
-
-          const qrDiv = document.createElement("div");
-          qrDiv.style.display = "flex";
-          qrDiv.style.flexDirection = "column";
-          qrDiv.style.alignItems = "center";
-          qrDiv.style.gap = "2px";
-
-          const canvas = document.createElement("div");
+          qrContainer.innerHTML = '';
+          
+          const qrDiv = document.createElement('div');
+          qrDiv.style.display = 'flex';
+          qrDiv.style.flexDirection = 'column';
+          qrDiv.style.alignItems = 'center';
+          qrDiv.style.gap = '2px';
+          
+          const canvas = document.createElement('div');
           canvas.id = `qr-rec-${Date.now()}`;
           qrDiv.appendChild(canvas);
-
-          const label = document.createElement("span");
-          label.className = "qr-label";
-          label.textContent = "Hospital Regional PV";
+          
+          const label = document.createElement('span');
+          label.className = 'qr-label';
+          label.textContent = 'Hospital Regional PV';
           qrDiv.appendChild(label);
-
+          
           qrContainer.appendChild(qrDiv);
-
+          
           new QRCode(canvas, {
             text: texto,
             width: 44,
@@ -1510,7 +1517,7 @@ async function generarReconocimiento(internoId) {
 }
 
 // ============================================================
-// GENERAR RECONOCIMIENTO PARA PONENTE - DATOS DE LA BD
+// GENERAR RECONOCIMIENTO PARA PONENTE - CORREGIDO
 // ============================================================
 async function generarReconocimientoPonente(id) {
   try {
@@ -1520,22 +1527,10 @@ async function generarReconocimientoPonente(id) {
       return;
     }
 
-    // Obtener participaciones del ponente con datos del evento
+    // Obtener participaciones del ponente (SIN JOIN)
     const { data: participaciones, error } = await supabaseClient
       .from("participaciones_ponentes")
-      .select(
-        `
-        *,
-        eventos:evento_id (
-          id,
-          nombre,
-          tipo,
-          fecha_inicio,
-          horas,
-          lugar
-        )
-      `
-      )
+      .select("*")
       .eq("ponente_id", id)
       .order("created_at", { ascending: false });
 
@@ -1546,8 +1541,30 @@ async function generarReconocimientoPonente(id) {
       return;
     }
 
+    // Obtener los eventos manualmente
+    let participacionesConEventos = [];
+    for (const p of participaciones) {
+      const { data: evento, error: eventError } = await supabaseClient
+        .from("eventos")
+        .select("*")
+        .eq("id", p.evento_id)
+        .single();
+
+      if (!eventError && evento) {
+        participacionesConEventos.push({
+          ...p,
+          eventos: evento
+        });
+      }
+    }
+
+    if (participacionesConEventos.length === 0) {
+      showToast("No se encontraron eventos asociados", "warning");
+      return;
+    }
+
     // Mostrar selector de eventos
-    let eventosList = participaciones
+    let eventosList = participacionesConEventos
       .map((p, i) => {
         const evento = p.eventos || {};
         const fecha = evento.fecha_inicio
@@ -1558,21 +1575,21 @@ async function generarReconocimientoPonente(id) {
       .join("\n");
 
     const eventoIndex = prompt(
-      `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participaciones.length}):`
+      `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participacionesConEventos.length}):`
     );
 
     if (!eventoIndex) return;
 
     const idx = parseInt(eventoIndex) - 1;
-    if (isNaN(idx) || idx < 0 || idx >= participaciones.length) {
+    if (isNaN(idx) || idx < 0 || idx >= participacionesConEventos.length) {
       showToast("Selección inválida", "error");
       return;
     }
 
-    const seleccion = participaciones[idx];
+    const seleccion = participacionesConEventos[idx];
     const evento = seleccion.eventos || {};
 
-    // Datos del evento DESDE LA BD
+    // Datos del evento
     const nombreEvento = evento.nombre || "Evento sin nombre";
     const fecha = evento.fecha_inicio
       ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
