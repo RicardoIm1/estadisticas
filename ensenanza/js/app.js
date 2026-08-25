@@ -15,6 +15,7 @@ let state = {
   eventos: [],
   participaciones: [],
   ponentes: [],
+  participacionesPonentes: [],
   currentFilter: "todos",
   editingId: null,
   currentTable: "internos",
@@ -311,7 +312,6 @@ function openFormInterno() {
         <input type="text" id="f_telefono_emergencia" placeholder="(55) 1234-5678" />
       </div>
 
-      <!-- 👇 CAMPO DE FOTO CON BOTONES SUBIR Y CÁMARA -->
       <div class="form-group photo-group">
         <label>Foto</label>
         <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
@@ -382,7 +382,6 @@ async function guardarInterno(event) {
   try {
     let result;
 
-    // Si hay foto, subirla
     let foto_url = null;
     if (currentPhotoFile) {
       const fileExt = currentPhotoFile.name.split(".").pop();
@@ -463,7 +462,6 @@ async function editarInterno(id) {
 
     state.editingId = id;
 
-    // Determinar si tiene foto
     const tieneFoto = data.foto_url && data.foto_url.length > 0;
 
     const content = `
@@ -537,7 +535,6 @@ async function editarInterno(id) {
           </select>
         </div>
 
-        <!-- 👇 CAMPO DE FOTO CON BOTONES SUBIR Y CÁMARA (PARA EDITAR) -->
         <div class="form-group photo-group">
           <label>Foto</label>
           <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
@@ -593,49 +590,6 @@ async function eliminarInterno(id) {
     console.error("Error:", error);
     showToast("Error al eliminar: " + error.message, "error");
   }
-}
-
-function verExpediente(id) {
-  const interno = state.internos.find((i) => i.id === id);
-  if (!interno) {
-    showToast("Interno no encontrado", "error");
-    return;
-  }
-
-  const iniciales = interno.nombre
-    .split(" ")
-    .filter((p) => p.length > 0)
-    .map((p) => p[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-
-  const content = `
-    <h3><i class="fas fa-id-card"></i> Expediente</h3>
-    <div style="background: linear-gradient(145deg, #0f2b5e, #1a56db); border-radius: 12px; padding: 20px; color: white;">
-      <div style="display: flex; gap: 16px; align-items: center;">
-        <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; flex-shrink: 0;">
-          ${interno.foto_url ? `<img src="${interno.foto_url}" style="width:64px;height:64px;border-radius:50%;object-fit:cover;" />` : iniciales}
-        </div>
-        <div>
-          <div style="font-size: 18px; font-weight: 800; text-transform: uppercase;">${interno.nombre}</div>
-          <div style="font-size: 13px; opacity: 0.8;"><i class="fas fa-id-card"></i> ${interno.matricula}</div>
-          <div style="font-size: 13px; opacity: 0.8;"><i class="fas fa-university"></i> ${interno.universidad}</div>
-          <div style="font-size: 13px; opacity: 0.8;"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
-          <div style="margin-top: 6px;"><span class="status-badge ${interno.estatus}">${interno.estatus}</span></div>
-        </div>
-      </div>
-      <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1); display: flex; gap: 10px;">
-        <button onclick="closeModal(); generarReconocimiento('${interno.id}')" style="background: #059669; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-          <i class="fas fa-award"></i> Reconocimiento
-        </button>
-        <button onclick="closeModal(); imprimirCredencialIndividual('${interno.id}')" style="background: #2563eb; color: white; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-          <i class="fas fa-print"></i> Credencial
-        </button>
-      </div>
-    </div>
-  `;
-  openModal(content);
 }
 
 // ============================================================
@@ -842,7 +796,7 @@ async function eliminarEvento(id) {
 }
 
 // ============================================================
-// CRUD - PARTICIPACIONES
+// CRUD - PARTICIPACIONES DE INTERNOS
 // ============================================================
 async function cargarParticipaciones() {
   try {
@@ -858,7 +812,7 @@ async function cargarParticipaciones() {
         `
         *,
         internos:interno_id (id, nombre, matricula),
-        eventos:evento_id (id, nombre, tipo)
+        eventos:evento_id (id, nombre, tipo, fecha_inicio, horas, lugar)
       `,
       )
       .order("created_at", { ascending: false });
@@ -870,7 +824,6 @@ async function cargarParticipaciones() {
       data.length;
   } catch (error) {
     console.error("Error cargando participaciones:", error);
-    // No mostrar toast para no molestar al usuario
   }
 }
 
@@ -1330,10 +1283,7 @@ async function eliminarPonente(id) {
 }
 
 // ============================================================
-// GENERAR RECONOCIMIENTO
-// ============================================================
-// ============================================================
-// GENERAR RECONOCIMIENTO (USANDO DATOS DE LA TABLA EVENTOS)
+// GENERAR RECONOCIMIENTO PARA INTERNO (USA DATOS DE LA BD)
 // ============================================================
 async function generarReconocimiento(internoId) {
   try {
@@ -1343,23 +1293,33 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
-    // Obtener eventos del interno
-    const participaciones = await cargarParticipacionesInternos(internoId);
+    // Obtener participaciones del interno con datos del evento
+    const { data: participaciones, error } = await supabaseClient
+      .from("participaciones_internos")
+      .select(
+        `
+        *,
+        eventos:evento_id (*)
+      `,
+      )
+      .eq("interno_id", internoId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
 
     if (!participaciones || participaciones.length === 0) {
       showToast("Este interno no tiene eventos registrados", "warning");
       return;
     }
 
-    // Crear lista de eventos para seleccionar
+    // Mostrar selector de eventos
     let eventosList = participaciones
       .map((p, i) => {
         const evento = p.eventos || {};
-        return `${i + 1}. ${evento.nombre || "Sin nombre"} (${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX") : "Sin fecha"}) - ${evento.horas || 0}h`;
+        return `${i + 1}. ${evento.nombre || "Sin nombre"} - ${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX") : "Sin fecha"}`;
       })
       .join("\n");
 
-    // Mostrar selector de eventos
     const eventoIndex = prompt(
       `Selecciona el evento para el reconocimiento:\n\n${eventosList}\n\nNúmero del evento (1-${participaciones.length}):`,
     );
@@ -1372,56 +1332,65 @@ async function generarReconocimiento(internoId) {
       return;
     }
 
-    const eventoSeleccionado = participaciones[idx].eventos || {};
+    const seleccion = participaciones[idx];
+    const evento = seleccion.eventos || {};
 
-    // Solicitar solo el nombre del ponente (lo demás viene de la tabla)
-    const nombrePonente = prompt("Nombre del ponente:");
-    if (!nombrePonente) return;
+    // Obtener el ponente asociado a este evento (si existe)
+    let ponenteNombre = "Ponente no asignado";
+    if (evento.ponente_id) {
+      const { data: ponenteData } = await supabaseClient
+        .from("ponentes")
+        .select("nombre")
+        .eq("id", evento.ponente_id)
+        .single();
+      if (ponenteData) ponenteNombre = ponenteData.nombre;
+    }
 
-    // Datos del evento desde la tabla
-    const nombreEvento = eventoSeleccionado.nombre || "Evento sin nombre";
-    const fecha = eventoSeleccionado.fecha_inicio
-      ? new Date(eventoSeleccionado.fecha_inicio).toLocaleDateString("es-MX")
+    // Datos del evento
+    const nombreEvento = evento.nombre || "Evento sin nombre";
+    const fecha = evento.fecha_inicio
+      ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })
       : "Fecha no especificada";
-    const horas = eventoSeleccionado.horas || 0;
-    const lugar =
-      eventoSeleccionado.lugar || "Hospital Regional Puerto Vallarta";
+    const horas = seleccion.horas_impartidas || evento.horas || 0;
+    const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
+    const tipoEvento = evento.tipo || "evento";
 
     const contenido = `
-      <div style="text-align: center; padding: 30px; border: 3px solid #1a56db; border-radius: 16px; max-width: 600px; margin: 0 auto; background: white;">
-        <div style="font-size: 56px; color: #f59e0b; margin-bottom: 10px;">
+      <div class="reconocimiento-container" style="max-width: 650px; margin: 0 auto; padding: 40px 30px; border: 3px solid #1a56db; border-radius: 16px; background: white; text-align: center;">
+        <div style="font-size: 64px; color: #f59e0b; margin-bottom: 10px;">
           <i class="fas fa-award"></i>
         </div>
-        <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Reconocimiento</h2>
-        <p style="color: #475569; font-size: 14px; margin: 12px 0;">Se otorga el presente reconocimiento a:</p>
-        <h3 style="font-size: 24px; font-weight: 700; color: #1a56db; text-transform: uppercase; margin: 12px 0;">${nombrePonente}</h3>
-        <p style="color: #475569; font-size: 14px; margin: 8px 0;">Por su valiosa participación como <strong>PONENTE</strong> en el evento:</p>
-        <h4 style="font-size: 20px; font-weight: 700; color: #0f172a; text-transform: uppercase;">${nombreEvento}</h4>
-        <div style="margin: 12px 0; padding: 8px; background: #f8fafc; border-radius: 8px; font-size: 13px; color: #475569;">
-          <p><i class="fas fa-calendar-alt"></i> Fecha: ${fecha}</p>
-          <p><i class="fas fa-clock"></i> Duración: ${horas} horas</p>
-          <p><i class="fas fa-map-marker-alt"></i> Lugar: ${lugar}</p>
+        <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 1px;">Reconocimiento</h2>
+        <p style="color: #475569; font-size: 15px; margin: 16px 0 8px 0;">Se otorga el presente reconocimiento a:</p>
+        <h3 style="font-size: 26px; font-weight: 700; color: #1a56db; text-transform: uppercase; margin: 8px 0 4px 0;">${interno.nombre}</h3>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
+          <i class="fas fa-id-card"></i> ${interno.matricula} &nbsp;|&nbsp; ${interno.universidad}
+        </p>
+        <p style="color: #475569; font-size: 15px; margin: 8px 0;">Por su valiosa participación como <strong>INTERNO</strong> en el ${tipoEvento}:</p>
+        <h4 style="font-size: 22px; font-weight: 700; color: #0f172a; text-transform: uppercase; margin: 8px 0;">${nombreEvento}</h4>
+        <div style="margin: 16px auto; padding: 14px 20px; background: #f8fafc; border-radius: 12px; max-width: 450px; font-size: 14px; color: #475569; text-align: left; border: 1px solid #e2e8f0;">
+          <p style="margin: 4px 0;"><i class="fas fa-calendar-alt" style="width: 24px; color: #1a56db;"></i> <strong>Fecha:</strong> ${fecha}</p>
+          <p style="margin: 4px 0;"><i class="fas fa-clock" style="width: 24px; color: #1a56db;"></i> <strong>Duración:</strong> ${horas} horas</p>
+          <p style="margin: 4px 0;"><i class="fas fa-map-marker-alt" style="width: 24px; color: #1a56db;"></i> <strong>Lugar:</strong> ${lugar}</p>
+          <p style="margin: 4px 0;"><i class="fas fa-chalkboard-teacher" style="width: 24px; color: #1a56db;"></i> <strong>Ponente:</strong> ${ponenteNombre}</p>
         </div>
         <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
-          <p style="font-size: 12px; color: #94a3b8;">Hospital Regional Puerto Vallarta</p>
-          <p style="font-size: 10px; color: #cbd5e1; margin-top: 4px;">Documento generado electrónicamente</p>
+          <p style="font-size: 14px; font-weight: 600; color: #0f172a;">Hospital Regional Puerto Vallarta</p>
+          <p style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Documento generado electrónicamente</p>
         </div>
+      </div>
+      <div class="form-actions" style="margin-top: 20px; justify-content: center;">
+        <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
+        <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
       </div>
     `;
 
-    // Cerrar modal actual y abrir reconocimiento
     closeModal();
     openModal(contenido);
-
-    // Cambiar botón de impresión
-    document.querySelector(".modal .modal-actions")?.remove();
-    const actions = document.createElement("div");
-    actions.className = "form-actions";
-    actions.innerHTML = `
-      <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
-      <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
-    `;
-    document.querySelector(".modal").appendChild(actions);
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar reconocimiento: " + error.message, "error");
@@ -1429,31 +1398,7 @@ async function generarReconocimiento(internoId) {
 }
 
 // ============================================================
-// FUNCIÓN PARA CARGAR PARTICIPACIONES DE UN INTERNO
-// ============================================================
-async function cargarParticipacionesInternos(internoId) {
-  try {
-    const { data, error } = await supabaseClient
-      .from("participaciones_internos")
-      .select(
-        `
-        *,
-        eventos:evento_id (*)
-      `,
-      )
-      .eq("interno_id", internoId)
-      .order("created_at", { ascending: false });
-
-    if (error) throw error;
-    return data || [];
-  } catch (error) {
-    console.error("Error cargando participaciones:", error);
-    return [];
-  }
-}
-
-// ============================================================
-// GENERAR RECONOCIMIENTO PARA PONENTE (USANDO TABLA EVENTOS)
+// GENERAR RECONOCIMIENTO PARA PONENTE (USA DATOS DE LA BD)
 // ============================================================
 async function generarReconocimientoPonente(id) {
   try {
@@ -1463,7 +1408,7 @@ async function generarReconocimientoPonente(id) {
       return;
     }
 
-    // Obtener eventos del ponente
+    // Obtener eventos del ponente desde la tabla participaciones_ponentes
     const { data: participaciones, error } = await supabaseClient
       .from("participaciones_ponentes")
       .select(
@@ -1482,11 +1427,11 @@ async function generarReconocimientoPonente(id) {
       return;
     }
 
-    // Crear lista de eventos
+    // Mostrar selector de eventos
     let eventosList = participaciones
       .map((p, i) => {
         const evento = p.eventos || {};
-        return `${i + 1}. ${evento.nombre || "Sin nombre"} (${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX") : "Sin fecha"}) - Rol: ${p.rol || "ponente"}`;
+        return `${i + 1}. ${evento.nombre || "Sin nombre"} - ${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX") : "Sin fecha"} (${p.rol || "ponente"})`;
       })
       .join("\n");
 
@@ -1507,44 +1452,49 @@ async function generarReconocimientoPonente(id) {
 
     const nombreEvento = evento.nombre || "Evento sin nombre";
     const fecha = evento.fecha_inicio
-      ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX")
+      ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
+          day: "2-digit",
+          month: "long",
+          year: "numeric",
+        })
       : "Fecha no especificada";
     const horas = seleccion.horas_impartidas || evento.horas || 0;
-    const rol = seleccion.rol || "ponente";
+    const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
+    const rol = seleccion.rol || "PONENTE";
+    const tipoEvento = evento.tipo || "evento";
 
     const contenido = `
-      <div style="text-align: center; padding: 30px; border: 3px solid #1a56db; border-radius: 16px; max-width: 600px; margin: 0 auto; background: white;">
-        <div style="font-size: 56px; color: #f59e0b; margin-bottom: 10px;">
+      <div class="reconocimiento-container" style="max-width: 650px; margin: 0 auto; padding: 40px 30px; border: 3px solid #1a56db; border-radius: 16px; background: white; text-align: center;">
+        <div style="font-size: 64px; color: #f59e0b; margin-bottom: 10px;">
           <i class="fas fa-award"></i>
         </div>
-        <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; text-transform: uppercase;">Reconocimiento</h2>
-        <p style="color: #475569; font-size: 14px; margin: 12px 0;">Se otorga el presente reconocimiento a:</p>
-        <h3 style="font-size: 24px; font-weight: 700; color: #1a56db; text-transform: uppercase; margin: 12px 0;">${ponente.nombre}</h3>
-        <p style="color: #475569; font-size: 14px; margin: 8px 0;">Por su valiosa participación como <strong>${rol.toUpperCase()}</strong> en el evento:</p>
-        <h4 style="font-size: 20px; font-weight: 700; color: #0f172a; text-transform: uppercase;">${nombreEvento}</h4>
-        <div style="margin: 12px 0; padding: 8px; background: #f8fafc; border-radius: 8px; font-size: 13px; color: #475569;">
-          <p><i class="fas fa-calendar-alt"></i> Fecha: ${fecha}</p>
-          <p><i class="fas fa-clock"></i> Horas impartidas: ${horas}</p>
-          <p><i class="fas fa-map-marker-alt"></i> Lugar: ${evento.lugar || "Hospital Regional Puerto Vallarta"}</p>
+        <h2 style="font-size: 28px; font-weight: 800; color: #0f172a; text-transform: uppercase; letter-spacing: 1px;">Reconocimiento</h2>
+        <p style="color: #475569; font-size: 15px; margin: 16px 0 8px 0;">Se otorga el presente reconocimiento a:</p>
+        <h3 style="font-size: 26px; font-weight: 700; color: #1a56db; text-transform: uppercase; margin: 8px 0 4px 0;">${ponente.nombre}</h3>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">
+          ${ponente.especialidad ? `<i class="fas fa-stethoscope"></i> ${ponente.especialidad} &nbsp;|&nbsp;` : ""}
+          ${ponente.institucion ? ponente.institucion : ""}
+        </p>
+        <p style="color: #475569; font-size: 15px; margin: 8px 0;">Por su valiosa participación como <strong>${rol.toUpperCase()}</strong> en el ${tipoEvento}:</p>
+        <h4 style="font-size: 22px; font-weight: 700; color: #0f172a; text-transform: uppercase; margin: 8px 0;">${nombreEvento}</h4>
+        <div style="margin: 16px auto; padding: 14px 20px; background: #f8fafc; border-radius: 12px; max-width: 450px; font-size: 14px; color: #475569; text-align: left; border: 1px solid #e2e8f0;">
+          <p style="margin: 4px 0;"><i class="fas fa-calendar-alt" style="width: 24px; color: #1a56db;"></i> <strong>Fecha:</strong> ${fecha}</p>
+          <p style="margin: 4px 0;"><i class="fas fa-clock" style="width: 24px; color: #1a56db;"></i> <strong>Horas impartidas:</strong> ${horas}</p>
+          <p style="margin: 4px 0;"><i class="fas fa-map-marker-alt" style="width: 24px; color: #1a56db;"></i> <strong>Lugar:</strong> ${lugar}</p>
         </div>
         <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0;">
-          <p style="font-size: 12px; color: #94a3b8;">Hospital Regional Puerto Vallarta</p>
-          <p style="font-size: 10px; color: #cbd5e1; margin-top: 4px;">Documento generado electrónicamente</p>
+          <p style="font-size: 14px; font-weight: 600; color: #0f172a;">Hospital Regional Puerto Vallarta</p>
+          <p style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Documento generado electrónicamente</p>
         </div>
+      </div>
+      <div class="form-actions" style="margin-top: 20px; justify-content: center;">
+        <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
+        <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
       </div>
     `;
 
     closeModal();
     openModal(contenido);
-
-    document.querySelector(".modal .modal-actions")?.remove();
-    const actions = document.createElement("div");
-    actions.className = "form-actions";
-    actions.innerHTML = `
-      <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
-      <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
-    `;
-    document.querySelector(".modal").appendChild(actions);
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar reconocimiento: " + error.message, "error");
@@ -1562,16 +1512,59 @@ async function imprimirMultiplesCredenciales() {
       return;
     }
 
-    // Limitar a 6 credenciales por página
     const chunkSize = 6;
     const chunks = [];
     for (let i = 0; i < internos.length; i += chunkSize) {
       chunks.push(internos.slice(i, i + chunkSize));
     }
 
-    // 🔹 CONTENIDO PARA IMPRIMIR (sin botones)
     let printContent = `
-      <div class="credenciales-print">
+      <style>
+        @media print {
+          .credenciales-grid { display: grid !important; grid-template-columns: repeat(3, 1fr) !important; gap: 8mm !important; padding: 5mm !important; }
+          .credencial-print { border: 2px solid #1a56db !important; border-radius: 8px !important; padding: 12px !important; background: white !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+          .credencial-print .header { text-align: center; border-bottom: 2px solid #1a56db; padding-bottom: 6px; margin-bottom: 10px; }
+          .credencial-print .header h3 { font-size: 12px; font-weight: 800; color: #0f172a; margin: 0; }
+          .credencial-print .header p { font-size: 8px; color: #64748b; margin: 0; }
+          .credencial-print .body { display: flex; gap: 10px; align-items: center; }
+          .credencial-print .foto { width: 50px; height: 50px; border-radius: 50%; border: 2px solid #e2e8f0; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f1f4f9; font-weight: 700; font-size: 18px; }
+          .credencial-print .foto img { width: 100%; height: 100%; object-fit: cover; }
+          .credencial-print .info { flex: 1; min-width: 0; }
+          .credencial-print .info .nombre { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #0f172a; line-height: 1.2; }
+          .credencial-print .info .detail { font-size: 8px; color: #475569; line-height: 1.3; }
+          .credencial-print .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
+          .credencial-print .footer .qr { width: 35px; height: 35px; }
+          .credencial-print .footer .status { font-size: 7px; font-weight: 700; padding: 2px 10px; border-radius: 12px; text-transform: uppercase; }
+          .credencial-print .footer .status.activo { background: #dcfce7; color: #166534; }
+          .credencial-print .footer .status.inactivo { background: #fee2e2; color: #991b1b; }
+          .print-buttons { display: none !important; }
+          .modal-close { display: none !important; }
+          @page { size: Letter portrait; margin: 5mm; }
+        }
+        .credenciales-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 16px; max-width: 1000px; margin: 0 auto; }
+        .credencial-print { border: 2px solid #1a56db; border-radius: 12px; padding: 16px; background: white; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .credencial-print .header { text-align: center; border-bottom: 2px solid #1a56db; padding-bottom: 8px; margin-bottom: 12px; }
+        .credencial-print .header h3 { font-size: 14px; font-weight: 800; color: #0f172a; margin: 0; }
+        .credencial-print .header p { font-size: 10px; color: #64748b; margin: 0; }
+        .credencial-print .body { display: flex; gap: 12px; align-items: center; }
+        .credencial-print .foto { width: 60px; height: 60px; border-radius: 50%; border: 2px solid #e2e8f0; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #f1f4f9; font-weight: 700; font-size: 22px; }
+        .credencial-print .foto img { width: 100%; height: 100%; object-fit: cover; }
+        .credencial-print .info { flex: 1; min-width: 0; }
+        .credencial-print .info .nombre { font-size: 12px; font-weight: 800; text-transform: uppercase; color: #0f172a; }
+        .credencial-print .info .detail { font-size: 10px; color: #475569; }
+        .credencial-print .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid #e2e8f0; }
+        .credencial-print .footer .qr { width: 40px; height: 40px; }
+        .credencial-print .footer .status { font-size: 9px; font-weight: 700; padding: 3px 12px; border-radius: 12px; text-transform: uppercase; }
+        .credencial-print .footer .status.activo { background: #dcfce7; color: #166534; }
+        .credencial-print .footer .status.inactivo { background: #fee2e2; color: #991b1b; }
+        .print-buttons { text-align: center; margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0; }
+        .print-buttons button { padding: 10px 32px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 14px; margin: 0 8px; }
+        .print-buttons .btn-print { background: #2563eb; color: white; }
+        .print-buttons .btn-print:hover { background: #1d4ed8; }
+        .print-buttons .btn-cerrar { background: #f1f4f9; color: #475569; }
+        .print-buttons .btn-cerrar:hover { background: #e2e8f0; }
+      </style>
+      <h3 style="text-align:center; margin-bottom:16px;"><i class="fas fa-id-card"></i> Credenciales de Internos Activos</h3>
     `;
 
     chunks.forEach((chunk, pageIndex) => {
@@ -1579,8 +1572,7 @@ async function imprimirMultiplesCredenciales() {
         printContent += `<div style="page-break-after: always;"></div>`;
       }
       printContent += `<div class="credenciales-grid">`;
-      chunk.forEach((interno, index) => {
-        const globalIndex = pageIndex * chunkSize + index;
+      chunk.forEach((interno) => {
         const iniciales = interno.nombre
           .split(" ")
           .filter((p) => p.length > 0)
@@ -1589,34 +1581,28 @@ async function imprimirMultiplesCredenciales() {
           .slice(0, 2)
           .toUpperCase();
 
-        const qrId = `qr-${globalIndex}`;
+        const qrId = `qr-${Math.random().toString(36).substr(2, 6)}`;
 
         printContent += `
-          <div class="credencial-item">
-            <div class="credencial-print">
-              <div class="header">
-                <h3>Hospital Regional PV</h3>
-                <p>Credencial de Interno</p>
+          <div class="credencial-print">
+            <div class="header">
+              <h3>🏥 Hospital Regional PV</h3>
+              <p>Credencial de Interno</p>
+            </div>
+            <div class="body">
+              <div class="foto">
+                ${interno.foto_url ? `<img src="${interno.foto_url}" />` : iniciales}
               </div>
-              <div class="body">
-                <div class="foto">
-                  ${
-                    interno.foto_url
-                      ? `<img src="${interno.foto_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`
-                      : iniciales
-                  }
-                </div>
-                <div class="info">
-                  <div class="nombre">${interno.nombre}</div>
-                  <div class="detail"><i class="fas fa-id-card"></i> ${interno.matricula}</div>
-                  <div class="detail"><i class="fas fa-university"></i> ${interno.universidad}</div>
-                  <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
-                </div>
+              <div class="info">
+                <div class="nombre">${interno.nombre}</div>
+                <div class="detail"><i class="fas fa-id-card" style="width:14px;"></i> ${interno.matricula}</div>
+                <div class="detail"><i class="fas fa-university" style="width:14px;"></i> ${interno.universidad}</div>
+                <div class="detail"><i class="fas fa-graduation-cap" style="width:14px;"></i> ${interno.carrera}</div>
               </div>
-              <div class="footer">
-                <div class="qr" id="${qrId}"></div>
-                <span class="status activo">ACTIVO</span>
-              </div>
+            </div>
+            <div class="footer">
+              <div class="qr" id="${qrId}"></div>
+              <span class="status ${interno.estatus}">${interno.estatus}</span>
             </div>
           </div>
         `;
@@ -1624,36 +1610,34 @@ async function imprimirMultiplesCredenciales() {
       printContent += `</div>`;
     });
 
-    printContent += `</div>`;
-
-    // 🔹 BOTONES (solo para pantalla)
-    const buttonsHTML = `
-      <div class="print-buttons" style="text-align:center; margin-top:16px; padding-top:16px; border-top:1px solid #e2e8f0;">
-        <button onclick="window.print()" style="background:#2563eb; color:white; border:none; padding:10px 32px; border-radius:8px; font-weight:600; cursor:pointer; font-size:14px;">
-          <i class="fas fa-print"></i> Imprimir
-        </button>
-        <button onclick="closeModal()" style="background:#f1f4f9; color:#475569; border:none; padding:10px 24px; border-radius:8px; font-weight:600; cursor:pointer; font-size:14px; margin-left:8px;">
-          Cerrar
-        </button>
+    printContent += `
+      <div class="print-buttons">
+        <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Imprimir</button>
+        <button class="btn-cerrar" onclick="closeModal()">Cerrar</button>
       </div>
     `;
 
-    // 🔹 UNIR TODO
-    const html = printContent + buttonsHTML;
-    openModal(html);
+    openModal(printContent);
 
     // Generar QR después de renderizar
     setTimeout(() => {
-      internos.forEach((interno, index) => {
-        const container = document.getElementById(`qr-${index}`);
-        if (container) {
-          container.innerHTML = "";
+      document
+        .querySelectorAll(".credencial-print .qr")
+        .forEach((container) => {
           try {
-            const texto = `HRPV|${interno.matricula}|${interno.nombre.substring(0, 15)}`;
+            const credencial = container.closest(".credencial-print");
+            const nombre =
+              credencial?.querySelector(".nombre")?.textContent || "";
+            const matricula =
+              credencial
+                ?.querySelector(".detail")
+                ?.textContent?.replace("", "")
+                ?.trim() || "";
+            const texto = `HRPV|${matricula}|${nombre.substring(0, 15)}`;
             new QRCode(container, {
               text: texto,
-              width: 30,
-              height: 30,
+              width: 35,
+              height: 35,
               colorDark: "#000000",
               colorLight: "#ffffff",
               correctLevel: QRCode.CorrectLevel.L,
@@ -1661,29 +1645,11 @@ async function imprimirMultiplesCredenciales() {
           } catch (e) {
             console.warn("Error generando QR:", e);
           }
-        }
-      });
-    }, 100);
+        });
+    }, 200);
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar credenciales: " + error.message, "error");
-  }
-}
-
-function generarQR(container, interno, size) {
-  try {
-    const texto = `HRPV|${interno.matricula}|${interno.nombre.substring(0, 15)}`;
-    const qr = new QRCode(container, {
-      text: texto,
-      width: size,
-      height: size,
-      colorDark: "#000000",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.L,
-    });
-    return qr;
-  } catch (e) {
-    console.warn("Error generando QR:", e);
   }
 }
 
@@ -1700,33 +1666,53 @@ function imprimirCredencialIndividual(id) {
     .toUpperCase();
 
   const html = `
-    <h3><i class="fas fa-id-card"></i> Credencial</h3>
-    <div style="background: linear-gradient(145deg, #0f2b5e, #1a56db); border-radius: 12px; padding: 20px; color: white; max-width: 340px; margin: 0 auto;">
-      <div style="text-align: center; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 10px; margin-bottom: 12px;">
-        <h3 style="font-size: 16px; font-weight: 800;">Hospital Regional PV</h3>
-        <p style="font-size: 11px; opacity: 0.7;">Credencial de Interno</p>
+    <style>
+      @media print {
+        .no-print { display: none !important; }
+        .modal-close { display: none !important; }
+        .credencial-card { border: 2px solid #1a56db !important; box-shadow: none !important; max-width: 320px !important; margin: 0 auto !important; }
+        @page { size: A6 portrait; margin: 5mm; }
+      }
+      .credencial-card { max-width: 340px; margin: 0 auto; background: linear-gradient(145deg, #0f2b5e, #1a56db); border-radius: 16px; padding: 20px; color: white; }
+      .credencial-card .header { text-align: center; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 10px; margin-bottom: 14px; }
+      .credencial-card .header h3 { font-size: 16px; font-weight: 800; margin: 0; }
+      .credencial-card .header p { font-size: 11px; opacity: 0.7; margin: 0; }
+      .credencial-card .body { display: flex; gap: 14px; align-items: center; }
+      .credencial-card .foto { width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); font-size: 28px; font-weight: 700; }
+      .credencial-card .foto img { width: 100%; height: 100%; object-fit: cover; }
+      .credencial-card .info { flex: 1; min-width: 0; }
+      .credencial-card .info .nombre { font-size: 15px; font-weight: 800; text-transform: uppercase; line-height: 1.2; }
+      .credencial-card .info .detail { font-size: 11px; opacity: 0.85; }
+      .credencial-card .footer { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.12); }
+      .credencial-card .footer .qr { background: white; padding: 4px; border-radius: 8px; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; }
+      .credencial-card .footer .qr canvas { width: 42px !important; height: 42px !important; }
+      .credencial-card .footer .status { font-size: 10px; font-weight: 700; padding: 3px 14px; border-radius: 20px; text-transform: uppercase; }
+      .credencial-card .footer .status.activo { background: #dcfce7; color: #166534; }
+      .credencial-card .footer .status.inactivo { background: #fee2e2; color: #991b1b; }
+    </style>
+    <h3 style="text-align:center; margin-bottom:16px;"><i class="fas fa-id-card"></i> Credencial Individual</h3>
+    <div class="credencial-card">
+      <div class="header">
+        <h3>🏥 Hospital Regional PV</h3>
+        <p>Credencial de Interno</p>
       </div>
-      <div style="display: flex; gap: 14px; align-items: center;">
-        ${
-          interno.foto_url
-            ? `<img src="${interno.foto_url}" style="width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); object-fit: cover; flex-shrink: 0;" />`
-            : `<div style="width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; flex-shrink: 0;">${iniciales}</div>`
-        }
-        <div style="flex: 1; min-width: 0;">
-          <div style="font-size: 16px; font-weight: 800; text-transform: uppercase;">${interno.nombre}</div>
-          <div style="font-size: 12px; opacity: 0.8;"><i class="fas fa-id-card" style="width: 16px;"></i> ${interno.matricula}</div>
-          <div style="font-size: 12px; opacity: 0.8;"><i class="fas fa-university" style="width: 16px;"></i> ${interno.universidad}</div>
-          <div style="font-size: 12px; opacity: 0.8;"><i class="fas fa-graduation-cap" style="width: 16px;"></i> ${interno.carrera}</div>
+      <div class="body">
+        <div class="foto">
+          ${interno.foto_url ? `<img src="${interno.foto_url}" />` : iniciales}
+        </div>
+        <div class="info">
+          <div class="nombre">${interno.nombre}</div>
+          <div class="detail"><i class="fas fa-id-card" style="width:14px;"></i> ${interno.matricula}</div>
+          <div class="detail"><i class="fas fa-university" style="width:14px;"></i> ${interno.universidad}</div>
+          <div class="detail"><i class="fas fa-graduation-cap" style="width:14px;"></i> ${interno.carrera}</div>
         </div>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.12);">
-        <div style="background: white; padding: 4px; border-radius: 8px;">
-          <div id="qr-individual" style="width: 55px; height: 55px;"></div>
-        </div>
-        <span class="status-badge ${interno.estatus}">${interno.estatus}</span>
+      <div class="footer">
+        <div class="qr" id="qr-individual"></div>
+        <span class="status ${interno.estatus}">${interno.estatus}</span>
       </div>
     </div>
-    <div class="form-actions">
+    <div class="form-actions no-print" style="margin-top:20px; justify-content:center;">
       <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
       <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
     </div>
@@ -1737,57 +1723,21 @@ function imprimirCredencialIndividual(id) {
   setTimeout(() => {
     const container = document.getElementById("qr-individual");
     if (container) {
-      container.innerHTML = "";
-      generarQR(container, interno, 35);
+      try {
+        const texto = `HRPV|${interno.matricula}|${interno.nombre.substring(0, 15)}`;
+        new QRCode(container, {
+          text: texto,
+          width: 42,
+          height: 42,
+          colorDark: "#000000",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.L,
+        });
+      } catch (e) {
+        console.warn("Error generando QR:", e);
+      }
     }
-  }, 100);
-}
-
-// ============================================================
-// INICIALIZAR
-// ============================================================
-document.addEventListener("DOMContentLoaded", async function () {
-  await Promise.all([
-    cargarInternos(),
-    cargarEventos(),
-    cargarParticipaciones(),
-    cargarPonentes(),
-  ]);
-
-  console.log("🔍 Panel de Control conectado a Supabase");
-  console.log(
-    `📊 ${state.internos.length} internos, ${state.eventos.length} eventos, ${state.participaciones.length} participaciones, ${state.ponentes.length} ponentes`,
-  );
-});
-
-// Previsualizar foto seleccionada
-function previsualizarFoto(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  if (file.size > 5 * 1024 * 1024) {
-    showToast("La imagen no debe exceder los 5MB", "error");
-    event.target.value = "";
-    return;
-  }
-
-  currentPhotoFile = file;
-
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    const preview = document.getElementById("previewFoto");
-    preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;" />`;
-    preview.style.border = "2px solid #22c55e";
-  };
-  reader.readAsDataURL(file);
-}
-
-function eliminarFoto() {
-  currentPhotoFile = null;
-  const preview = document.getElementById("previewFoto");
-  preview.innerHTML = `<i class="fas fa-user-circle" style="font-size: 40px; color: #94a3b8;"></i>`;
-  preview.style.border = "2px dashed var(--border)";
-  document.getElementById("f_foto").value = "";
+  }, 150);
 }
 
 // ============================================================
@@ -1803,7 +1753,6 @@ async function abrirExpedienteCompleto(id) {
 
     if (errorInterno) throw errorInterno;
 
-    // Obtener participaciones
     let participaciones = [];
     try {
       const { data, error } = await supabaseClient
@@ -1830,7 +1779,6 @@ async function abrirExpedienteCompleto(id) {
       .slice(0, 2)
       .toUpperCase();
 
-    // Generar HTML de eventos
     let eventosHTML = "";
     if (participaciones && participaciones.length > 0) {
       eventosHTML = participaciones
@@ -1863,11 +1811,9 @@ async function abrirExpedienteCompleto(id) {
       `;
     }
 
-    // ✅ CORREGIDO: Mostrar los datos reales del interno
     const content = `
       <div class="expediente-container">
         <div class="expediente-card">
-          <!-- HEADER -->
           <div class="expediente-header">
             <div>
               <h2><i class="fas fa-id-card"></i> Expediente del Interno</h2>
@@ -1878,9 +1824,7 @@ async function abrirExpedienteCompleto(id) {
             </div>
           </div>
 
-          <!-- BODY -->
           <div class="expediente-body">
-            <!-- PERFIL -->
             <div class="expediente-perfil">
               <div class="avatar-large">
                 ${interno.foto_url ? `<img src="${interno.foto_url}" />` : iniciales}
@@ -1903,7 +1847,6 @@ async function abrirExpedienteCompleto(id) {
               </div>
             </div>
 
-            <!-- EVENTOS -->
             <div class="expediente-eventos">
               <div class="eventos-header">
                 <h3><i class="fas fa-calendar-alt"></i> Eventos y Cursos</h3>
@@ -1930,7 +1873,6 @@ async function abrirExpedienteCompleto(id) {
             </div>
           </div>
 
-          <!-- FOOTER -->
           <div class="expediente-footer">
             <div class="qr-section">
               <div class="qr-container" id="modalQR"></div>
@@ -1947,7 +1889,7 @@ async function abrirExpedienteCompleto(id) {
           </div>
         </div>
 
-        <div class="expediente-modal-actions">
+        <div class="expediente-modal-actions no-print">
           <button class="btn-print-exp" onclick="window.print()">
             <i class="fas fa-print"></i> Imprimir Expediente
           </button>
@@ -1960,37 +1902,27 @@ async function abrirExpedienteCompleto(id) {
 
     openModal(content);
 
-    // Generar QR
     setTimeout(() => {
       const qrContainer = document.getElementById("modalQR");
       if (qrContainer) {
-        qrContainer.innerHTML = "";
-        generarQRSimple(qrContainer, interno, 60);
+        try {
+          const texto = `HRPV|${interno.matricula}|${interno.nombre.substring(0, 15)}`;
+          new QRCode(qrContainer, {
+            text: texto,
+            width: 55,
+            height: 55,
+            colorDark: "#000000",
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.L,
+          });
+        } catch (e) {
+          console.warn("Error generando QR:", e);
+        }
       }
-    }, 100);
+    }, 150);
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al cargar el expediente: " + error.message, "error");
-  }
-}
-
-// ============================================================
-// GENERAR QR SIMPLE (para el expediente)
-// ============================================================
-function generarQRSimple(container, interno, size) {
-  try {
-    const texto = `HRPV|${interno.matricula}|${interno.nombre.substring(0, 15)}`;
-    new QRCode(container, {
-      text: texto,
-      width: size,
-      height: size,
-      colorDark: "#000000",
-      colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.L,
-    });
-  } catch (e) {
-    console.warn("Error generando QR:", e);
-    container.innerHTML = `<div style="width:${size}px;height:${size}px;display:flex;align-items:center;justify-content:center;background:#fef2f2;border-radius:8px;font-size:10px;color:#dc2626;">QR Error</div>`;
   }
 }
 
@@ -2109,13 +2041,11 @@ function capturarFoto() {
           type: "image/jpeg",
         });
 
-        // Simular selección de archivo
         const input = document.getElementById("f_foto");
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
         input.files = dataTransfer.files;
 
-        // Disparar evento de cambio
         const event = new Event("change", { bubbles: true });
         input.dispatchEvent(event);
 
@@ -2131,7 +2061,6 @@ function capturarFoto() {
   }
 }
 
-// Cerrar cámara con ESC
 document.addEventListener("keydown", function (e) {
   if (e.key === "Escape") {
     const overlay = document.getElementById("cameraOverlay");
@@ -2140,3 +2069,50 @@ document.addEventListener("keydown", function (e) {
     }
   }
 });
+
+// ============================================================
+// INICIALIZAR
+// ============================================================
+document.addEventListener("DOMContentLoaded", async function () {
+  await Promise.all([
+    cargarInternos(),
+    cargarEventos(),
+    cargarParticipaciones(),
+    cargarPonentes(),
+  ]);
+
+  console.log("🔍 Panel de Control conectado a Supabase");
+  console.log(
+    `📊 ${state.internos.length} internos, ${state.eventos.length} eventos, ${state.participaciones.length} participaciones, ${state.ponentes.length} ponentes`,
+  );
+});
+
+// Previsualizar foto seleccionada
+function previsualizarFoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("La imagen no debe exceder los 5MB", "error");
+    event.target.value = "";
+    return;
+  }
+
+  currentPhotoFile = file;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const preview = document.getElementById("previewFoto");
+    preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;" />`;
+    preview.style.border = "2px solid #22c55e";
+  };
+  reader.readAsDataURL(file);
+}
+
+function eliminarFoto() {
+  currentPhotoFile = null;
+  const preview = document.getElementById("previewFoto");
+  preview.innerHTML = `<i class="fas fa-user-circle" style="font-size: 40px; color: #94a3b8;"></i>`;
+  preview.style.border = "2px dashed var(--border)";
+  document.getElementById("f_foto").value = "";
+}
