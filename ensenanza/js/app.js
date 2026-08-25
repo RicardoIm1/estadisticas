@@ -1391,74 +1391,114 @@ function generarReconocimientoPonente(id) {
 // ============================================================
 async function imprimirMultiplesCredenciales() {
   try {
-    const internos = state.internos.filter((i) => i.estatus === "activo");
+    const internos = state.internos.filter(i => i.estatus === "activo");
     if (!internos || internos.length === 0) {
       showToast("No hay internos activos para imprimir", "warning");
       return;
     }
 
+    // Limitar a 6 credenciales por página
+    const chunkSize = 6;
+    const chunks = [];
+    for (let i = 0; i < internos.length; i += chunkSize) {
+      chunks.push(internos.slice(i, i + chunkSize));
+    }
+
     let html = `
-      <h3><i class="fas fa-print"></i> Credenciales (${internos.length} activos)</h3>
-      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 10px 0;">
+      <div style="padding: 10px;">
+        <h3 style="font-size:18px; font-weight:800; margin-bottom:16px; text-align:center; color:#0f172a;">
+          <i class="fas fa-print"></i> Credenciales (${internos.length} activos)
+        </h3>
     `;
 
-    internos.forEach((interno, index) => {
-      const iniciales = interno.nombre
-        .split(" ")
-        .filter((p) => p.length > 0)
-        .map((p) => p[0])
-        .join("")
-        .slice(0, 2)
-        .toUpperCase();
+    chunks.forEach((chunk, pageIndex) => {
+      if (pageIndex > 0) {
+        html += `<div style="page-break-after: always;"></div>`;
+      }
 
-      html += `
-        <div style="background: linear-gradient(145deg, #0f2b5e, #1a56db); border-radius: 12px; padding: 16px; color: white; border: 2px solid #1a56db; height: 350px; display: flex; flex-direction: column; overflow: hidden;">
-          <div style="text-align: center; border-bottom: 1px solid rgba(255,255,255,0.15); padding-bottom: 6px; margin-bottom: 8px; flex-shrink: 0;">
-            <h3 style="font-size: 12px; font-weight: 800;">Hospital Regional PV</h3>
-            <p style="font-size: 8px; opacity: 0.7;">Credencial de Interno</p>
-          </div>
-          <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-height: 0; overflow: hidden;">
-            ${
-              interno.foto_url
-                ? `<img src="${interno.foto_url}" style="width: 52px; height: 52px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); flex-shrink: 0; object-fit: cover;" />`
-                : `<div style="width: 52px; height: 52px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; flex-shrink: 0;">${iniciales}</div>`
-            }
-            <div style="flex: 1; min-width: 0; overflow: hidden;">
-              <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; white-space: normal; word-wrap: break-word; word-break: break-word; max-height: 28px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${interno.nombre}</div>
-              <div style="font-size: 8.5px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-id-card" style="width: 14px; font-size: 8px;"></i> ${interno.matricula}</div>
-              <div style="font-size: 8.5px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-university" style="width: 14px; font-size: 8px;"></i> ${interno.universidad}</div>
-              <div style="font-size: 8.5px; opacity: 0.8; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><i class="fas fa-graduation-cap" style="width: 14px; font-size: 8px;"></i> ${interno.carrera}</div>
+      html += `<div class="credenciales-grid">`;
+
+      chunk.forEach((interno, index) => {
+        const globalIndex = pageIndex * chunkSize + index;
+        const iniciales = interno.nombre
+          .split(" ")
+          .filter(p => p.length > 0)
+          .map(p => p[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase();
+
+        const qrId = `qr-${globalIndex}`;
+
+        html += `
+          <div class="credencial-item">
+            <div class="credencial-print">
+              <div class="header">
+                <h3>Hospital Regional PV</h3>
+                <p>Credencial de Interno</p>
+              </div>
+              <div class="body">
+                <div class="foto">
+                  ${interno.foto_url
+                    ? `<img src="${interno.foto_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" />`
+                    : iniciales
+                  }
+                </div>
+                <div class="info">
+                  <div class="nombre">${interno.nombre}</div>
+                  <div class="detail"><i class="fas fa-id-card"></i> ${interno.matricula}</div>
+                  <div class="detail"><i class="fas fa-university"></i> ${interno.universidad}</div>
+                  <div class="detail"><i class="fas fa-graduation-cap"></i> ${interno.carrera}</div>
+                </div>
+              </div>
+              <div class="footer">
+                <div class="qr" id="${qrId}"></div>
+                <span class="status activo">ACTIVO</span>
+              </div>
             </div>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,0.12); flex-shrink: 0; height: 44px; overflow: hidden;">
-            <div style="background: white; padding: 3px; border-radius: 6px; flex-shrink: 0;">
-              <div id="qr-${index}" style="width: 38px; height: 38px;"></div>
-            </div>
-            <span style="font-size: 7px; padding: 2px 10px; border-radius: 20px; font-weight: 800; text-transform: uppercase; background: rgba(34,197,94,0.25); color: #86efac; border: 1px solid rgba(34,197,94,0.2);">ACTIVO</span>
-          </div>
-        </div>
-      `;
+        `;
+      });
+
+      html += `</div>`;
     });
 
-    html += `</div>`;
     html += `
-      <div class="form-actions">
-        <button onclick="window.print()" class="btn-save"><i class="fas fa-print"></i> Imprimir</button>
-        <button onclick="closeModal()" class="btn-cancel">Cerrar</button>
+      <div style="text-align:center; margin-top:16px; padding-top:16px; border-top:1px solid #e2e8f0;">
+        <button onclick="window.print()" style="background:#2563eb; color:white; border:none; padding:10px 32px; border-radius:8px; font-weight:600; cursor:pointer; font-size:14px;">
+          <i class="fas fa-print"></i> Imprimir
+        </button>
+        <button onclick="closeModal()" style="background:#f1f4f9; color:#475569; border:none; padding:10px 24px; border-radius:8px; font-weight:600; cursor:pointer; font-size:14px; margin-left:8px;">
+          Cerrar
+        </button>
       </div>
-    `;
+    </div>`;
 
     openModal(html);
 
+    // Generar QR después de renderizar
     setTimeout(() => {
       internos.forEach((interno, index) => {
         const container = document.getElementById(`qr-${index}`);
         if (container) {
           container.innerHTML = "";
-          generarQR(container, interno, 60);
+          try {
+            const texto = `HRPV|${interno.matricula}|${interno.nombre.substring(0, 15)}`;
+            new QRCode(container, {
+              text: texto,
+              width: 30,
+              height: 30,
+              colorDark: "#000000",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.L
+            });
+          } catch (e) {
+            console.warn("Error generando QR:", e);
+          }
         }
       });
     }, 100);
+
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar credenciales: " + error.message, "error");
