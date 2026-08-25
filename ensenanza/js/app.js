@@ -2116,3 +2116,311 @@ function eliminarFoto() {
   preview.style.border = "2px dashed var(--border)";
   document.getElementById("f_foto").value = "";
 }
+
+// ============================================================
+// IMPRIMIR CREDENCIALES - VERSIÓN MEJORADA CON SCROLL
+// ============================================================
+async function imprimirMultiplesCredenciales() {
+  try {
+    const internos = state.internos.filter((i) => i.estatus === "activo");
+    if (!internos || internos.length === 0) {
+      showToast("No hay internos activos para imprimir", "warning");
+      return;
+    }
+
+    const chunkSize = 6;
+    const chunks = [];
+    for (let i = 0; i < internos.length; i += chunkSize) {
+      chunks.push(internos.slice(i, i + chunkSize));
+    }
+
+    let printContent = `
+      <style>
+        .credenciales-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          padding: 16px;
+          max-width: 1000px;
+          margin: 0 auto;
+          max-height: 65vh;
+          overflow-y: auto;
+        }
+        .credenciales-grid::-webkit-scrollbar {
+          width: 8px;
+        }
+        .credenciales-grid::-webkit-scrollbar-track {
+          background: #f1f4f9;
+          border-radius: 4px;
+        }
+        .credenciales-grid::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 4px;
+        }
+        .credenciales-grid::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
+        }
+        .credencial-print {
+          border: 2px solid #1a56db;
+          border-radius: 12px;
+          padding: 16px;
+          background: white;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+          page-break-inside: avoid;
+          break-inside: avoid;
+        }
+        .credencial-print .header {
+          text-align: center;
+          border-bottom: 2px solid #1a56db;
+          padding-bottom: 8px;
+          margin-bottom: 12px;
+        }
+        .credencial-print .header h3 {
+          font-size: 14px;
+          font-weight: 800;
+          color: #0f172a;
+          margin: 0;
+        }
+        .credencial-print .header p {
+          font-size: 10px;
+          color: #64748b;
+          margin: 0;
+        }
+        .credencial-print .body {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+        }
+        .credencial-print .foto {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          border: 2px solid #e2e8f0;
+          flex-shrink: 0;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #f1f4f9;
+          font-weight: 700;
+          font-size: 22px;
+        }
+        .credencial-print .foto img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        .credencial-print .info {
+          flex: 1;
+          min-width: 0;
+        }
+        .credencial-print .info .nombre {
+          font-size: 12px;
+          font-weight: 800;
+          text-transform: uppercase;
+          color: #0f172a;
+          line-height: 1.2;
+        }
+        .credencial-print .info .detail {
+          font-size: 10px;
+          color: #475569;
+          line-height: 1.3;
+        }
+        .credencial-print .footer {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-top: 10px;
+          padding-top: 10px;
+          border-top: 1px solid #e2e8f0;
+        }
+        .credencial-print .footer .qr {
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .credencial-print .footer .qr canvas {
+          width: 36px !important;
+          height: 36px !important;
+        }
+        .credencial-print .footer .status {
+          font-size: 9px;
+          font-weight: 700;
+          padding: 3px 12px;
+          border-radius: 12px;
+          text-transform: uppercase;
+        }
+        .credencial-print .footer .status.activo {
+          background: #dcfce7;
+          color: #166534;
+        }
+        .credencial-print .footer .status.inactivo {
+          background: #fee2e2;
+          color: #991b1b;
+        }
+        .print-header {
+          text-align: center;
+          margin-bottom: 16px;
+          padding: 12px;
+          background: #f8fafc;
+          border-radius: 12px;
+          border: 1px solid #e2e8f0;
+        }
+        .print-header h3 {
+          margin: 0;
+          font-size: 18px;
+          font-weight: 800;
+          color: #0f172a;
+        }
+        .print-header p {
+          margin: 4px 0 0 0;
+          font-size: 13px;
+          color: #64748b;
+        }
+        .print-buttons {
+          text-align: center;
+          margin-top: 20px;
+          padding-top: 16px;
+          border-top: 1px solid #e2e8f0;
+        }
+        .print-buttons button {
+          padding: 10px 32px;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          font-size: 14px;
+          margin: 0 8px;
+        }
+        .print-buttons .btn-print {
+          background: #2563eb;
+          color: white;
+        }
+        .print-buttons .btn-print:hover {
+          background: #1d4ed8;
+        }
+        .print-buttons .btn-cerrar {
+          background: #f1f4f9;
+          color: #475569;
+        }
+        .print-buttons .btn-cerrar:hover {
+          background: #e2e8f0;
+        }
+        .contador-credenciales {
+          text-align: center;
+          font-size: 13px;
+          color: #64748b;
+          margin-bottom: 12px;
+        }
+        .contador-credenciales strong {
+          color: #0f172a;
+        }
+        @media print {
+          .no-print { display: none !important; }
+          .modal-close { display: none !important; }
+          .credenciales-grid { max-height: none !important; overflow: visible !important; }
+          .credencial-print { box-shadow: none !important; page-break-inside: avoid !important; break-inside: avoid !important; }
+          .print-header { background: #f8fafc !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .credencial-print .footer .status.activo { background: #dcfce7 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          .credencial-print .footer .status.inactivo { background: #fee2e2 !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          @page { size: Letter portrait; margin: 5mm; }
+          .credencial-print { page-break-inside: avoid !important; break-inside: avoid !important; }
+        }
+      </style>
+      
+      <div class="print-header no-print">
+        <h3><i class="fas fa-id-card"></i> Credenciales de Internos Activos</h3>
+        <p>Total: <strong>${internos.length}</strong> internos activos · ${Math.ceil(internos.length / chunkSize)} páginas</p>
+      </div>
+      
+      <div class="contador-credenciales no-print">
+        <i class="fas fa-print"></i> Vista previa de impresión - <strong>${internos.length}</strong> credenciales
+      </div>
+    `;
+
+    chunks.forEach((chunk, pageIndex) => {
+      if (pageIndex > 0) {
+        printContent += `<div style="page-break-after: always;"></div>`;
+      }
+      printContent += `<div class="credenciales-grid">`;
+      chunk.forEach((interno) => {
+        const iniciales = interno.nombre
+          .split(" ")
+          .filter((p) => p.length > 0)
+          .map((p) => p[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase();
+
+        const qrId = `qr-${Math.random().toString(36).substr(2, 6)}`;
+
+        printContent += `
+          <div class="credencial-print">
+            <div class="header">
+              <h3>🏥 Hospital Regional PV</h3>
+              <p>Credencial de Interno</p>
+            </div>
+            <div class="body">
+              <div class="foto">
+                ${interno.foto_url ? `<img src="${interno.foto_url}" />` : iniciales}
+              </div>
+              <div class="info">
+                <div class="nombre">${interno.nombre}</div>
+                <div class="detail"><i class="fas fa-id-card" style="width:14px;"></i> ${interno.matricula}</div>
+                <div class="detail"><i class="fas fa-university" style="width:14px;"></i> ${interno.universidad}</div>
+                <div class="detail"><i class="fas fa-graduation-cap" style="width:14px;"></i> ${interno.carrera}</div>
+              </div>
+            </div>
+            <div class="footer">
+              <div class="qr" id="${qrId}"></div>
+              <span class="status ${interno.estatus}">${interno.estatus}</span>
+            </div>
+          </div>
+        `;
+      });
+      printContent += `</div>`;
+    });
+
+    printContent += `
+      <div class="print-buttons no-print">
+        <button class="btn-print" onclick="window.print()"><i class="fas fa-print"></i> Imprimir (${internos.length} credenciales)</button>
+        <button class="btn-cerrar" onclick="closeModal()"><i class="fas fa-times"></i> Cerrar</button>
+      </div>
+    `;
+
+    openModal(printContent);
+
+    // Generar QR después de renderizar
+    setTimeout(() => {
+      document
+        .querySelectorAll(".credencial-print .qr")
+        .forEach((container) => {
+          try {
+            const credencial = container.closest(".credencial-print");
+            const nombre =
+              credencial?.querySelector(".nombre")?.textContent || "";
+            const matriculaEl =
+              credencial?.querySelector(".detail")?.textContent || "";
+            const matricula =
+              matriculaEl.replace(/[^0-9]/g, "").trim() || "000000";
+            const texto = `HRPV|${matricula}|${nombre.substring(0, 15)}`;
+            new QRCode(container, {
+              text: texto,
+              width: 36,
+              height: 36,
+              colorDark: "#000000",
+              colorLight: "#ffffff",
+              correctLevel: QRCode.CorrectLevel.L,
+            });
+          } catch (e) {
+            console.warn("Error generando QR:", e);
+          }
+        });
+    }, 300);
+  } catch (error) {
+    console.error("Error:", error);
+    showToast("Error al generar credenciales: " + error.message, "error");
+  }
+}
