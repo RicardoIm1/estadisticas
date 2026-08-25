@@ -17,7 +17,7 @@ let state = {
   ponentes: [],
   currentFilter: "todos",
   editingId: null,
-  currentTable: "internos"
+  currentTable: "internos",
 };
 
 // ============================================================
@@ -27,10 +27,26 @@ function showToast(message, type = "info", duration = 4000) {
   const container = document.getElementById("toastContainer");
 
   const configs = {
-    success: { icon: "fa-check-circle", title: "¡Éxito!", className: "toast-success" },
-    error: { icon: "fa-exclamation-circle", title: "¡Error!", className: "toast-error" },
-    info: { icon: "fa-info-circle", title: "Información", className: "toast-info" },
-    warning: { icon: "fa-exclamation-triangle", title: "Atención", className: "toast-warning" }
+    success: {
+      icon: "fa-check-circle",
+      title: "¡Éxito!",
+      className: "toast-success",
+    },
+    error: {
+      icon: "fa-exclamation-circle",
+      title: "¡Error!",
+      className: "toast-error",
+    },
+    info: {
+      icon: "fa-info-circle",
+      title: "Información",
+      className: "toast-info",
+    },
+    warning: {
+      icon: "fa-exclamation-triangle",
+      title: "Atención",
+      className: "toast-warning",
+    },
   };
 
   const config = configs[type] || configs.info;
@@ -64,13 +80,19 @@ function showToast(message, type = "info", duration = 4000) {
 // NAVEGACIÓN
 // ============================================================
 function showSection(section) {
-  document.querySelectorAll(".section").forEach(el => el.classList.remove("active"));
+  document
+    .querySelectorAll(".section")
+    .forEach((el) => el.classList.remove("active"));
 
   const target = document.getElementById(`section-${section}`);
   if (target) target.classList.add("active");
 
-  document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
-  document.querySelector(`.nav-btn[data-section="${section}"]`)?.classList.add("active");
+  document
+    .querySelectorAll(".nav-btn")
+    .forEach((btn) => btn.classList.remove("active"));
+  document
+    .querySelector(`.nav-btn[data-section="${section}"]`)
+    ?.classList.add("active");
 
   state.currentTable = section;
   switch (section) {
@@ -140,16 +162,17 @@ function renderInternos(internos) {
     return;
   }
 
-  tbody.innerHTML = internos.map(interno => {
-    const iniciales = interno.nombre
-      .split(" ")
-      .filter(p => p.length > 0)
-      .map(p => p[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase();
+  tbody.innerHTML = internos
+    .map((interno) => {
+      const iniciales = interno.nombre
+        .split(" ")
+        .filter((p) => p.length > 0)
+        .map((p) => p[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
 
-    return `
+      return `
       <tr>
         <td>
           <div class="avatar">
@@ -177,13 +200,14 @@ function renderInternos(internos) {
         </td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 }
 
 function actualizarContadores(internos) {
   const total = internos.length;
-  const activos = internos.filter(i => i.estatus === "activo").length;
-  const inactivos = internos.filter(i => i.estatus === "inactivo").length;
+  const activos = internos.filter((i) => i.estatus === "activo").length;
+  const inactivos = internos.filter((i) => i.estatus === "inactivo").length;
 
   document.getElementById("countTodos").textContent = total;
   document.getElementById("countActivos").textContent = activos;
@@ -193,25 +217,29 @@ function actualizarContadores(internos) {
 
 function setFilter(filter) {
   state.currentFilter = filter;
-  document.querySelectorAll(".filter-btn").forEach(btn => {
+  document.querySelectorAll(".filter-btn").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.filter === filter);
   });
   filterInternos();
 }
 
 function filterInternos() {
-  const search = document.getElementById("searchInput").value.toLowerCase().trim();
+  const search = document
+    .getElementById("searchInput")
+    .value.toLowerCase()
+    .trim();
   let filtered = state.internos;
 
   if (state.currentFilter !== "todos") {
-    filtered = filtered.filter(i => i.estatus === state.currentFilter);
+    filtered = filtered.filter((i) => i.estatus === state.currentFilter);
   }
 
   if (search) {
-    filtered = filtered.filter(i =>
-      i.nombre.toLowerCase().includes(search) ||
-      i.matricula.includes(search) ||
-      i.carrera.toLowerCase().includes(search)
+    filtered = filtered.filter(
+      (i) =>
+        i.nombre.toLowerCase().includes(search) ||
+        i.matricula.includes(search) ||
+        i.carrera.toLowerCase().includes(search),
     );
   }
 
@@ -222,68 +250,28 @@ function openFormInterno() {
   const content = `
     <h3><i class="fas fa-user-plus"></i> Nuevo Interno</h3>
     <form id="formInterno" onsubmit="guardarInterno(event)">
-      <div class="form-group">
-        <label>Nombre Completo *</label>
-        <input type="text" id="f_nombre" placeholder="Nombre completo" required autofocus />
+      <!-- ... campos existentes ... -->
+      
+      <!-- 👇 AGREGAR CAMPO DE FOTO -->
+      <div class="form-group photo-group">
+        <label>Foto</label>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <div id="previewFoto" style="width: 80px; height: 80px; border-radius: 50%; background: #f1f4f9; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed var(--border);">
+            <i class="fas fa-user-circle" style="font-size: 40px; color: #94a3b8;"></i>
+          </div>
+          <div>
+            <input type="file" id="f_foto" accept="image/jpeg,image/png,image/webp" onchange="previsualizarFoto(event)" style="display: none;" />
+            <button type="button" onclick="document.getElementById('f_foto').click()" style="background: var(--primary-gradient); color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+              <i class="fas fa-upload"></i> Subir Foto
+            </button>
+            <button type="button" onclick="eliminarFoto()" style="background: #fee2e2; color: #dc2626; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: 8px;">
+              <i class="fas fa-trash"></i> Eliminar
+            </button>
+            <p style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Formatos: JPG, PNG, WEBP · Max: 5MB</p>
+          </div>
+        </div>
       </div>
-      <div class="form-group">
-        <label>Universidad *</label>
-        <input type="text" id="f_universidad" placeholder="Universidad" required />
-      </div>
-      <div class="form-group">
-        <label>Carrera *</label>
-        <input type="text" id="f_carrera" placeholder="Carrera" required />
-      </div>
-      <div class="form-group">
-        <label>Semestre *</label>
-        <input type="text" id="f_semestre" placeholder="8° Semestre" required />
-      </div>
-      <div class="form-group">
-        <label>Generación *</label>
-        <input type="text" id="f_generacion" placeholder="2020-2025" required />
-      </div>
-      <div class="form-group">
-        <label>Correo *</label>
-        <input type="email" id="f_correo" placeholder="correo@ejemplo.com" required />
-      </div>
-      <div class="form-group">
-        <label>CURP</label>
-        <input type="text" id="f_curp" placeholder="CURP" />
-      </div>
-      <div class="form-group">
-        <label>RFC</label>
-        <input type="text" id="f_rfc" placeholder="RFC" />
-      </div>
-      <div class="form-group">
-        <label>Teléfono</label>
-        <input type="text" id="f_telefono" placeholder="(55) 1234-5678" />
-      </div>
-      <div class="form-group">
-        <label>Tipo Sanguíneo</label>
-        <select id="f_tipo_sanguineo">
-          <option value="">Seleccionar</option>
-          <option value="A+">A+</option>
-          <option value="A-">A-</option>
-          <option value="B+">B+</option>
-          <option value="B-">B-</option>
-          <option value="AB+">AB+</option>
-          <option value="AB-">AB-</option>
-          <option value="O+">O+</option>
-          <option value="O-">O-</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Alergias</label>
-        <input type="text" id="f_alergias" placeholder="Ej: Penicilina, Polen" />
-      </div>
-      <div class="form-group">
-        <label>Contacto de Emergencia</label>
-        <input type="text" id="f_contacto" placeholder="Nombre del contacto" />
-      </div>
-      <div class="form-group">
-        <label>Teléfono de Emergencia</label>
-        <input type="text" id="f_telefono_emergencia" placeholder="(55) 1234-5678" />
-      </div>
+      
       <div class="form-actions">
         <button type="submit" class="btn-save"><i class="fas fa-save"></i> Guardar</button>
         <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
@@ -299,19 +287,32 @@ async function guardarInterno(event) {
 
   const data = {
     nombre: document.getElementById("f_nombre").value.trim().toUpperCase(),
-    universidad: document.getElementById("f_universidad").value.trim().toUpperCase(),
+    universidad: document
+      .getElementById("f_universidad")
+      .value.trim()
+      .toUpperCase(),
     carrera: document.getElementById("f_carrera").value.trim().toUpperCase(),
     semestre: document.getElementById("f_semestre").value.trim().toUpperCase(),
-    generacion: document.getElementById("f_generacion").value.trim().toUpperCase(),
+    generacion: document
+      .getElementById("f_generacion")
+      .value.trim()
+      .toUpperCase(),
     correo: document.getElementById("f_correo").value.trim().toLowerCase(),
     curp: document.getElementById("f_curp").value.trim().toUpperCase() || null,
     rfc: document.getElementById("f_rfc").value.trim().toUpperCase() || null,
-    telefono: document.getElementById("f_telefono").value.trim().toUpperCase() || null,
+    telefono:
+      document.getElementById("f_telefono").value.trim().toUpperCase() || null,
     tipo_sanguineo: document.getElementById("f_tipo_sanguineo").value || null,
-    alergias: document.getElementById("f_alergias").value.trim().toUpperCase() || null,
-    contacto_emergencia: document.getElementById("f_contacto").value.trim().toUpperCase() || null,
-    telefono_emergencia: document.getElementById("f_telefono_emergencia").value.trim().toUpperCase() || null,
-    estatus: "activo"
+    alergias:
+      document.getElementById("f_alergias").value.trim().toUpperCase() || null,
+    contacto_emergencia:
+      document.getElementById("f_contacto").value.trim().toUpperCase() || null,
+    telefono_emergencia:
+      document
+        .getElementById("f_telefono_emergencia")
+        .value.trim()
+        .toUpperCase() || null,
+    estatus: "activo",
   };
 
   try {
@@ -335,7 +336,10 @@ async function guardarInterno(event) {
         .single();
       if (error) throw error;
       result = data;
-      showToast(`✅ Interno registrado. Matrícula: ${result.matricula}`, "success");
+      showToast(
+        `✅ Interno registrado. Matrícula: ${result.matricula}`,
+        "success",
+      );
     }
 
     closeModal();
@@ -372,6 +376,9 @@ async function editarInterno(id) {
 
     state.editingId = id;
 
+    // Determinar si tiene foto para mostrarla
+    const tieneFoto = data.foto_url && data.foto_url.length > 0;
+
     const content = `
       <h3><i class="fas fa-user-edit"></i> Editar Interno</h3>
       <form id="formInterno" onsubmit="guardarInterno(event)">
@@ -401,44 +408,72 @@ async function editarInterno(id) {
         </div>
         <div class="form-group">
           <label>CURP</label>
-          <input type="text" id="f_curp" value="${data.curp || ''}" />
+          <input type="text" id="f_curp" value="${data.curp || ""}" />
         </div>
         <div class="form-group">
           <label>RFC</label>
-          <input type="text" id="f_rfc" value="${data.rfc || ''}" />
+          <input type="text" id="f_rfc" value="${data.rfc || ""}" />
         </div>
         <div class="form-group">
           <label>Teléfono</label>
-          <input type="text" id="f_telefono" value="${data.telefono || ''}" />
+          <input type="text" id="f_telefono" value="${data.telefono || ""}" />
         </div>
         <div class="form-group">
           <label>Tipo Sanguíneo</label>
           <select id="f_tipo_sanguineo">
             <option value="">Seleccionar</option>
-            ${["A+","A-","B+","B-","AB+","AB-","O+","O-"].map(t =>
-              `<option value="${t}" ${data.tipo_sanguineo === t ? 'selected' : ''}>${t}</option>`
-            ).join('')}
+            ${["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
+              .map(
+                (t) =>
+                  `<option value="${t}" ${data.tipo_sanguineo === t ? "selected" : ""}>${t}</option>`,
+              )
+              .join("")}
           </select>
         </div>
         <div class="form-group">
           <label>Alergias</label>
-          <input type="text" id="f_alergias" value="${data.alergias || ''}" />
+          <input type="text" id="f_alergias" value="${data.alergias || ""}" />
         </div>
         <div class="form-group">
           <label>Contacto de Emergencia</label>
-          <input type="text" id="f_contacto" value="${data.contacto_emergencia || ''}" />
+          <input type="text" id="f_contacto" value="${data.contacto_emergencia || ""}" />
         </div>
         <div class="form-group">
           <label>Teléfono de Emergencia</label>
-          <input type="text" id="f_telefono_emergencia" value="${data.telefono_emergencia || ''}" />
+          <input type="text" id="f_telefono_emergencia" value="${data.telefono_emergencia || ""}" />
         </div>
         <div class="form-group">
           <label>Estatus</label>
           <select id="f_estatus">
-            <option value="activo" ${data.estatus === 'activo' ? 'selected' : ''}>ACTIVO</option>
-            <option value="inactivo" ${data.estatus === 'inactivo' ? 'selected' : ''}>INACTIVO</option>
+            <option value="activo" ${data.estatus === "activo" ? "selected" : ""}>ACTIVO</option>
+            <option value="inactivo" ${data.estatus === "inactivo" ? "selected" : ""}>INACTIVO</option>
           </select>
         </div>
+
+        <!-- 👇 CAMPO DE FOTO AGREGADO -->
+        <div class="form-group photo-group">
+          <label>Foto</label>
+          <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+            <div id="previewFoto" style="width: 80px; height: 80px; border-radius: 50%; background: #f1f4f9; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 2px dashed var(--border);">
+              ${
+                tieneFoto
+                  ? `<img src="${data.foto_url}" style="width: 100%; height: 100%; object-fit: cover;" />`
+                  : `<i class="fas fa-user-circle" style="font-size: 40px; color: #94a3b8;"></i>`
+              }
+            </div>
+            <div>
+              <input type="file" id="f_foto" accept="image/jpeg,image/png,image/webp" onchange="previsualizarFoto(event)" style="display: none;" />
+              <button type="button" onclick="document.getElementById('f_foto').click()" style="background: var(--primary-gradient); color: white; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+                <i class="fas fa-upload"></i> Subir Foto
+              </button>
+              <button type="button" onclick="eliminarFoto()" style="background: #fee2e2; color: #dc2626; border: none; padding: 8px 20px; border-radius: 8px; cursor: pointer; font-weight: 600; margin-left: 8px;">
+                <i class="fas fa-trash"></i> Eliminar
+              </button>
+              <p style="font-size: 11px; color: #94a3b8; margin-top: 4px;">Formatos: JPG, PNG, WEBP · Max: 5MB</p>
+            </div>
+          </div>
+        </div>
+
         <div class="form-actions">
           <button type="submit" class="btn-save"><i class="fas fa-save"></i> Actualizar</button>
           <button type="button" class="btn-cancel" onclick="closeModal()">Cancelar</button>
@@ -455,7 +490,10 @@ async function editarInterno(id) {
 async function eliminarInterno(id) {
   if (!confirm("¿Estás seguro de eliminar este interno?")) return;
   try {
-    const { error } = await supabaseClient.from("internos").delete().eq("id", id);
+    const { error } = await supabaseClient
+      .from("internos")
+      .delete()
+      .eq("id", id);
     if (error) throw error;
     showToast("Interno eliminado correctamente", "success");
     cargarInternos();
@@ -466,7 +504,7 @@ async function eliminarInterno(id) {
 }
 
 function verExpediente(id) {
-  const interno = state.internos.find(i => i.id === id);
+  const interno = state.internos.find((i) => i.id === id);
   if (!interno) {
     showToast("Interno no encontrado", "error");
     return;
@@ -474,8 +512,8 @@ function verExpediente(id) {
 
   const iniciales = interno.nombre
     .split(" ")
-    .filter(p => p.length > 0)
-    .map(p => p[0])
+    .filter((p) => p.length > 0)
+    .map((p) => p[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
@@ -535,12 +573,14 @@ function renderEventos(eventos) {
     return;
   }
 
-  tbody.innerHTML = eventos.map(evento => `
+  tbody.innerHTML = eventos
+    .map(
+      (evento) => `
     <tr>
       <td><strong>${evento.nombre}</strong></td>
-      <td><span style="background: ${evento.tipo === 'curso' ? '#dbeafe' : evento.tipo === 'taller' ? '#dcfce7' : '#fef3c7'}; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">${evento.tipo || 'otro'}</span></td>
-      <td>${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString('es-MX') : '-'}</td>
-      <td>${evento.horas || '-'}</td>
+      <td><span style="background: ${evento.tipo === "curso" ? "#dbeafe" : evento.tipo === "taller" ? "#dcfce7" : "#fef3c7"}; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600;">${evento.tipo || "otro"}</span></td>
+      <td>${evento.fecha_inicio ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX") : "-"}</td>
+      <td>${evento.horas || "-"}</td>
       <td>
         <div class="acciones-cell">
           <button class="btn-edit btn-sm" onclick="editarEvento('${evento.id}')"><i class="fas fa-pen"></i></button>
@@ -548,13 +588,18 @@ function renderEventos(eventos) {
         </div>
       </td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function filterEventos() {
-  const search = document.getElementById("searchEventos").value.toLowerCase().trim();
-  const filtered = state.eventos.filter(e =>
-    e.nombre.toLowerCase().includes(search)
+  const search = document
+    .getElementById("searchEventos")
+    .value.toLowerCase()
+    .trim();
+  const filtered = state.eventos.filter((e) =>
+    e.nombre.toLowerCase().includes(search),
   );
   renderEventos(filtered);
 }
@@ -602,11 +647,16 @@ function openFormEvento() {
 async function guardarEvento(event) {
   event.preventDefault();
   const data = {
-    nombre: document.getElementById("f_evento_nombre").value.trim().toUpperCase(),
+    nombre: document
+      .getElementById("f_evento_nombre")
+      .value.trim()
+      .toUpperCase(),
     tipo: document.getElementById("f_evento_tipo").value,
     fecha_inicio: document.getElementById("f_evento_fecha").value || null,
     horas: parseInt(document.getElementById("f_evento_horas").value) || 0,
-    lugar: document.getElementById("f_evento_lugar").value.trim().toUpperCase() || null
+    lugar:
+      document.getElementById("f_evento_lugar").value.trim().toUpperCase() ||
+      null,
   };
 
   try {
@@ -650,14 +700,17 @@ async function editarEvento(id) {
         <div class="form-group">
           <label>Tipo</label>
           <select id="f_evento_tipo">
-            ${["curso","taller","conferencia","seminario","otro"].map(t =>
-              `<option value="${t}" ${data.tipo === t ? 'selected' : ''}>${t.charAt(0).toUpperCase() + t.slice(1)}</option>`
-            ).join('')}
+            ${["curso", "taller", "conferencia", "seminario", "otro"]
+              .map(
+                (t) =>
+                  `<option value="${t}" ${data.tipo === t ? "selected" : ""}>${t.charAt(0).toUpperCase() + t.slice(1)}</option>`,
+              )
+              .join("")}
           </select>
         </div>
         <div class="form-group">
           <label>Fecha de Inicio</label>
-          <input type="date" id="f_evento_fecha" value="${data.fecha_inicio || ''}" />
+          <input type="date" id="f_evento_fecha" value="${data.fecha_inicio || ""}" />
         </div>
         <div class="form-group">
           <label>Horas</label>
@@ -665,7 +718,7 @@ async function editarEvento(id) {
         </div>
         <div class="form-group">
           <label>Lugar</label>
-          <input type="text" id="f_evento_lugar" value="${data.lugar || ''}" placeholder="Lugar del evento" />
+          <input type="text" id="f_evento_lugar" value="${data.lugar || ""}" placeholder="Lugar del evento" />
         </div>
         <div class="form-actions">
           <button type="submit" class="btn-save"><i class="fas fa-save"></i> Actualizar</button>
@@ -683,7 +736,10 @@ async function editarEvento(id) {
 async function eliminarEvento(id) {
   if (!confirm("¿Estás seguro de eliminar este evento?")) return;
   try {
-    const { error } = await supabaseClient.from("eventos").delete().eq("id", id);
+    const { error } = await supabaseClient
+      .from("eventos")
+      .delete()
+      .eq("id", id);
     if (error) throw error;
     showToast("Evento eliminado correctamente", "success");
     cargarEventos();
@@ -700,17 +756,20 @@ async function cargarParticipaciones() {
   try {
     const { data, error } = await supabaseClient
       .from("participaciones_internos")
-      .select(`
+      .select(
+        `
         *,
         internos:interno_id (id, nombre, matricula),
         eventos:evento_id (id, nombre, tipo)
-      `)
+      `,
+      )
       .order("created_at", { ascending: false });
 
     if (error) throw error;
     state.participaciones = data;
     renderParticipaciones(data);
-    document.getElementById("navCountParticipaciones").textContent = data.length;
+    document.getElementById("navCountParticipaciones").textContent =
+      data.length;
   } catch (error) {
     console.error("Error cargando participaciones:", error);
     showToast("Error al cargar participaciones: " + error.message, "error");
@@ -724,16 +783,17 @@ function renderParticipaciones(participaciones) {
     return;
   }
 
-  tbody.innerHTML = participaciones.map(p => {
-    const interno = p.internos || {};
-    const evento = p.eventos || {};
-    return `
+  tbody.innerHTML = participaciones
+    .map((p) => {
+      const interno = p.internos || {};
+      const evento = p.eventos || {};
+      return `
       <tr>
-        <td>${interno.nombre || 'N/A'}</td>
-        <td>${evento.nombre || 'N/A'}</td>
-        <td><span style="color: ${getColorDesempenio(p.desempenio)}; font-weight: 600;">${p.desempenio || 'Pendiente'}</span></td>
-        <td>${p.calificacion ? p.calificacion + '%' : '-'}</td>
-        <td>${p.certificado_url ? '✅' : '❌'}</td>
+        <td>${interno.nombre || "N/A"}</td>
+        <td>${evento.nombre || "N/A"}</td>
+        <td><span style="color: ${getColorDesempenio(p.desempenio)}; font-weight: 600;">${p.desempenio || "Pendiente"}</span></td>
+        <td>${p.calificacion ? p.calificacion + "%" : "-"}</td>
+        <td>${p.certificado_url ? "✅" : "❌"}</td>
         <td>
           <div class="acciones-cell">
             <button class="btn-edit btn-sm" onclick="editarParticipacion('${p.id}')"><i class="fas fa-pen"></i></button>
@@ -742,28 +802,29 @@ function renderParticipaciones(participaciones) {
         </td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 }
 
 function getColorDesempenio(desempenio) {
   const colores = {
-    'Excelente': '#22c55e',
-    'Bueno': '#3b82f6',
-    'Regular': '#f59e0b',
-    'Deficiente': '#ef4444',
-    'Pendiente': '#94a3b8'
+    Excelente: "#22c55e",
+    Bueno: "#3b82f6",
+    Regular: "#f59e0b",
+    Deficiente: "#ef4444",
+    Pendiente: "#94a3b8",
   };
-  return colores[desempenio] || '#94a3b8';
+  return colores[desempenio] || "#94a3b8";
 }
 
 function openFormParticipacion() {
-  const internosOptions = state.internos.map(i =>
-    `<option value="${i.id}">${i.nombre} (${i.matricula})</option>`
-  ).join('');
+  const internosOptions = state.internos
+    .map((i) => `<option value="${i.id}">${i.nombre} (${i.matricula})</option>`)
+    .join("");
 
-  const eventosOptions = state.eventos.map(e =>
-    `<option value="${e.id}">${e.nombre}</option>`
-  ).join('');
+  const eventosOptions = state.eventos
+    .map((e) => `<option value="${e.id}">${e.nombre}</option>`)
+    .join("");
 
   const content = `
     <h3><i class="fas fa-link"></i> Nueva Participación</h3>
@@ -811,7 +872,8 @@ async function guardarParticipacion(event) {
     interno_id: document.getElementById("f_part_interno").value,
     evento_id: document.getElementById("f_part_evento").value,
     desempenio: document.getElementById("f_part_desempenio").value,
-    calificacion: parseFloat(document.getElementById("f_part_calificacion").value) || null
+    calificacion:
+      parseFloat(document.getElementById("f_part_calificacion").value) || null,
   };
 
   if (!data.interno_id || !data.evento_id) {
@@ -842,13 +904,19 @@ async function editarParticipacion(id) {
       .single();
     if (error) throw error;
 
-    const internosOptions = state.internos.map(i =>
-      `<option value="${i.id}" ${i.id === data.interno_id ? 'selected' : ''}>${i.nombre} (${i.matricula})</option>`
-    ).join('');
+    const internosOptions = state.internos
+      .map(
+        (i) =>
+          `<option value="${i.id}" ${i.id === data.interno_id ? "selected" : ""}>${i.nombre} (${i.matricula})</option>`,
+      )
+      .join("");
 
-    const eventosOptions = state.eventos.map(e =>
-      `<option value="${e.id}" ${e.id === data.evento_id ? 'selected' : ''}>${e.nombre}</option>`
-    ).join('');
+    const eventosOptions = state.eventos
+      .map(
+        (e) =>
+          `<option value="${e.id}" ${e.id === data.evento_id ? "selected" : ""}>${e.nombre}</option>`,
+      )
+      .join("");
 
     const content = `
       <h3><i class="fas fa-link"></i> Editar Participación</h3>
@@ -864,14 +932,17 @@ async function editarParticipacion(id) {
         <div class="form-group">
           <label>Desempeño</label>
           <select id="f_part_desempenio">
-            ${["Pendiente","Excelente","Bueno","Regular","Deficiente"].map(d =>
-              `<option value="${d}" ${d === data.desempenio ? 'selected' : ''}>${d}</option>`
-            ).join('')}
+            ${["Pendiente", "Excelente", "Bueno", "Regular", "Deficiente"]
+              .map(
+                (d) =>
+                  `<option value="${d}" ${d === data.desempenio ? "selected" : ""}>${d}</option>`,
+              )
+              .join("")}
           </select>
         </div>
         <div class="form-group">
           <label>Calificación (%)</label>
-          <input type="number" id="f_part_calificacion" value="${data.calificacion || ''}" placeholder="0-100" min="0" max="100" />
+          <input type="number" id="f_part_calificacion" value="${data.calificacion || ""}" placeholder="0-100" min="0" max="100" />
         </div>
         <div class="form-actions">
           <button type="submit" class="btn-save"><i class="fas fa-save"></i> Actualizar</button>
@@ -892,7 +963,8 @@ async function actualizarParticipacion(event, id) {
     interno_id: document.getElementById("f_part_interno").value,
     evento_id: document.getElementById("f_part_evento").value,
     desempenio: document.getElementById("f_part_desempenio").value,
-    calificacion: parseFloat(document.getElementById("f_part_calificacion").value) || null
+    calificacion:
+      parseFloat(document.getElementById("f_part_calificacion").value) || null,
   };
 
   try {
@@ -942,7 +1014,10 @@ async function cargarPonentes() {
     document.getElementById("navCountPonentes").textContent = data.length;
   } catch (error) {
     console.error("Error cargando ponentes:", error);
-    if (error.message.includes("relation") && error.message.includes("does not exist")) {
+    if (
+      error.message.includes("relation") &&
+      error.message.includes("does not exist")
+    ) {
       document.getElementById("tbodyPonentes").innerHTML = `
         <tr><td colspan="5" class="empty-state">
           <i class="fas fa-database" style="font-size: 32px; display: block; margin-bottom: 8px; opacity: 0.4;"></i>
@@ -962,12 +1037,14 @@ function renderPonentes(ponentes) {
     return;
   }
 
-  tbody.innerHTML = ponentes.map(p => `
+  tbody.innerHTML = ponentes
+    .map(
+      (p) => `
     <tr>
       <td><strong>${p.nombre}</strong></td>
-      <td>${p.especialidad || '-'}</td>
-      <td>${p.institucion || '-'}</td>
-      <td>${p.correo || '-'}</td>
+      <td>${p.especialidad || "-"}</td>
+      <td>${p.institucion || "-"}</td>
+      <td>${p.correo || "-"}</td>
       <td>
         <div class="acciones-cell">
           <button class="btn-edit btn-sm" onclick="editarPonente('${p.id}')"><i class="fas fa-pen"></i></button>
@@ -976,13 +1053,18 @@ function renderPonentes(ponentes) {
         </div>
       </td>
     </tr>
-  `).join("");
+  `,
+    )
+    .join("");
 }
 
 function filterPonentes() {
-  const search = document.getElementById("searchPonentes").value.toLowerCase().trim();
-  const filtered = state.ponentes.filter(p =>
-    p.nombre.toLowerCase().includes(search)
+  const search = document
+    .getElementById("searchPonentes")
+    .value.toLowerCase()
+    .trim();
+  const filtered = state.ponentes.filter((p) =>
+    p.nombre.toLowerCase().includes(search),
   );
   renderPonentes(filtered);
 }
@@ -1019,10 +1101,23 @@ function openFormPonente() {
 async function guardarPonente(event) {
   event.preventDefault();
   const data = {
-    nombre: document.getElementById("f_ponente_nombre").value.trim().toUpperCase(),
-    especialidad: document.getElementById("f_ponente_especialidad").value.trim().toUpperCase() || null,
-    institucion: document.getElementById("f_ponente_institucion").value.trim().toUpperCase() || null,
-    correo: document.getElementById("f_ponente_correo").value.trim().toLowerCase() || null
+    nombre: document
+      .getElementById("f_ponente_nombre")
+      .value.trim()
+      .toUpperCase(),
+    especialidad:
+      document
+        .getElementById("f_ponente_especialidad")
+        .value.trim()
+        .toUpperCase() || null,
+    institucion:
+      document
+        .getElementById("f_ponente_institucion")
+        .value.trim()
+        .toUpperCase() || null,
+    correo:
+      document.getElementById("f_ponente_correo").value.trim().toLowerCase() ||
+      null,
   };
 
   try {
@@ -1055,15 +1150,15 @@ async function editarPonente(id) {
         </div>
         <div class="form-group">
           <label>Especialidad</label>
-          <input type="text" id="f_ponente_especialidad" value="${data.especialidad || ''}" />
+          <input type="text" id="f_ponente_especialidad" value="${data.especialidad || ""}" />
         </div>
         <div class="form-group">
           <label>Institución</label>
-          <input type="text" id="f_ponente_institucion" value="${data.institucion || ''}" />
+          <input type="text" id="f_ponente_institucion" value="${data.institucion || ""}" />
         </div>
         <div class="form-group">
           <label>Correo</label>
-          <input type="email" id="f_ponente_correo" value="${data.correo || ''}" />
+          <input type="email" id="f_ponente_correo" value="${data.correo || ""}" />
         </div>
         <div class="form-actions">
           <button type="submit" class="btn-save"><i class="fas fa-save"></i> Actualizar</button>
@@ -1081,10 +1176,23 @@ async function editarPonente(id) {
 async function actualizarPonente(event, id) {
   event.preventDefault();
   const data = {
-    nombre: document.getElementById("f_ponente_nombre").value.trim().toUpperCase(),
-    especialidad: document.getElementById("f_ponente_especialidad").value.trim().toUpperCase() || null,
-    institucion: document.getElementById("f_ponente_institucion").value.trim().toUpperCase() || null,
-    correo: document.getElementById("f_ponente_correo").value.trim().toLowerCase() || null
+    nombre: document
+      .getElementById("f_ponente_nombre")
+      .value.trim()
+      .toUpperCase(),
+    especialidad:
+      document
+        .getElementById("f_ponente_especialidad")
+        .value.trim()
+        .toUpperCase() || null,
+    institucion:
+      document
+        .getElementById("f_ponente_institucion")
+        .value.trim()
+        .toUpperCase() || null,
+    correo:
+      document.getElementById("f_ponente_correo").value.trim().toLowerCase() ||
+      null,
   };
 
   try {
@@ -1105,7 +1213,10 @@ async function actualizarPonente(event, id) {
 async function eliminarPonente(id) {
   if (!confirm("¿Estás seguro de eliminar este ponente?")) return;
   try {
-    const { error } = await supabaseClient.from("ponentes").delete().eq("id", id);
+    const { error } = await supabaseClient
+      .from("ponentes")
+      .delete()
+      .eq("id", id);
     if (error) throw error;
     showToast("Ponente eliminado correctamente", "success");
     cargarPonentes();
@@ -1119,7 +1230,7 @@ async function eliminarPonente(id) {
 // GENERAR RECONOCIMIENTO
 // ============================================================
 function generarReconocimiento(internoId) {
-  const interno = state.internos.find(i => i.id === internoId);
+  const interno = state.internos.find((i) => i.id === internoId);
   if (!interno) return;
 
   const nombrePonente = prompt("Nombre del ponente:");
@@ -1162,7 +1273,7 @@ function generarReconocimiento(internoId) {
 }
 
 function generarReconocimientoPonente(id) {
-  const ponente = state.ponentes.find(p => p.id === id);
+  const ponente = state.ponentes.find((p) => p.id === id);
   if (!ponente) {
     showToast("Ponente no encontrado", "error");
     return;
@@ -1209,7 +1320,7 @@ function generarReconocimientoPonente(id) {
 // ============================================================
 async function imprimirMultiplesCredenciales() {
   try {
-    const internos = state.internos.filter(i => i.estatus === "activo");
+    const internos = state.internos.filter((i) => i.estatus === "activo");
     if (!internos || internos.length === 0) {
       showToast("No hay internos activos para imprimir", "warning");
       return;
@@ -1223,8 +1334,8 @@ async function imprimirMultiplesCredenciales() {
     internos.forEach((interno, index) => {
       const iniciales = interno.nombre
         .split(" ")
-        .filter(p => p.length > 0)
-        .map(p => p[0])
+        .filter((p) => p.length > 0)
+        .map((p) => p[0])
         .join("")
         .slice(0, 2)
         .toUpperCase();
@@ -1236,9 +1347,10 @@ async function imprimirMultiplesCredenciales() {
             <p style="font-size: 8px; opacity: 0.7;">Credencial de Interno</p>
           </div>
           <div style="display: flex; gap: 10px; align-items: center; flex: 1; min-height: 0; overflow: hidden;">
-            ${interno.foto_url ?
-              `<img src="${interno.foto_url}" style="width: 52px; height: 52px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); flex-shrink: 0; object-fit: cover;" />` :
-              `<div style="width: 52px; height: 52px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; flex-shrink: 0;">${iniciales}</div>`
+            ${
+              interno.foto_url
+                ? `<img src="${interno.foto_url}" style="width: 52px; height: 52px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); flex-shrink: 0; object-fit: cover;" />`
+                : `<div style="width: 52px; height: 52px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.25); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; flex-shrink: 0;">${iniciales}</div>`
             }
             <div style="flex: 1; min-width: 0; overflow: hidden;">
               <div style="font-size: 11px; font-weight: 800; text-transform: uppercase; white-space: normal; word-wrap: break-word; word-break: break-word; max-height: 28px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${interno.nombre}</div>
@@ -1276,7 +1388,6 @@ async function imprimirMultiplesCredenciales() {
         }
       });
     }, 100);
-
   } catch (error) {
     console.error("Error:", error);
     showToast("Error al generar credenciales: " + error.message, "error");
@@ -1292,7 +1403,7 @@ function generarQR(container, interno, size) {
       height: size,
       colorDark: "#000000",
       colorLight: "#ffffff",
-      correctLevel: QRCode.CorrectLevel.L
+      correctLevel: QRCode.CorrectLevel.L,
     });
     return qr;
   } catch (e) {
@@ -1301,13 +1412,13 @@ function generarQR(container, interno, size) {
 }
 
 function imprimirCredencialIndividual(id) {
-  const interno = state.internos.find(i => i.id === id);
+  const interno = state.internos.find((i) => i.id === id);
   if (!interno) return;
 
   const iniciales = interno.nombre
     .split(" ")
-    .filter(p => p.length > 0)
-    .map(p => p[0])
+    .filter((p) => p.length > 0)
+    .map((p) => p[0])
     .join("")
     .slice(0, 2)
     .toUpperCase();
@@ -1320,9 +1431,10 @@ function imprimirCredencialIndividual(id) {
         <p style="font-size: 11px; opacity: 0.7;">Credencial de Interno</p>
       </div>
       <div style="display: flex; gap: 14px; align-items: center;">
-        ${interno.foto_url ?
-          `<img src="${interno.foto_url}" style="width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); object-fit: cover; flex-shrink: 0;" />` :
-          `<div style="width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; flex-shrink: 0;">${iniciales}</div>`
+        ${
+          interno.foto_url
+            ? `<img src="${interno.foto_url}" style="width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); object-fit: cover; flex-shrink: 0;" />`
+            : `<div style="width: 68px; height: 68px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; flex-shrink: 0;">${iniciales}</div>`
         }
         <div style="flex: 1; min-width: 0;">
           <div style="font-size: 16px; font-weight: 800; text-transform: uppercase;">${interno.nombre}</div>
@@ -1358,14 +1470,44 @@ function imprimirCredencialIndividual(id) {
 // ============================================================
 // INICIALIZAR
 // ============================================================
-document.addEventListener("DOMContentLoaded", async function() {
+document.addEventListener("DOMContentLoaded", async function () {
   await Promise.all([
     cargarInternos(),
     cargarEventos(),
     cargarParticipaciones(),
-    cargarPonentes()
+    cargarPonentes(),
   ]);
 
   console.log("🔍 Panel de Control conectado a Supabase");
-  console.log(`📊 ${state.internos.length} internos, ${state.eventos.length} eventos, ${state.participaciones.length} participaciones, ${state.ponentes.length} ponentes`);
+  console.log(
+    `📊 ${state.internos.length} internos, ${state.eventos.length} eventos, ${state.participaciones.length} participaciones, ${state.ponentes.length} ponentes`,
+  );
 });
+
+// Previsualizar foto seleccionada
+function previsualizarFoto(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    showToast("La imagen no debe exceder los 5MB", "error");
+    event.target.value = "";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const preview = document.getElementById("previewFoto");
+    preview.innerHTML = `<img src="${e.target.result}" style="width: 100%; height: 100%; object-fit: cover;" />`;
+    preview.style.border = "2px solid #22c55e";
+  };
+  reader.readAsDataURL(file);
+}
+
+// Eliminar foto seleccionada
+function eliminarFoto() {
+  const preview = document.getElementById("previewFoto");
+  preview.innerHTML = `<i class="fas fa-user-circle" style="font-size: 40px; color: #94a3b8;"></i>`;
+  preview.style.border = "2px dashed var(--border)";
+  document.getElementById("f_foto").value = "";
+}
