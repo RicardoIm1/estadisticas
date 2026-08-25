@@ -1594,7 +1594,7 @@ async function mostrarReconocimientoFinal(interno, seleccion) {
 }
 
 // ============================================================
-// GENERAR RECONOCIMIENTO PARA PONENTE - CON SELECTOR VISUAL
+// GENERAR RECONOCIMIENTO PARA PONENTE - CON SELECTOR VISUAL Y DISEÑO PREMIUM
 // ============================================================
 async function generarReconocimientoPonente(id) {
   try {
@@ -1667,14 +1667,27 @@ async function generarReconocimientoPonente(id) {
         };
         const bgColor = tipoColors[evento.tipo] || '#f1f5f9';
         
+        const iconos = {
+          curso: 'fa-graduation-cap',
+          taller: 'fa-tools',
+          conferencia: 'fa-microphone-alt',
+          seminario: 'fa-users',
+          otro: 'fa-calendar-alt'
+        };
+        const icono = iconos[evento.tipo] || 'fa-calendar-alt';
+        
         return `
           <div onclick="seleccionarEventoReconocimientoPonente(${i})" 
                style="cursor:pointer; padding:14px 18px; margin-bottom:10px; 
                       background:${bgColor}; border-radius:10px; 
                       border:2px solid #e2e8f0; transition:all 0.2s;
-                      display:flex; justify-content:space-between; align-items:center;">
+                      display:flex; justify-content:space-between; align-items:center;
+                      hover:border-color:#1a56db; hover:shadow-md;">
             <div>
-              <div style="font-weight:700; color:#0f172a; font-size:15px;">${evento.nombre || "Sin nombre"}</div>
+              <div style="font-weight:700; color:#0f172a; font-size:15px;">
+                <i class="fas ${icono}" style="color:#1a56db; width:20px;"></i>
+                ${evento.nombre || "Sin nombre"}
+              </div>
               <div style="font-size:12px; color:#64748b; margin-top:4px;">
                 <i class="fas fa-calendar-alt" style="width:16px;"></i> ${fecha}
                 <span style="margin:0 8px;">|</span>
@@ -1698,14 +1711,17 @@ async function generarReconocimientoPonente(id) {
           Selecciona el evento para el reconocimiento
         </h3>
         <p style="text-align:center; color:#64748b; font-size:14px; margin-bottom:20px;">
-          ${ponente.nombre} · ${ponente.especialidad || "Sin especialidad"}
+          <i class="fas fa-chalkboard-teacher" style="color:#1a56db;"></i>
+          ${ponente.nombre} 
+          ${ponente.especialidad ? `· ${ponente.especialidad}` : ""}
+          ${ponente.institucion ? `· ${ponente.institucion}` : ""}
         </p>
         <div style="max-height:50vh; overflow-y:auto; padding-right:8px;">
           ${eventosHTML}
         </div>
         <div style="text-align:center; margin-top:20px;">
           <button onclick="closeModal()" class="btn-cancel" style="padding:10px 32px;">
-            Cancelar
+            <i class="fas fa-times"></i> Cancelar
           </button>
         </div>
       </div>
@@ -1723,6 +1739,172 @@ async function generarReconocimientoPonente(id) {
     console.error("Error:", error);
     showToast("Error al generar reconocimiento: " + error.message, "error");
   }
+}
+
+// ============================================================
+// FUNCIÓN PARA SELECCIONAR EVENTO DEL PONENTE
+// ============================================================
+function seleccionarEventoReconocimientoPonente(index) {
+  const data = window._reconocimientoPonenteData;
+  if (!data) return;
+
+  const seleccion = data.participaciones[index];
+  if (!seleccion) {
+    showToast("Error al seleccionar evento", "error");
+    return;
+  }
+
+  mostrarReconocimientoFinalPonente(data.ponente, seleccion);
+}
+
+// ============================================================
+// MOSTRAR RECONOCIMIENTO FINAL PARA PONENTE - DISEÑO PREMIUM
+// ============================================================
+async function mostrarReconocimientoFinalPonente(ponente, seleccion) {
+  const evento = seleccion.eventos || {};
+
+  const nombreEvento = evento.nombre || "Evento sin nombre";
+  const fecha = evento.fecha_inicio
+    ? new Date(evento.fecha_inicio).toLocaleDateString("es-MX", {
+        day: "2-digit",
+        month: "long",
+        year: "numeric",
+      })
+    : "Fecha no especificada";
+  const horas = seleccion.horas_impartidas || evento.horas || 0;
+  const lugar = evento.lugar || "Hospital Regional Puerto Vallarta";
+  const rol = seleccion.rol || "PONENTE";
+  const tipoEvento = evento.tipo || "evento";
+
+  const contenido = `
+    <div class="reconocimiento-premium">
+      <div class="borde-superior"></div>
+      
+      <div class="contenido">
+        <div class="icono-award">
+          <i class="fas fa-chalkboard-teacher"></i>
+        </div>
+        
+        <h2 class="titulo">Reconocimiento</h2>
+        <p class="subtitulo">Por su destacada labor como ponente</p>
+        
+        <div class="linea-oro"></div>
+        
+        <p style="font-size:14px; color:#475569; margin:8px 0 4px 0;">Se otorga el presente reconocimiento a:</p>
+        
+        <div class="nombre-persona">${ponente.nombre}</div>
+        <div class="detalle-persona">
+          ${ponente.especialidad ? `<i class="fas fa-stethoscope"></i> ${ponente.especialidad}` : ""}
+          ${ponente.institucion ? ` · <i class="fas fa-building"></i> ${ponente.institucion}` : ""}
+        </div>
+        
+        <p style="font-size:14px; color:#475569; margin:12px 0 4px 0;">
+          Por su valiosa participación como <strong style="color:#1a56db; font-size:16px;">${rol.toUpperCase()}</strong> 
+          en el <strong>${tipoEvento}</strong>:
+        </p>
+        
+        <div class="evento-nombre">${nombreEvento}</div>
+        
+        <div class="info-evento">
+          <div class="item">
+            <i class="fas fa-calendar-alt"></i>
+            <div class="label">Fecha</div>
+            <div class="valor">${fecha}</div>
+          </div>
+          <div class="item">
+            <i class="fas fa-clock"></i>
+            <div class="label">Horas impartidas</div>
+            <div class="valor">${horas}</div>
+          </div>
+          <div class="item">
+            <i class="fas fa-map-marker-alt"></i>
+            <div class="label">Lugar</div>
+            <div class="valor">${lugar}</div>
+          </div>
+        </div>
+        
+        <div style="display:flex; justify-content:center; gap:20px; align-items:center; flex-wrap:wrap; margin-top:4px;">
+          <div style="font-size:13px; color:#475569; background:#f8fafc; padding:6px 16px; border-radius:20px;">
+            <i class="fas fa-user-graduate" style="color:#1a56db;"></i>
+            <strong>Rol:</strong> ${rol.toUpperCase()}
+          </div>
+          <div class="sello">
+            <i class="fas fa-check-circle"></i>
+            <span style="display:block; font-size:8px; margin-top:-2px;">VÁLIDO</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="footer-rec">
+        <div class="firma">
+          <div class="linea"></div>
+          <span class="nombre-firma">Dr. Carlos Méndez R.</span>
+          <span class="cargo">Director Médico</span>
+        </div>
+        
+        <div class="codigo-qr" id="qr-rec-${Date.now()}">
+          <span class="qr-label">Hospital Regional PV</span>
+        </div>
+        
+        <div class="firma">
+          <div class="linea"></div>
+          <span class="nombre-firma">Lic. Ana Valenzuela</span>
+          <span class="cargo">Coordinación Académica</span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form-actions no-print" style="margin-top:20px; justify-content:center;">
+      <button onclick="window.print()" class="btn-save">
+        <i class="fas fa-print"></i> Imprimir
+      </button>
+      <button onclick="closeModal()" class="btn-cancel">
+        <i class="fas fa-times"></i> Cerrar
+      </button>
+    </div>
+  `;
+
+  closeModal();
+  openModal(contenido);
+
+  // Generar QR
+  setTimeout(() => {
+    const qrContainer = document.querySelector('.reconocimiento-premium .codigo-qr');
+    if (qrContainer) {
+      try {
+        const texto = `REC-PON|${ponente.nombre.substring(0, 15)}|${nombreEvento.substring(0, 20)}`;
+        qrContainer.innerHTML = '';
+        
+        const qrDiv = document.createElement('div');
+        qrDiv.style.display = 'flex';
+        qrDiv.style.flexDirection = 'column';
+        qrDiv.style.alignItems = 'center';
+        qrDiv.style.gap = '2px';
+        
+        const canvas = document.createElement('div');
+        canvas.id = `qr-rec-${Date.now()}`;
+        qrDiv.appendChild(canvas);
+        
+        const label = document.createElement('span');
+        label.className = 'qr-label';
+        label.textContent = 'Hospital Regional PV';
+        qrDiv.appendChild(label);
+        
+        qrContainer.appendChild(qrDiv);
+        
+        new QRCode(canvas, {
+          text: texto,
+          width: 44,
+          height: 44,
+          colorDark: "#1a56db",
+          colorLight: "#ffffff",
+          correctLevel: QRCode.CorrectLevel.M,
+        });
+      } catch (e) {
+        console.warn("Error generando QR:", e);
+      }
+    }
+  }, 200);
 }
 
 // ============================================================
