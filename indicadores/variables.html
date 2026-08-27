@@ -162,6 +162,12 @@
         color: #0a2a44;
       }
 
+      .field-group input.readonly {
+        background: #f5f5f5;
+        color: #666;
+        cursor: not-allowed;
+      }
+
       .field-group .hint {
         font-size: 12px;
         color: #6b7d93;
@@ -200,6 +206,12 @@
         transition: 0.2s;
       }
 
+      .actions button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+      }
+
       .btn-primary {
         background: #0a2a44;
         color: white;
@@ -229,6 +241,36 @@
         transform: translateY(-2px);
       }
 
+      .btn-warning {
+        background: #f39c12;
+        color: white;
+      }
+
+      .btn-warning:hover {
+        background: #d68910;
+        transform: translateY(-2px);
+      }
+
+      .btn-danger {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .btn-danger:hover {
+        background: #c0392b;
+        transform: translateY(-2px);
+      }
+
+      .btn-info {
+        background: #3498db;
+        color: white;
+      }
+
+      .btn-info:hover {
+        background: #2980b9;
+        transform: translateY(-2px);
+      }
+
       .summary-box {
         background: #eaf3fa;
         border-radius: 14px;
@@ -245,6 +287,30 @@
 
       .summary-box.visible {
         display: block;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        margin-left: 10px;
+      }
+
+      .status-badge.saved {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-badge.edited {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .status-badge.new {
+        background: #d1ecf1;
+        color: #0c5460;
       }
 
       @media (max-width: 700px) {
@@ -270,13 +336,14 @@
       <h1>📋 Formulario Mensual</h1>
       <div class="subtitle">
         Indicadores asistenciales y de gestión hospitalaria
+        <span id="statusBadge" class="status-badge new">📝 Nuevo</span>
       </div>
 
       <!-- SELECTOR DE MES -->
       <div class="month-selector">
         <div>
           <label for="month">Mes:</label>
-          <select id="month">
+          <select id="month" onchange="onMonthChange()">
             <option value="01">Enero</option>
             <option value="02">Febrero</option>
             <option value="03">Marzo</option>
@@ -300,9 +367,26 @@
             min="2020"
             max="2030"
             style="width: 100px"
+            onchange="onMonthChange()"
           />
         </div>
         <button onclick="resetForm()">🔄 Limpiar todo</button>
+        <button
+          onclick="cargarDatos()"
+          class="btn-info"
+          style="
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 15px;
+          "
+        >
+          📂 Cargar datos
+        </button>
       </div>
 
       <!-- CATEGORÍAS -->
@@ -326,12 +410,14 @@
         <button class="btn-success" onclick="exportCSV()">
           ⬇️ Exportar a CSV
         </button>
+        <button class="btn-danger" onclick="eliminarRegistro()">
+          🗑️ Eliminar registro
+        </button>
       </div>
 
       <div id="summaryBox" class="summary-box"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       // ============================================================
@@ -346,10 +432,15 @@
         SUPABASE_ANON_KEY,
       );
 
+      // Variables de estado
+      let datosCargados = false;
+      let registroExistente = null;
+
       // ============================================================
       // FUNCIONES PARA SUPABASE
       // ============================================================
 
+      // Verificar si ya existe un registro
       async function verificarExistencia(mes, anio) {
         try {
           const { data, error } = await supabaseClient
@@ -370,6 +461,62 @@
         }
       }
 
+      // Cargar datos existentes
+      async function cargarDatos() {
+        const mes = parseInt(document.getElementById("month").value);
+        const anio = parseInt(document.getElementById("year").value);
+        const monthName = document.querySelector(
+          "#month option:checked",
+        ).textContent;
+
+        try {
+          const { data, error } = await supabaseClient
+            .from("indicadores_mensuales")
+            .select("*")
+            .eq("mes", mes)
+            .eq("anio", anio)
+            .maybeSingle();
+
+          if (error) throw error;
+
+          if (!data) {
+            alert(`ℹ️ No hay datos guardados para ${monthName} ${anio}`);
+            registroExistente = null;
+            datosCargados = false;
+            actualizarEstado("new");
+            return;
+          }
+
+          // Guardar referencia del registro
+          registroExistente = data;
+
+          // Cargar los datos en el formulario (sin incluir campos de sistema)
+          Object.keys(data).forEach((key) => {
+            const input = document.getElementById(key);
+            if (
+              input &&
+              key !== "id" &&
+              key !== "mes" &&
+              key !== "anio" &&
+              key !== "fecha_registro"
+            ) {
+              input.value = data[key];
+            }
+          });
+
+          datosCargados = true;
+          actualizarEstado("saved");
+          alert(`✅ Datos cargados para ${monthName} ${anio}`);
+
+          // Disparar cálculos automáticos
+          dispararCalculos();
+        } catch (error) {
+          console.error("Error al cargar:", error);
+          alert("❌ Error al cargar los datos: " + error.message);
+        }
+      }
+
+      // Guardar datos en Supabase
       async function guardarDatos() {
         const btn = document.querySelector('[onclick="guardarDatos()"]');
         if (!btn) {
@@ -389,8 +536,10 @@
             "#month option:checked",
           ).textContent;
 
+          // Recolectar datos
           const datos = recolectarDatos();
 
+          // Verificar si hay datos
           const tieneDatos = Object.values(datos).some((v) => v > 0);
           if (!tieneDatos) {
             alert("⚠️ No hay datos para guardar. Complete al menos un campo.");
@@ -401,19 +550,12 @@
 
           console.log("Datos a guardar:", datos);
 
+          // Verificar si existe
           const existe = await verificarExistencia(mes, anio);
 
           let result;
           if (existe) {
-            const confirmar = confirm(
-              `⚠️ Ya existe un registro para ${monthName} ${anio}.\n¿Desea ACTUALIZARLO?`,
-            );
-            if (!confirmar) {
-              btn.textContent = textoOriginal;
-              btn.disabled = false;
-              return;
-            }
-
+            // Actualizar - AHORA SOLO ACTUALIZA LOS CAMPOS MODIFICADOS
             const { data, error } = await supabaseClient
               .from("indicadores_mensuales")
               .update(datos)
@@ -423,8 +565,11 @@
 
             if (error) throw error;
             result = data;
+            registroExistente = data[0];
             alert("✅ Registro ACTUALIZADO correctamente");
+            actualizarEstado("saved");
           } else {
+            // Insertar nuevo
             const { data, error } = await supabaseClient
               .from("indicadores_mensuales")
               .insert([datos])
@@ -432,10 +577,15 @@
 
             if (error) throw error;
             result = data;
+            registroExistente = data[0];
             alert("✅ Datos GUARDADOS correctamente");
+            actualizarEstado("saved");
           }
 
           console.log("Respuesta de Supabase:", result);
+          datosCargados = true;
+
+          // Mostrar resumen
           showSummary();
         } catch (error) {
           console.error("Error detallado:", error);
@@ -461,6 +611,43 @@
         }
       }
 
+      // Eliminar registro
+      async function eliminarRegistro() {
+        const mes = parseInt(document.getElementById("month").value);
+        const anio = parseInt(document.getElementById("year").value);
+        const monthName = document.querySelector(
+          "#month option:checked",
+        ).textContent;
+
+        const confirmar = confirm(
+          `⚠️ ¿Está seguro que desea ELIMINAR el registro de ${monthName} ${anio}?\n\nEsta acción NO se puede deshacer.`,
+        );
+
+        if (!confirmar) return;
+
+        try {
+          const { error } = await supabaseClient
+            .from("indicadores_mensuales")
+            .delete()
+            .eq("mes", mes)
+            .eq("anio", anio);
+
+          if (error) throw error;
+
+          alert(`🗑️ Registro de ${monthName} ${anio} ELIMINADO correctamente`);
+          registroExistente = null;
+          datosCargados = false;
+          resetForm();
+        } catch (error) {
+          console.error("Error al eliminar:", error);
+          alert("❌ Error al eliminar: " + error.message);
+        }
+      }
+
+      // ============================================================
+      // FUNCIONES DEL FORMULARIO
+      // ============================================================
+
       function recolectarDatos() {
         const mes = parseInt(document.getElementById("month").value);
         const anio = parseInt(document.getElementById("year").value);
@@ -472,7 +659,7 @@
         };
 
         document.querySelectorAll('input[type="number"]').forEach((input) => {
-          if (input.id !== "year") {
+          if (input.id !== "year" && !input.readOnly) {
             const valor = parseFloat(input.value);
 
             if (input.id === "intervalo_sustitucion") {
@@ -490,8 +677,56 @@
         return datos;
       }
 
+      function actualizarEstado(tipo) {
+        const badge = document.getElementById("statusBadge");
+        if (tipo === "saved") {
+          badge.className = "status-badge saved";
+          badge.textContent = "💾 Guardado";
+        } else if (tipo === "edited") {
+          badge.className = "status-badge edited";
+          badge.textContent = "✏️ Editando";
+        } else {
+          badge.className = "status-badge new";
+          badge.textContent = "📝 Nuevo";
+        }
+      }
+
+      function onMonthChange() {
+        // Cuando cambia mes/año, resetear el estado
+        datosCargados = false;
+        registroExistente = null;
+        actualizarEstado("new");
+        // Limpiar campos
+        document.querySelectorAll('input[type="number"]').forEach((input) => {
+          if (!input.readOnly && input.id !== "year") {
+            input.value = "";
+          }
+        });
+        // Recalcular
+        dispararCalculos();
+      }
+
+      function dispararCalculos() {
+        setTimeout(() => {
+          [
+            "medicos_ce",
+            "enf_ce",
+            "urgencias_pediatricas",
+            "lab_ce",
+            "rx_ce",
+          ].forEach((id) => {
+            const ev = new Event("input");
+            document.getElementById(id).dispatchEvent(ev);
+          });
+          if (document.getElementById("dias_cama")) {
+            const ev = new Event("input");
+            document.getElementById("dias_cama").dispatchEvent(ev);
+          }
+        }, 100);
+      }
+
       // ============================================================
-      // 1. DEFINICIÓN DE CAMPOS
+      // DEFINICIÓN DE CAMPOS
       // ============================================================
       const categories = [
         {
@@ -739,7 +974,7 @@
       ];
 
       // ============================================================
-      // 2. RENDERIZADO DEL FORMULARIO
+      // RENDERIZADO DEL FORMULARIO
       // ============================================================
       function renderForm() {
         const container = document.getElementById("categories-container");
@@ -771,12 +1006,12 @@
             input.id = field.id;
             input.step = "any";
             input.min = "0";
+
             if (field.calculated) {
               input.readOnly = true;
               input.className = "calculated";
             }
 
-            // ===== PASO 5: Mostrar fórmula específica =====
             const hint = document.createElement("div");
             hint.className = "hint";
             if (field.calculated) {
@@ -825,7 +1060,7 @@
       }
 
       // ============================================================
-      // 3. CÁLCULOS AUTOMÁTICOS
+      // CÁLCULOS AUTOMÁTICOS
       // ============================================================
       function calcularIndiceSustitucion() {
         const diasCama = getVal("dias_cama");
@@ -890,7 +1125,7 @@
           });
         });
 
-        // ===== Índice de sustitución =====
+        // Índice de sustitución
         ["dias_cama", "dias_paciente", "egresos_totales"].forEach((id) => {
           document.getElementById(id).addEventListener("input", () => {
             calcularIndiceSustitucion();
@@ -909,7 +1144,7 @@
       }
 
       // ============================================================
-      // 4. VALIDACIONES CRUZADAS
+      // VALIDACIONES CRUZADAS
       // ============================================================
       function validateAll() {
         let errors = [];
@@ -1045,7 +1280,7 @@
       }
 
       // ============================================================
-      // 5. RESUMEN Y EXPORTACIÓN
+      // RESUMEN Y EXPORTACIÓN
       // ============================================================
       function showSummary() {
         const summaryBox = document.getElementById("summaryBox");
@@ -1113,52 +1348,27 @@
 
       function resetForm() {
         document.querySelectorAll('input[type="number"]').forEach((input) => {
-          if (!input.readOnly) input.value = "";
+          if (!input.readOnly && input.id !== "year") {
+            input.value = "";
+          }
         });
-        attachAutoCalculations();
+        datosCargados = false;
+        registroExistente = null;
+        actualizarEstado("new");
+        dispararCalculos();
         document.querySelectorAll(".validation-msg").forEach((el) => {
           el.textContent = "";
           el.className = "validation-msg";
         });
         document.getElementById("summaryBox").className = "summary-box";
         document.getElementById("summaryBox").textContent = "";
-        [
-          "medicos_ce",
-          "enf_ce",
-          "urgencias_pediatricas",
-          "lab_ce",
-          "rx_ce",
-        ].forEach((id) => {
-          const ev = new Event("input");
-          document.getElementById(id).dispatchEvent(ev);
-        });
       }
 
       // ============================================================
-      // 6. INICIALIZACIÓN
+      // INICIALIZACIÓN
       // ============================================================
       renderForm();
-
-      // ===== PASO 6: Inicializar todos los cálculos =====
-      setTimeout(() => {
-        // Calcular totales
-        [
-          "medicos_ce",
-          "enf_ce",
-          "urgencias_pediatricas",
-          "lab_ce",
-          "rx_ce",
-        ].forEach((id) => {
-          const ev = new Event("input");
-          document.getElementById(id).dispatchEvent(ev);
-        });
-
-        // Calcular índice de sustitución
-        if (document.getElementById("dias_cama")) {
-          const ev = new Event("input");
-          document.getElementById("dias_cama").dispatchEvent(ev);
-        }
-      }, 100);
+      dispararCalculos();
     </script>
   </body>
 </html>
