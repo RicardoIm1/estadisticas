@@ -313,6 +313,211 @@
         color: #0c5460;
       }
 
+      /* ============================================================
+       TOAST NOTIFICATIONS
+       ============================================================ */
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 400px;
+        width: 100%;
+      }
+
+      .toast {
+        background: white;
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        animation: slideInRight 0.3s ease-out;
+        border-left: 5px solid #1a73e8;
+        transform-origin: right;
+      }
+
+      .toast.success {
+        border-left-color: #1e7e34;
+      }
+
+      .toast.error {
+        border-left-color: #e74c3c;
+      }
+
+      .toast.warning {
+        border-left-color: #f39c12;
+      }
+
+      .toast.info {
+        border-left-color: #3498db;
+      }
+
+      .toast-icon {
+        font-size: 24px;
+        flex-shrink: 0;
+        line-height: 1;
+      }
+
+      .toast-content {
+        flex: 1;
+      }
+
+      .toast-title {
+        font-weight: 700;
+        font-size: 15px;
+        color: #1a2a3a;
+        margin-bottom: 4px;
+      }
+
+      .toast-message {
+        font-size: 14px;
+        color: #555;
+        line-height: 1.4;
+      }
+
+      .toast-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        color: #999;
+        cursor: pointer;
+        padding: 0 4px;
+        line-height: 1;
+        transition: 0.2s;
+      }
+
+      .toast-close:hover {
+        color: #333;
+        transform: scale(1.2);
+      }
+
+      @keyframes slideInRight {
+        from {
+          opacity: 0;
+          transform: translateX(100px);
+        }
+        to {
+          opacity: 1;
+          transform: translateX(0);
+        }
+      }
+
+      @keyframes slideOutRight {
+        from {
+          opacity: 1;
+          transform: translateX(0);
+        }
+        to {
+          opacity: 0;
+          transform: translateX(100px);
+        }
+      }
+
+      .toast.hiding {
+        animation: slideOutRight 0.3s ease-in forwards;
+      }
+
+      /* Toast para confirmación (similar a confirm()) */
+      .toast-confirm-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 10000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .toast-confirm-overlay.active {
+        display: flex;
+      }
+
+      .toast-confirm-box {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        max-width: 450px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: slideInRight 0.3s ease-out;
+      }
+
+      .toast-confirm-box .icon {
+        font-size: 48px;
+        text-align: center;
+        margin-bottom: 12px;
+      }
+
+      .toast-confirm-box h3 {
+        text-align: center;
+        font-size: 20px;
+        color: #1a2a3a;
+        margin-bottom: 8px;
+      }
+
+      .toast-confirm-box p {
+        text-align: center;
+        color: #555;
+        font-size: 15px;
+        line-height: 1.5;
+        margin-bottom: 24px;
+      }
+
+      .toast-confirm-box .buttons {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+      }
+
+      .toast-confirm-box .buttons button {
+        padding: 10px 32px;
+        border: none;
+        border-radius: 30px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .toast-confirm-box .buttons button:hover {
+        transform: scale(1.05);
+      }
+
+      .toast-confirm-box .btn-confirm {
+        background: #1a73e8;
+        color: white;
+      }
+
+      .toast-confirm-box .btn-confirm:hover {
+        background: #1557b0;
+      }
+
+      .toast-confirm-box .btn-cancel {
+        background: #dce3ed;
+        color: #1a2a3a;
+      }
+
+      .toast-confirm-box .btn-cancel:hover {
+        background: #cbd5e3;
+      }
+
+      .toast-confirm-box .btn-danger-confirm {
+        background: #e74c3c;
+        color: white;
+      }
+
+      .toast-confirm-box .btn-danger-confirm:hover {
+        background: #c0392b;
+      }
+
       @media (max-width: 700px) {
         .container {
           padding: 16px;
@@ -327,6 +532,15 @@
         }
         .month-selector button {
           margin-left: 0;
+        }
+        .toast-container {
+          max-width: 95%;
+          right: 10px;
+          top: 10px;
+        }
+        .toast-confirm-box {
+          padding: 20px;
+          margin: 20px;
         }
       }
     </style>
@@ -418,8 +632,114 @@
       <div id="summaryBox" class="summary-box"></div>
     </div>
 
+    <!-- TOAST CONTAINER -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- TOAST CONFIRM OVERLAY -->
+    <div id="toastConfirmOverlay" class="toast-confirm-overlay">
+      <div class="toast-confirm-box">
+        <div class="icon" id="confirmIcon">⚠️</div>
+        <h3 id="confirmTitle">¿Estás seguro?</h3>
+        <p id="confirmMessage">Esta acción no se puede deshacer.</p>
+        <div class="buttons">
+          <button class="btn-cancel" onclick="confirmCancel()">Cancelar</button>
+          <button class="btn-confirm" id="confirmBtn" onclick="confirmAccept()">
+            Aceptar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
+      // ============================================================
+      // TOAST NOTIFICATIONS SYSTEM
+      // ============================================================
+
+      let confirmResolve = null;
+
+      function showToast(title, message, type = "info", duration = 4000) {
+        const container = document.getElementById("toastContainer");
+
+        const icons = {
+          success: "✅",
+          error: "❌",
+          warning: "⚠️",
+          info: "ℹ️",
+        };
+
+        const toast = document.createElement("div");
+        toast.className = `toast ${type}`;
+        toast.innerHTML = `
+        <div class="toast-icon">${icons[type] || "ℹ️"}</div>
+        <div class="toast-content">
+          <div class="toast-title">${title}</div>
+          <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+      `;
+
+        container.appendChild(toast);
+
+        // Auto-remover después de duration
+        setTimeout(() => {
+          if (toast.parentElement) {
+            toast.classList.add("hiding");
+            setTimeout(() => toast.remove(), 300);
+          }
+        }, duration);
+
+        return toast;
+      }
+
+      function showConfirm(
+        title,
+        message,
+        type = "warning",
+        confirmText = "Aceptar",
+      ) {
+        return new Promise((resolve) => {
+          const overlay = document.getElementById("toastConfirmOverlay");
+          document.getElementById("confirmIcon").textContent =
+            type === "danger" ? "🗑️" : "⚠️";
+          document.getElementById("confirmTitle").textContent = title;
+          document.getElementById("confirmMessage").textContent = message;
+
+          const confirmBtn = document.getElementById("confirmBtn");
+          confirmBtn.textContent = confirmText;
+          confirmBtn.className =
+            type === "danger" ? "btn-danger-confirm" : "btn-confirm";
+
+          overlay.classList.add("active");
+          confirmResolve = resolve;
+        });
+      }
+
+      function confirmAccept() {
+        const overlay = document.getElementById("toastConfirmOverlay");
+        overlay.classList.remove("active");
+        if (confirmResolve) {
+          confirmResolve(true);
+          confirmResolve = null;
+        }
+      }
+
+      function confirmCancel() {
+        const overlay = document.getElementById("toastConfirmOverlay");
+        overlay.classList.remove("active");
+        if (confirmResolve) {
+          confirmResolve(false);
+          confirmResolve = null;
+        }
+      }
+
+      // Cerrar confirm con Escape
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          confirmCancel();
+        }
+      });
+
       // ============================================================
       // CONFIGURACIÓN DE SUPABASE
       // ============================================================
@@ -440,7 +760,6 @@
       // FUNCIONES PARA SUPABASE
       // ============================================================
 
-      // Verificar si ya existe un registro
       async function verificarExistencia(mes, anio) {
         try {
           const { data, error } = await supabaseClient
@@ -461,7 +780,6 @@
         }
       }
 
-      // Cargar datos existentes
       async function cargarDatos() {
         const mes = parseInt(document.getElementById("month").value);
         const anio = parseInt(document.getElementById("year").value);
@@ -480,17 +798,19 @@
           if (error) throw error;
 
           if (!data) {
-            alert(`ℹ️ No hay datos guardados para ${monthName} ${anio}`);
+            showToast(
+              "Sin datos",
+              `No hay datos guardados para ${monthName} ${anio}`,
+              "info",
+            );
             registroExistente = null;
             datosCargados = false;
             actualizarEstado("new");
             return;
           }
 
-          // Guardar referencia del registro
           registroExistente = data;
 
-          // Cargar los datos en el formulario (sin incluir campos de sistema)
           Object.keys(data).forEach((key) => {
             const input = document.getElementById(key);
             if (
@@ -506,17 +826,22 @@
 
           datosCargados = true;
           actualizarEstado("saved");
-          alert(`✅ Datos cargados para ${monthName} ${anio}`);
-
-          // Disparar cálculos automáticos
+          showToast(
+            "Datos cargados",
+            `Datos cargados para ${monthName} ${anio}`,
+            "success",
+          );
           dispararCalculos();
         } catch (error) {
           console.error("Error al cargar:", error);
-          alert("❌ Error al cargar los datos: " + error.message);
+          showToast(
+            "Error",
+            "Error al cargar los datos: " + error.message,
+            "error",
+          );
         }
       }
 
-      // Guardar datos en Supabase
       async function guardarDatos() {
         const btn = document.querySelector('[onclick="guardarDatos()"]');
         if (!btn) {
@@ -536,13 +861,15 @@
             "#month option:checked",
           ).textContent;
 
-          // Recolectar datos
           const datos = recolectarDatos();
 
-          // Verificar si hay datos
           const tieneDatos = Object.values(datos).some((v) => v > 0);
           if (!tieneDatos) {
-            alert("⚠️ No hay datos para guardar. Complete al menos un campo.");
+            showToast(
+              "Sin datos",
+              "Complete al menos un campo para guardar.",
+              "warning",
+            );
             btn.textContent = textoOriginal;
             btn.disabled = false;
             return;
@@ -550,12 +877,23 @@
 
           console.log("Datos a guardar:", datos);
 
-          // Verificar si existe
           const existe = await verificarExistencia(mes, anio);
 
           let result;
           if (existe) {
-            // Actualizar - AHORA SOLO ACTUALIZA LOS CAMPOS MODIFICADOS
+            const confirmar = await showConfirm(
+              "¿Actualizar registro?",
+              `Ya existe un registro para ${monthName} ${anio}. ¿Desea ACTUALIZARLO?`,
+              "warning",
+              "Actualizar",
+            );
+
+            if (!confirmar) {
+              btn.textContent = textoOriginal;
+              btn.disabled = false;
+              return;
+            }
+
             const { data, error } = await supabaseClient
               .from("indicadores_mensuales")
               .update(datos)
@@ -566,10 +904,13 @@
             if (error) throw error;
             result = data;
             registroExistente = data[0];
-            alert("✅ Registro ACTUALIZADO correctamente");
+            showToast(
+              "Actualizado",
+              `Registro de ${monthName} ${anio} actualizado correctamente`,
+              "success",
+            );
             actualizarEstado("saved");
           } else {
-            // Insertar nuevo
             const { data, error } = await supabaseClient
               .from("indicadores_mensuales")
               .insert([datos])
@@ -578,31 +919,33 @@
             if (error) throw error;
             result = data;
             registroExistente = data[0];
-            alert("✅ Datos GUARDADOS correctamente");
+            showToast(
+              "Guardado",
+              `Datos de ${monthName} ${anio} guardados correctamente`,
+              "success",
+            );
             actualizarEstado("saved");
           }
 
           console.log("Respuesta de Supabase:", result);
           datosCargados = true;
-
-          // Mostrar resumen
           showSummary();
         } catch (error) {
           console.error("Error detallado:", error);
 
-          let errorMsg = "❌ Error al guardar en Supabase:\n";
+          let errorMsg = "Error al guardar en Supabase:\n";
           if (error.code === "42P01") {
-            errorMsg += "La tabla 'indicadores_mensuales' no existe.\n";
-            errorMsg += "Por favor, crea la tabla en Supabase SQL Editor.";
+            errorMsg +=
+              "La tabla 'indicadores_mensuales' no existe. Por favor, crea la tabla en Supabase SQL Editor.";
           } else if (error.code === "23505") {
             errorMsg += "Ya existe un registro con este mes y año (duplicado).";
           } else if (error.code === "42501") {
-            errorMsg += "No tienes permisos para insertar en esta tabla.\n";
-            errorMsg += "Verifica las políticas RLS en Supabase.";
+            errorMsg +=
+              "No tienes permisos para insertar en esta tabla. Verifica las políticas RLS en Supabase.";
           } else {
             errorMsg += error.message;
           }
-          alert(errorMsg);
+          showToast("Error", errorMsg, "error");
         } finally {
           if (btn) {
             btn.textContent = textoOriginal;
@@ -611,7 +954,6 @@
         }
       }
 
-      // Eliminar registro
       async function eliminarRegistro() {
         const mes = parseInt(document.getElementById("month").value);
         const anio = parseInt(document.getElementById("year").value);
@@ -619,8 +961,11 @@
           "#month option:checked",
         ).textContent;
 
-        const confirmar = confirm(
-          `⚠️ ¿Está seguro que desea ELIMINAR el registro de ${monthName} ${anio}?\n\nEsta acción NO se puede deshacer.`,
+        const confirmar = await showConfirm(
+          "¿Eliminar registro?",
+          `¿Está seguro que desea ELIMINAR el registro de ${monthName} ${anio}?\n\nEsta acción NO se puede deshacer.`,
+          "danger",
+          "Eliminar",
         );
 
         if (!confirmar) return;
@@ -634,13 +979,17 @@
 
           if (error) throw error;
 
-          alert(`🗑️ Registro de ${monthName} ${anio} ELIMINADO correctamente`);
+          showToast(
+            "Eliminado",
+            `Registro de ${monthName} ${anio} eliminado correctamente`,
+            "success",
+          );
           registroExistente = null;
           datosCargados = false;
           resetForm();
         } catch (error) {
           console.error("Error al eliminar:", error);
-          alert("❌ Error al eliminar: " + error.message);
+          showToast("Error", "Error al eliminar: " + error.message, "error");
         }
       }
 
@@ -692,17 +1041,14 @@
       }
 
       function onMonthChange() {
-        // Cuando cambia mes/año, resetear el estado
         datosCargados = false;
         registroExistente = null;
         actualizarEstado("new");
-        // Limpiar campos
         document.querySelectorAll('input[type="number"]').forEach((input) => {
           if (!input.readOnly && input.id !== "year") {
             input.value = "";
           }
         });
-        // Recalcular
         dispararCalculos();
       }
 
