@@ -493,6 +493,644 @@
 
         return datos;
       }
+
+      // ============================================================
+      // 1. DEFINICIÓN DE CAMPOS (limpiada y clasificada)
+      // ============================================================
+      const categories = [
+        {
+          name: "👤 Personal",
+          fields: [
+            {
+              id: "medicos_ce",
+              label: "Médicos en contacto (consulta externa)",
+            },
+            { id: "medicos_hosp", label: "Médicos en contacto (hospital)" },
+            {
+              id: "enf_ce",
+              label: "Enfermeras en contacto (consulta externa)",
+            },
+            { id: "enf_hosp", label: "Enfermeras en contacto (hospital)" },
+            {
+              id: "medicos_admin",
+              label: "Médicos en labores administrativas",
+            },
+            { id: "enf_admin", label: "Enfermeras en labores administrativas" },
+            {
+              id: "total_medicos",
+              label: "Total de médicos en el hospital",
+              calculated: true,
+            },
+            {
+              id: "total_enfermeras",
+              label: "Total de enfermeras en el hospital",
+              calculated: true,
+            },
+            { id: "total_odontologos", label: "Total de odontólogos" },
+            { id: "total_especialistas", label: "Total de especialistas" },
+            { id: "total_residentes", label: "Total de residentes" },
+          ],
+        },
+        {
+          name: "🏢 Infraestructura",
+          fields: [
+            { id: "consultorios", label: "Número de consultorios" },
+            { id: "camas_censables", label: "Número de camas censables" },
+            { id: "quirofanos", label: "Número de quirófanos en el hospital" },
+          ],
+        },
+        {
+          name: "🩺 Consultas",
+          fields: [
+            { id: "consultas_totales", label: "Consultas otorgadas totales" },
+            { id: "consultas_externas", label: "Consultas externas" },
+            {
+              id: "consultas_especialidad",
+              label: "Consultas por especialidad",
+            },
+            { id: "consultas_odonto", label: "Consultas de odontólogos" },
+            { id: "consultas_prenatal", label: "Consulta externa prenatal" },
+            {
+              id: "prenatal_primera_vez",
+              label: "Consultas prenatales de primera vez",
+            },
+            {
+              id: "embarazadas_1er_trim",
+              label: "Embarazadas captadas por 1ª vez en 1er trimestre",
+            },
+            {
+              id: "consultas_embarazo",
+              label: "Total de consultas por embarazo",
+            },
+          ],
+        },
+        {
+          name: "🏥 Egresos y hospitalización",
+          fields: [
+            {
+              id: "egresos_totales",
+              label: "Total de egresos hospitalarios en el año",
+            },
+            {
+              id: "egresos_corta_estancia",
+              label: "Egresos de corta estancia",
+            },
+            { id: "dias_cama", label: "Días cama" },
+            { id: "dias_paciente", label: "Días paciente" },
+            {
+              id: "dias_estancia_total",
+              label: "Total días de estancia en el hospital",
+            },
+            { id: "causas_egreso", label: "Número de causas motivo de egreso" },
+          ],
+        },
+        {
+          name: "🚑 Urgencias",
+          fields: [
+            {
+              id: "urgencias_totales",
+              label: "Total de urgencias en un año",
+              calculated: true,
+            },
+            {
+              id: "urgencias_pediatricas",
+              label: "Urgencias pediátricas en un año",
+            },
+            { id: "urgencias_adulto", label: "Urgencias adulto en un año" },
+          ],
+        },
+        {
+          name: "🔪 Cirugías y partos",
+          fields: [
+            {
+              id: "interv_quirurgicas",
+              label: "Número de intervenciones quirúrgicas",
+            },
+            { id: "cirugias_suspendidas", label: "Cirugías suspendidas" },
+            { id: "cirugias_programadas", label: "Cirugías programadas" },
+            {
+              id: "cirugias_ambulatorias",
+              label: "Intervenciones quirúrgicas ambulatorias",
+            },
+            {
+              id: "interv_realizadas",
+              label: "Total de intervenciones quirúrgicas realizadas",
+            },
+            { id: "partos_cesarea", label: "Partos por cesárea" },
+            { id: "partos_atendidos", label: "Total de partos atendidos" },
+            { id: "partos_espontaneos", label: "Partos únicos espontáneos" },
+            {
+              id: "partos_asistidos",
+              label: "Partos con fórceps/ventosa/otros asistidos",
+            },
+            {
+              id: "mujeres_complicaciones",
+              label: "Mujeres con alguna complicación señalada",
+            },
+            {
+              id: "partos_trauma",
+              label: "Partos atendidos con trauma obstétrico",
+            },
+          ],
+        },
+        {
+          name: "👶 Nacimientos",
+          fields: [
+            { id: "nacidos_vivos", label: "Total de nacidos vivos" },
+            {
+              id: "nacidos_p10",
+              label: "Nacidos vivos con peso < percentil 10",
+            },
+            {
+              id: "nacidos_p90",
+              label: "Nacidos vivos con peso > percentil 90",
+            },
+            {
+              id: "nacidos_menos_2500",
+              label: "Nacidos vivos con peso < 2500 g",
+            },
+          ],
+        },
+        {
+          name: "🧪 Laboratorio",
+          fields: [
+            {
+              id: "lab_ce",
+              label: "Exámenes de laboratorio en consulta externa",
+            },
+            {
+              id: "lab_hosp",
+              label: "Exámenes de laboratorio en hospitalización",
+            },
+            {
+              id: "lab_urgencias",
+              label: "Exámenes de laboratorio en urgencias",
+            },
+            {
+              id: "lab_total",
+              label: "Total de exámenes de laboratorio",
+              calculated: true,
+            },
+          ],
+        },
+        {
+          name: "📷 Radiología",
+          fields: [
+            {
+              id: "rx_ce",
+              label: "Estudios de radiología en consulta externa",
+            },
+            {
+              id: "rx_hosp",
+              label: "Estudios de radiología en hospitalización",
+            },
+            {
+              id: "rx_urgencias",
+              label: "Estudios de radiología en urgencias",
+            },
+            {
+              id: "rx_total",
+              label: "Total de estudios de radiología",
+              calculated: true,
+            },
+          ],
+        },
+        {
+          name: "🦠 Infecciones (IAAS)",
+          fields: [
+            { id: "iaas_cirugia", label: "Infección nosocomial en cirugía" },
+            {
+              id: "iaas_pediatria",
+              label: "Infección nosocomial en pediatría",
+            },
+            { id: "iaas_ucin", label: "Infección nosocomial en UCIN" },
+            {
+              id: "iaas_gineco",
+              label: "Infección nosocomial en ginecobstetricia",
+            },
+            { id: "iaas_ucia", label: "Infección nosocomial en UCIA" },
+            {
+              id: "infeccion_sitio_quir",
+              label: "Total infecciones en sitio quirúrgico",
+            },
+            {
+              id: "bacteriemias_cateter",
+              label: "Bacteriemias asociadas a catéter venoso central",
+            },
+            { id: "dias_cateter", label: "Días catéter central" },
+            {
+              id: "neumonias_ventilador",
+              label: "Neumonías asociadas a ventilador",
+            },
+            { id: "dias_ventilador", label: "Días ventilador" },
+            {
+              id: "infecciones_sonda",
+              label: "Infecciones asociadas a sonda vesical",
+            },
+            { id: "dias_sonda", label: "Días sonda vesical" },
+          ],
+        },
+        {
+          name: "⏳ Otros",
+          fields: [
+            { id: "intervalo_sustitucion", label: "Intervalo de sustitución" },
+          ],
+        },
+      ];
+
+      // ============================================================
+      // 2. RENDERIZADO DEL FORMULARIO
+      // ============================================================
+      function renderForm() {
+        const container = document.getElementById("categories-container");
+        container.innerHTML = "";
+
+        categories.forEach((cat, idx) => {
+          const div = document.createElement("div");
+          div.className = "category";
+
+          const header = document.createElement("div");
+          header.className = "category-header";
+          header.innerHTML = `${cat.name} <span id="toggle-${idx}">▼</span>`;
+          header.onclick = () => toggleCategory(idx);
+
+          const body = document.createElement("div");
+          body.className = "category-body";
+          body.id = `body-${idx}`;
+
+          cat.fields.forEach((field) => {
+            const group = document.createElement("div");
+            group.className = "field-group";
+
+            const label = document.createElement("label");
+            label.htmlFor = field.id;
+            label.textContent = field.label;
+
+            const input = document.createElement("input");
+            input.type = "number";
+            input.id = field.id;
+            input.step = "any";
+            input.min = "0";
+            if (field.calculated) {
+              input.readOnly = true;
+              input.className = "calculated";
+            }
+
+            const hint = document.createElement("div");
+            hint.className = "hint";
+            if (field.calculated)
+              hint.textContent = "⏺ Se calcula automáticamente";
+
+            const validation = document.createElement("div");
+            validation.className = "validation-msg";
+            validation.id = `val-${field.id}`;
+
+            group.appendChild(label);
+            group.appendChild(input);
+            if (field.calculated) group.appendChild(hint);
+            group.appendChild(validation);
+            body.appendChild(group);
+          });
+
+          div.appendChild(header);
+          div.appendChild(body);
+          container.appendChild(div);
+
+          // Por defecto abiertas las primeras 3
+          if (idx >= 3) {
+            document.getElementById(`body-${idx}`).style.display = "none";
+            document.querySelector(`#toggle-${idx}`).textContent = "▶";
+          }
+        });
+
+        // Eventos para cálculos automáticos
+        attachAutoCalculations();
+      }
+
+      function toggleCategory(idx) {
+        const body = document.getElementById(`body-${idx}`);
+        const toggle = document.querySelector(`#toggle-${idx}`);
+        if (body.style.display === "none") {
+          body.style.display = "grid";
+          toggle.textContent = "▼";
+        } else {
+          body.style.display = "none";
+          toggle.textContent = "▶";
+        }
+      }
+
+      // ============================================================
+      // 3. CÁLCULOS AUTOMÁTICOS
+      // ============================================================
+      function attachAutoCalculations() {
+        // Total médicos = médicos_ce + médicos_hosp + médicos_admin
+        ["medicos_ce", "medicos_hosp", "medicos_admin"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            const sum =
+              getVal("medicos_ce") +
+              getVal("medicos_hosp") +
+              getVal("medicos_admin");
+            setVal("total_medicos", sum);
+          });
+        });
+
+        // Total enfermeras = enf_ce + enf_hosp + enf_admin
+        ["enf_ce", "enf_hosp", "enf_admin"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            const sum =
+              getVal("enf_ce") + getVal("enf_hosp") + getVal("enf_admin");
+            setVal("total_enfermeras", sum);
+          });
+        });
+
+        // Urgencias totales = pediátricas + adulto
+        ["urgencias_pediatricas", "urgencias_adulto"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            const sum =
+              getVal("urgencias_pediatricas") + getVal("urgencias_adulto");
+            setVal("urgencias_totales", sum);
+          });
+        });
+
+        // Laboratorio total = ce + hosp + urgencias
+        ["lab_ce", "lab_hosp", "lab_urgencias"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            const sum =
+              getVal("lab_ce") + getVal("lab_hosp") + getVal("lab_urgencias");
+            setVal("lab_total", sum);
+          });
+        });
+
+        // Radiología total = ce + hosp + urgencias
+        ["rx_ce", "rx_hosp", "rx_urgencias"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            const sum =
+              getVal("rx_ce") + getVal("rx_hosp") + getVal("rx_urgencias");
+            setVal("rx_total", sum);
+          });
+        });
+      }
+
+      function getVal(id) {
+        const el = document.getElementById(id);
+        return el ? parseFloat(el.value) || 0 : 0;
+      }
+
+      function setVal(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+      }
+
+      // ============================================================
+      // 4. VALIDACIONES CRUZADAS
+      // ============================================================
+      function validateAll() {
+        let errors = [];
+        let warnings = [];
+
+        // Validación 1: Urgencias totales = pediátricas + adulto
+        const totalU = getVal("urgencias_totales");
+        const sumU =
+          getVal("urgencias_pediatricas") + getVal("urgencias_adulto");
+        if (totalU !== sumU) {
+          errors.push(
+            "⚠️ Urgencias totales no coincide con la suma de pediátricas + adulto",
+          );
+          showValidation(
+            "urgencias_totales",
+            "Debe ser = pediátricas + adulto",
+          );
+        } else {
+          clearValidation("urgencias_totales");
+        }
+
+        // Validación 2: Total médicos = suma de componentes
+        const totalM = getVal("total_medicos");
+        const sumM =
+          getVal("medicos_ce") +
+          getVal("medicos_hosp") +
+          getVal("medicos_admin");
+        if (totalM !== sumM) {
+          errors.push(
+            "⚠️ Total de médicos no coincide con la suma de sus componentes",
+          );
+          showValidation(
+            "total_medicos",
+            "Debe ser = CE + Hospital + Administrativos",
+          );
+        } else {
+          clearValidation("total_medicos");
+        }
+
+        // Validación 3: Total enfermeras = suma de componentes
+        const totalE = getVal("total_enfermeras");
+        const sumE =
+          getVal("enf_ce") + getVal("enf_hosp") + getVal("enf_admin");
+        if (totalE !== sumE) {
+          errors.push(
+            "⚠️ Total de enfermeras no coincide con la suma de sus componentes",
+          );
+          showValidation(
+            "total_enfermeras",
+            "Debe ser = CE + Hospital + Administrativas",
+          );
+        } else {
+          clearValidation("total_enfermeras");
+        }
+
+        // Validación 4: Laboratorio total
+        const totalL = getVal("lab_total");
+        const sumL =
+          getVal("lab_ce") + getVal("lab_hosp") + getVal("lab_urgencias");
+        if (totalL !== sumL) {
+          errors.push(
+            "⚠️ Total de laboratorio no coincide con la suma de CE + Hospitalización + Urgencias",
+          );
+          showValidation(
+            "lab_total",
+            "Debe ser = CE + Hospitalización + Urgencias",
+          );
+        } else {
+          clearValidation("lab_total");
+        }
+
+        // Validación 5: Radiología total
+        const totalR = getVal("rx_total");
+        const sumR =
+          getVal("rx_ce") + getVal("rx_hosp") + getVal("rx_urgencias");
+        if (totalR !== sumR) {
+          errors.push(
+            "⚠️ Total de radiología no coincide con la suma de CE + Hospitalización + Urgencias",
+          );
+          showValidation(
+            "rx_total",
+            "Debe ser = CE + Hospitalización + Urgencias",
+          );
+        } else {
+          clearValidation("rx_total");
+        }
+
+        // Validación 6: Partos atendidos = cesárea + espontáneos + asistidos (aproximado)
+        const partosAt = getVal("partos_atendidos");
+        const sumPartos =
+          getVal("partos_cesarea") +
+          getVal("partos_espontaneos") +
+          getVal("partos_asistidos");
+        if (partosAt !== sumPartos && partosAt > 0) {
+          warnings.push(
+            "⚠️ Partos atendidos no coincide con cesárea + espontáneos + asistidos (verificar)",
+          );
+        }
+
+        // Mostrar resultados
+        const summaryBox = document.getElementById("summaryBox");
+        if (errors.length > 0 || warnings.length > 0) {
+          let msg = "🔍 RESULTADO DE VALIDACIÓN:\n";
+          if (errors.length > 0) {
+            msg +=
+              "\n❌ ERRORES (deben corregirse):\n" +
+              errors.map((e) => "  • " + e).join("\n");
+          }
+          if (warnings.length > 0) {
+            msg +=
+              "\n\n⚠️ ADVERTENCIAS (revisar):\n" +
+              warnings.map((w) => "  • " + w).join("\n");
+          }
+          summaryBox.textContent = msg;
+          summaryBox.className = "summary-box visible";
+          summaryBox.style.borderColor =
+            errors.length > 0 ? "#c62828" : "#f9a825";
+        } else {
+          summaryBox.textContent =
+            "✅ ¡Todos los totales calculados son consistentes! El formulario está correcto.";
+          summaryBox.className = "summary-box visible";
+          summaryBox.style.borderColor = "#2e7d32";
+        }
+      }
+
+      function showValidation(id, msg) {
+        const el = document.getElementById(`val-${id}`);
+        if (el) {
+          el.textContent = msg;
+          el.className = "validation-msg visible";
+        }
+      }
+
+      function clearValidation(id) {
+        const el = document.getElementById(`val-${id}`);
+        if (el) {
+          el.textContent = "";
+          el.className = "validation-msg";
+        }
+      }
+
+      // ============================================================
+      // 5. RESUMEN Y EXPORTACIÓN
+      // ============================================================
+      function showSummary() {
+        const summaryBox = document.getElementById("summaryBox");
+        const month = document.getElementById("month").value;
+        const year = document.getElementById("year").value;
+        const monthName = document.querySelector(
+          "#month option:checked",
+        ).textContent;
+
+        let lines = [];
+        lines.push(`📊 RESUMEN - ${monthName} ${year}`);
+        lines.push("=".repeat(50));
+
+        let allFields = [];
+        categories.forEach((cat) => {
+          cat.fields.forEach((f) => {
+            allFields.push({
+              category: cat.name,
+              label: f.label,
+              id: f.id,
+              value: getVal(f.id),
+            });
+          });
+        });
+
+        let currentCat = "";
+        allFields.forEach((f) => {
+          if (f.category !== currentCat) {
+            currentCat = f.category;
+            lines.push(`\n${currentCat}`);
+            lines.push("-".repeat(30));
+          }
+          lines.push(`  ${f.label}: ${f.value}`);
+        });
+
+        summaryBox.textContent = lines.join("\n");
+        summaryBox.className = "summary-box visible";
+      }
+
+      function exportCSV() {
+        const month = document.getElementById("month").value;
+        const year = document.getElementById("year").value;
+        const monthName = document.querySelector(
+          "#month option:checked",
+        ).textContent;
+
+        let rows = [];
+        rows.push("Categoría;Indicador;Valor");
+
+        categories.forEach((cat) => {
+          cat.fields.forEach((f) => {
+            const val = getVal(f.id);
+            rows.push(`${cat.name};${f.label};${val}`);
+          });
+        });
+
+        const csv = rows.join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `indicadores_${monthName}_${year}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+
+      function resetForm() {
+        document.querySelectorAll('input[type="number"]').forEach((input) => {
+          if (!input.readOnly) input.value = "";
+        });
+        attachAutoCalculations();
+        document.querySelectorAll(".validation-msg").forEach((el) => {
+          el.textContent = "";
+          el.className = "validation-msg";
+        });
+        document.getElementById("summaryBox").className = "summary-box";
+        document.getElementById("summaryBox").textContent = "";
+        [
+          "medicos_ce",
+          "enf_ce",
+          "urgencias_pediatricas",
+          "lab_ce",
+          "rx_ce",
+        ].forEach((id) => {
+          const ev = new Event("input");
+          document.getElementById(id).dispatchEvent(ev);
+        });
+      }
+
+      // ============================================================
+      // 6. INICIALIZACIÓN
+      // ============================================================
+      renderForm();
+
+      setTimeout(() => {
+        [
+          "medicos_ce",
+          "enf_ce",
+          "urgencias_pediatricas",
+          "lab_ce",
+          "rx_ce",
+        ].forEach((id) => {
+          const ev = new Event("input");
+          document.getElementById(id).dispatchEvent(ev);
+        });
+      }, 100);
     </script>
   </body>
 </html>
