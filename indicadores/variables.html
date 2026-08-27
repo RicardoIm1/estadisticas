@@ -1,0 +1,974 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Formulario Mensual - Indicadores Hospitalarios</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background: #f0f4f8;
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .container {
+        max-width: 1100px;
+        width: 100%;
+        background: white;
+        border-radius: 20px;
+        padding: 30px 35px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        font-size: 26px;
+        color: #0a2a44;
+        border-left: 6px solid #1a73e8;
+        padding-left: 15px;
+        margin-bottom: 8px;
+      }
+
+      .subtitle {
+        color: #555;
+        font-size: 15px;
+        margin-bottom: 25px;
+        margin-top: 5px;
+        padding-left: 21px;
+      }
+
+      .month-selector {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+        background: #e8edf4;
+        padding: 18px 22px;
+        border-radius: 14px;
+        margin-bottom: 30px;
+        align-items: center;
+      }
+
+      .month-selector label {
+        font-weight: 600;
+        color: #1a2a3a;
+        margin-right: 5px;
+      }
+
+      .month-selector input,
+      .month-selector select {
+        padding: 8px 14px;
+        border: 1px solid #bac8d9;
+        border-radius: 8px;
+        font-size: 15px;
+        background: white;
+      }
+
+      .month-selector button {
+        background: #1a73e8;
+        color: white;
+        border: none;
+        padding: 8px 24px;
+        border-radius: 30px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 15px;
+        transition: 0.2s;
+        margin-left: auto;
+      }
+
+      .month-selector button:hover {
+        background: #1557b0;
+        transform: scale(1.02);
+      }
+
+      .category {
+        margin-top: 30px;
+        border: 1px solid #dde3ed;
+        border-radius: 16px;
+        overflow: hidden;
+      }
+
+      .category-header {
+        background: #f7faff;
+        padding: 14px 24px;
+        font-weight: 700;
+        font-size: 18px;
+        color: #0a2a44;
+        border-bottom: 2px solid #d0dbe8;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        user-select: none;
+      }
+
+      .category-header:hover {
+        background: #eff4fc;
+      }
+
+      .category-header span {
+        font-size: 22px;
+        transition: 0.2s;
+      }
+
+      .category-body {
+        padding: 20px 24px 24px 24px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 12px 30px;
+        background: white;
+      }
+
+      .field-group {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .field-group label {
+        font-size: 13px;
+        font-weight: 500;
+        color: #1e2f40;
+        line-height: 1.3;
+      }
+
+      .field-group input {
+        padding: 8px 12px;
+        border: 1px solid #ccd7e6;
+        border-radius: 8px;
+        font-size: 15px;
+        background: #fafcff;
+        transition: 0.15s;
+        width: 100%;
+      }
+
+      .field-group input:focus {
+        border-color: #1a73e8;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+        background: white;
+      }
+
+      .field-group input.calculated {
+        background: #edf3fa;
+        font-weight: 600;
+        color: #0a2a44;
+      }
+
+      .field-group .hint {
+        font-size: 12px;
+        color: #6b7d93;
+        font-style: italic;
+      }
+
+      .validation-msg {
+        font-size: 12px;
+        color: #c62828;
+        font-weight: 500;
+        margin-top: 2px;
+        display: none;
+      }
+
+      .validation-msg.visible {
+        display: block;
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-top: 35px;
+        padding-top: 25px;
+        border-top: 2px solid #e2eaf3;
+        justify-content: center;
+      }
+
+      .actions button {
+        padding: 12px 36px;
+        border: none;
+        border-radius: 40px;
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .btn-primary {
+        background: #0a2a44;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #1a3f62;
+        transform: translateY(-2px);
+      }
+
+      .btn-secondary {
+        background: #dce3ed;
+        color: #1a2a3a;
+      }
+
+      .btn-secondary:hover {
+        background: #cbd5e3;
+      }
+
+      .btn-success {
+        background: #1e7e34;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background: #14622a;
+        transform: translateY(-2px);
+      }
+
+      .summary-box {
+        background: #eaf3fa;
+        border-radius: 14px;
+        padding: 18px 24px;
+        margin-top: 20px;
+        display: none;
+        font-size: 14px;
+        max-height: 300px;
+        overflow: auto;
+        white-space: pre-wrap;
+        font-family: "Courier New", monospace;
+        border: 1px solid #c7d9ec;
+      }
+
+      .summary-box.visible {
+        display: block;
+      }
+
+      @media (max-width: 700px) {
+        .container {
+          padding: 16px;
+        }
+        .category-body {
+          grid-template-columns: 1fr;
+          padding: 14px;
+        }
+        .month-selector {
+          flex-direction: column;
+          align-items: stretch;
+        }
+        .month-selector button {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container" id="app">
+      <h1>📋 Formulario Mensual</h1>
+      <div class="subtitle">
+        Indicadores asistenciales y de gestión hospitalaria
+      </div>
+
+      <!-- SELECTOR DE MES -->
+      <div class="month-selector">
+        <div>
+          <label for="month">Mes:</label>
+          <select id="month">
+            <option value="01">Enero</option>
+            <option value="02">Febrero</option>
+            <option value="03">Marzo</option>
+            <option value="04">Abril</option>
+            <option value="05">Mayo</option>
+            <option value="06">Junio</option>
+            <option value="07">Julio</option>
+            <option value="08">Agosto</option>
+            <option value="09">Septiembre</option>
+            <option value="10">Octubre</option>
+            <option value="11">Noviembre</option>
+            <option value="12">Diciembre</option>
+          </select>
+        </div>
+        <div>
+          <label for="year">Año:</label>
+          <input
+            type="number"
+            id="year"
+            value="2026"
+            min="2020"
+            max="2030"
+            style="width: 100px"
+          />
+        </div>
+        <button onclick="resetForm()">🔄 Limpiar todo</button>
+      </div>
+
+      <!-- CATEGORÍAS -->
+      <div id="categories-container"></div>
+
+      <!-- ACCIONES -->
+      <div class="actions">
+        <button class="btn-primary" onclick="validateAll()">
+          ✅ Validar formulario
+        </button>
+        <button class="btn-secondary" onclick="showSummary()">
+          📊 Ver resumen
+        </button>
+        <button class="btn-success" onclick="exportCSV()">
+          ⬇️ Exportar a CSV
+        </button>
+      </div>
+
+      <div id="summaryBox" class="summary-box"></div>
+    </div>
+
+    <script>
+      // --------------------------------------------------------------
+      // 1. DEFINICIÓN DE CAMPOS (limpiada y clasificada)
+      // --------------------------------------------------------------
+      const categories = [
+        {
+          name: "👤 Personal",
+          fields: [
+            {
+              id: "medicos_ce",
+              label: "Médicos en contacto (consulta externa)",
+            },
+            { id: "medicos_hosp", label: "Médicos en contacto (hospital)" },
+            {
+              id: "enf_ce",
+              label: "Enfermeras en contacto (consulta externa)",
+            },
+            { id: "enf_hosp", label: "Enfermeras en contacto (hospital)" },
+            {
+              id: "medicos_admin",
+              label: "Médicos en labores administrativas",
+            },
+            { id: "enf_admin", label: "Enfermeras en labores administrativas" },
+            {
+              id: "total_medicos",
+              label: "Total de médicos en el hospital",
+              calculated: true,
+            },
+            {
+              id: "total_enfermeras",
+              label: "Total de enfermeras en el hospital",
+              calculated: true,
+            },
+            { id: "total_odontologos", label: "Total de odontólogos" },
+            { id: "total_especialistas", label: "Total de especialistas" },
+            { id: "total_residentes", label: "Total de residentes" },
+          ],
+        },
+        {
+          name: "🏢 Infraestructura",
+          fields: [
+            { id: "consultorios", label: "Número de consultorios" },
+            { id: "camas_censables", label: "Número de camas censables" },
+            { id: "quirofanos", label: "Número de quirófanos en el hospital" },
+          ],
+        },
+        {
+          name: "🩺 Consultas",
+          fields: [
+            { id: "consultas_totales", label: "Consultas otorgadas totales" },
+            { id: "consultas_externas", label: "Consultas externas" },
+            {
+              id: "consultas_especialidad",
+              label: "Consultas por especialidad",
+            },
+            { id: "consultas_odonto", label: "Consultas de odontólogos" },
+            { id: "consultas_prenatal", label: "Consulta externa prenatal" },
+            {
+              id: "prenatal_primera_vez",
+              label: "Consultas prenatales de primera vez",
+            },
+            {
+              id: "embarazadas_1er_trim",
+              label: "Embarazadas captadas por 1ª vez en 1er trimestre",
+            },
+            {
+              id: "consultas_embarazo",
+              label: "Total de consultas por embarazo",
+            },
+          ],
+        },
+        {
+          name: "🏥 Egresos y hospitalización",
+          fields: [
+            {
+              id: "egresos_totales",
+              label: "Total de egresos hospitalarios en el año",
+            },
+            {
+              id: "egresos_corta_estancia",
+              label: "Egresos de corta estancia",
+            },
+            { id: "dias_cama", label: "Días cama" },
+            { id: "dias_paciente", label: "Días paciente" },
+            {
+              id: "dias_estancia_total",
+              label: "Total días de estancia en el hospital",
+            },
+            { id: "causas_egreso", label: "Número de causas motivo de egreso" },
+          ],
+        },
+        {
+          name: "🚑 Urgencias",
+          fields: [
+            {
+              id: "urgencias_totales",
+              label: "Total de urgencias en un año",
+              calculated: true,
+            },
+            {
+              id: "urgencias_pediatricas",
+              label: "Urgencias pediátricas en un año",
+            },
+            { id: "urgencias_adulto", label: "Urgencias adulto en un año" },
+          ],
+        },
+        {
+          name: "🔪 Cirugías y partos",
+          fields: [
+            {
+              id: "interv_quirurgicas",
+              label: "Número de intervenciones quirúrgicas",
+            },
+            { id: "cirugias_suspendidas", label: "Cirugías suspendidas" },
+            { id: "cirugias_programadas", label: "Cirugías programadas" },
+            {
+              id: "cirugias_ambulatorias",
+              label: "Intervenciones quirúrgicas ambulatorias",
+            },
+            {
+              id: "interv_realizadas",
+              label: "Total de intervenciones quirúrgicas realizadas",
+            },
+            { id: "partos_cesarea", label: "Partos por cesárea" },
+            { id: "partos_atendidos", label: "Total de partos atendidos" },
+            { id: "partos_espontaneos", label: "Partos únicos espontáneos" },
+            {
+              id: "partos_asistidos",
+              label: "Partos con fórceps/ventosa/otros asistidos",
+            },
+            {
+              id: "mujeres_complicaciones",
+              label: "Mujeres con alguna complicación señalada",
+            },
+            {
+              id: "partos_trauma",
+              label: "Partos atendidos con trauma obstétrico",
+            },
+          ],
+        },
+        {
+          name: "👶 Nacimientos",
+          fields: [
+            { id: "nacidos_vivos", label: "Total de nacidos vivos" },
+            {
+              id: "nacidos_p10",
+              label: "Nacidos vivos con peso < percentil 10",
+            },
+            {
+              id: "nacidos_p90",
+              label: "Nacidos vivos con peso > percentil 90",
+            },
+            {
+              id: "nacidos_menos_2500",
+              label: "Nacidos vivos con peso < 2500 g",
+            },
+          ],
+        },
+        {
+          name: "🧪 Laboratorio",
+          fields: [
+            {
+              id: "lab_ce",
+              label: "Exámenes de laboratorio en consulta externa",
+            },
+            {
+              id: "lab_hosp",
+              label: "Exámenes de laboratorio en hospitalización",
+            },
+            {
+              id: "lab_urgencias",
+              label: "Exámenes de laboratorio en urgencias",
+            },
+            {
+              id: "lab_total",
+              label: "Total de exámenes de laboratorio",
+              calculated: true,
+            },
+          ],
+        },
+        {
+          name: "📷 Radiología",
+          fields: [
+            {
+              id: "rx_ce",
+              label: "Estudios de radiología en consulta externa",
+            },
+            {
+              id: "rx_hosp",
+              label: "Estudios de radiología en hospitalización",
+            },
+            {
+              id: "rx_urgencias",
+              label: "Estudios de radiología en urgencias",
+            },
+            {
+              id: "rx_total",
+              label: "Total de estudios de radiología",
+              calculated: true,
+            },
+          ],
+        },
+        {
+          name: "🦠 Infecciones (IAAS)",
+          fields: [
+            { id: "iaas_cirugia", label: "Infección nosocomial en cirugía" },
+            {
+              id: "iaas_pediatria",
+              label: "Infección nosocomial en pediatría",
+            },
+            { id: "iaas_ucin", label: "Infección nosocomial en UCIN" },
+            {
+              id: "iaas_gineco",
+              label: "Infección nosocomial en ginecobstetricia",
+            },
+            { id: "iaas_ucia", label: "Infección nosocomial en UCIA" },
+            {
+              id: "infeccion_sitio_quir",
+              label: "Total infecciones en sitio quirúrgico",
+            },
+            {
+              id: "bacteriemias_cateter",
+              label: "Bacteriemias asociadas a catéter venoso central",
+            },
+            { id: "dias_cateter", label: "Días catéter central" },
+            {
+              id: "neumonias_ventilador",
+              label: "Neumonías asociadas a ventilador",
+            },
+            { id: "dias_ventilador", label: "Días ventilador" },
+            {
+              id: "infecciones_sonda",
+              label: "Infecciones asociadas a sonda vesical",
+            },
+            { id: "dias_sonda", label: "Días sonda vesical" },
+          ],
+        },
+        {
+          name: "⏳ Otros",
+          fields: [
+            { id: "intervalo_sustitucion", label: "Intervalo de sustitución" },
+          ],
+        },
+      ];
+
+      // --------------------------------------------------------------
+      // 2. RENDERIZADO DEL FORMULARIO
+      // --------------------------------------------------------------
+      function renderForm() {
+        const container = document.getElementById("categories-container");
+        container.innerHTML = "";
+
+        categories.forEach((cat, idx) => {
+          const div = document.createElement("div");
+          div.className = "category";
+
+          const header = document.createElement("div");
+          header.className = "category-header";
+          header.innerHTML = `${cat.name} <span id="toggle-${idx}">▼</span>`;
+          header.onclick = () => toggleCategory(idx);
+
+          const body = document.createElement("div");
+          body.className = "category-body";
+          body.id = `body-${idx}`;
+
+          cat.fields.forEach((field) => {
+            const group = document.createElement("div");
+            group.className = "field-group";
+
+            const label = document.createElement("label");
+            label.htmlFor = field.id;
+            label.textContent = field.label;
+
+            const input = document.createElement("input");
+            input.type = "number";
+            input.id = field.id;
+            input.step = "any";
+            input.min = "0";
+            if (field.calculated) {
+              input.readOnly = true;
+              input.className = "calculated";
+            }
+
+            const hint = document.createElement("div");
+            hint.className = "hint";
+            if (field.calculated)
+              hint.textContent = "⏺ Se calcula automáticamente";
+
+            const validation = document.createElement("div");
+            validation.className = "validation-msg";
+            validation.id = `val-${field.id}`;
+
+            group.appendChild(label);
+            group.appendChild(input);
+            if (field.calculated) group.appendChild(hint);
+            group.appendChild(validation);
+            body.appendChild(group);
+          });
+
+          div.appendChild(header);
+          div.appendChild(body);
+          container.appendChild(div);
+
+          // Por defecto abiertas las primeras 3
+          if (idx >= 3) {
+            document.getElementById(`body-${idx}`).style.display = "none";
+            document.querySelector(`#toggle-${idx}`).textContent = "▶";
+          }
+        });
+
+        // Eventos para cálculos automáticos
+        attachAutoCalculations();
+      }
+
+      function toggleCategory(idx) {
+        const body = document.getElementById(`body-${idx}`);
+        const toggle = document.querySelector(`#toggle-${idx}`);
+        if (body.style.display === "none") {
+          body.style.display = "grid";
+          toggle.textContent = "▼";
+        } else {
+          body.style.display = "none";
+          toggle.textContent = "▶";
+        }
+      }
+
+      // --------------------------------------------------------------
+      // 3. CÁLCULOS AUTOMÁTICOS Y VALIDACIONES
+      // --------------------------------------------------------------
+      function attachAutoCalculations() {
+        // Total médicos = médicos_ce + médicos_hosp + médicos_admin
+        ["medicos_ce", "medicos_hosp", "medicos_admin"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            const sum =
+              getVal("medicos_ce") +
+              getVal("medicos_hosp") +
+              getVal("medicos_admin");
+            setVal("total_medicos", sum);
+          });
+        });
+
+        // Total enfermeras = enf_ce + enf_hosp + enf_admin
+        ["enf_ce", "enf_hosp", "enf_admin"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            const sum =
+              getVal("enf_ce") + getVal("enf_hosp") + getVal("enf_admin");
+            setVal("total_enfermeras", sum);
+          });
+        });
+
+        // Urgencias totales = pediátricas + adulto
+        ["urgencias_pediatricas", "urgencias_adulto"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            const sum =
+              getVal("urgencias_pediatricas") + getVal("urgencias_adulto");
+            setVal("urgencias_totales", sum);
+          });
+        });
+
+        // Laboratorio total = ce + hosp + urgencias
+        ["lab_ce", "lab_hosp", "lab_urgencias"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            const sum =
+              getVal("lab_ce") + getVal("lab_hosp") + getVal("lab_urgencias");
+            setVal("lab_total", sum);
+          });
+        });
+
+        // Radiología total = ce + hosp + urgencias
+        ["rx_ce", "rx_hosp", "rx_urgencias"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            const sum =
+              getVal("rx_ce") + getVal("rx_hosp") + getVal("rx_urgencias");
+            setVal("rx_total", sum);
+          });
+        });
+      }
+
+      function getVal(id) {
+        const el = document.getElementById(id);
+        return el ? parseFloat(el.value) || 0 : 0;
+      }
+
+      function setVal(id, value) {
+        const el = document.getElementById(id);
+        if (el) el.value = value;
+      }
+
+      // --------------------------------------------------------------
+      // 4. VALIDACIONES CRUZADAS
+      // --------------------------------------------------------------
+      function validateAll() {
+        let errors = [];
+        let warnings = [];
+
+        // Validación 1: Urgencias totales = pediátricas + adulto
+        const totalU = getVal("urgencias_totales");
+        const sumU =
+          getVal("urgencias_pediatricas") + getVal("urgencias_adulto");
+        if (totalU !== sumU) {
+          errors.push(
+            "⚠️ Urgencias totales no coincide con la suma de pediátricas + adulto",
+          );
+          showValidation(
+            "urgencias_totales",
+            "Debe ser = pediátricas + adulto",
+          );
+        } else {
+          clearValidation("urgencias_totales");
+        }
+
+        // Validación 2: Total médicos = suma de componentes
+        const totalM = getVal("total_medicos");
+        const sumM =
+          getVal("medicos_ce") +
+          getVal("medicos_hosp") +
+          getVal("medicos_admin");
+        if (totalM !== sumM) {
+          errors.push(
+            "⚠️ Total de médicos no coincide con la suma de sus componentes",
+          );
+          showValidation(
+            "total_medicos",
+            "Debe ser = CE + Hospital + Administrativos",
+          );
+        } else {
+          clearValidation("total_medicos");
+        }
+
+        // Validación 3: Total enfermeras = suma de componentes
+        const totalE = getVal("total_enfermeras");
+        const sumE =
+          getVal("enf_ce") + getVal("enf_hosp") + getVal("enf_admin");
+        if (totalE !== sumE) {
+          errors.push(
+            "⚠️ Total de enfermeras no coincide con la suma de sus componentes",
+          );
+          showValidation(
+            "total_enfermeras",
+            "Debe ser = CE + Hospital + Administrativas",
+          );
+        } else {
+          clearValidation("total_enfermeras");
+        }
+
+        // Validación 4: Laboratorio total
+        const totalL = getVal("lab_total");
+        const sumL =
+          getVal("lab_ce") + getVal("lab_hosp") + getVal("lab_urgencias");
+        if (totalL !== sumL) {
+          errors.push(
+            "⚠️ Total de laboratorio no coincide con la suma de CE + Hospitalización + Urgencias",
+          );
+          showValidation(
+            "lab_total",
+            "Debe ser = CE + Hospitalización + Urgencias",
+          );
+        } else {
+          clearValidation("lab_total");
+        }
+
+        // Validación 5: Radiología total
+        const totalR = getVal("rx_total");
+        const sumR =
+          getVal("rx_ce") + getVal("rx_hosp") + getVal("rx_urgencias");
+        if (totalR !== sumR) {
+          errors.push(
+            "⚠️ Total de radiología no coincide con la suma de CE + Hospitalización + Urgencias",
+          );
+          showValidation(
+            "rx_total",
+            "Debe ser = CE + Hospitalización + Urgencias",
+          );
+        } else {
+          clearValidation("rx_total");
+        }
+
+        // Validación 6: Partos atendidos = cesárea + espontáneos + asistidos (aproximado)
+        const partosAt = getVal("partos_atendidos");
+        const sumPartos =
+          getVal("partos_cesarea") +
+          getVal("partos_espontaneos") +
+          getVal("partos_asistidos");
+        if (partosAt !== sumPartos && partosAt > 0) {
+          warnings.push(
+            "⚠️ Partos atendidos no coincide con cesárea + espontáneos + asistidos (verificar)",
+          );
+        }
+
+        // Mostrar resultados
+        const summaryBox = document.getElementById("summaryBox");
+        if (errors.length > 0 || warnings.length > 0) {
+          let msg = "🔍 RESULTADO DE VALIDACIÓN:\n";
+          if (errors.length > 0) {
+            msg +=
+              "\n❌ ERRORES (deben corregirse):\n" +
+              errors.map((e) => "  • " + e).join("\n");
+          }
+          if (warnings.length > 0) {
+            msg +=
+              "\n\n⚠️ ADVERTENCIAS (revisar):\n" +
+              warnings.map((w) => "  • " + w).join("\n");
+          }
+          summaryBox.textContent = msg;
+          summaryBox.className = "summary-box visible";
+          summaryBox.style.borderColor =
+            errors.length > 0 ? "#c62828" : "#f9a825";
+        } else {
+          summaryBox.textContent =
+            "✅ ¡Todos los totales calculados son consistentes! El formulario está correcto.";
+          summaryBox.className = "summary-box visible";
+          summaryBox.style.borderColor = "#2e7d32";
+        }
+      }
+
+      function showValidation(id, msg) {
+        const el = document.getElementById(`val-${id}`);
+        if (el) {
+          el.textContent = msg;
+          el.className = "validation-msg visible";
+        }
+      }
+
+      function clearValidation(id) {
+        const el = document.getElementById(`val-${id}`);
+        if (el) {
+          el.textContent = "";
+          el.className = "validation-msg";
+        }
+      }
+
+      // --------------------------------------------------------------
+      // 5. RESUMEN Y EXPORTACIÓN
+      // --------------------------------------------------------------
+      function showSummary() {
+        const summaryBox = document.getElementById("summaryBox");
+        const month = document.getElementById("month").value;
+        const year = document.getElementById("year").value;
+        const monthName = document.querySelector(
+          "#month option:checked",
+        ).textContent;
+
+        let lines = [];
+        lines.push(`📊 RESUMEN - ${monthName} ${year}`);
+        lines.push("=".repeat(50));
+
+        // Recorrer todas las categorías y campos
+        let allFields = [];
+        categories.forEach((cat) => {
+          cat.fields.forEach((f) => {
+            allFields.push({
+              category: cat.name,
+              label: f.label,
+              id: f.id,
+              value: getVal(f.id),
+            });
+          });
+        });
+
+        // Agrupar por categoría
+        let currentCat = "";
+        allFields.forEach((f) => {
+          if (f.category !== currentCat) {
+            currentCat = f.category;
+            lines.push(`\n${currentCat}`);
+            lines.push("-".repeat(30));
+          }
+          lines.push(`  ${f.label}: ${f.value}`);
+        });
+
+        summaryBox.textContent = lines.join("\n");
+        summaryBox.className = "summary-box visible";
+      }
+
+      function exportCSV() {
+        const month = document.getElementById("month").value;
+        const year = document.getElementById("year").value;
+        const monthName = document.querySelector(
+          "#month option:checked",
+        ).textContent;
+
+        let rows = [];
+        // Encabezado
+        rows.push("Categoría;Indicador;Valor");
+
+        categories.forEach((cat) => {
+          cat.fields.forEach((f) => {
+            const val = getVal(f.id);
+            rows.push(`${cat.name};${f.label};${val}`);
+          });
+        });
+
+        const csv = rows.join("\n");
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `indicadores_${monthName}_${year}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+      }
+
+      function resetForm() {
+        document.querySelectorAll('input[type="number"]').forEach((input) => {
+          if (!input.readOnly) input.value = "";
+        });
+        // Recalcular totales
+        attachAutoCalculations();
+        // Limpiar validaciones
+        document.querySelectorAll(".validation-msg").forEach((el) => {
+          el.textContent = "";
+          el.className = "validation-msg";
+        });
+        document.getElementById("summaryBox").className = "summary-box";
+        document.getElementById("summaryBox").textContent = "";
+        // Forzar recalculo de totales
+        [
+          "medicos_ce",
+          "enf_ce",
+          "urgencias_pediatricas",
+          "lab_ce",
+          "rx_ce",
+        ].forEach((id) => {
+          const ev = new Event("input");
+          document.getElementById(id).dispatchEvent(ev);
+        });
+      }
+
+      // --------------------------------------------------------------
+      // 6. INICIALIZACIÓN
+      // --------------------------------------------------------------
+      renderForm();
+
+      // Disparar cálculos iniciales
+      setTimeout(() => {
+        [
+          "medicos_ce",
+          "enf_ce",
+          "urgencias_pediatricas",
+          "lab_ce",
+          "rx_ce",
+        ].forEach((id) => {
+          const ev = new Event("input");
+          document.getElementById(id).dispatchEvent(ev);
+        });
+      }, 100);
+    </script>
+  </body>
+</html>
