@@ -693,6 +693,134 @@
           grid-template-columns: 1fr 1fr;
         }
       }
+
+      /* ============================================================
+   ESTILOS PARA IMPRESIÓN - TAMAÑO CARTA
+   ============================================================ */
+      @media print {
+        body {
+          font-size: 10pt;
+          margin: 0;
+          padding: 0;
+        }
+
+        .container {
+          max-width: 100%;
+          padding: 0.5cm;
+          box-shadow: none;
+          border-radius: 0;
+        }
+
+        .no-print {
+          display: none !important;
+        }
+
+        .report-container {
+          border: none;
+          padding: 0;
+          margin: 0;
+          background: white;
+        }
+
+        .report-header {
+          margin-bottom: 15px;
+          border-bottom: 3px solid #0a2a44;
+          padding-bottom: 10px;
+        }
+
+        .report-header h1 {
+          font-size: 16pt;
+          color: #0a2a44;
+          margin: 0;
+        }
+
+        .report-meta {
+          font-size: 9pt;
+          color: #555;
+          display: flex;
+          justify-content: center;
+          gap: 20px;
+        }
+
+        .section-title {
+          font-size: 10pt;
+          margin: 12px 0 8px 0;
+          background: #e8edf4;
+          padding: 3px 10px;
+          border-left: 4px solid #1a73e8;
+        }
+
+        .report-table {
+          font-size: 8pt;
+          border: 1px solid #d0dbe8;
+          page-break-inside: avoid;
+        }
+
+        .report-table th {
+          background: #0a2a44;
+          color: white;
+          padding: 4px 6px;
+          border: 1px solid #0a2a44;
+        }
+
+        .report-table td {
+          padding: 3px 6px;
+          border: 1px solid #d0dbe8;
+        }
+
+        .report-table tr:nth-child(even) {
+          background: #f8faff;
+        }
+
+        .col-num {
+          text-align: center;
+          width: 25px;
+        }
+
+        .col-indicador {
+          font-weight: 500;
+        }
+
+        .col-formula {
+          font-size: 7pt;
+          color: #555;
+          font-style: italic;
+        }
+
+        .col-numerador,
+        .col-denominador {
+          text-align: center;
+        }
+
+        .col-resultado {
+          text-align: center;
+          font-weight: 700;
+          color: #0a2a44;
+        }
+
+        .report-footer {
+          margin-top: 15px;
+          border-top: 1px solid #d0dbe8;
+          padding-top: 8px;
+          font-size: 8pt;
+          color: #888;
+          display: flex;
+          justify-content: space-between;
+        }
+
+        /* Evitar que las tablas se corten entre páginas */
+        table {
+          page-break-inside: avoid;
+        }
+
+        thead {
+          display: table-header-group;
+        }
+
+        tr {
+          page-break-inside: avoid;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1755,6 +1883,9 @@
       // ============================================================
       // GENERADOR DE INFORME
       // ============================================================
+      // ============================================================
+      // GENERADOR DE INFORME PARA IMPRESIÓN
+      // ============================================================
 
       function generarInforme() {
         const month = document.getElementById("month").value;
@@ -1780,27 +1911,42 @@
         // Generar el informe
         const container = document.getElementById("reportContainer");
         container.innerHTML = `
-          <h2>📊 Informe de Indicadores Hospitalarios</h2>
-          <p style="color: #6b7d93; margin-bottom: 20px;">
-            <strong>Período:</strong> ${monthName} ${year} | 
-            <strong>Fecha de generación:</strong> ${new Date().toLocaleDateString()}
-          </p>
-          ${generarTablaIndicadores()}
-          <div style="margin-top: 20px; text-align: center;">
-            <button class="btn-export" onclick="exportarInformeExcel()">📥 Exportar a Excel (CSV)</button>
-            <button class="btn-export" style="background: #6f42c1;" onclick="exportarInformeHTML()">📄 Exportar a HTML</button>
+      <div id="reportPrint">
+        <div class="report-header">
+          <h1>📊 INFORME DE INDICADORES HOSPITALARIOS</h1>
+          <div class="report-meta">
+            <div><strong>Período:</strong> ${monthName} ${year}</div>
+            <div><strong>Fecha de generación:</strong> ${new Date().toLocaleDateString("es-MX", { day: "2-digit", month: "long", year: "numeric" })}</div>
+            <div><strong>Hora:</strong> ${new Date().toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}</div>
           </div>
-        `;
+        </div>
+        ${generarTablaIndicadores()}
+        <div class="report-footer">
+          <p>Reporte generado automáticamente - Sistema de Indicadores Hospitalarios</p>
+          <p>Página 1 de 1</p>
+        </div>
+      </div>
+      <div style="margin-top: 20px; text-align: center; display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
+        <button class="btn-export" onclick="imprimirInforme()" style="background: #1a73e8; padding: 12px 30px; font-size: 16px;">
+          🖨️ Imprimir / PDF
+        </button>
+        <button class="btn-export" onclick="exportarInformeExcel()" style="background: #1e7e34; padding: 12px 30px; font-size: 16px;">
+          📥 Exportar a Excel
+        </button>
+        <button class="btn-export" onclick="exportarInformeWord()" style="background: #6f42c1; padding: 12px 30px; font-size: 16px;">
+          📄 Exportar a Word
+        </button>
+      </div>
+    `;
       }
 
       function generarTablaIndicadores() {
-        const v = getVal; // Alias para acceder a los valores
+        const v = getVal;
 
-        // Calcular total de médicos y enfermeras
+        // Calcular totales
         const totalMedicos =
           v("medicos_ce") + v("medicos_hosp") + v("medicos_admin");
         const totalEnfermeras = v("enf_ce") + v("enf_hosp") + v("enf_admin");
-        const totalMEdicosContacto = v("medicos_ce") + v("medicos_hosp");
 
         // 1. Recursos Humanos
         const rhIndicadores = [
@@ -1950,7 +2096,7 @@
           },
         ];
 
-        // 3. Proceso (Egresos, Urgencias, Ocupación)
+        // 3. Proceso
         const procIndicadores = [
           {
             no: 15,
@@ -2344,7 +2490,6 @@
           },
         ];
 
-        // Agrupar todos los indicadores
         const secciones = [
           { titulo: "1. Recursos Humanos", data: rhIndicadores },
           { titulo: "2. Productividad", data: prodIndicadores },
@@ -2368,19 +2513,19 @@
         secciones.forEach((seccion) => {
           html += `<h3 class="section-title">${seccion.titulo}</h3>`;
           html += `
-            <table class="report-table">
-              <thead>
-                <tr>
-                  <th class="col-num">No</th>
-                  <th class="col-indicador">Indicador</th>
-                  <th class="col-formula">Fórmula</th>
-                  <th class="col-numerador">Numerador</th>
-                  <th class="col-denominador">Denominador</th>
-                  <th class="col-resultado">Resultado</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th class="col-num">No</th>
+              <th class="col-indicador">Indicador</th>
+              <th class="col-formula">Fórmula</th>
+              <th class="col-numerador">Numerador</th>
+              <th class="col-denominador">Denominador</th>
+              <th class="col-resultado">Resultado</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
 
           seccion.data.forEach((item) => {
             const resultado =
@@ -2393,33 +2538,339 @@
               typeof item.den === "number" ? item.den.toFixed(0) : "0";
 
             html += `
-              <tr>
-                <td class="col-num">${item.no}</td>
-                <td class="col-indicador">${item.indicador}</td>
-                <td class="col-formula">${item.formula}</td>
-                <td class="col-numerador">${numDisplay}</td>
-                <td class="col-denominador">${denDisplay}</td>
-                <td class="col-resultado">${resultado}</td>
-              </tr>
-            `;
+          <tr>
+            <td class="col-num">${item.no}</td>
+            <td class="col-indicador">${item.indicador}</td>
+            <td class="col-formula">${item.formula}</td>
+            <td class="col-numerador">${numDisplay}</td>
+            <td class="col-denominador">${denDisplay}</td>
+            <td class="col-resultado">${resultado}</td>
+          </tr>
+        `;
           });
 
           html += `
-              </tbody>
-            </table>
-          `;
+          </tbody>
+        </table>
+      `;
         });
 
         return html;
       }
 
       // ============================================================
-      // EXPORTAR INFORME
+      // IMPRIMIR INFORME
+      // ============================================================
+
+      function imprimirInforme() {
+        const contenido = document.getElementById("reportPrint");
+        if (!contenido) {
+          showToast("Error", "No hay informe para imprimir", "error");
+          return;
+        }
+
+        // Crear una ventana para imprimir
+        const ventana = window.open("", "_blank", "width=1200,height=800");
+        if (!ventana) {
+          showToast(
+            "Error",
+            "Por favor, permite las ventanas emergentes para imprimir",
+            "error",
+          );
+          return;
+        }
+
+        ventana.document.write(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Informe de Indicadores Hospitalarios</title>
+      <style>
+        /* === ESTILOS PARA IMPRESIÓN TAMAÑO CARTA === */
+        @page {
+          size: letter;
+          margin: 1.5cm 1.5cm 1.5cm 1.5cm;
+        }
+
+        @media print {
+          body { 
+            font-family: 'Segoe UI', Arial, sans-serif; 
+            font-size: 10pt;
+            line-height: 1.3;
+            color: #1a2a3a;
+            background: white;
+            margin: 0;
+            padding: 0;
+          }
+          .no-print { display: none !important; }
+          .report-header { margin-bottom: 15px; }
+          .report-footer { margin-top: 20px; border-top: 1px solid #ccc; padding-top: 10px; font-size: 9pt; color: #666; display: flex; justify-content: space-between; }
+        }
+
+        /* === ESTILOS GENERALES === */
+        body {
+          font-family: 'Segoe UI', Arial, sans-serif;
+          font-size: 10pt;
+          line-height: 1.3;
+          color: #1a2a3a;
+          background: white;
+          margin: 0;
+          padding: 20px;
+        }
+
+        .report-header {
+          text-align: center;
+          margin-bottom: 20px;
+          border-bottom: 3px solid #0a2a44;
+          padding-bottom: 15px;
+        }
+
+        .report-header h1 {
+          font-size: 18pt;
+          color: #0a2a44;
+          margin: 0 0 5px 0;
+          letter-spacing: 1px;
+        }
+
+        .report-meta {
+          display: flex;
+          justify-content: center;
+          gap: 30px;
+          font-size: 10pt;
+          color: #555;
+          flex-wrap: wrap;
+        }
+
+        .report-meta div {
+          background: #f5f7fa;
+          padding: 2px 12px;
+          border-radius: 4px;
+        }
+
+        .section-title {
+          color: #0a2a44;
+          font-size: 11pt;
+          margin: 18px 0 10px 0;
+          padding: 4px 12px;
+          background: #e8edf4;
+          border-radius: 4px;
+          border-left: 4px solid #1a73e8;
+          font-weight: 700;
+        }
+
+        .report-table {
+          width: 100%;
+          border-collapse: collapse;
+          font-size: 9pt;
+          margin-bottom: 12px;
+          border: 1px solid #d0dbe8;
+        }
+
+        .report-table thead {
+          background: #0a2a44;
+          color: white;
+        }
+
+        .report-table th {
+          padding: 5px 6px;
+          text-align: left;
+          font-weight: 600;
+          font-size: 8.5pt;
+          border: 1px solid #0a2a44;
+        }
+
+        .report-table td {
+          padding: 4px 6px;
+          border: 1px solid #d0dbe8;
+          vertical-align: middle;
+        }
+
+        .report-table tr:nth-child(even) {
+          background: #f8faff;
+        }
+
+        .report-table tr:hover {
+          background: #edf3fa;
+        }
+
+        .col-num {
+          width: 30px;
+          text-align: center;
+          font-weight: 600;
+          color: #6b7d93;
+          font-size: 8.5pt;
+        }
+
+        .col-indicador {
+          min-width: 160px;
+          font-weight: 500;
+          font-size: 8.5pt;
+        }
+
+        .col-formula {
+          min-width: 140px;
+          font-size: 7.5pt;
+          color: #555;
+          font-style: italic;
+        }
+
+        .col-numerador,
+        .col-denominador {
+          text-align: center;
+          min-width: 60px;
+          font-size: 8.5pt;
+        }
+
+        .col-resultado {
+          text-align: center;
+          font-weight: 700;
+          min-width: 70px;
+          color: #0a2a44;
+          font-size: 9pt;
+        }
+
+        .col-resultado.highlight {
+          color: #1a73e8;
+        }
+
+        .col-resultado.warning {
+          color: #e74c3c;
+        }
+
+        .report-footer {
+          margin-top: 20px;
+          border-top: 1px solid #d0dbe8;
+          padding-top: 10px;
+          font-size: 8pt;
+          color: #888;
+          display: flex;
+          justify-content: space-between;
+        }
+
+        /* === BOTONES DE EXPORTACIÓN (no se imprimen) === */
+        .no-print {
+          display: inline-block;
+        }
+
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+        }
+
+        /* Para pantalla */
+        .btn-export {
+          display: inline-block;
+          padding: 8px 20px;
+          margin: 5px;
+          background: #0a2a44;
+          color: white;
+          border: none;
+          border-radius: 30px;
+          font-weight: 600;
+          font-size: 14px;
+          cursor: pointer;
+          transition: 0.2s;
+        }
+
+        .btn-export:hover {
+          transform: scale(1.02);
+          opacity: 0.9;
+        }
+      </style>
+    </head>
+    <body>
+      ${contenido.outerHTML}
+      <div style="text-align: center; margin-top: 20px;" class="no-print">
+        <button onclick="window.print()" style="padding: 12px 40px; background: #1a73e8; color: white; border: none; border-radius: 30px; font-size: 16px; font-weight: 700; cursor: pointer;">
+          🖨️ Imprimir / Guardar como PDF
+        </button>
+        <button onclick="window.close()" style="padding: 12px 40px; background: #6c757d; color: white; border: none; border-radius: 30px; font-size: 16px; font-weight: 700; cursor: pointer; margin-left: 10px;">
+          ✖ Cerrar
+        </button>
+      </div>
+      <script>
+        // Auto-imprimir al cargar (opcional - comentado para que el usuario decida)
+        // window.onload = function() { window.print(); };
+      <\/script>
+    </body>
+    </html>
+  `);
+
+        ventana.document.close();
+      }
+
+      // ============================================================
+      // EXPORTAR A WORD (DOC)
+      // ============================================================
+
+      function exportarInformeWord() {
+        const contenido = document.getElementById("reportPrint");
+        if (!contenido) {
+          showToast("Error", "No hay informe para exportar", "error");
+          return;
+        }
+
+        const monthName = document.querySelector(
+          "#month option:checked",
+        ).textContent;
+        const year = document.getElementById("year").value;
+
+        const html = `
+    <html xmlns:o='urn:schemas-microsoft-com:office:office' 
+          xmlns:w='urn:schemas-microsoft-com:office:word' 
+          xmlns='http://www.w3.org/TR/REC-html40'>
+    <head>
+      <meta charset="UTF-8">
+      <title>Informe de Indicadores</title>
+      <style>
+        /* Estilos para Word */
+        body { font-family: 'Calibri', Arial, sans-serif; font-size: 11pt; margin: 40px; }
+        h1 { color: #0a2a44; font-size: 18pt; text-align: center; border-bottom: 2px solid #0a2a44; padding-bottom: 10px; }
+        .report-meta { text-align: center; margin-bottom: 20px; font-size: 10pt; color: #555; }
+        .section-title { color: #0a2a44; font-size: 12pt; margin: 20px 0 10px 0; background: #e8edf4; padding: 4px 12px; border-left: 4px solid #1a73e8; }
+        table { width: 100%; border-collapse: collapse; font-size: 9pt; margin-bottom: 15px; }
+        table th { background: #0a2a44; color: white; padding: 5px 8px; border: 1px solid #0a2a44; text-align: left; }
+        table td { padding: 4px 8px; border: 1px solid #ccc; }
+        table tr:nth-child(even) { background: #f8faff; }
+        .col-num { text-align: center; width: 30px; }
+        .col-resultado { text-align: center; font-weight: bold; }
+        .col-numerador, .col-denominador { text-align: center; }
+        .col-formula { font-style: italic; color: #555; }
+        .report-footer { text-align: center; font-size: 8pt; color: #888; margin-top: 30px; border-top: 1px solid #ccc; padding-top: 10px; }
+      </style>
+    </head>
+    <body>
+      ${contenido.outerHTML}
+    </body>
+    </html>
+  `;
+
+        const blob = new Blob([html], {
+          type: "application/msword;charset=utf-8",
+        });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = `Informe_Indicadores_${monthName}_${year}.doc`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+
+        showToast(
+          "Exportado",
+          "Informe exportado a Word correctamente",
+          "success",
+        );
+      }
+
+      // ============================================================
+      // EXPORTAR A EXCEL (CSV)
       // ============================================================
 
       function exportarInformeExcel() {
-        // Obtener el contenido del informe
-        const container = document.getElementById("reportContainer");
+        const container =
+          document.getElementById("reportPrint") ||
+          document.getElementById("reportContainer");
         const tables = container.querySelectorAll(".report-table");
 
         let csv = "No,Indicador,Fórmula,Numerador,Denominador,Resultado\n";
@@ -2431,7 +2882,6 @@
             const rowData = [];
             cells.forEach((cell) => {
               let text = cell.textContent.trim();
-              // Si tiene comas, envolver en comillas
               if (text.includes(",")) {
                 text = `"${text}"`;
               }
@@ -2439,15 +2889,17 @@
             });
             csv += rowData.join(",") + "\n";
           });
+          csv += "\n"; // Separador entre secciones
         });
 
-        // Crear y descargar el archivo
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
         const monthName = document.querySelector(
           "#month option:checked",
         ).textContent;
         const year = document.getElementById("year").value;
+        const blob = new Blob(["\uFEFF" + csv], {
+          type: "text/csv;charset=utf-8;",
+        });
+        const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
         link.download = `Informe_Indicadores_${monthName}_${year}.csv`;
         link.click();
@@ -2456,55 +2908,6 @@
         showToast(
           "Exportado",
           "Informe exportado a Excel correctamente",
-          "success",
-        );
-      }
-
-      function exportarInformeHTML() {
-        const container = document.getElementById("reportContainer");
-        const content = container.innerHTML;
-
-        const html = `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <meta charset="UTF-8">
-            <title>Informe de Indicadores</title>
-            <style>
-              body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; background: white; }
-              h2 { color: #0a2a44; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; }
-              .section-title { color: #1a73e8; margin: 25px 0 15px 0; padding: 8px 16px; background: #e8edf4; border-radius: 8px; }
-              .report-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
-              .report-table th { background: #0a2a44; color: white; padding: 8px 10px; text-align: left; }
-              .report-table td { padding: 6px 10px; border-bottom: 1px solid #e2eaf3; }
-              .report-table tr:nth-child(even) { background: #f8faff; }
-              .col-num { width: 40px; text-align: center; }
-              .col-resultado { text-align: center; font-weight: 700; color: #0a2a44; }
-              .col-numerador, .col-denominador { text-align: center; }
-              .col-formula { font-style: italic; color: #555; font-size: 12px; }
-              @media print { body { padding: 20px; } }
-            </style>
-          </head>
-          <body>
-            ${content}
-          </body>
-          </html>
-        `;
-
-        const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
-        const link = document.createElement("a");
-        const monthName = document.querySelector(
-          "#month option:checked",
-        ).textContent;
-        const year = document.getElementById("year").value;
-        link.href = URL.createObjectURL(blob);
-        link.download = `Informe_Indicadores_${monthName}_${year}.html`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-
-        showToast(
-          "Exportado",
-          "Informe exportado a HTML correctamente",
           "success",
         );
       }
