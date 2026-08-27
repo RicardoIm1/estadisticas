@@ -93,6 +93,17 @@
         border: 1px solid #dde3ed;
         border-radius: 16px;
         overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .category.completed {
+        border-color: #28a745;
+        background: #f8fff9;
+      }
+
+      .category.completed .category-header {
+        background: #e8f5e9;
+        border-bottom-color: #28a745;
       }
 
       .category-header {
@@ -107,15 +118,36 @@
         justify-content: space-between;
         align-items: center;
         user-select: none;
+        transition: 0.2s;
       }
 
       .category-header:hover {
         background: #eff4fc;
       }
 
-      .category-header span {
+      .category-header .status-icon {
+        font-size: 16px;
+        margin-left: 10px;
+      }
+
+      .category-header .toggle-icon {
         font-size: 22px;
         transition: 0.2s;
+      }
+
+      .category-header .progress-badge {
+        font-size: 12px;
+        font-weight: 600;
+        padding: 2px 10px;
+        border-radius: 12px;
+        background: #e9ecef;
+        color: #6c757d;
+        margin-left: 10px;
+      }
+
+      .category.completed .progress-badge {
+        background: #28a745;
+        color: white;
       }
 
       .category-body {
@@ -124,6 +156,11 @@
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 12px 30px;
         background: white;
+        transition: all 0.3s ease;
+      }
+
+      .category-body.hidden {
+        display: none;
       }
 
       .field-group {
@@ -166,6 +203,11 @@
         background: #f5f5f5;
         color: #666;
         cursor: not-allowed;
+      }
+
+      .field-group input.has-value {
+        border-color: #28a745;
+        background: #f8fff9;
       }
 
       .field-group .hint {
@@ -422,7 +464,7 @@
         animation: slideOutRight 0.3s ease-in forwards;
       }
 
-      /* Toast para confirmación (similar a confirm()) */
+      /* Toast para confirmación */
       .toast-confirm-overlay {
         position: fixed;
         top: 0;
@@ -681,7 +723,6 @@
 
         container.appendChild(toast);
 
-        // Auto-remover después de duration
         setTimeout(() => {
           if (toast.parentElement) {
             toast.classList.add("hiding");
@@ -733,7 +774,6 @@
         }
       }
 
-      // Cerrar confirm con Escape
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           confirmCancel();
@@ -752,9 +792,9 @@
         SUPABASE_ANON_KEY,
       );
 
-      // Variables de estado
       let datosCargados = false;
       let registroExistente = null;
+      let categoryStates = {};
 
       // ============================================================
       // FUNCIONES PARA SUPABASE
@@ -821,6 +861,10 @@
               key !== "fecha_registro"
             ) {
               input.value = data[key];
+              // Marcar como completado si tiene valor
+              if (data[key] > 0) {
+                input.classList.add("has-value");
+              }
             }
           });
 
@@ -832,6 +876,8 @@
             "success",
           );
           dispararCalculos();
+          // Verificar el estado de las categorías después de cargar
+          verificarCategoriasCompletas();
         } catch (error) {
           console.error("Error al cargar:", error);
           showToast(
@@ -844,10 +890,7 @@
 
       async function guardarDatos() {
         const btn = document.querySelector('[onclick="guardarDatos()"]');
-        if (!btn) {
-          console.error("Botón no encontrado");
-          return;
-        }
+        if (!btn) return;
 
         const textoOriginal = btn.textContent;
 
@@ -930,22 +973,10 @@
           console.log("Respuesta de Supabase:", result);
           datosCargados = true;
           showSummary();
+          verificarCategoriasCompletas();
         } catch (error) {
           console.error("Error detallado:", error);
-
-          let errorMsg = "Error al guardar en Supabase:\n";
-          if (error.code === "42P01") {
-            errorMsg +=
-              "La tabla 'indicadores_mensuales' no existe. Por favor, crea la tabla en Supabase SQL Editor.";
-          } else if (error.code === "23505") {
-            errorMsg += "Ya existe un registro con este mes y año (duplicado).";
-          } else if (error.code === "42501") {
-            errorMsg +=
-              "No tienes permisos para insertar en esta tabla. Verifica las políticas RLS en Supabase.";
-          } else {
-            errorMsg += error.message;
-          }
-          showToast("Error", errorMsg, "error");
+          showToast("Error", "Error al guardar: " + error.message, "error");
         } finally {
           if (btn) {
             btn.textContent = textoOriginal;
@@ -1047,9 +1078,11 @@
         document.querySelectorAll('input[type="number"]').forEach((input) => {
           if (!input.readOnly && input.id !== "year") {
             input.value = "";
+            input.classList.remove("has-value");
           }
         });
         dispararCalculos();
+        verificarCategoriasCompletas();
       }
 
       function dispararCalculos() {
@@ -1069,6 +1102,75 @@
             document.getElementById("dias_cama").dispatchEvent(ev);
           }
         }, 100);
+      }
+
+      // ============================================================
+      // VERIFICAR CATEGORÍAS COMPLETAS (ACORDEONES INTELIGENTES)
+      // ============================================================
+
+      function verificarCategoriasCompletas() {
+        categories.forEach((cat, idx) => {
+          const categoryDiv = document.querySelectorAll(".category")[idx];
+          if (!categoryDiv) return;
+
+          const fields = cat.fields;
+          let todosCompletos = true;
+          let camposConValor = 0;
+          let camposTotales = 0;
+
+          fields.forEach((field) => {
+            const input = document.getElementById(field.id);
+            if (input && !input.readOnly) {
+              camposTotales++;
+              const valor = parseFloat(input.value);
+              if (valor > 0) {
+                camposConValor++;
+              } else {
+                todosCompletos = false;
+              }
+            }
+          });
+
+          // Actualizar el badge de progreso
+          const badge = categoryDiv.querySelector(".progress-badge");
+          if (badge) {
+            badge.textContent = `${camposConValor}/${camposTotales}`;
+          }
+
+          // Si todos los campos están completos, contraer
+          if (todosCompletos && camposTotales > 0) {
+            categoryDiv.classList.add("completed");
+            // Contraer automáticamente
+            const body = document.getElementById(`body-${idx}`);
+            const toggle = document.querySelector(`#toggle-${idx}`);
+            if (body && toggle && body.style.display !== "none") {
+              body.style.display = "none";
+              toggle.textContent = "▶";
+            }
+          } else {
+            categoryDiv.classList.remove("completed");
+            // Asegurar que esté expandido si no está completo
+            const body = document.getElementById(`body-${idx}`);
+            const toggle = document.querySelector(`#toggle-${idx}`);
+            if (body && toggle && body.style.display === "none") {
+              body.style.display = "grid";
+              toggle.textContent = "▼";
+            }
+          }
+        });
+      }
+
+      // Modificar toggleCategory para actualizar el estado
+      function toggleCategory(idx) {
+        const body = document.getElementById(`body-${idx}`);
+        const toggle = document.querySelector(`#toggle-${idx}`);
+        if (body.style.display === "none") {
+          body.style.display = "grid";
+          toggle.textContent = "▼";
+        } else {
+          body.style.display = "none";
+          toggle.textContent = "▶";
+        }
       }
 
       // ============================================================
@@ -1329,10 +1431,22 @@
         categories.forEach((cat, idx) => {
           const div = document.createElement("div");
           div.className = "category";
+          div.id = `category-${idx}`;
+
+          // Contar campos editables (no calculados)
+          const camposEditables = cat.fields.filter((f) => !f.calculated);
+          const totalCampos = camposEditables.length;
 
           const header = document.createElement("div");
           header.className = "category-header";
-          header.innerHTML = `${cat.name} <span id="toggle-${idx}">▼</span>`;
+          header.innerHTML = `
+          ${cat.name} 
+          <span>
+            <span class="progress-badge">0/${totalCampos}</span>
+            <span class="status-icon">📋</span>
+            <span class="toggle-icon" id="toggle-${idx}">▼</span>
+          </span>
+        `;
           header.onclick = () => toggleCategory(idx);
 
           const body = document.createElement("div");
@@ -1356,6 +1470,17 @@
             if (field.calculated) {
               input.readOnly = true;
               input.className = "calculated";
+            } else {
+              // Agregar evento para verificar completitud
+              input.addEventListener("input", () => {
+                const valor = parseFloat(input.value);
+                if (valor > 0) {
+                  input.classList.add("has-value");
+                } else {
+                  input.classList.remove("has-value");
+                }
+                verificarCategoriasCompletas();
+              });
             }
 
             const hint = document.createElement("div");
@@ -1384,25 +1509,16 @@
           div.appendChild(body);
           container.appendChild(div);
 
-          if (idx >= 3) {
-            document.getElementById(`body-${idx}`).style.display = "none";
-            document.querySelector(`#toggle-${idx}`).textContent = "▶";
-          }
+          // TODAS LAS CATEGORÍAS EMPIEZAN EXPANDIDAS
+          // No contraemos ninguna al inicio
         });
 
         attachAutoCalculations();
-      }
 
-      function toggleCategory(idx) {
-        const body = document.getElementById(`body-${idx}`);
-        const toggle = document.querySelector(`#toggle-${idx}`);
-        if (body.style.display === "none") {
-          body.style.display = "grid";
-          toggle.textContent = "▼";
-        } else {
-          body.style.display = "none";
-          toggle.textContent = "▶";
-        }
+        // Verificar estado inicial
+        setTimeout(() => {
+          verificarCategoriasCompletas();
+        }, 200);
       }
 
       // ============================================================
@@ -1475,6 +1591,8 @@
         ["dias_cama", "dias_paciente", "egresos_totales"].forEach((id) => {
           document.getElementById(id).addEventListener("input", () => {
             calcularIndiceSustitucion();
+            // Después de calcular, verificar categorías
+            verificarCategoriasCompletas();
           });
         });
       }
@@ -1696,6 +1814,7 @@
         document.querySelectorAll('input[type="number"]').forEach((input) => {
           if (!input.readOnly && input.id !== "year") {
             input.value = "";
+            input.classList.remove("has-value");
           }
         });
         datosCargados = false;
@@ -1708,6 +1827,18 @@
         });
         document.getElementById("summaryBox").className = "summary-box";
         document.getElementById("summaryBox").textContent = "";
+
+        // Asegurar que todas las categorías estén expandidas
+        categories.forEach((cat, idx) => {
+          const body = document.getElementById(`body-${idx}`);
+          const toggle = document.querySelector(`#toggle-${idx}`);
+          if (body && toggle) {
+            body.style.display = "grid";
+            toggle.textContent = "▼";
+          }
+        });
+
+        verificarCategoriasCompletas();
       }
 
       // ============================================================
