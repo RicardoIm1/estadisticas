@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Formulario Mensual - Indicadores Hospitalarios</title>
+    <title>Formulario e Informe - Indicadores Hospitalarios</title>
     <style>
       * {
         margin: 0;
@@ -20,7 +20,7 @@
       }
 
       .container {
-        max-width: 1100px;
+        max-width: 1200px;
         width: 100%;
         background: white;
         border-radius: 20px;
@@ -42,6 +42,43 @@
         margin-bottom: 25px;
         margin-top: 5px;
         padding-left: 21px;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 25px;
+        border-bottom: 2px solid #e2eaf3;
+        padding-bottom: 10px;
+      }
+
+      .tab-btn {
+        padding: 10px 24px;
+        border: none;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 15px;
+        cursor: pointer;
+        transition: 0.2s;
+        background: #e8edf4;
+        color: #1a2a3a;
+      }
+
+      .tab-btn:hover {
+        background: #d0dbe8;
+      }
+
+      .tab-btn.active {
+        background: #0a2a44;
+        color: white;
+      }
+
+      .tab-content {
+        display: none;
+      }
+
+      .tab-content.active {
+        display: block;
       }
 
       .month-selector {
@@ -89,21 +126,10 @@
       }
 
       .category {
-        margin-top: 30px;
+        margin-top: 20px;
         border: 1px solid #dde3ed;
         border-radius: 16px;
         overflow: hidden;
-        transition: all 0.3s ease;
-      }
-
-      .category.completed {
-        border-color: #28a745;
-        background: #f8fff9;
-      }
-
-      .category.completed .category-header {
-        background: #e8f5e9;
-        border-bottom-color: #28a745;
       }
 
       .category-header {
@@ -118,36 +144,15 @@
         justify-content: space-between;
         align-items: center;
         user-select: none;
-        transition: 0.2s;
       }
 
       .category-header:hover {
         background: #eff4fc;
       }
 
-      .category-header .status-icon {
-        font-size: 16px;
-        margin-left: 10px;
-      }
-
       .category-header .toggle-icon {
         font-size: 22px;
         transition: 0.2s;
-      }
-
-      .category-header .progress-badge {
-        font-size: 12px;
-        font-weight: 600;
-        padding: 2px 10px;
-        border-radius: 12px;
-        background: #e9ecef;
-        color: #6c757d;
-        margin-left: 10px;
-      }
-
-      .category.completed .progress-badge {
-        background: #28a745;
-        color: white;
       }
 
       .category-body {
@@ -156,7 +161,6 @@
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
         gap: 12px 30px;
         background: white;
-        transition: all 0.3s ease;
       }
 
       .category-body.hidden {
@@ -199,12 +203,6 @@
         color: #0a2a44;
       }
 
-      .field-group input.readonly {
-        background: #f5f5f5;
-        color: #666;
-        cursor: not-allowed;
-      }
-
       .field-group input.has-value {
         border-color: #28a745;
         background: #f8fff9;
@@ -214,18 +212,6 @@
         font-size: 12px;
         color: #6b7d93;
         font-style: italic;
-      }
-
-      .validation-msg {
-        font-size: 12px;
-        color: #c62828;
-        font-weight: 500;
-        margin-top: 2px;
-        display: none;
-      }
-
-      .validation-msg.visible {
-        display: block;
       }
 
       .actions {
@@ -283,16 +269,6 @@
         transform: translateY(-2px);
       }
 
-      .btn-warning {
-        background: #f39c12;
-        color: white;
-      }
-
-      .btn-warning:hover {
-        background: #d68910;
-        transform: translateY(-2px);
-      }
-
       .btn-danger {
         background: #e74c3c;
         color: white;
@@ -313,46 +289,161 @@
         transform: translateY(-2px);
       }
 
-      .summary-box {
-        background: #eaf3fa;
-        border-radius: 14px;
-        padding: 18px 24px;
-        margin-top: 20px;
-        display: none;
+      .btn-purple {
+        background: #6f42c1;
+        color: white;
+      }
+
+      .btn-purple:hover {
+        background: #5a32a3;
+        transform: translateY(-2px);
+      }
+
+      /* ============================================================
+       INFORME DE INDICADORES
+       ============================================================ */
+      .report-container {
+        margin-top: 30px;
+        padding: 20px;
+        background: #fafcff;
+        border-radius: 16px;
+        border: 1px solid #dde3ed;
+        overflow-x: auto;
+      }
+
+      .report-container h2 {
+        color: #0a2a44;
+        margin-bottom: 20px;
+        font-size: 22px;
+        border-bottom: 2px solid #1a73e8;
+        padding-bottom: 10px;
+      }
+
+      .report-container .section-title {
+        color: #1a73e8;
+        font-size: 18px;
+        margin: 25px 0 15px 0;
+        padding: 8px 16px;
+        background: #e8edf4;
+        border-radius: 8px;
+      }
+
+      .report-table {
+        width: 100%;
+        border-collapse: collapse;
         font-size: 14px;
-        max-height: 300px;
-        overflow: auto;
-        white-space: pre-wrap;
-        font-family: "Courier New", monospace;
-        border: 1px solid #c7d9ec;
+        margin-bottom: 20px;
       }
 
-      .summary-box.visible {
-        display: block;
-      }
-
-      .status-badge {
-        display: inline-block;
-        padding: 4px 12px;
-        border-radius: 20px;
-        font-size: 13px;
+      .report-table th {
+        background: #0a2a44;
+        color: white;
+        padding: 10px 12px;
+        text-align: left;
         font-weight: 600;
-        margin-left: 10px;
       }
 
-      .status-badge.saved {
-        background: #d4edda;
-        color: #155724;
+      .report-table td {
+        padding: 8px 12px;
+        border-bottom: 1px solid #e2eaf3;
+        vertical-align: top;
       }
 
-      .status-badge.edited {
-        background: #fff3cd;
-        color: #856404;
+      .report-table tr:nth-child(even) {
+        background: #f8faff;
       }
 
-      .status-badge.new {
-        background: #d1ecf1;
-        color: #0c5460;
+      .report-table tr:hover {
+        background: #edf3fa;
+      }
+
+      .report-table .col-num {
+        width: 40px;
+        text-align: center;
+        font-weight: 600;
+        color: #6b7d93;
+      }
+
+      .report-table .col-indicador {
+        min-width: 200px;
+        font-weight: 500;
+      }
+
+      .report-table .col-formula {
+        min-width: 200px;
+        font-size: 12px;
+        color: #555;
+        font-style: italic;
+      }
+
+      .report-table .col-numerador {
+        text-align: center;
+        min-width: 80px;
+      }
+
+      .report-table .col-denominador {
+        text-align: center;
+        min-width: 80px;
+      }
+
+      .report-table .col-resultado {
+        text-align: center;
+        font-weight: 700;
+        min-width: 80px;
+        color: #0a2a44;
+      }
+
+      .report-table .col-resultado.highlight {
+        color: #1a73e8;
+      }
+
+      .report-table .col-resultado.warning {
+        color: #e74c3c;
+      }
+
+      .report-summary {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+        padding: 15px;
+        background: #e8edf4;
+        border-radius: 12px;
+      }
+
+      .report-summary .summary-item {
+        text-align: center;
+      }
+
+      .report-summary .summary-item .label {
+        font-size: 12px;
+        color: #6b7d93;
+        font-weight: 500;
+      }
+
+      .report-summary .summary-item .value {
+        font-size: 22px;
+        font-weight: 700;
+        color: #0a2a44;
+      }
+
+      .btn-export {
+        display: inline-block;
+        padding: 8px 20px;
+        margin: 5px;
+        background: #0a2a44;
+        color: white;
+        border: none;
+        border-radius: 30px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .btn-export:hover {
+        background: #1a3f62;
+        transform: scale(1.02);
       }
 
       /* ============================================================
@@ -584,22 +675,38 @@
           padding: 20px;
           margin: 20px;
         }
+        .tabs {
+          flex-wrap: wrap;
+        }
+        .tab-btn {
+          font-size: 13px;
+          padding: 8px 16px;
+        }
+        .report-table {
+          font-size: 12px;
+        }
+        .report-table th,
+        .report-table td {
+          padding: 6px 8px;
+        }
+        .report-summary {
+          grid-template-columns: 1fr 1fr;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container" id="app">
-      <h1>📋 Formulario Mensual</h1>
+      <h1>📋 Formulario e Informe de Indicadores</h1>
       <div class="subtitle">
         Indicadores asistenciales y de gestión hospitalaria
-        <span id="statusBadge" class="status-badge new">📝 Nuevo</span>
       </div>
 
       <!-- SELECTOR DE MES -->
       <div class="month-selector">
         <div>
           <label for="month">Mes:</label>
-          <select id="month" onchange="onMonthChange()">
+          <select id="month">
             <option value="01">Enero</option>
             <option value="02">Febrero</option>
             <option value="03">Marzo</option>
@@ -623,55 +730,64 @@
             min="2020"
             max="2030"
             style="width: 100px"
-            onchange="onMonthChange()"
           />
         </div>
+        <button onclick="cargarDatos()">📂 Cargar datos</button>
         <button onclick="resetForm()">🔄 Limpiar todo</button>
-        <button
-          onclick="cargarDatos()"
-          class="btn-info"
-          style="
-            background: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 24px;
-            border-radius: 30px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 15px;
-          "
-        >
-          📂 Cargar datos
+      </div>
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('form')">
+          📝 Formulario
+        </button>
+        <button class="tab-btn" onclick="switchTab('report')">
+          📊 Informe de Indicadores
         </button>
       </div>
 
-      <!-- CATEGORÍAS -->
-      <div id="categories-container"></div>
+      <!-- TAB: FORMULARIO -->
+      <div id="tab-form" class="tab-content active">
+        <div id="categories-container"></div>
 
-      <!-- ACCIONES -->
-      <div class="actions">
-        <button
-          class="btn-primary"
-          onclick="guardarDatos()"
-          style="background: #0d47a1"
-        >
-          💾 Guardar en Supabase
-        </button>
-        <button class="btn-primary" onclick="validateAll()">
-          ✅ Validar formulario
-        </button>
-        <button class="btn-secondary" onclick="showSummary()">
-          📊 Ver resumen
-        </button>
-        <button class="btn-success" onclick="exportCSV()">
-          ⬇️ Exportar a CSV
-        </button>
-        <button class="btn-danger" onclick="eliminarRegistro()">
-          🗑️ Eliminar registro
-        </button>
+        <div class="actions">
+          <button
+            class="btn-primary"
+            onclick="guardarDatos()"
+            style="background: #0d47a1"
+          >
+            💾 Guardar en Supabase
+          </button>
+          <button class="btn-primary" onclick="validateAll()">
+            ✅ Validar formulario
+          </button>
+          <button class="btn-secondary" onclick="showSummary()">
+            📊 Ver resumen
+          </button>
+          <button class="btn-success" onclick="exportCSV()">
+            ⬇️ Exportar a CSV
+          </button>
+          <button class="btn-danger" onclick="eliminarRegistro()">
+            🗑️ Eliminar registro
+          </button>
+          <button class="btn-purple" onclick="generarInforme()">
+            📊 Generar Informe
+          </button>
+        </div>
+
+        <div id="summaryBox" class="summary-box"></div>
       </div>
 
-      <div id="summaryBox" class="summary-box"></div>
+      <!-- TAB: INFORME -->
+      <div id="tab-report" class="tab-content">
+        <div id="reportContainer" class="report-container">
+          <h2>📊 Informe de Indicadores Hospitalarios</h2>
+          <p style="color: #6b7d93; text-align: center; padding: 40px 0">
+            👈 Regresa al formulario, completa los datos y haz clic en "Generar
+            Informe"
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- TOAST CONTAINER -->
@@ -713,13 +829,13 @@
         const toast = document.createElement("div");
         toast.className = `toast ${type}`;
         toast.innerHTML = `
-        <div class="toast-icon">${icons[type] || "ℹ️"}</div>
-        <div class="toast-content">
-          <div class="toast-title">${title}</div>
-          <div class="toast-message">${message}</div>
-        </div>
-        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
-      `;
+            <div class="toast-icon">${icons[type] || "ℹ️"}</div>
+            <div class="toast-content">
+              <div class="toast-title">${title}</div>
+              <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+          `;
 
         container.appendChild(toast);
 
@@ -781,6 +897,29 @@
       });
 
       // ============================================================
+      // TABS
+      // ============================================================
+
+      function switchTab(tab) {
+        document
+          .querySelectorAll(".tab-content")
+          .forEach((el) => el.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((el) => el.classList.remove("active"));
+
+        document.getElementById(`tab-${tab}`).classList.add("active");
+
+        // Activar el botón correspondiente
+        document.querySelectorAll(".tab-btn").forEach((el) => {
+          if (el.textContent.includes("Formulario") && tab === "form")
+            el.classList.add("active");
+          if (el.textContent.includes("Informe") && tab === "report")
+            el.classList.add("active");
+        });
+      }
+
+      // ============================================================
       // CONFIGURACIÓN DE SUPABASE
       // ============================================================
       const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
@@ -794,7 +933,6 @@
 
       let datosCargados = false;
       let registroExistente = null;
-      let categoryStates = {};
 
       // ============================================================
       // FUNCIONES PARA SUPABASE
@@ -845,7 +983,6 @@
             );
             registroExistente = null;
             datosCargados = false;
-            actualizarEstado("new");
             return;
           }
 
@@ -861,7 +998,6 @@
               key !== "fecha_registro"
             ) {
               input.value = data[key];
-              // Marcar como completado si tiene valor
               if (data[key] > 0) {
                 input.classList.add("has-value");
               }
@@ -869,15 +1005,12 @@
           });
 
           datosCargados = true;
-          actualizarEstado("saved");
           showToast(
             "Datos cargados",
             `Datos cargados para ${monthName} ${anio}`,
             "success",
           );
           dispararCalculos();
-          // Verificar el estado de las categorías después de cargar
-          verificarCategoriasCompletas();
         } catch (error) {
           console.error("Error al cargar:", error);
           showToast(
@@ -918,8 +1051,6 @@
             return;
           }
 
-          console.log("Datos a guardar:", datos);
-
           const existe = await verificarExistencia(mes, anio);
 
           let result;
@@ -952,7 +1083,6 @@
               `Registro de ${monthName} ${anio} actualizado correctamente`,
               "success",
             );
-            actualizarEstado("saved");
           } else {
             const { data, error } = await supabaseClient
               .from("indicadores_mensuales")
@@ -967,13 +1097,9 @@
               `Datos de ${monthName} ${anio} guardados correctamente`,
               "success",
             );
-            actualizarEstado("saved");
           }
 
-          console.log("Respuesta de Supabase:", result);
           datosCargados = true;
-          showSummary();
-          verificarCategoriasCompletas();
         } catch (error) {
           console.error("Error detallado:", error);
           showToast("Error", "Error al guardar: " + error.message, "error");
@@ -1057,34 +1183,6 @@
         return datos;
       }
 
-      function actualizarEstado(tipo) {
-        const badge = document.getElementById("statusBadge");
-        if (tipo === "saved") {
-          badge.className = "status-badge saved";
-          badge.textContent = "💾 Guardado";
-        } else if (tipo === "edited") {
-          badge.className = "status-badge edited";
-          badge.textContent = "✏️ Editando";
-        } else {
-          badge.className = "status-badge new";
-          badge.textContent = "📝 Nuevo";
-        }
-      }
-
-      function onMonthChange() {
-        datosCargados = false;
-        registroExistente = null;
-        actualizarEstado("new");
-        document.querySelectorAll('input[type="number"]').forEach((input) => {
-          if (!input.readOnly && input.id !== "year") {
-            input.value = "";
-            input.classList.remove("has-value");
-          }
-        });
-        dispararCalculos();
-        verificarCategoriasCompletas();
-      }
-
       function dispararCalculos() {
         setTimeout(() => {
           [
@@ -1095,82 +1193,14 @@
             "rx_ce",
           ].forEach((id) => {
             const ev = new Event("input");
-            document.getElementById(id).dispatchEvent(ev);
+            const el = document.getElementById(id);
+            if (el) el.dispatchEvent(ev);
           });
           if (document.getElementById("dias_cama")) {
             const ev = new Event("input");
             document.getElementById("dias_cama").dispatchEvent(ev);
           }
         }, 100);
-      }
-
-      // ============================================================
-      // VERIFICAR CATEGORÍAS COMPLETAS (ACORDEONES INTELIGENTES)
-      // ============================================================
-
-      function verificarCategoriasCompletas() {
-        categories.forEach((cat, idx) => {
-          const categoryDiv = document.querySelectorAll(".category")[idx];
-          if (!categoryDiv) return;
-
-          const fields = cat.fields;
-          let todosCompletos = true;
-          let camposConValor = 0;
-          let camposTotales = 0;
-
-          fields.forEach((field) => {
-            const input = document.getElementById(field.id);
-            if (input && !input.readOnly) {
-              camposTotales++;
-              const valor = parseFloat(input.value);
-              if (valor > 0) {
-                camposConValor++;
-              } else {
-                todosCompletos = false;
-              }
-            }
-          });
-
-          // Actualizar el badge de progreso
-          const badge = categoryDiv.querySelector(".progress-badge");
-          if (badge) {
-            badge.textContent = `${camposConValor}/${camposTotales}`;
-          }
-
-          // Si todos los campos están completos, contraer
-          if (todosCompletos && camposTotales > 0) {
-            categoryDiv.classList.add("completed");
-            // Contraer automáticamente
-            const body = document.getElementById(`body-${idx}`);
-            const toggle = document.querySelector(`#toggle-${idx}`);
-            if (body && toggle && body.style.display !== "none") {
-              body.style.display = "none";
-              toggle.textContent = "▶";
-            }
-          } else {
-            categoryDiv.classList.remove("completed");
-            // Asegurar que esté expandido si no está completo
-            const body = document.getElementById(`body-${idx}`);
-            const toggle = document.querySelector(`#toggle-${idx}`);
-            if (body && toggle && body.style.display === "none") {
-              body.style.display = "grid";
-              toggle.textContent = "▼";
-            }
-          }
-        });
-      }
-
-      // Modificar toggleCategory para actualizar el estado
-      function toggleCategory(idx) {
-        const body = document.getElementById(`body-${idx}`);
-        const toggle = document.querySelector(`#toggle-${idx}`);
-        if (body.style.display === "none") {
-          body.style.display = "grid";
-          toggle.textContent = "▼";
-        } else {
-          body.style.display = "none";
-          toggle.textContent = "▶";
-        }
       }
 
       // ============================================================
@@ -1431,22 +1461,10 @@
         categories.forEach((cat, idx) => {
           const div = document.createElement("div");
           div.className = "category";
-          div.id = `category-${idx}`;
-
-          // Contar campos editables (no calculados)
-          const camposEditables = cat.fields.filter((f) => !f.calculated);
-          const totalCampos = camposEditables.length;
 
           const header = document.createElement("div");
           header.className = "category-header";
-          header.innerHTML = `
-          ${cat.name} 
-          <span>
-            <span class="progress-badge">0/${totalCampos}</span>
-            <span class="status-icon">📋</span>
-            <span class="toggle-icon" id="toggle-${idx}">▼</span>
-          </span>
-        `;
+          header.innerHTML = `${cat.name} <span class="toggle-icon" id="toggle-${idx}">▼</span>`;
           header.onclick = () => toggleCategory(idx);
 
           const body = document.createElement("div");
@@ -1470,17 +1488,6 @@
             if (field.calculated) {
               input.readOnly = true;
               input.className = "calculated";
-            } else {
-              // Agregar evento para verificar completitud
-              input.addEventListener("input", () => {
-                const valor = parseFloat(input.value);
-                if (valor > 0) {
-                  input.classList.add("has-value");
-                } else {
-                  input.classList.remove("has-value");
-                }
-                verificarCategoriasCompletas();
-              });
             }
 
             const hint = document.createElement("div");
@@ -1508,17 +1515,21 @@
           div.appendChild(header);
           div.appendChild(body);
           container.appendChild(div);
-
-          // TODAS LAS CATEGORÍAS EMPIEZAN EXPANDIDAS
-          // No contraemos ninguna al inicio
         });
 
         attachAutoCalculations();
+      }
 
-        // Verificar estado inicial
-        setTimeout(() => {
-          verificarCategoriasCompletas();
-        }, 200);
+      function toggleCategory(idx) {
+        const body = document.getElementById(`body-${idx}`);
+        const toggle = document.querySelector(`#toggle-${idx}`);
+        if (body.style.display === "none") {
+          body.style.display = "grid";
+          toggle.textContent = "▼";
+        } else {
+          body.style.display = "none";
+          toggle.textContent = "▶";
+        }
       }
 
       // ============================================================
@@ -1591,8 +1602,6 @@
         ["dias_cama", "dias_paciente", "egresos_totales"].forEach((id) => {
           document.getElementById(id).addEventListener("input", () => {
             calcularIndiceSustitucion();
-            // Después de calcular, verificar categorías
-            verificarCategoriasCompletas();
           });
         });
       }
@@ -1744,8 +1753,766 @@
       }
 
       // ============================================================
-      // RESUMEN Y EXPORTACIÓN
+      // GENERADOR DE INFORME
       // ============================================================
+
+      function generarInforme() {
+        const month = document.getElementById("month").value;
+        const year = document.getElementById("year").value;
+        const monthName = document.querySelector(
+          "#month option:checked",
+        ).textContent;
+
+        // Verificar que haya datos
+        const tieneDatos = Object.values(recolectarDatos()).some((v) => v > 0);
+        if (!tieneDatos) {
+          showToast(
+            "Sin datos",
+            "Complete los datos en el formulario antes de generar el informe.",
+            "warning",
+          );
+          return;
+        }
+
+        // Cambiar a la pestaña de informe
+        switchTab("report");
+
+        // Generar el informe
+        const container = document.getElementById("reportContainer");
+        container.innerHTML = `
+          <h2>📊 Informe de Indicadores Hospitalarios</h2>
+          <p style="color: #6b7d93; margin-bottom: 20px;">
+            <strong>Período:</strong> ${monthName} ${year} | 
+            <strong>Fecha de generación:</strong> ${new Date().toLocaleDateString()}
+          </p>
+          ${generarTablaIndicadores()}
+          <div style="margin-top: 20px; text-align: center;">
+            <button class="btn-export" onclick="exportarInformeExcel()">📥 Exportar a Excel (CSV)</button>
+            <button class="btn-export" style="background: #6f42c1;" onclick="exportarInformeHTML()">📄 Exportar a HTML</button>
+          </div>
+        `;
+      }
+
+      function generarTablaIndicadores() {
+        const v = getVal; // Alias para acceder a los valores
+
+        // Calcular total de médicos y enfermeras
+        const totalMedicos =
+          v("medicos_ce") + v("medicos_hosp") + v("medicos_admin");
+        const totalEnfermeras = v("enf_ce") + v("enf_hosp") + v("enf_admin");
+        const totalMEdicosContacto = v("medicos_ce") + v("medicos_hosp");
+
+        // 1. Recursos Humanos
+        const rhIndicadores = [
+          {
+            no: 1,
+            indicador: "Razón de médicos por consultorio",
+            formula: "Médicos CE / Número de consultorios",
+            num: v("medicos_ce"),
+            den: v("consultorios"),
+            result: v("consultorios") ? v("medicos_ce") / v("consultorios") : 0,
+          },
+          {
+            no: 2,
+            indicador: "Razón de enfermeras por médico",
+            formula: "Enfermeras CE / Médicos CE",
+            num: v("enf_ce"),
+            den: v("medicos_ce"),
+            result: v("medicos_ce") ? v("enf_ce") / v("medicos_ce") : 0,
+          },
+          {
+            no: 3,
+            indicador: "Razón de médicos por cama censable",
+            formula: "Médicos Hospital / Camas censables",
+            num: v("medicos_hosp"),
+            den: v("camas_censables"),
+            result: v("camas_censables")
+              ? v("medicos_hosp") / v("camas_censables")
+              : 0,
+          },
+          {
+            no: 4,
+            indicador: "Razón de enfermeras por cama censable",
+            formula: "Enfermeras Hospital / Camas censables",
+            num: v("enf_hosp"),
+            den: v("camas_censables"),
+            result: v("camas_censables")
+              ? v("enf_hosp") / v("camas_censables")
+              : 0,
+          },
+          {
+            no: 5,
+            indicador: "% de médicos en actividades administrativas",
+            formula: "(Médicos Admin / Total médicos) × 100",
+            num: v("medicos_admin"),
+            den: totalMedicos,
+            result: totalMedicos
+              ? (v("medicos_admin") / totalMedicos) * 100
+              : 0,
+          },
+          {
+            no: 6,
+            indicador: "% de enfermeras en actividades administrativas",
+            formula: "(Enfermeras Admin / Total enfermeras) × 100",
+            num: v("enf_admin"),
+            den: totalEnfermeras,
+            result: totalEnfermeras
+              ? (v("enf_admin") / totalEnfermeras) * 100
+              : 0,
+          },
+        ];
+
+        // 2. Productividad
+        const prodIndicadores = [
+          {
+            no: 7,
+            indicador: "Promedio diario de consultas",
+            formula: "Consultas totales / 252",
+            num: v("consultas_totales"),
+            den: 252,
+            result: v("consultas_totales") / 252,
+          },
+          {
+            no: 8,
+            indicador: "Promedio diario de consultas por consultorio",
+            formula: "Consultas totales / Consultorios / 252",
+            num: v("consultas_totales"),
+            den: v("consultorios") * 252,
+            result: v("consultorios")
+              ? v("consultas_totales") / v("consultorios") / 252
+              : 0,
+          },
+          {
+            no: 9,
+            indicador: "Consultas diarias por médico",
+            formula: "Consultas externas / Médicos CE / 252",
+            num: v("consultas_externas"),
+            den: v("medicos_ce") * 252,
+            result: v("medicos_ce")
+              ? v("consultas_externas") / v("medicos_ce") / 252
+              : 0,
+          },
+          {
+            no: 10,
+            indicador: "Consultas por médico especialista",
+            formula:
+              "Consultas especialidad / (Especialistas+Residentes) / 252",
+            num: v("consultas_especialidad"),
+            den: (v("total_especialistas") + v("total_residentes")) * 252,
+            result:
+              v("total_especialistas") + v("total_residentes")
+                ? v("consultas_especialidad") /
+                  (v("total_especialistas") + v("total_residentes")) /
+                  252
+                : 0,
+          },
+          {
+            no: 11,
+            indicador: "Consultas por odontólogo",
+            formula: "Consultas odonto / Total odontólogos / 252",
+            num: v("consultas_odonto"),
+            den: v("total_odontologos") * 252,
+            result: v("total_odontologos")
+              ? v("consultas_odonto") / v("total_odontologos") / 252
+              : 0,
+          },
+          {
+            no: 12,
+            indicador:
+              "Promedio diario de intervenciones quirúrgicas por quirófano",
+            formula: "Intervenciones / Quirófanos / 365",
+            num: v("interv_quirurgicas"),
+            den: v("quirofanos") * 365,
+            result: v("quirofanos")
+              ? v("interv_quirurgicas") / v("quirofanos") / 365
+              : 0,
+          },
+          {
+            no: 13,
+            indicador: "% de cirugías suspendidas",
+            formula: "(Cirugías suspendidas / Cirugías programadas) × 100",
+            num: v("cirugias_suspendidas"),
+            den: v("cirugias_programadas"),
+            result: v("cirugias_programadas")
+              ? (v("cirugias_suspendidas") / v("cirugias_programadas")) * 100
+              : 0,
+          },
+          {
+            no: 14,
+            indicador: "% de cirugías ambulatorias",
+            formula:
+              "(Cirugías ambulatorias / Intervenciones realizadas) × 100",
+            num: v("cirugias_ambulatorias"),
+            den: v("interv_realizadas"),
+            result: v("interv_realizadas")
+              ? (v("cirugias_ambulatorias") / v("interv_realizadas")) * 100
+              : 0,
+          },
+        ];
+
+        // 3. Proceso (Egresos, Urgencias, Ocupación)
+        const procIndicadores = [
+          {
+            no: 15,
+            indicador: "Promedio diario de egresos",
+            formula: "Egresos totales / 365",
+            num: v("egresos_totales"),
+            den: 365,
+            result: v("egresos_totales") / 365,
+          },
+          {
+            no: 16,
+            indicador: "Promedio diario de urgencias",
+            formula: "Urgencias totales / 365",
+            num: v("urgencias_totales"),
+            den: 365,
+            result: v("urgencias_totales") / 365,
+          },
+          {
+            no: 17,
+            indicador: "Promedio diario de urgencias pediátricas",
+            formula: "Urgencias pediátricas / 365",
+            num: v("urgencias_pediatricas"),
+            den: 365,
+            result: v("urgencias_pediatricas") / 365,
+          },
+          {
+            no: 18,
+            indicador: "Promedio diario de urgencias adulto",
+            formula: "Urgencias adulto / 365",
+            num: v("urgencias_adulto"),
+            den: 365,
+            result: v("urgencias_adulto") / 365,
+          },
+          {
+            no: 19,
+            indicador: "Intervalo de sustitución",
+            formula: "(Días cama - Días paciente) / Egresos totales",
+            num: v("dias_cama") - v("dias_paciente"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("dias_cama") - v("dias_paciente")) / v("egresos_totales")
+              : 0,
+          },
+          {
+            no: 20,
+            indicador: "% de egreso hospitalario de corta estancia",
+            formula: "(Egresos corta estancia / Egresos totales) × 100",
+            num: v("egresos_corta_estancia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("egresos_corta_estancia") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 21,
+            indicador: "% de ocupación hospitalaria",
+            formula: "(Días paciente / (Camas × 365)) × 100",
+            num: v("dias_paciente"),
+            den: v("camas_censables") * 365,
+            result: v("camas_censables")
+              ? (v("dias_paciente") / (v("camas_censables") * 365)) * 100
+              : 0,
+          },
+          {
+            no: 22,
+            indicador: "Promedio de días de estancia",
+            formula: "Días paciente / Egresos totales",
+            num: v("dias_paciente"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? v("dias_paciente") / v("egresos_totales")
+              : 0,
+          },
+          {
+            no: 23,
+            indicador: "Índice de rotación",
+            formula: "Egresos totales / Camas censables",
+            num: v("egresos_totales"),
+            den: v("camas_censables"),
+            result: v("camas_censables")
+              ? v("egresos_totales") / v("camas_censables")
+              : 0,
+          },
+          {
+            no: 24,
+            indicador: "Motivo de egreso hospitalario (%)",
+            formula: "(Causas de egreso / Egresos totales) × 100",
+            num: v("causas_egreso"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("causas_egreso") / v("egresos_totales")) * 100
+              : 0,
+          },
+        ];
+
+        // 4. Seguridad del Paciente
+        const segIndicadores = [
+          {
+            no: 25,
+            indicador: "% de Infecciones Nosocomiales",
+            formula: "(Infecciones / Egresos totales) × 100",
+            num:
+              v("iaas_cirugia") +
+              v("iaas_pediatria") +
+              v("iaas_ucin") +
+              v("iaas_gineco") +
+              v("iaas_ucia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? ((v("iaas_cirugia") +
+                  v("iaas_pediatria") +
+                  v("iaas_ucin") +
+                  v("iaas_gineco") +
+                  v("iaas_ucia")) /
+                  v("egresos_totales")) *
+                100
+              : 0,
+          },
+          {
+            no: 26,
+            indicador: "% de Infección Nosocomial en Cirugía",
+            formula: "(Infecciones Cirugía / Egresos totales) × 100",
+            num: v("iaas_cirugia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_cirugia") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 27,
+            indicador: "% de Infección Nosocomial en Pediatría",
+            formula: "(Infecciones Pediatría / Egresos totales) × 100",
+            num: v("iaas_pediatria"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_pediatria") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 28,
+            indicador: "% de Infección Nosocomial en UCIN",
+            formula: "(Infecciones UCIN / Egresos totales) × 100",
+            num: v("iaas_ucin"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_ucin") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 29,
+            indicador: "% de Infección Nosocomial en Ginecobstetricia",
+            formula: "(Infecciones Gineco / Egresos totales) × 100",
+            num: v("iaas_gineco"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_gineco") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 30,
+            indicador: "% de Infección Nosocomial en UCIA",
+            formula: "(Infecciones UCIA / Egresos totales) × 100",
+            num: v("iaas_ucia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_ucia") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 31,
+            indicador:
+              "% de Infecciones Asociadas a la Atención en Salud (IAAS)",
+            formula: "(Total IAAS / Egresos totales) × 100",
+            num:
+              v("iaas_cirugia") +
+              v("iaas_pediatria") +
+              v("iaas_ucin") +
+              v("iaas_gineco") +
+              v("iaas_ucia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? ((v("iaas_cirugia") +
+                  v("iaas_pediatria") +
+                  v("iaas_ucin") +
+                  v("iaas_gineco") +
+                  v("iaas_ucia")) /
+                  v("egresos_totales")) *
+                100
+              : 0,
+          },
+          {
+            no: 32,
+            indicador: "Tasa de Infección en sitio quirúrgico",
+            formula: "Infecciones sitio quirúrgico / Intervenciones realizadas",
+            num: v("infeccion_sitio_quir"),
+            den: v("interv_realizadas"),
+            result: v("interv_realizadas")
+              ? v("infeccion_sitio_quir") / v("interv_realizadas")
+              : 0,
+          },
+          {
+            no: 33,
+            indicador: "Tasa de Bacteriemia asociada a Catéter Venoso Central",
+            formula: "Bacteriemias / Días catéter central",
+            num: v("bacteriemias_cateter"),
+            den: v("dias_cateter"),
+            result: v("dias_cateter")
+              ? v("bacteriemias_cateter") / v("dias_cateter")
+              : 0,
+          },
+          {
+            no: 34,
+            indicador: "Tasa de Neumonías Asociadas a Ventilador",
+            formula: "Neumonías / Días ventilador",
+            num: v("neumonias_ventilador"),
+            den: v("dias_ventilador"),
+            result: v("dias_ventilador")
+              ? v("neumonias_ventilador") / v("dias_ventilador")
+              : 0,
+          },
+          {
+            no: 35,
+            indicador:
+              "Tasa de Infección de Vías Urinarias asociada a sonda vesical",
+            formula: "Infecciones sonda / Días sonda",
+            num: v("infecciones_sonda"),
+            den: v("dias_sonda"),
+            result: v("dias_sonda")
+              ? v("infecciones_sonda") / v("dias_sonda")
+              : 0,
+          },
+        ];
+
+        // 5. Salud Reproductiva y Materno Infantil
+        const srmiIndicadores = [
+          {
+            no: 36,
+            indicador: "Promedio de consultas prenatales",
+            formula: "Consultas prenatales / Prenatales primera vez",
+            num: v("consultas_prenatal"),
+            den: v("prenatal_primera_vez"),
+            result: v("prenatal_primera_vez")
+              ? v("consultas_prenatal") / v("prenatal_primera_vez")
+              : 0,
+          },
+          {
+            no: 37,
+            indicador: "% de embarazadas captadas en el primer trimestre",
+            formula: "(Captadas 1er trim / Total consultas embarazo) × 100",
+            num: v("embarazadas_1er_trim"),
+            den: v("consultas_embarazo"),
+            result: v("consultas_embarazo")
+              ? (v("embarazadas_1er_trim") / v("consultas_embarazo")) * 100
+              : 0,
+          },
+          {
+            no: 38,
+            indicador: "% de partos por cesárea",
+            formula: "(Cesáreas / Partos atendidos) × 100",
+            num: v("partos_cesarea"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_cesarea") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 39,
+            indicador: "% de partos eutócicos",
+            formula: "(Partos espontáneos / Partos atendidos) × 100",
+            num: v("partos_espontaneos"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_espontaneos") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 40,
+            indicador: "% de partos distócicos",
+            formula: "(Partos asistidos / Partos atendidos) × 100",
+            num: v("partos_asistidos"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_asistidos") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 41,
+            indicador: "Razón de morbilidad materna severa",
+            formula: "(Mujeres con complicaciones / Nacidos vivos) × 100",
+            num: v("mujeres_complicaciones"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("mujeres_complicaciones") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+          {
+            no: 42,
+            indicador: "% de trauma obstétrico",
+            formula: "(Trauma obstétrico / Partos atendidos) × 100",
+            num: v("partos_trauma"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_trauma") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 43,
+            indicador: "% de nacidos vivos pequeños para la edad gestacional",
+            formula: "(Peso < percentil 10 / Nacidos vivos) × 100",
+            num: v("nacidos_p10"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("nacidos_p10") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+          {
+            no: 44,
+            indicador: "% de nacidos vivos grandes para la edad gestacional",
+            formula: "(Peso > percentil 90 / Nacidos vivos) × 100",
+            num: v("nacidos_p90"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("nacidos_p90") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+          {
+            no: 45,
+            indicador: "% de nacidos vivos con bajo peso",
+            formula: "(Peso < 2500g / Nacidos vivos) × 100",
+            num: v("nacidos_menos_2500"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("nacidos_menos_2500") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+        ];
+
+        // 6. Auxiliares de Diagnóstico y Tratamiento
+        const adtIndicadores = [
+          {
+            no: 46,
+            indicador: "% de exámenes de laboratorio en consulta externa",
+            formula: "(Lab CE / Lab total) × 100",
+            num: v("lab_ce"),
+            den: v("lab_total"),
+            result: v("lab_total") ? (v("lab_ce") / v("lab_total")) * 100 : 0,
+          },
+          {
+            no: 47,
+            indicador: "% de exámenes de laboratorio en hospitalización",
+            formula: "(Lab Hospitalización / Lab total) × 100",
+            num: v("lab_hosp"),
+            den: v("lab_total"),
+            result: v("lab_total") ? (v("lab_hosp") / v("lab_total")) * 100 : 0,
+          },
+          {
+            no: 48,
+            indicador: "% de exámenes de laboratorio en urgencias",
+            formula: "(Lab Urgencias / Lab total) × 100",
+            num: v("lab_urgencias"),
+            den: v("lab_total"),
+            result: v("lab_total")
+              ? (v("lab_urgencias") / v("lab_total")) * 100
+              : 0,
+          },
+          {
+            no: 49,
+            indicador: "% de estudios de radiología en consulta externa",
+            formula: "(Rx CE / Rx total) × 100",
+            num: v("rx_ce"),
+            den: v("rx_total"),
+            result: v("rx_total") ? (v("rx_ce") / v("rx_total")) * 100 : 0,
+          },
+          {
+            no: 50,
+            indicador: "% de estudios de radiología en hospitalización",
+            formula: "(Rx Hospitalización / Rx total) × 100",
+            num: v("rx_hosp"),
+            den: v("rx_total"),
+            result: v("rx_total") ? (v("rx_hosp") / v("rx_total")) * 100 : 0,
+          },
+          {
+            no: 51,
+            indicador: "% de estudios de radiología en urgencias",
+            formula: "(Rx Urgencias / Rx total) × 100",
+            num: v("rx_urgencias"),
+            den: v("rx_total"),
+            result: v("rx_total")
+              ? (v("rx_urgencias") / v("rx_total")) * 100
+              : 0,
+          },
+        ];
+
+        // Agrupar todos los indicadores
+        const secciones = [
+          { titulo: "1. Recursos Humanos", data: rhIndicadores },
+          { titulo: "2. Productividad", data: prodIndicadores },
+          {
+            titulo: "3. Proceso (Egresos, Urgencias, Ocupación)",
+            data: procIndicadores,
+          },
+          { titulo: "4. Seguridad del Paciente", data: segIndicadores },
+          {
+            titulo: "5. Salud Reproductiva y Materno Infantil",
+            data: srmiIndicadores,
+          },
+          {
+            titulo: "6. Auxiliares de Diagnóstico y Tratamiento",
+            data: adtIndicadores,
+          },
+        ];
+
+        let html = "";
+
+        secciones.forEach((seccion) => {
+          html += `<h3 class="section-title">${seccion.titulo}</h3>`;
+          html += `
+            <table class="report-table">
+              <thead>
+                <tr>
+                  <th class="col-num">No</th>
+                  <th class="col-indicador">Indicador</th>
+                  <th class="col-formula">Fórmula</th>
+                  <th class="col-numerador">Numerador</th>
+                  <th class="col-denominador">Denominador</th>
+                  <th class="col-resultado">Resultado</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+
+          seccion.data.forEach((item) => {
+            const resultado =
+              typeof item.result === "number"
+                ? item.result.toFixed(4)
+                : "0.0000";
+            const numDisplay =
+              typeof item.num === "number" ? item.num.toFixed(0) : "0";
+            const denDisplay =
+              typeof item.den === "number" ? item.den.toFixed(0) : "0";
+
+            html += `
+              <tr>
+                <td class="col-num">${item.no}</td>
+                <td class="col-indicador">${item.indicador}</td>
+                <td class="col-formula">${item.formula}</td>
+                <td class="col-numerador">${numDisplay}</td>
+                <td class="col-denominador">${denDisplay}</td>
+                <td class="col-resultado">${resultado}</td>
+              </tr>
+            `;
+          });
+
+          html += `
+              </tbody>
+            </table>
+          `;
+        });
+
+        return html;
+      }
+
+      // ============================================================
+      // EXPORTAR INFORME
+      // ============================================================
+
+      function exportarInformeExcel() {
+        // Obtener el contenido del informe
+        const container = document.getElementById("reportContainer");
+        const tables = container.querySelectorAll(".report-table");
+
+        let csv = "No,Indicador,Fórmula,Numerador,Denominador,Resultado\n";
+
+        tables.forEach((table) => {
+          const rows = table.querySelectorAll("tbody tr");
+          rows.forEach((row) => {
+            const cells = row.querySelectorAll("td");
+            const rowData = [];
+            cells.forEach((cell) => {
+              let text = cell.textContent.trim();
+              // Si tiene comas, envolver en comillas
+              if (text.includes(",")) {
+                text = `"${text}"`;
+              }
+              rowData.push(text);
+            });
+            csv += rowData.join(",") + "\n";
+          });
+        });
+
+        // Crear y descargar el archivo
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const link = document.createElement("a");
+        const monthName = document.querySelector(
+          "#month option:checked",
+        ).textContent;
+        const year = document.getElementById("year").value;
+        link.href = URL.createObjectURL(blob);
+        link.download = `Informe_Indicadores_${monthName}_${year}.csv`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+
+        showToast(
+          "Exportado",
+          "Informe exportado a Excel correctamente",
+          "success",
+        );
+      }
+
+      function exportarInformeHTML() {
+        const container = document.getElementById("reportContainer");
+        const content = container.innerHTML;
+
+        const html = `
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="UTF-8">
+            <title>Informe de Indicadores</title>
+            <style>
+              body { font-family: 'Segoe UI', Arial, sans-serif; padding: 40px; background: white; }
+              h2 { color: #0a2a44; border-bottom: 2px solid #1a73e8; padding-bottom: 10px; }
+              .section-title { color: #1a73e8; margin: 25px 0 15px 0; padding: 8px 16px; background: #e8edf4; border-radius: 8px; }
+              .report-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 20px; }
+              .report-table th { background: #0a2a44; color: white; padding: 8px 10px; text-align: left; }
+              .report-table td { padding: 6px 10px; border-bottom: 1px solid #e2eaf3; }
+              .report-table tr:nth-child(even) { background: #f8faff; }
+              .col-num { width: 40px; text-align: center; }
+              .col-resultado { text-align: center; font-weight: 700; color: #0a2a44; }
+              .col-numerador, .col-denominador { text-align: center; }
+              .col-formula { font-style: italic; color: #555; font-size: 12px; }
+              @media print { body { padding: 20px; } }
+            </style>
+          </head>
+          <body>
+            ${content}
+          </body>
+          </html>
+        `;
+
+        const blob = new Blob([html], { type: "text/html;charset=utf-8;" });
+        const link = document.createElement("a");
+        const monthName = document.querySelector(
+          "#month option:checked",
+        ).textContent;
+        const year = document.getElementById("year").value;
+        link.href = URL.createObjectURL(blob);
+        link.download = `Informe_Indicadores_${monthName}_${year}.html`;
+        link.click();
+        URL.revokeObjectURL(link.href);
+
+        showToast(
+          "Exportado",
+          "Informe exportado a HTML correctamente",
+          "success",
+        );
+      }
+
+      // ============================================================
+      // RESUMEN Y EXPORTACIÓN (CSV del formulario)
+      // ============================================================
+
       function showSummary() {
         const summaryBox = document.getElementById("summaryBox");
         const month = document.getElementById("month").value;
@@ -1819,7 +2586,6 @@
         });
         datosCargados = false;
         registroExistente = null;
-        actualizarEstado("new");
         dispararCalculos();
         document.querySelectorAll(".validation-msg").forEach((el) => {
           el.textContent = "";
@@ -1828,7 +2594,7 @@
         document.getElementById("summaryBox").className = "summary-box";
         document.getElementById("summaryBox").textContent = "";
 
-        // Asegurar que todas las categorías estén expandidas
+        // Expandir todas las categorías
         categories.forEach((cat, idx) => {
           const body = document.getElementById(`body-${idx}`);
           const toggle = document.querySelector(`#toggle-${idx}`);
@@ -1837,8 +2603,6 @@
             toggle.textContent = "▼";
           }
         });
-
-        verificarCategoriasCompletas();
       }
 
       // ============================================================
