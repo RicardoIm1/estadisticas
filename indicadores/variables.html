@@ -332,6 +332,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
       // ============================================================
       // CONFIGURACIÓN DE SUPABASE
@@ -340,7 +341,6 @@
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-      // Crear cliente de Supabase
       const supabaseClient = supabase.createClient(
         SUPABASE_URL,
         SUPABASE_ANON_KEY,
@@ -350,7 +350,6 @@
       // FUNCIONES PARA SUPABASE
       // ============================================================
 
-      // Verificar si ya existe un registro
       async function verificarExistencia(mes, anio) {
         try {
           const { data, error } = await supabaseClient
@@ -371,7 +370,6 @@
         }
       }
 
-      // Guardar datos en Supabase
       async function guardarDatos() {
         const btn = document.querySelector('[onclick="guardarDatos()"]');
         if (!btn) {
@@ -382,21 +380,17 @@
         const textoOriginal = btn.textContent;
 
         try {
-          // Deshabilitar botón
           btn.textContent = "⏳ Guardando...";
           btn.disabled = true;
 
-          // Obtener mes y año
           const mes = parseInt(document.getElementById("month").value);
           const anio = parseInt(document.getElementById("year").value);
           const monthName = document.querySelector(
             "#month option:checked",
           ).textContent;
 
-          // Recolectar datos
           const datos = recolectarDatos();
 
-          // Verificar si hay datos
           const tieneDatos = Object.values(datos).some((v) => v > 0);
           if (!tieneDatos) {
             alert("⚠️ No hay datos para guardar. Complete al menos un campo.");
@@ -407,12 +401,10 @@
 
           console.log("Datos a guardar:", datos);
 
-          // Verificar si existe
           const existe = await verificarExistencia(mes, anio);
 
           let result;
           if (existe) {
-            // Actualizar
             const confirmar = confirm(
               `⚠️ Ya existe un registro para ${monthName} ${anio}.\n¿Desea ACTUALIZARLO?`,
             );
@@ -433,7 +425,6 @@
             result = data;
             alert("✅ Registro ACTUALIZADO correctamente");
           } else {
-            // Insertar nuevo
             const { data, error } = await supabaseClient
               .from("indicadores_mensuales")
               .insert([datos])
@@ -445,13 +436,10 @@
           }
 
           console.log("Respuesta de Supabase:", result);
-
-          // Mostrar resumen
           showSummary();
         } catch (error) {
           console.error("Error detallado:", error);
 
-          // Mostrar mensaje de error más descriptivo
           let errorMsg = "❌ Error al guardar en Supabase:\n";
           if (error.code === "42P01") {
             errorMsg += "La tabla 'indicadores_mensuales' no existe.\n";
@@ -466,7 +454,6 @@
           }
           alert(errorMsg);
         } finally {
-          // Restaurar botón
           if (btn) {
             btn.textContent = textoOriginal;
             btn.disabled = false;
@@ -474,7 +461,6 @@
         }
       }
 
-      // Recolectar datos del formulario
       function recolectarDatos() {
         const mes = parseInt(document.getElementById("month").value);
         const anio = parseInt(document.getElementById("year").value);
@@ -485,12 +471,19 @@
           fecha_registro: new Date().toISOString(),
         };
 
-        // Recorrer todos los campos numéricos
         document.querySelectorAll('input[type="number"]').forEach((input) => {
-          // Saltar el campo "year" porque ya lo tenemos como "anio"
           if (input.id !== "year") {
             const valor = parseFloat(input.value);
-            datos[input.id] = isNaN(valor) ? 0 : valor;
+
+            if (input.id === "intervalo_sustitucion") {
+              datos[input.id] = isNaN(valor)
+                ? 0
+                : Math.round(valor * 10000) / 10000;
+            } else {
+              datos[input.id] = isNaN(valor)
+                ? 0
+                : Math.round(Math.max(0, valor));
+            }
           }
         });
 
@@ -498,7 +491,7 @@
       }
 
       // ============================================================
-      // 1. DEFINICIÓN DE CAMPOS (limpiada y clasificada)
+      // 1. DEFINICIÓN DE CAMPOS
       // ============================================================
       const categories = [
         {
@@ -736,7 +729,11 @@
         {
           name: "⏳ Otros",
           fields: [
-            { id: "intervalo_sustitucion", label: "Intervalo de sustitución" },
+            {
+              id: "intervalo_sustitucion",
+              label: "Intervalo de sustitución",
+              calculated: true,
+            },
           ],
         },
       ];
@@ -779,10 +776,17 @@
               input.className = "calculated";
             }
 
+            // ===== PASO 5: Mostrar fórmula específica =====
             const hint = document.createElement("div");
             hint.className = "hint";
-            if (field.calculated)
-              hint.textContent = "⏺ Se calcula automáticamente";
+            if (field.calculated) {
+              if (field.id === "intervalo_sustitucion") {
+                hint.textContent =
+                  "⏺ Fórmula: ((días cama - días paciente) / egresos totales)";
+              } else {
+                hint.textContent = "⏺ Se calcula automáticamente";
+              }
+            }
 
             const validation = document.createElement("div");
             validation.className = "validation-msg";
@@ -799,14 +803,12 @@
           div.appendChild(body);
           container.appendChild(div);
 
-          // Por defecto abiertas las primeras 3
           if (idx >= 3) {
             document.getElementById(`body-${idx}`).style.display = "none";
             document.querySelector(`#toggle-${idx}`).textContent = "▶";
           }
         });
 
-        // Eventos para cálculos automáticos
         attachAutoCalculations();
       }
 
@@ -825,8 +827,23 @@
       // ============================================================
       // 3. CÁLCULOS AUTOMÁTICOS
       // ============================================================
+      function calcularIndiceSustitucion() {
+        const diasCama = getVal("dias_cama");
+        const diasPaciente = getVal("dias_paciente");
+        const egresosTotales = getVal("egresos_totales");
+
+        if (egresosTotales === 0) {
+          setVal("intervalo_sustitucion", 0);
+          return;
+        }
+
+        const indice = (diasCama - diasPaciente) / egresosTotales;
+        const indiceRedondeado = Math.round(indice * 10000) / 10000;
+        setVal("intervalo_sustitucion", indiceRedondeado);
+      }
+
       function attachAutoCalculations() {
-        // Total médicos = médicos_ce + médicos_hosp + médicos_admin
+        // Total médicos
         ["medicos_ce", "medicos_hosp", "medicos_admin"].forEach((id) => {
           document.getElementById(id).addEventListener("input", () => {
             const sum =
@@ -837,7 +854,7 @@
           });
         });
 
-        // Total enfermeras = enf_ce + enf_hosp + enf_admin
+        // Total enfermeras
         ["enf_ce", "enf_hosp", "enf_admin"].forEach((id) => {
           document.getElementById(id).addEventListener("input", () => {
             const sum =
@@ -846,7 +863,7 @@
           });
         });
 
-        // Urgencias totales = pediátricas + adulto
+        // Urgencias totales
         ["urgencias_pediatricas", "urgencias_adulto"].forEach((id) => {
           document.getElementById(id).addEventListener("input", () => {
             const sum =
@@ -855,7 +872,7 @@
           });
         });
 
-        // Laboratorio total = ce + hosp + urgencias
+        // Laboratorio total
         ["lab_ce", "lab_hosp", "lab_urgencias"].forEach((id) => {
           document.getElementById(id).addEventListener("input", () => {
             const sum =
@@ -864,12 +881,19 @@
           });
         });
 
-        // Radiología total = ce + hosp + urgencias
+        // Radiología total
         ["rx_ce", "rx_hosp", "rx_urgencias"].forEach((id) => {
           document.getElementById(id).addEventListener("input", () => {
             const sum =
               getVal("rx_ce") + getVal("rx_hosp") + getVal("rx_urgencias");
             setVal("rx_total", sum);
+          });
+        });
+
+        // ===== Índice de sustitución =====
+        ["dias_cama", "dias_paciente", "egresos_totales"].forEach((id) => {
+          document.getElementById(id).addEventListener("input", () => {
+            calcularIndiceSustitucion();
           });
         });
       }
@@ -891,7 +915,6 @@
         let errors = [];
         let warnings = [];
 
-        // Validación 1: Urgencias totales = pediátricas + adulto
         const totalU = getVal("urgencias_totales");
         const sumU =
           getVal("urgencias_pediatricas") + getVal("urgencias_adulto");
@@ -907,7 +930,6 @@
           clearValidation("urgencias_totales");
         }
 
-        // Validación 2: Total médicos = suma de componentes
         const totalM = getVal("total_medicos");
         const sumM =
           getVal("medicos_ce") +
@@ -925,7 +947,6 @@
           clearValidation("total_medicos");
         }
 
-        // Validación 3: Total enfermeras = suma de componentes
         const totalE = getVal("total_enfermeras");
         const sumE =
           getVal("enf_ce") + getVal("enf_hosp") + getVal("enf_admin");
@@ -941,7 +962,6 @@
           clearValidation("total_enfermeras");
         }
 
-        // Validación 4: Laboratorio total
         const totalL = getVal("lab_total");
         const sumL =
           getVal("lab_ce") + getVal("lab_hosp") + getVal("lab_urgencias");
@@ -957,7 +977,6 @@
           clearValidation("lab_total");
         }
 
-        // Validación 5: Radiología total
         const totalR = getVal("rx_total");
         const sumR =
           getVal("rx_ce") + getVal("rx_hosp") + getVal("rx_urgencias");
@@ -973,7 +992,6 @@
           clearValidation("rx_total");
         }
 
-        // Validación 6: Partos atendidos = cesárea + espontáneos + asistidos (aproximado)
         const partosAt = getVal("partos_atendidos");
         const sumPartos =
           getVal("partos_cesarea") +
@@ -985,7 +1003,6 @@
           );
         }
 
-        // Mostrar resultados
         const summaryBox = document.getElementById("summaryBox");
         if (errors.length > 0 || warnings.length > 0) {
           let msg = "🔍 RESULTADO DE VALIDACIÓN:\n";
@@ -1122,7 +1139,9 @@
       // ============================================================
       renderForm();
 
+      // ===== PASO 6: Inicializar todos los cálculos =====
       setTimeout(() => {
+        // Calcular totales
         [
           "medicos_ce",
           "enf_ce",
@@ -1133,6 +1152,12 @@
           const ev = new Event("input");
           document.getElementById(id).dispatchEvent(ev);
         });
+
+        // Calcular índice de sustitución
+        if (document.getElementById("dias_cama")) {
+          const ev = new Event("input");
+          document.getElementById("dias_cama").dispatchEvent(ev);
+        }
       }, 100);
     </script>
   </body>
