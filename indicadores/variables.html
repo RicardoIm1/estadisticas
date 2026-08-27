@@ -333,69 +333,64 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
-      // ============================================================
-      // GUARDAR EN SUPABASE (con feedback visual)
-      // ============================================================
-
-      // Configuración de Supabase (ya la tienes)
+      // Configuración de Supabase
+      // ==================== CONFIGURACIÓN ====================
       const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
       const SUPABASE_ANON_KEY =
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 
-      // Crear cliente de Supabase
-      const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const supabaseClient = supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY,
+      );
 
+      async function guardarEnSupabase(datos) {
+        const response = await fetch(
+          `${SUPABASE_URL}/rest/v1/indicadores_mensuales`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: SUPABASE_ANON_KEY,
+              Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+            },
+            body: JSON.stringify(datos),
+          },
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(`Error al guardar: ${JSON.stringify(error)}`);
+        }
+
+        return await response.json();
+      }
+
+      // Función para recolectar datos del formulario
+      function recolectarDatos() {
+        const mes = parseInt(document.getElementById("month").value);
+        const anio = parseInt(document.getElementById("year").value);
+
+        // Recorrer todos los campos del formulario
+        const datos = { mes, anio };
+        document.querySelectorAll('input[type="number"]').forEach((input) => {
+          const valor = parseFloat(input.value) || 0;
+          datos[input.id] = valor;
+        });
+
+        return datos;
+      }
+
+      // Ejemplo de uso
       async function guardarDatos() {
         try {
-          // 1. Mostrar estado "guardando..."
-          const btn = document.querySelector('[onclick="guardarDatos()"]');
-          const textoOriginal = btn.textContent;
-          btn.textContent = "⏳ Guardando...";
-          btn.disabled = true;
-
-          // 2. Recolectar datos
           const datos = recolectarDatos();
-
-          // 3. Validar que haya datos
-          const tieneDatos = Object.values(datos).some((v) => v > 0);
-          if (!tieneDatos) {
-            alert("⚠️ No hay datos para guardar. Complete al menos un campo.");
-            btn.textContent = textoOriginal;
-            btn.disabled = false;
-            return;
-          }
-
-          // 4. Enviar a Supabase
-          const { data, error } = await supabase
-            .from("indicadores_mensuales")
-            .insert([datos]);
-
-          if (error) throw error;
-
-          // 5. Éxito
-          alert("✅ Datos guardados correctamente en Supabase");
-          console.log("Registro insertado:", data);
-
-          // 6. Mostrar resumen automáticamente
-          showSummary();
-
-          // 7. Restaurar botón
-          btn.textContent = textoOriginal;
-          btn.disabled = false;
+          await guardarEnSupabase(datos);
+          alert("✅ Datos guardados correctamente");
         } catch (error) {
-          console.error("Error al guardar:", error);
-          alert("❌ Error al guardar en Supabase:\n" + error.message);
-
-          // Restaurar botón
-          const btn = document.querySelector('[onclick="guardarDatos()"]');
-          if (btn) {
-            btn.textContent = "💾 Guardar en Supabase";
-            btn.disabled = false;
-          }
+          alert("❌ Error al guardar: " + error.message);
         }
       }
-    </script>
-    <script>
       // --------------------------------------------------------------
       // 1. DEFINICIÓN DE CAMPOS (limpiada y clasificada)
       // --------------------------------------------------------------
