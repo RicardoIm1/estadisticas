@@ -274,23 +274,71 @@
 
       .vista-papel {
         flex: 1;
-        overflow-y: auto;
-        overflow-x: hidden;
-        background: #f5f5f0;
+        overflow: auto;
+        background: #e9ecef;
         border-radius: 6px;
-        padding: 20px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        padding: 24px;
+        box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
         min-height: 0;
       }
 
-      .vista-papel::-webkit-scrollbar {
-        width: 4px;
+      .formato-papel-control {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-left: 10px;
+        color: rgba(255, 255, 255, 0.65);
+        font-size: 10px;
+        letter-spacing: 0.5px;
+      }
+      .formato-papel-control select {
+        border: 1px solid rgba(255,255,255,0.15);
+        background: rgba(255,255,255,0.08);
+        color: #fff;
+        border-radius: 6px;
+        padding: 3px 7px;
+        font-size: 10px;
+        outline: none;
+      }
+      .formato-papel-control option { color: #111; background: #fff; }
+
+      .vista-papel .documento-preview {
+        width: 216mm;
+        min-height: 279mm;
+        box-sizing: border-box;
+        margin: 0 auto;
+        flex-shrink: 0;
+      }
+      .vista-papel .documento-preview.formato-a4 {
+        width: 210mm;
+        min-height: 297mm;
       }
 
-      .vista-papel::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.15);
-        border-radius: 8px;
+      .vista-papel .contenido table,
+      .documento-preview .contenido table {
+        width: 100%;
+        border-collapse: collapse;
+        border-spacing: 0;
+        color: #1a1a1a;
+        margin: 12px 0;
+        font-size: 10pt;
+        line-height: 1.25;
       }
+      .vista-papel .contenido th,
+      .vista-papel .contenido td,
+      .documento-preview .contenido th,
+      .documento-preview .contenido td {
+        border: 1px solid #777;
+        padding: 4px 6px;
+        color: #1a1a1a;
+        vertical-align: middle;
+      }
+      .vista-papel .contenido th,
+      .documento-preview .contenido th { font-weight: 700; text-align: center; }
+      .vista-papel .contenido tr,
+      .documento-preview .contenido tr { page-break-inside: avoid; }
+      .vista-papel::-webkit-scrollbar { width: 5px; }
+      .vista-papel::-webkit-scrollbar-thumb { background: rgba(0,0,0,.18); border-radius: 8px; }
 
       /* ============================================
        FORMULARIO - GRID 2 COLUMNAS
@@ -507,291 +555,121 @@
       }
 
       /* ============================================
-       DOCUMENTO PREVIEW - TAMAÑO REAL AJUSTADO
+       DOCUMENTO OFICIAL / VISTA PREVIA
        ============================================ */
       .documento-preview {
-        font-family: "Arial", Times, serif;
-        background: white;
+        font-family: Arial, Helvetica, sans-serif;
+        background: #fff;
         color: #1a1a1a;
         font-size: 11pt;
         line-height: 1.5;
-        padding: 2.5cm 2.5cm 2.5cm 2.5cm;
-        max-width: 100%;
-        min-height: 100%;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-        border-radius: 2px;
+        padding: 20mm 22mm 17mm;
+        min-height: 279mm;
+        box-sizing: border-box;
+        box-shadow: 0 2px 12px rgba(0,0,0,.12);
+        border-radius: 1px;
         position: relative;
       }
+      .documento-preview.formato-a4 { min-height: 297mm; }
 
-      .documento-preview .header-doc {
-        text-align: center;
-        margin-bottom: 20px;
-        padding-bottom: 12px;
-        position: relative;
-      }
-
+      .documento-preview .header-doc { margin-bottom: 17mm; }
       .documento-preview .header-doc .logo-container {
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 20px;
-        flex-wrap: wrap;
-        padding-bottom: 6px;
+        justify-content: flex-end;
+        width: 100%;
+        min-height: 28mm;
+        padding: 0 0 5mm;
       }
-
-      .documento-preview .header-doc .logo-img-left {
-        max-height: 60px;
-        width: auto;
-        object-fit: contain;
-      }
-
+      .documento-preview .header-doc .logo-img-left,
       .documento-preview .header-doc .logo-img-right {
-        max-height: 60px;
+        max-height: 28mm;
+        max-width: 72mm;
         width: auto;
         object-fit: contain;
       }
-
-      .documento-preview .header-doc .clave-doc {
-        margin-top: 6px;
-        font-size: 11pt;
-        font-weight: bold;
-        color: #0f1a2e;
-        text-align: right;
+      .documento-preview .bloque-meta { width: 100%; text-align: right; line-height: 1.35; }
+      .documento-preview .bloque-meta .fecha { font-size: 10.5pt; margin-bottom: 2mm; }
+      .documento-preview .bloque-meta .folio { font-size: 11pt; font-weight: 700; color:#0f1a2e; margin-bottom: 2mm; }
+      .documento-preview .bloque-meta .asunto-meta {
+        font-size: 10.5pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        max-width: 155mm;
+        margin-left: auto;
       }
-
-      /* .documento-preview .fecha-lugar {
-        text-align: right;
-        font-size: 11pt;
-        margin-bottom: 14px;
-        margin-top: 8px;
-      } */
 
       .documento-preview .destinatario {
-        margin-bottom: 10px;
+        margin-bottom: 10mm;
         font-size: 11pt;
+        text-align: left;
+        line-height: 1.35;
       }
-      .documento-preview .destinatario .label {
-        font-weight: bold;
-      }
+      .documento-preview .destinatario .destinatario-nombre { font-weight:700; text-transform:uppercase; }
+      .documento-preview .destinatario .cargo-destino { display:block; font-size:10.5pt; color:#222; }
+      .documento-preview .destinatario .presente { margin-top:4mm; font-weight:700; letter-spacing:2.5px; }
 
-      .documento-preview .asunto {
-        font-weight: bold;
-        font-size: 11pt;
-        margin: 10px 0 6px 0;
-        text-transform: uppercase;
-      }
-
-      .documento-preview .contenido {
-        line-height: 1.6;
-        font-size: 11pt;
-        text-align: justify;
-        margin: 12px 0;
-      }
-
-      .documento-preview .contenido p {
-        margin-bottom: 6px;
-      }
-
+      .documento-preview .contenido { line-height:1.6; font-size:11pt; text-align:justify; margin:0; }
+      .documento-preview .contenido p { margin:0 0 6px; }
       .documento-preview .contenido ul,
-      .documento-preview .contenido ol {
-        padding-left: 25px;
-        margin: 6px 0;
-      }
-
-      .documento-preview .contenido li {
-        margin-bottom: 3px;
-      }
+      .documento-preview .contenido ol { padding-left:25px; margin:6px 0; }
+      .documento-preview .contenido li { margin-bottom:3px; }
 
       .documento-preview .fundamentacion {
-        margin: 10px 0;
-        padding: 6px 12px;
-        background: #f8f9fa;
-        border-left: 4px solid #0f1a2e;
-        font-style: italic;
-        font-size: 10pt;
+        margin:9mm 0 0;
+        padding:6px 10px;
+        background:#f8f9fa;
+        border-left:3px solid #0f1a2e;
+        font-style:italic;
+        font-size:9.5pt;
       }
+      .documento-preview .archivos-links {
+        margin:7mm 0 0;
+        padding:7px 9px;
+        background:#f8f9fa;
+        border:1px solid #e1e4e8;
+      }
+      .documento-preview .archivos-links .titulo { font-size:8pt; font-weight:700; color:#333; margin-bottom:4px; }
+      .documento-preview .archivos-links .item { font-size:8pt; padding:2px 0; color:#555; }
+      .documento-preview .archivos-links .item a { color:#0066cc; text-decoration:underline; }
 
       .documento-preview .cierre {
-        margin-top: 30px;
-        text-align: left;
+        margin-top:12mm;
+        text-align:left;
+        page-break-inside:avoid;
+        break-inside:avoid;
       }
+      .documento-preview .cierre .atentamente { font-size:11pt; margin-bottom:9mm; }
+      .documento-preview .cierre .firma { text-align:left; margin-left:0; width:95mm; }
+      .documento-preview .cierre .firma .linea { width:70mm; border-top:1px solid #000; margin:0 0 2mm; }
+      .documento-preview .cierre .firma .nombre { font-weight:700; font-size:11pt; text-transform:uppercase; }
+      .documento-preview .cierre .firma .cargo { font-size:10pt; color:#333; }
+      .documento-preview .cierre .leyenda { margin:7mm 0 0; font-style:italic; font-size:8.5pt; color:#555; }
 
-      .documento-preview .cierre .atentamente {
-        font-size: 11pt;
-        margin-bottom: 4px;
-      }
+      .documento-preview .confidencial { margin-top:7mm; padding:5px 9px; background:#fff5f5; border:1px solid #ffcdd2; color:#c62828; font-size:8pt; text-align:center; }
+      .documento-preview .responsables { margin-top:7mm; font-size:7pt; color:#666; text-align:right; border-top:1px solid #ddd; padding-top:5px; }
 
-      .documento-preview .cierre .leyenda {
-        font-style: italic;
-        font-size: 9pt;
-        color: #555;
-        margin: 4px 0 20px 0;
-      }
-
-      .documento-preview .cierre .firma {
-        margin-top: 8px;
-        text-align: center;
-      }
-
-      .documento-preview .cierre .firma .linea {
-        width: 220px;
-        border-top: 1px solid #000;
-        margin: 6px auto 4px;
-      }
-
-      .documento-preview .cierre .firma .nombre {
-        font-weight: bold;
-        font-size: 11pt;
-      }
-
-      .documento-preview .cierre .firma .cargo {
-        font-size: 10pt;
-        color: #333;
-      }
-
-      .documento-preview .confidencial {
-        margin-top: 10px;
-        padding: 5px 10px;
-        background: #fff5f5;
-        border: 1px solid #ffcdd2;
-        color: #c62828;
-        font-size: 8pt;
-        text-align: center;
-      }
-
-      .documento-preview .responsables {
-        margin-top: 25px;
-        font-size: 7pt;
-        color: #666;
-        text-align: right;
-        border-top: 1px solid #ddd;
-        padding-top: 6px;
-      }
-
-      /* ============================================
-       ARCHIVOS Y LINKS EN PREVIEW
-       ============================================ */
-      .documento-preview .archivos-links {
-        margin: 12px 0 8px 0;
-        padding: 8px 10px;
-        background: #f8f9fa;
-        border-radius: 4px;
-        border: 1px solid #e9ecef;
-      }
-
-      .documento-preview .archivos-links .titulo {
-        font-size: 8pt;
-        font-weight: bold;
-        color: #333;
-        margin-bottom: 4px;
-      }
-
-      .documento-preview .archivos-links .item {
-        font-size: 8pt;
-        padding: 2px 0;
-        color: #555;
-      }
-
-      .documento-preview .archivos-links .item a {
-        color: #0066cc;
-        text-decoration: underline;
-      }
-
-      .documento-preview .archivos-links .item .tamano {
-        font-size: 7pt;
-        color: #999;
-        margin-left: 4px;
-      }
-
-      .documento-preview .archivos-links .vacio {
-        font-size: 8pt;
-        color: #ccc;
-        text-align: center;
-        padding: 4px 0;
-      }
-
-      /* ============================================================
-       FOOTER MODIFICADO - PROPORCIONES 15-70-15 CON TUS LOGOS
-       ============================================================ */
       .documento-preview .footer-doc {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        margin-top: 20px;
-        padding-top: 10px;
-        border-top: 1px solid #ddd;
-        gap: 0;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        width:100%;
+        margin-top:9mm;
+        padding-top:4mm;
+        border-top:1px solid #bfc3c7;
+        page-break-inside:avoid;
+        break-inside:avoid;
       }
+      .documento-preview .footer-doc .footer-left { width:16%; display:flex; align-items:center; justify-content:flex-start; }
+      .documento-preview .footer-doc .footer-left img { max-height:12mm; max-width:24mm; width:auto; object-fit:contain; }
+      .documento-preview .footer-doc .footer-center { width:68%; text-align:center; font-size:7pt; color:#555; line-height:1.35; }
+      .documento-preview .footer-doc .footer-center .footer-text { font-size:7pt; color:#555; line-height:1.35; }
+      .documento-preview .footer-doc .footer-center .footer-text strong { color:#333; }
+      .documento-preview .footer-doc .footer-right { width:16%; text-align:right; }
+      .documento-preview .footer-doc .footer-right .page-number { font-size:7pt; color:#777; white-space:nowrap; }
 
-      .documento-preview .footer-doc .footer-left {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 15%;
-        flex-shrink: 0;
-      }
-
-      .documento-preview .footer-doc .footer-left img {
-        max-height: 38px;
-        width: auto;
-        object-fit: contain;
-      }
-
-      .documento-preview .footer-doc .footer-center {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 70%;
-        flex-shrink: 0;
-        text-align: center;
-        font-size: 7pt;
-        color: #555;
-        font-weight: 500;
-        padding: 0 8px;
-      }
-
-      .documento-preview .footer-doc .footer-center .footer-text {
-        font-size: 7pt;
-        color: #555;
-        line-height: 1.4;
-        text-align: center;
-      }
-
-      .documento-preview .footer-doc .footer-center .footer-text strong {
-        color: #333;
-        font-weight: 700;
-      }
-
-      .documento-preview .footer-doc .footer-right {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 15%;
-        flex-shrink: 0;
-      }
-
-      .documento-preview .footer-doc .footer-right .page-number {
-        font-size: 7pt;
-        color: #999;
-        font-weight: 400;
-        text-align: center;
-        letter-spacing: 0.3px;
-      }
-
-      .documento-preview .empty-message {
-        color: #ccc;
-        text-align: center;
-        padding: 40px 20px;
-        font-family: "Poppins", sans-serif;
-        font-size: 12px;
-      }
-
-      .documento-preview .empty-message .icono {
-        font-size: 40px;
-        display: block;
-        margin-bottom: 10px;
-      }
+      .documento-preview .empty-message { color:#999; text-align:center; padding:40mm 20px; font-family:Poppins,Arial,sans-serif; font-size:12px; }
+      .documento-preview .empty-message .icono { font-size:40px; display:block; margin-bottom:10px; }
 
       /* ============================================
        MODO TABLA
@@ -1778,182 +1656,35 @@
       }
 
       /* ============================================
-       ESTILOS PARA IMPRESIÓN - TAMAÑO AJUSTADO
+       IMPRESIÓN DEL DOCUMENTO
        ============================================ */
       @media print {
-        .glass {
-          height: 100vh;
-          border-radius: 0;
-          background: white;
-          backdrop-filter: none;
-          -webkit-backdrop-filter: none;
-          padding: 0;
-          width: 100%;
-          border: none;
-          overflow: visible;
-        }
+        .glass { background:#fff !important; border:0 !important; box-shadow:none !important; padding:0 !important; margin:0 !important; width:100% !important; height:auto !important; overflow:visible !important; }
+        .header,.col-formulario,.header-actions,.label-vista,.leyenda-congreso,.glass footer,#alertasContainer,.modo-tabla,.formato-papel-control { display:none !important; }
+        .contenido-principal,.modo-edicion,.col-vista-previa,.vista-papel { display:block !important; width:100% !important; height:auto !important; min-height:0 !important; overflow:visible !important; padding:0 !important; margin:0 !important; background:#fff !important; border:0 !important; box-shadow:none !important; }
+        .documento-preview { width:216mm !important; min-height:279mm !important; margin:0 auto !important; padding:20mm 22mm 17mm !important; box-shadow:none !important; border-radius:0 !important; background:#fff !important; }
+        .documento-preview.formato-a4 { width:210mm !important; min-height:297mm !important; }
+        .documento-preview .contenido tr { break-inside:avoid; page-break-inside:avoid; }
+        .documento-preview .cierre,.documento-preview .footer-doc { break-inside:avoid; page-break-inside:avoid; }
+      }
+      @page { margin:0; }
 
-        .header,
-        .col-formulario,
-        .header-actions,
-        .label-vista,
-        .leyenda-congreso,
-        .glass footer,
-        #alertasContainer,
-        .modo-tabla {
-          display: none !important;
-        }
-
-        .contenido-principal {
-          display: block !important;
-          margin: 0;
-          padding: 0;
-          overflow: visible;
-          height: auto;
-        }
-
-        .modo-edicion {
-          display: block !important;
-          margin: 0;
-          padding: 0;
-          gap: 0;
-          height: auto;
-        }
-
-        .col-vista-previa {
-          display: block !important;
-          padding: 0;
-          margin: 0;
-          background: white;
-          border: none;
-          border-radius: 0;
-          overflow: visible;
-          height: auto;
-        }
-
-        .vista-papel {
-          padding: 0;
-          margin: 0;
-          background: white;
-          box-shadow: none;
-          border-radius: 0;
-          overflow: visible;
-          height: auto;
-        }
-
+      @media print {
         .documento-preview {
-          padding: 2.5cm 2.5cm 2.5cm 2.5cm;
-          box-shadow: none;
-          border-radius: 0;
-          margin: 0;
-          min-height: 100vh;
-          height: auto;
-          font-size: 11pt;
+          position: relative;
+          padding-bottom: 25mm !important;
         }
-
-        .documento-preview .header-doc .logo-img-left,
-        .documento-preview .header-doc .logo-img-right {
-          max-height: 60px;
-        }
-
-        .documento-preview .contenido {
-          page-break-inside: avoid;
-        }
-
-        .documento-preview .cierre {
-          page-break-inside: avoid;
-        }
-
         .documento-preview .footer-doc {
-          display: flex !important;
-          align-items: center !important;
-          justify-content: space-between !important;
-          width: 100% !important;
-          gap: 0 !important;
-          flex-wrap: nowrap !important;
-          border-top: 1px solid #ddd !important;
-          padding-top: 10px !important;
-          margin-top: 20px !important;
-        }
-
-        .documento-preview .footer-doc .footer-left {
-          width: 15% !important;
-          flex-shrink: 0 !important;
-          display: flex !important;
-          justify-content: center !important;
-          align-items: center !important;
-        }
-
-        .documento-preview .footer-doc .footer-left img {
-          max-height: 38px !important;
-          width: auto !important;
-          object-fit: contain !important;
-        }
-
-        .documento-preview .footer-doc .footer-center {
-          width: 70% !important;
-          flex-shrink: 0 !important;
-          display: flex !important;
-          justify-content: center !important;
-          align-items: center !important;
-          text-align: center !important;
-          padding: 0 8px !important;
-        }
-
-        .documento-preview .footer-doc .footer-center .footer-text {
-          font-size: 7pt !important;
-          color: #555 !important;
-        }
-
-        .documento-preview .footer-doc .footer-center .footer-text strong {
-          color: #333 !important;
-        }
-
-        .documento-preview .footer-doc .footer-right {
-          width: 15% !important;
-          flex-shrink: 0 !important;
-          display: flex !important;
-          justify-content: center !important;
-          align-items: center !important;
-        }
-
-        .documento-preview .footer-doc .footer-right .page-number {
-          font-size: 7pt !important;
-          color: #999 !important;
-          font-weight: 400 !important;
-        }
-
-        .documento-preview .footer-doc .footer-left .footer-text,
-        .documento-preview .footer-doc .footer-right .footer-text {
-          display: none !important;
-        }
-
-        .documento-preview .footer-doc .page-number {
-          display: block !important;
+          position: fixed;
+          left: 22mm;
+          right: 22mm;
+          bottom: 8mm;
+          width: auto;
+          margin: 0 !important;
+          background: #fff;
         }
       }
 
-      @page {
-        margin: 2.5cm 2.5cm 2.5cm 2.5cm;
-        size: letter;
-      }
-
-      @page {
-        @bottom-center {
-          content: "Pág. " counter(page) " de " counter(pages);
-          font-size: 7pt;
-          color: #999;
-          font-family: "Arial", Times, serif;
-          font-weight: 400;
-        }
-      }
-
-      .documento-preview .destinatario .cargo-destino {
-        font-size: 10pt;
-        color: #444;
-        margin-left: 18px;
-        display: block;
-      }
       footer {
         flex-shrink: 0;
         margin-top: auto;
@@ -1980,9 +1711,6 @@
         <div class="header-actions" id="headerActions">
           <button class="btn-success" onclick="cargarDatos()">
             🔄 Actualizar
-          </button>
-          <button class="btn-warning" onclick="exportarExcel()">
-            📊 Exportar CSV
           </button>
           <button class="btn-outline" onclick="verAlertasVencimiento()">
             🔔 Alertas
@@ -2448,7 +2176,14 @@
           <!-- COLUMNA DERECHA: VISTA PREVIA -->
           <div class="col-vista-previa">
             <div class="label-vista">
-              <span>📄 Vista previa · Tamaño real</span>
+              <span>📄 Vista previa · Documento oficial</span>
+              <label class="formato-papel-control" title="Formato para vista previa, impresión y PDF">
+                <span>Papel</span>
+                <select id="formatoPapel" aria-label="Formato de papel">
+                  <option value="letter">Carta</option>
+                  <option value="a4">A4</option>
+                </select>
+              </label>
             </div>
             <div class="vista-papel" id="vistaPapel">
               <div class="documento-preview" id="previewDocumento">
@@ -2654,6 +2389,18 @@
           }
         });
 
+        /* Al pegar desde Word/Excel conservamos tablas, pero quitamos
+           colores blancos que fueron pensados para el editor oscuro. */
+        editor.addEventListener("paste", function (e) {
+          const htmlPegado = e.clipboardData?.getData("text/html");
+          if (!htmlPegado) return;
+
+          e.preventDefault();
+          const limpio = normalizarColoresContenido(htmlPegado);
+          document.execCommand("insertHTML", false, limpio);
+          actualizarVistaPrevia();
+        });
+
         document
           .querySelectorAll(
             "#oficioForm input, #oficioForm select, #oficioForm textarea",
@@ -2662,6 +2409,9 @@
             el.addEventListener("input", actualizarVistaPrevia);
             el.addEventListener("change", actualizarVistaPrevia);
           });
+
+        const formatoPapel = document.getElementById("formatoPapel");
+        if (formatoPapel) formatoPapel.addEventListener("change", actualizarVistaPrevia);
 
         // Event listeners para archivos y links
         const inputArchivos = document.getElementById("inputArchivos");
@@ -2698,6 +2448,39 @@
         actualizarVistaPrevia();
       }
 
+      function esColorBlanco(valor) {
+        const v = String(valor || "")
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, "");
+        return [
+          "white",
+          "#fff",
+          "#ffffff",
+          "rgb(255,255,255)",
+          "rgba(255,255,255,1)",
+          "rgba(255,255,255,1.0)",
+        ].includes(v);
+      }
+
+      function normalizarColoresContenido(html) {
+        if (!html) return "";
+        const contenedor = document.createElement("div");
+        contenedor.innerHTML = html;
+
+        contenedor.querySelectorAll("*").forEach((el) => {
+          if (el.style && esColorBlanco(el.style.color)) {
+            el.style.removeProperty("color");
+          }
+          const colorAttr = el.getAttribute("color");
+          if (colorAttr && esColorBlanco(colorAttr)) {
+            el.removeAttribute("color");
+          }
+        });
+
+        return contenedor.innerHTML;
+      }
+
       function obtenerContenidoEditor() {
         const editor = document.getElementById("editorContenido");
         let html = editor.innerHTML;
@@ -2707,13 +2490,13 @@
         ) {
           return "";
         }
-        return html;
+        return normalizarColoresContenido(html);
       }
 
       function setContenidoEditor(html) {
         const editor = document.getElementById("editorContenido");
         if (html && html.trim() !== "") {
-          editor.innerHTML = html;
+          editor.innerHTML = normalizarColoresContenido(html);
         } else {
           editor.innerHTML =
             '<span class="editor-placeholder">Escribe aquí el contenido del oficio...</span>';
@@ -2925,185 +2708,123 @@
         }
       }
 
-      // ==================== VISTA PREVIA CON CONTADOR DE PÁGINAS ====================
-      function actualizarVistaPrevia() {
-        const preview = document.getElementById("previewDocumento");
-        if (!preview) return;
+      // ==================== CONSTRUCCIÓN ÚNICA DEL DOCUMENTO ====================
+      function obtenerFormatoPapel() {
+        return document.getElementById("formatoPapel")?.value || "letter";
+      }
 
-        const clave =
-          document.getElementById("clave_opdssj")?.value ||
-          "OPDSSJ.SDGM/000/2026";
-        const asunto =
-          document.getElementById("asunto")?.value || "Asunto del oficio";
-        const contenido =
-          obtenerContenidoEditor() || "Redacte el contenido del oficio...";
-        const fundamentacion = document.getElementById("fundamentacion")?.value;
-        const remitente =
-          document.getElementById("remitente")?.value || "Nombre del remitente";
-        const cargoRemitente =
-          document.getElementById("cargo_remitente")?.value ||
-          "Cargo del remitente";
-        const destinatario =
-          document.getElementById("destinatario")?.value ||
-          "Nombre del destinatario";
-        const departamentoDestino =
-          document.getElementById("departamento_destino")?.value || "";
-        const fecha = document.getElementById("fecha_emision")?.value;
-        const elaboro = document.getElementById("elaboro")?.value;
-        const reviso = document.getElementById("reviso")?.value;
-        const autorizo = document.getElementById("autorizo")?.value;
-        const confidencial =
-          document.getElementById("confidencial")?.checked || false;
+      function formatearDatosOficio(origen = {}) {
+        const valor = (id, fallback = "") => {
+          if (Object.prototype.hasOwnProperty.call(origen, id)) return origen[id] ?? fallback;
+          return document.getElementById(id)?.value || fallback;
+        };
+        const contenido = Object.prototype.hasOwnProperty.call(origen, "contenido") ? origen.contenido : obtenerContenidoEditor();
+        return {
+          clave_opdssj: valor("clave_opdssj", "OPDSSJ.SDGM/000/2026"),
+          asunto: valor("asunto", "Asunto del oficio"),
+          contenido: normalizarColoresContenido(contenido || ""),
+          fundamentacion: valor("fundamentacion", ""),
+          remitente: valor("remitente", "Nombre del remitente"),
+          cargo_remitente: valor("cargo_remitente", "Cargo del remitente"),
+          destinatario: valor("destinatario", "Nombre del destinatario"),
+          departamento_destino: valor("departamento_destino", ""),
+          fecha_emision: valor("fecha_emision", new Date().toISOString().split("T")[0]),
+          elaboro: valor("elaboro", ""),
+          reviso: valor("reviso", ""),
+          autorizo: valor("autorizo", ""),
+          confidencial: Object.prototype.hasOwnProperty.call(origen, "confidencial") ? !!origen.confidencial : !!document.getElementById("confidencial")?.checked,
+          archivos: Object.prototype.hasOwnProperty.call(origen, "archivos") ? (origen.archivos || []) : (archivosSubidos || []),
+          links: Object.prototype.hasOwnProperty.call(origen, "links") ? (origen.links || []) : (linksAgregados || []),
+        };
+      }
 
-        const fechaFormateada = fecha
-          ? formatearFecha(fecha)
-          : "Fecha de emisión";
-
-        const tieneDatos =
-          document.getElementById("asunto")?.value ||
-          document.getElementById("remitente")?.value ||
-          document.getElementById("destinatario")?.value;
-
-        if (!tieneDatos) {
-          preview.innerHTML = `
-      <div class="empty-message">
-        <span class="icono">📝</span>
-        Completa el formulario<br>
-        <span style="font-size:11px;color:#aaa;">para ver la vista previa</span>
-      </div>
-    `;
-          return;
-        }
-
-        // Generar HTML de archivos y links
+      function construirDocumentoHTML(oficio, numeroPaginas = "1 de 1") {
+        const origen = window.location.origin;
+        const logoHospital = `${origen}/img/logo-hrpv-javi.jpeg`;
+        const logoJalisco = `${origen}/img/Logo_del_Gobierno_de_Jalisco.svg`;
+        const fecha = oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : "Fecha de emisión";
+        const contenido = oficio.contenido || "Redacte el contenido del oficio...";
         let archivosLinksHTML = "";
-        if (archivosSubidos.length > 0 || linksAgregados.length > 0) {
+        if ((oficio.archivos?.length || 0) > 0 || (oficio.links?.length || 0) > 0) {
           archivosLinksHTML = `<div class="archivos-links">`;
-          if (archivosSubidos.length > 0) {
-            archivosLinksHTML += `<div class="titulo">📎 Archivos adjuntos:</div>`;
-            archivosSubidos.forEach((arch) => {
-              archivosLinksHTML += `<div class="item">• ${arch.nombre} <span class="tamano">(${(arch.tamano / 1024).toFixed(0)} KB)</span></div>`;
-            });
+          if (oficio.archivos?.length) {
+            archivosLinksHTML += `<div class="titulo">Archivos adjuntos:</div>`;
+            oficio.archivos.forEach((a) => { archivosLinksHTML += `<div class="item">• ${a.nombre} <span class="tamano">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`; });
           }
-          if (linksAgregados.length > 0) {
-            if (archivosSubidos.length > 0) {
-              archivosLinksHTML += `<div class="titulo" style="margin-top:6px;">🔗 Enlaces relacionados:</div>`;
-            } else {
-              archivosLinksHTML += `<div class="titulo">🔗 Enlaces relacionados:</div>`;
-            }
-            linksAgregados.forEach((link) => {
-              archivosLinksHTML += `<div class="item">• <a href="${link.url}" target="_blank">${link.descripcion}</a></div>`;
-            });
+          if (oficio.links?.length) {
+            archivosLinksHTML += `<div class="titulo" style="margin-top:6px;">Enlaces relacionados:</div>`;
+            oficio.links.forEach((l) => { archivosLinksHTML += `<div class="item">• <a href="${l.url}" target="_blank">${l.descripcion}</a></div>`; });
           }
           archivosLinksHTML += `</div>`;
         }
-
-        // Construir el HTML del documento - SIN BORDE EN LA FECHA
-        let documentoHTML = `
-    <div class="header-doc">
-      <div class="logo-container">
-        <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" class="logo-img-left" />
-      </div>
-      <div class="clave-doc">${clave}</div>
-    </div>
-    <!-- FECHA SIN BORDE - ESTILO INLINE PARA ASEGURAR -->
-    <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px; border: none !important; border-top: none !important; padding: 0;">
-      ${fechaFormateada}
-    </div>
-    <div class="destinatario">
-      <span class="label">C.</span> ${destinatario}
-      ${departamentoDestino ? `<br><span style="font-size:10pt; color:#444; margin-left:18px;">${departamentoDestino}</span>` : ""}
-    </div>
-    <div class="asunto">Asunto: ${asunto}</div>
-    <div class="contenido">${contenido || "Redacte el contenido del oficio..."}</div>
-    ${
-      fundamentacion
-        ? `
-      <div class="fundamentacion">
-        <strong>Fundamentación:</strong><br>
-        ${fundamentacion}
-      </div>
-    `
-        : ""
-    }
-    ${archivosLinksHTML}
-    <div class="cierre">
-      <div class="atentamente">Atentamente,</div>
-      <div class="leyenda">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
-      <div class="firma">
-        <div class="linea"></div>
-        <div class="nombre">${remitente}</div>
-        <div class="cargo">${cargoRemitente}</div>
-      </div>
-    </div>
-    ${
-      confidencial
-        ? `
-      <div class="confidencial">
-        🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
-      </div>
-    `
-        : ""
-    }
-    <div class="responsables">
-      ${elaboro ? `Elaboró: ${elaboro}` : ""}
-      ${reviso ? ` | Revisó: ${reviso}` : ""}
-      ${autorizo ? ` | Autorizó: ${autorizo}` : ""}
-    </div>
-    <div class="footer-doc">
-      <div class="footer-left">
-        <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Logo_del_Gobierno_de_Jalisco" class="footer-logo-left" />
-      </div>
-      <div class="footer-center">
-        <div class="footer-text" style="text-align:right;">
-          <strong>|</strong><br>
-          Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.
-        </div>
-      </div>
-      <div class="footer-right">
-        <span class="page-number" id="pageNumberPreview">Pág. 1 de 1</span>
-      </div>
-    </div>
-  `;
-
-        // Mostrar en preview
-        preview.innerHTML = documentoHTML;
-
-        // Calcular número de páginas para la vista previa
-        calcularPaginasPreview();
-
-        // Scroll al final
-        const papel = document.getElementById("vistaPapel");
-        if (papel) {
-          setTimeout(() => {
-            papel.scrollTop = papel.scrollHeight;
-          }, 100);
-        }
+        return `
+          <div class="header-doc">
+            <div class="logo-container">
+              <img src="${logoHospital}" alt="Hospital Regional Puerto Vallarta" class="logo-img-left" />
+            </div>
+            <div class="bloque-meta">
+              <div class="fecha">${fecha}</div>
+              <div class="folio">${oficio.clave_opdssj || "N/A"}</div>
+              <div class="asunto-meta">ASUNTO: ${oficio.asunto || ""}</div>
+            </div>
+          </div>
+          <div class="destinatario">
+            <div class="destinatario-nombre">C. ${oficio.destinatario || "Nombre del destinatario"}</div>
+            ${oficio.departamento_destino ? `<div class="cargo-destino">${oficio.departamento_destino}</div>` : ""}
+            <div class="presente">P&nbsp;&nbsp;R&nbsp;&nbsp;E&nbsp;&nbsp;S&nbsp;&nbsp;E&nbsp;&nbsp;N&nbsp;&nbsp;T&nbsp;&nbsp;E</div>
+          </div>
+          <div class="contenido">${contenido}</div>
+          <div class="cierre">
+            <div class="atentamente">Atentamente,</div>
+            <div class="firma">
+              <div class="linea"></div>
+              <div class="nombre">${oficio.remitente || "Nombre del remitente"}</div>
+              <div class="cargo">${oficio.cargo_remitente || "Cargo del remitente"}</div>
+            </div>
+            <div class="leyenda">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
+          </div>
+          ${oficio.fundamentacion ? `<div class="fundamentacion"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
+          ${archivosLinksHTML}
+          ${oficio.confidencial ? `<div class="confidencial"><strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ""}
+          ${(oficio.elaboro || oficio.reviso || oficio.autorizo) ? `<div class="responsables">${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}</div>` : ""}
+          <div class="footer-doc">
+            <div class="footer-left"><img src="${logoJalisco}" alt="Gobierno de Jalisco" /></div>
+            <div class="footer-center"><div class="footer-text"><strong>|</strong><br>Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.</div></div>
+            <div class="footer-right"><span class="page-number">Pág. ${numeroPaginas}</span></div>
+          </div>`;
       }
 
-      // ==================== CALCULAR PÁGINAS PARA VISTA PREVIA ====================
+      function aplicarFormatoPapel() {
+        const preview = document.getElementById("previewDocumento");
+        if (!preview) return;
+        preview.classList.toggle("formato-a4", obtenerFormatoPapel() === "a4");
+      }
+
+      function actualizarVistaPrevia() {
+        const preview = document.getElementById("previewDocumento");
+        if (!preview) return;
+        const oficio = formatearDatosOficio();
+        const tieneDatos = document.getElementById("asunto")?.value || document.getElementById("remitente")?.value || document.getElementById("destinatario")?.value;
+        if (!tieneDatos) {
+          preview.innerHTML = `<div class="empty-message"><span class="icono">📝</span>Completa el formulario<br><span style="font-size:11px;color:#aaa">para ver la vista previa</span></div>`;
+          aplicarFormatoPapel();
+          return;
+        }
+        preview.innerHTML = construirDocumentoHTML(oficio, "1 de 1");
+        aplicarFormatoPapel();
+        calcularPaginasPreview();
+      }
+
       function calcularPaginasPreview() {
         setTimeout(() => {
           const previewContent = document.getElementById("previewDocumento");
           if (!previewContent) return;
-
-          // Obtener la altura total del contenido
-          const alturaTotal = previewContent.scrollHeight;
-          const alturaVentana = window.innerHeight || 800;
-
-          // Estimar páginas (asumiendo que una página A4 es ~842px)
-          const ALTURA_PAGINA = 842;
-          const numPaginas = Math.max(
-            1,
-            Math.ceil(alturaTotal / ALTURA_PAGINA),
-          );
-
-          // Actualizar el número de página
-          const pageNumber = document.getElementById("pageNumberPreview");
-          if (pageNumber) {
-            pageNumber.textContent = `Pág. 1 de ${numPaginas}`;
-          }
-        }, 200);
+          const alturaMm = obtenerFormatoPapel() === "a4" ? 297 : 279;
+          const alturaPx = alturaMm * 3.779527559;
+          const paginas = Math.max(1, Math.ceil(previewContent.scrollHeight / alturaPx));
+          const pageNumber = previewContent.querySelector(".page-number");
+          if (pageNumber) pageNumber.textContent = `Pág. 1 de ${paginas}`;
+        }, 150);
       }
 
       // ==================== CRUD ====================
@@ -3401,586 +3122,104 @@
         }
       }
 
-      // ==================== IMPRIMIR CON CONTADOR DE PÁGINAS ====================
+      // ==================== SALIDAS: IMPRESIÓN Y PDF ====================
+      function esperarImagenes(contenedor) {
+        return Promise.all(Array.from(contenedor.querySelectorAll("img")).map((img) => {
+          if (img.complete && img.naturalWidth > 0) return Promise.resolve();
+          return new Promise((resolve) => {
+            img.addEventListener("load", resolve, { once:true });
+            img.addEventListener("error", resolve, { once:true });
+          });
+        }));
+      }
+
+      function obtenerOficioActualParaSalida(id) {
+        return id ? (todosLosOficios.find((o) => o.id === id) || null) : formatearDatosOficio();
+      }
+
       function imprimirOficio(id) {
-        const oficio = todosLosOficios.find((o) => o.id === id);
-        if (!oficio) {
-          mostrarToast("❌ Oficio no encontrado", "error");
-          return;
-        }
-
-        const clave = oficio.clave_opdssj || "N/A";
-        const cargoRemitente =
-          oficio.cargo_remitente || "Cargo no especificado";
-        const destinatarioNombre =
-          oficio.destinatario || "Destinatario no especificado";
-        const departamentoDestino = oficio.departamento_destino || "";
-        const fechaFormateada = oficio.fecha_emision
-          ? formatearFecha(oficio.fecha_emision)
-          : "";
-
-        let contenido = oficio.contenido || "Sin contenido";
-        contenido = contenido.replace(
-          /<span class="editor-placeholder">.*?<\/span>/g,
-          "",
-        );
-        if (!contenido.trim()) {
-          contenido = "Sin contenido";
-        }
-
-        let archivosHTML = "";
-        if (oficio.archivos && oficio.archivos.length > 0) {
-          archivosHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
-      <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">📎 Archivos adjuntos:</div>`;
-          oficio.archivos.forEach((a) => {
-            archivosHTML += `<div style="font-size:9pt;padding:2px 0;">• ${a.nombre} <span style="color:#999;font-size:8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
-          });
-          archivosHTML += `</div>`;
-        }
-
-        let linksHTML = "";
-        if (oficio.links && oficio.links.length > 0) {
-          linksHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
-      <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">🔗 Enlaces relacionados:</div>`;
-          oficio.links.forEach((l) => {
-            linksHTML += `<div style="font-size:9pt;padding:2px 0;">• <a href="${l.url}" target="_blank" style="color:#0066cc;text-decoration:underline;">${l.descripcion}</a></div>`;
-          });
-          linksHTML += `</div>`;
-        }
-
-        // Construir el documento completo
-        let documentoCompleto = `
-    <div class="header-doc">
-      <div class="logo-container">
-        <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" class="logo-img-left" />
-      </div>
-      <div class="clave-doc">${clave}</div>
-    </div>
-    <!-- FECHA SIN BORDE -->
-    <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px; border: none; padding: 0;">
-      ${fechaFormateada}
-    </div>
-    <div class="destinatario">
-      <span class="label">C.</span> ${destinatarioNombre}
-      ${departamentoDestino ? `<span class="cargo-destino">${departamentoDestino}</span>` : ""}
-    </div>
-    <div class="asunto">Asunto: ${oficio.asunto}</div>
-    <div class="contenido">${contenido}</div>
-    ${oficio.fundamentacion ? `<div class="fundamentacion"><strong>Fundamentación:</strong><br>${oficio.fundamentacion}</div>` : ""}
-    ${archivosHTML}
-    ${linksHTML}
-    <div class="cierre">
-      <div class="atentamente">Atentamente,</div>
-      <div class="leyenda">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
-      <div class="firma">
-        <div class="linea"></div>
-        <div class="nombre">${oficio.remitente}</div>
-        <div class="cargo">${cargoRemitente}</div>
-      </div>
-    </div>
-    ${oficio.confidencial ? `<div class="confidencial">🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.</div>` : ""}
-    <div class="responsables">${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}</div>
-  `;
-
-        // Abrir ventana para imprimir
+        const oficio = obtenerOficioActualParaSalida(id);
+        if (!oficio) { mostrarToast("❌ Oficio no encontrado", "error"); return; }
+        const formato = document.getElementById("formatoPapel")?.value || "letter";
+        const esA4 = formato === "a4";
+        const ancho = esA4 ? "210mm" : "216mm";
+        const alto = esA4 ? "297mm" : "279mm";
         const ventana = window.open("", "_blank");
-        ventana.document.write(`
-    <html>
-    <head>
-      <title>Oficio ${clave}</title>
-      <style>
-        @page { 
-          margin: 2.5cm 2.5cm 2.5cm 2.5cm;
-          @bottom-center {
-            content: "Pág. " counter(page) " de " counter(pages);
-            font-size: 7pt;
-            color: #999;
-            font-family: "Arial", Times, serif;
-          }
-        }
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-          font-family: "Arial", Times, serif; 
-          background: white; 
-          color: #1a1a1a; 
-          font-size: 11pt; 
-          line-height: 1.5; 
-          padding: 0;
-          margin: 0;
-        }
-        .documento-print {
-          max-width: 100%;
-          padding: 0;
-        }
-        .header-doc { 
-          text-align: center; 
-          margin-bottom: 20px; 
-          padding-bottom: 12px; 
-          border-bottom: 2px solid #0f1a2e;
-        }
-        .header-doc .logo-container { 
-          display: flex; 
-          align-items: center; 
-          justify-content: center; 
-          gap: 20px; 
-          flex-wrap: wrap; 
-          padding-bottom: 6px;
-        }
-        .header-doc .logo-img-left { 
-          max-height: 60px; 
-          width: auto; 
-          object-fit: contain; 
-        }
-        .header-doc .clave-doc { 
-          margin-top: 6px; 
-          font-size: 11pt; 
-          font-weight: bold; 
-          color: #0f1a2e; 
-          text-align: right; 
-        }
-        .destinatario { 
-          margin-bottom: 10px; 
-          font-size: 11pt; 
-        }
-        .destinatario .label { 
-          font-weight: bold; 
-        }
-        .destinatario .cargo-destino {
-          font-size: 10pt;
-          color: #444;
-          margin-left: 18px;
-          display: block;
-        }
-        .asunto { 
-          font-weight: bold; 
-          font-size: 11pt; 
-          margin: 10px 0 6px 0; 
-          text-transform: uppercase; 
-        }
-        .contenido { 
-          line-height: 1.6; 
-          font-size: 11pt; 
-          text-align: justify; 
-          margin: 12px 0; 
-        }
-        .contenido p { 
-          margin-bottom: 6px; 
-        }
-        .contenido ul, 
-        .contenido ol { 
-          padding-left: 25px; 
-          margin: 6px 0; 
-        }
-        .contenido li { 
-          margin-bottom: 3px; 
-        }
-        .fundamentacion { 
-          margin: 10px 0; 
-          padding: 6px 12px; 
-          background: #f8f9fa; 
-          border-left: 4px solid #0f1a2e; 
-          font-style: italic; 
-          font-size: 10pt; 
-        }
-        .cierre { 
-          margin-top: 30px; 
-          text-align: left; 
-        }
-        .cierre .atentamente { 
-          font-size: 11pt; 
-          margin-bottom: 4px; 
-        }
-        .cierre .leyenda { 
-          font-style: italic; 
-          font-size: 9pt; 
-          color: #555; 
-          margin: 4px 0 20px 0; 
-        }
-        .cierre .firma { 
-          margin-top: 8px; 
-          text-align: center; 
-        }
-        .cierre .firma .linea { 
-          width: 220px; 
-          border-top: 2px solid #000; 
-          margin: 6px auto 4px; 
-        }
-        .cierre .firma .nombre { 
-          font-weight: bold; 
-          font-size: 11pt; 
-        }
-        .cierre .firma .cargo { 
-          font-size: 10pt; 
-          color: #333; 
-        }
-        .confidencial { 
-          margin-top: 10px; 
-          padding: 5px 10px; 
-          background: #fff5f5; 
-          border: 1px solid #ffcdd2; 
-          color: #c62828; 
-          font-size: 8pt; 
-          text-align: center; 
-        }
-        .responsables { 
-          margin-top: 25px; 
-          font-size: 7pt; 
-          color: #666; 
-          text-align: right; 
-          border-top: 1px solid #ddd; 
-          padding-top: 6px; 
-        }
-        .archivos-links {
-          margin: 12px 0 8px 0;
-          padding: 8px 10px;
-          background: #f8f9fa;
-          border-radius: 4px;
-          border: 1px solid #e9ecef;
-        }
-        .archivos-links .titulo {
-          font-size: 8pt;
-          font-weight: bold;
-          color: #333;
-          margin-bottom: 4px;
-        }
-        .archivos-links .item {
-          font-size: 8pt;
-          padding: 2px 0;
-          color: #555;
-        }
-        .archivos-links .item a {
-          color: #0066cc;
-          text-decoration: underline;
-        }
-        .archivos-links .item .tamano {
-          font-size: 7pt;
-          color: #999;
-          margin-left: 4px;
-        }
-        .footer-doc {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          width: 100%;
-          margin-top: 20px;
-          padding-top: 10px;
-          border-top: 2px solid #ddd;
-          gap: 0;
-        }
-        .footer-doc .footer-left {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 15%;
-          flex-shrink: 0;
-        }
-        .footer-doc .footer-left img {
-          max-height: 38px;
-          width: auto;
-          object-fit: contain;
-        }
-        .footer-doc .footer-center {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 70%;
-          flex-shrink: 0;
-          text-align: center;
-          font-size: 7pt;
-          color: #555;
-          font-weight: 500;
-          padding: 0 8px;
-        }
-        .footer-doc .footer-center .footer-text {
-          font-size: 7pt;
-          color: #555;
-          line-height: 1.4;
-          text-align: center;
-        }
-        .footer-doc .footer-center .footer-text strong {
-          color: #333;
-          font-weight: 700;
-        }
-        .footer-doc .footer-right {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 15%;
-          flex-shrink: 0;
-        }
-        .footer-doc .footer-right .page-number {
-          font-size: 7pt;
-          color: #999;
-          font-weight: 400;
-          text-align: center;
-          letter-spacing: 0.3px;
-        }
-        @media print {
-          .no-print { display: none !important; }
-          .footer-doc { page-break-inside: avoid; }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="documento-print">
-        ${documentoCompleto}
-        <div class="footer-doc">
-          <div class="footer-left">
-            <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Logo del Gobierno de Jalisco" />
-          </div>
-          <div class="footer-center">
-            <div class="footer-text">
-              <strong>|</strong><br>
-              Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.
-            </div>
-          </div>
-          <div class="footer-right">
-            <span class="page-number"></span>
-          </div>
-        </div>
-      </div>
-      <script>
-        window.onload = function() {
-          const contentHeight = document.querySelector('.documento-print').scrollHeight;
-          const pageHeight = 842;
-          const numPages = Math.max(1, Math.ceil(contentHeight / pageHeight));
-          const pageNumberElement = document.querySelector('.page-number');
-          if (pageNumberElement) {
-            pageNumberElement.textContent = 'Pág. 1 de ' + numPages;
-          }
-          window.print();
-        };
-      <\/script>
-    </body>
-    </html>
-  `);
+        if (!ventana) { mostrarToast("❌ El navegador bloqueó la ventana de impresión", "error"); return; }
+        const contenido = normalizarColoresContenido(construirDocumentoHTML(oficio, "1 de 1"));
+        ventana.document.open();
+        ventana.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Oficio ${oficio.clave_opdssj || "N/A"}</title>
+          <style>
+            @page{size:${esA4 ? "A4" : "letter"} portrait;margin:0}
+            *{box-sizing:border-box} html,body{margin:0;padding:0;background:#fff;color:#1a1a1a}
+            body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.5}
+            .documento-preview{width:${ancho};min-height:${alto};margin:0 auto;padding:20mm 22mm 17mm;background:#fff;color:#1a1a1a}
+            .header-doc{margin-bottom:17mm}.logo-container{display:flex;align-items:center;justify-content:flex-end;width:100%;min-height:28mm;padding-bottom:5mm}
+            .logo-img-left,.logo-img-right{max-height:28mm;max-width:72mm;width:auto;object-fit:contain}.bloque-meta{width:100%;text-align:right;line-height:1.35}
+            .fecha{font-size:10.5pt;margin-bottom:2mm}.folio{font-size:11pt;font-weight:700;color:#0f1a2e;margin-bottom:2mm}.asunto-meta{font-size:10.5pt;font-weight:700;text-transform:uppercase;max-width:155mm;margin-left:auto}
+            .destinatario{margin-bottom:10mm;font-size:11pt;text-align:left;line-height:1.35}.destinatario-nombre{font-weight:700;text-transform:uppercase}.cargo-destino{display:block;font-size:10.5pt;color:#222}.presente{margin-top:4mm;font-weight:700;letter-spacing:2.5px}
+            .contenido{line-height:1.6;font-size:11pt;text-align:justify;margin:0}.contenido p{margin:0 0 6px}.contenido ul,.contenido ol{padding-left:25px;margin:6px 0}.contenido li{margin-bottom:3px}
+            .contenido table{width:100%;border-collapse:collapse;border-spacing:0;color:#1a1a1a;margin:12px 0;font-size:10pt;line-height:1.25}.contenido th,.contenido td{border:1px solid #777;padding:4px 6px;color:#1a1a1a;vertical-align:middle}.contenido th{font-weight:700;text-align:center}.contenido tr{break-inside:avoid;page-break-inside:avoid}
+            .cierre{margin-top:12mm;text-align:left;break-inside:avoid;page-break-inside:avoid}.atentamente{font-size:11pt;margin-bottom:9mm}.firma{text-align:left;width:95mm}.linea{width:70mm;border-top:1px solid #000;margin:0 0 2mm}.nombre{font-weight:700;font-size:11pt;text-transform:uppercase}.cargo{font-size:10pt;color:#333}.leyenda{margin:7mm 0 0;font-style:italic;font-size:8.5pt;color:#555}
+            .fundamentacion{margin:9mm 0 0;padding:6px 10px;background:#f8f9fa;border-left:3px solid #0f1a2e;font-style:italic;font-size:9.5pt}.archivos-links{margin:7mm 0 0;padding:7px 9px;background:#f8f9fa;border:1px solid #e1e4e8}.archivos-links .titulo{font-size:8pt;font-weight:700;color:#333}.archivos-links .item{font-size:8pt;padding:2px 0;color:#555}.archivos-links a{color:#0066cc;text-decoration:underline}
+            .confidencial{margin-top:7mm;padding:5px 9px;background:#fff5f5;border:1px solid #ffcdd2;color:#c62828;font-size:8pt;text-align:center}.responsables{margin-top:7mm;font-size:7pt;color:#666;text-align:right;border-top:1px solid #ddd;padding-top:5px}
+            .footer-doc{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:9mm;padding-top:4mm;border-top:1px solid #bfc3c7;break-inside:avoid;page-break-inside:avoid}.footer-left{width:16%;display:flex;align-items:center;justify-content:flex-start}.footer-left img{max-height:12mm;max-width:24mm;width:auto}.footer-center{width:68%;text-align:center;font-size:7pt;color:#555;line-height:1.35}.footer-text{font-size:7pt;color:#555;line-height:1.35}.footer-right{width:16%;text-align:right}.page-number{font-size:7pt;color:#777;white-space:nowrap}
+          </style></head><body><div class="documento-preview">${contenido}</div>
+          <script>(async()=>{await Promise.all(Array.from(document.images).map(img=>img.complete?Promise.resolve():new Promise(r=>{img.addEventListener('load',r,{once:true});img.addEventListener('error',r,{once:true})})));window.focus();setTimeout(()=>window.print(),250)})()<\/script></body></html>`);
         ventana.document.close();
       }
 
-      // ==================== DESCARGAR PDF - VERSIÓN SIMPLIFICADA ====================
       async function descargarPDF(id) {
-        let oficio;
-
-        if (!id) {
-          const contenido = obtenerContenidoEditor();
-          const contenidoFinal = contenido.includes("editor-placeholder")
-            ? ""
-            : contenido;
-
-          oficio = {
-            clave_opdssj:
-              document.getElementById("clave_opdssj")?.value ||
-              "OPDSSJ.SDGM/000/2026",
-            asunto:
-              document.getElementById("asunto")?.value || "Asunto del oficio",
-            contenido: contenidoFinal || "Redacte el contenido del oficio...",
-            remitente:
-              document.getElementById("remitente")?.value ||
-              "Nombre del remitente",
-            cargo_remitente:
-              document.getElementById("cargo_remitente")?.value ||
-              "Cargo del remitente",
-            destinatario:
-              document.getElementById("destinatario")?.value ||
-              "Nombre del destinatario",
-            departamento_destino:
-              document.getElementById("departamento_destino")?.value || "",
-            fundamentacion:
-              document.getElementById("fundamentacion")?.value || "",
-            elaboro: document.getElementById("elaboro")?.value || "",
-            reviso: document.getElementById("reviso")?.value || "",
-            autorizo: document.getElementById("autorizo")?.value || "",
-            confidencial:
-              document.getElementById("confidencial")?.checked || false,
-            fecha_emision:
-              document.getElementById("fecha_emision")?.value ||
-              new Date().toISOString().split("T")[0],
-            archivos: archivosSubidos || [],
-            links: linksAgregados || [],
-          };
-        } else {
-          oficio = todosLosOficios.find((o) => o.id === id);
-        }
-
-        if (!oficio) {
-          mostrarToast("❌ Oficio no encontrado", "error");
-          return;
-        }
-
+        const oficio = obtenerOficioActualParaSalida(id);
+        if (!oficio) { mostrarToast("❌ Oficio no encontrado", "error"); return; }
+        const formato = document.getElementById("formatoPapel")?.value || "letter";
+        const esA4 = formato === "a4";
+        const ancho = esA4 ? "210mm" : "216mm";
+        const alto = esA4 ? "297mm" : "279mm";
+        let contenedor = null;
         try {
           mostrarToast("⏳ Generando PDF...", "info");
-
-          const clave = oficio.clave_opdssj || "N/A";
-          const cargoRemitente =
-            oficio.cargo_remitente || "Cargo no especificado";
-          const destinatarioNombre =
-            oficio.destinatario || "Destinatario no especificado";
-          const departamentoDestino = oficio.departamento_destino || "";
-          const fechaFormateada = oficio.fecha_emision
-            ? formatearFecha(oficio.fecha_emision)
-            : "";
-
-          let contenido = oficio.contenido || "Sin contenido";
-          contenido = contenido.replace(
-            /<span class="editor-placeholder">.*?<\/span>/g,
-            "",
-          );
-          if (!contenido.trim()) {
-            contenido = "Sin contenido";
-          }
-
-          // Generar archivos
-          let archivosHTML = "";
-          if (oficio.archivos && oficio.archivos.length > 0) {
-            archivosHTML = `
-        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
-          <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">📎 Archivos adjuntos:</div>
-      `;
-            oficio.archivos.forEach((a) => {
-              archivosHTML += `<div style="font-size: 9pt; padding: 2px 0;">• ${a.nombre} <span style="color: #999; font-size: 8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
-            });
-            archivosHTML += `</div>`;
-          }
-
-          // Generar links
-          let linksHTML = "";
-          if (oficio.links && oficio.links.length > 0) {
-            linksHTML = `
-        <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
-          <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">🔗 Enlaces relacionados:</div>
-      `;
-            oficio.links.forEach((l) => {
-              linksHTML += `<div style="font-size: 9pt; padding: 2px 0;">• <a href="${l.url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${l.descripcion}</a></div>`;
-            });
-            linksHTML += `</div>`;
-          }
-
-          // Generar responsables
-          let responsablesHTML = "";
-          let responsables = [];
-          if (oficio.elaboro) responsables.push(`Elaboró: ${oficio.elaboro}`);
-          if (oficio.reviso) responsables.push(`Revisó: ${oficio.reviso}`);
-          if (oficio.autorizo)
-            responsables.push(`Autorizó: ${oficio.autorizo}`);
-          if (responsables.length > 0) {
-            responsablesHTML = `
-        <div style="margin-top: 25px; font-size: 7pt; color: #666; text-align: right; border-top: 1px solid #ddd; padding-top: 6px;">
-          ${responsables.join(" | ")}
-        </div>
-      `;
-          }
-
-          // Construir el documento HTML
-          const documentoHTML = `
-      <div style="font-family: 'Arial', Times, serif; background: white; color: #1a1a1a; font-size: 11pt; line-height: 1.5; padding: 40px; max-width: 100%;">
-        <!-- HEADER -->
-        <div style="text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #0f1a2e;">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; padding-bottom: 6px;">
-            <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" style="max-height: 60px; width: auto; object-fit: contain;" onerror="this.style.display='none'" />
-          </div>
-          <div style="margin-top: 6px; font-size: 11pt; font-weight: bold; color: #0f1a2e; text-align: right;">${clave}</div>
-        </div>
-
-        <!-- FECHA SIN BORDE -->
-        <div style="text-align: right; font-size: 11pt; margin-bottom: 14px; margin-top: 8px; border: none; padding: 0;">
-          ${fechaFormateada}
-        </div>
-        
-        <!-- DESTINATARIO -->
-        <div style="margin-bottom: 10px; font-size: 11pt;">
-          <span style="font-weight: bold;">C.</span> ${destinatarioNombre}
-          ${departamentoDestino ? `<br><span style="font-size: 10pt; color: #444; margin-left: 18px;">${departamentoDestino}</span>` : ""}
-        </div>
-        
-        <!-- ASUNTO -->
-        <div style="font-weight: bold; font-size: 11pt; margin: 10px 0 6px 0; text-transform: uppercase;">
-          Asunto: ${oficio.asunto || "Sin asunto"}
-        </div>
-        
-        <!-- CONTENIDO -->
-        <div style="line-height: 1.6; font-size: 11pt; text-align: justify; margin: 12px 0;">
-          ${contenido}
-        </div>
-        
-        ${
-          oficio.fundamentacion
-            ? `
-          <div style="margin: 10px 0; padding: 6px 12px; background: #f8f9fa; border-left: 4px solid #0f1a2e; font-style: italic; font-size: 10pt;">
-            <strong>Fundamentación:</strong><br>${oficio.fundamentacion}
-          </div>
-        `
-            : ""
-        }
-        
-        ${archivosHTML}
-        ${linksHTML}
-        
-        <!-- CIERRE Y FIRMA -->
-        <div style="margin-top: 30px; text-align: left;">
-          <div style="font-size: 11pt; margin-bottom: 4px;">Atentamente,</div>
-          <div style="font-style: italic; font-size: 9pt; color: #555; margin: 4px 0 20px 0;">"2026, Jalisco, cuna de la identidad nacional y el mundial que nos une."</div>
-          <div style="margin-top: 8px; text-align: center;">
-            <div style="width: 220px; border-top: 2px solid #000; margin: 6px auto 4px;"></div>
-            <div style="font-weight: bold; font-size: 11pt;">${oficio.remitente || "Sin remitente"}</div>
-            <div style="font-size: 10pt; color: #333;">${cargoRemitente}</div>
-          </div>
-        </div>
-        
-        ${
-          oficio.confidencial
-            ? `
-          <div style="margin-top: 10px; padding: 5px 10px; background: #fff5f5; border: 1px solid #ffcdd2; color: #c62828; font-size: 8pt; text-align: center;">
-            🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
-          </div>
-        `
-            : ""
-        }
-        
-        ${responsablesHTML}
-        
-        <!-- FOOTER -->
-        <div style="margin-top: 30px; padding-top: 12px; border-top: 2px solid #ddd; display: flex; align-items: center; justify-content: space-between; width: 100%;">
-          <div style="display: flex; align-items: center; justify-content: center; width: 15%;">
-            <img src="/img/Logo_del_Gobierno_de_Jalisco.svg" alt="Gobierno de Jalisco" style="max-height: 45px; width: auto; object-fit: contain;" onerror="this.style.display='none'" />
-          </div>
-          <div style="width: 70%; text-align: center; font-size: 8pt; color: #555; padding: 0 8px;">
-            <strong>|</strong><br>
-            Calle Noruega 580 Col. Villas del Real. Pto Vallarta, JAL.
-          </div>
-          <div style="width: 15%; text-align: center;">
-            <span style="font-size: 8pt; color: #999; font-weight: 400;">Pág. 1 de 1</span>
-          </div>
-        </div>
-      </div>
-    `;
-
-          // Crear elemento para el PDF
+          contenedor = document.createElement("div");
+          Object.assign(contenedor.style,{position:"fixed",left:"0",top:"0",width:ancho,minHeight:alto,background:"#fff",zIndex:"2147483647",pointerEvents:"none",overflow:"visible"});
           const element = document.createElement("div");
-          element.innerHTML = documentoHTML;
-          element.style.cssText =
-            "position: fixed; left: -9999px; top: 0; width: 595px; background: white; z-index: -1;";
-          document.body.appendChild(element);
+          element.className = `documento-preview ${esA4 ? "formato-a4" : ""}`;
+          Object.assign(element.style,{width:ancho,minHeight:alto,margin:"0",padding:"20mm 22mm 17mm",background:"#fff",color:"#1a1a1a"});
+          element.innerHTML = normalizarColoresContenido(construirDocumentoHTML(oficio,"1 de 1"));
+          contenedor.appendChild(element);
+          document.body.appendChild(contenedor);
+          await esperarImagenes(contenedor);
+          await new Promise((resolve)=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+          const nombrePDF = `OPDSSJ_${(oficio.clave_opdssj || "oficio").replace(/[\\/]/g,"_")}.pdf`;
+          const worker = html2pdf().set({
+            margin:0,
+            filename:nombrePDF,
+            image:{type:"jpeg",quality:0.98},
+            html2canvas:{scale:2,useCORS:true,allowTaint:false,backgroundColor:"#ffffff",logging:false,scrollX:0,scrollY:0,windowWidth:Math.ceil(element.getBoundingClientRect().width)},
+            jsPDF:{unit:"mm",format:esA4?"a4":"letter",orientation:"portrait"},
+            pagebreak:{mode:["css","legacy"]}
+          }).from(element).toPdf();
 
-          // Generar PDF
-          html2pdf()
-            .from(element)
-            .save(`OPDSSJ_${clave.replace(/[\/\\]/g, "_")}.pdf`)
-            .then(() => {
-              document.body.removeChild(element);
-              mostrarToast("✅ PDF descargado correctamente", "success");
-            })
-            .catch((err) => {
-              document.body.removeChild(element);
-              throw err;
-            });
-        } catch (error) {
-          console.error("Error:", error);
-          mostrarToast(
-            "❌ Error al generar PDF: " +
-              (error.message || "Error desconocido"),
-            "error",
-          );
-        }
+          const pdf = await worker.get("pdf");
+          const totalPaginas = pdf.internal.getNumberOfPages();
+          for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+            pdf.setPage(pagina);
+            const anchoPagina = pdf.internal.pageSize.getWidth();
+            const altoPagina = pdf.internal.pageSize.getHeight();
+            pdf.setDrawColor(191,195,199);
+            pdf.setLineWidth(0.25);
+            pdf.line(22, altoPagina - 14, anchoPagina - 22, altoPagina - 14);
+            pdf.setFont("helvetica", "normal");
+            pdf.setFontSize(7);
+            pdf.setTextColor(110,110,110);
+            pdf.text("Hospital Regional Puerto Vallarta · Calle Noruega 580 Col. Villas del Real. Pto. Vallarta, JAL.", anchoPagina / 2, altoPagina - 8, { align:"center" });
+            pdf.text(`Pág. ${pagina} de ${totalPaginas}`, anchoPagina - 22, altoPagina - 8, { align:"right" });
+          }
+          pdf.save(nombrePDF);
+          mostrarToast("✅ PDF descargado correctamente","success");
+        } catch(error) {
+          console.error("Error al generar PDF:",error);
+          mostrarToast("❌ Error al generar PDF: "+(error.message||"Error desconocido"),"error");
+        } finally { contenedor?.remove(); }
       }
 
       // ==================== DETALLE ====================
@@ -4310,61 +3549,6 @@
         }
 
         renderizarTabla(filtrados);
-      }
-
-      // ==================== EXPORTAR CSV ====================
-      function exportarExcel() {
-        if (!todosLosOficios || todosLosOficios.length === 0) {
-          mostrarToast("❌ No hay datos para exportar", "error");
-          return;
-        }
-
-        const escaparCSV = (valor) =>
-          `"${String(valor ?? "")
-            .replace(/\r?\n/g, " ")
-            .replace(/"/g, '""')}"`;
-
-        let csv =
-          "Clave OPDSSJ,Tipo,Asunto,Remitente,Cargo Remitente,Destinatario,Fecha Emisión,Estado,Prioridad,Plazo,Elaboró,Revisó,Autorizó,Confidencial,Observaciones,Archivos,Links\n";
-
-        todosLosOficios.forEach((o) => {
-          const archivos = o.archivos
-            ? o.archivos.map((a) => a.nombre).join("; ")
-            : "";
-          const links = o.links
-            ? o.links.map((l) => l.descripcion + " (" + l.url + ")").join("; ")
-            : "";
-
-          const fila = [
-            o.clave_opdssj || "",
-            o.tipo_documento || "Oficio",
-            o.asunto || "",
-            o.remitente || "",
-            o.cargo_remitente || "",
-            o.destinatario || "",
-            formatearFecha(o.fecha_emision),
-            o.estado || "Borrador",
-            o.prioridad || "Media",
-            o.plazo_respuesta || 5,
-            o.elaboro || "",
-            o.reviso || "",
-            o.autorizo || "",
-            o.confidencial ? "Sí" : "No",
-            o.observaciones || "",
-            archivos,
-            links,
-          ];
-
-          csv += fila.map(escaparCSV).join(",") + "\n";
-        });
-
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `OPDSSJ_oficios_${new Date().toISOString().split("T")[0]}.csv`;
-        link.click();
-
-        mostrarToast("✅ CSV exportado correctamente", "success");
       }
 
       // ==================== ESTADÍSTICAS ====================
