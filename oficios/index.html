@@ -3,12 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>
-      Control de Oficios
-    </title>
+    <title>Control de Oficios</title>
     <!-- Librerías -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"
+      integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
     <!-- AGREGAR html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
@@ -1951,15 +1954,15 @@
         margin-left: 18px;
         display: block;
       }
-    footer{
-      flex-shrink: 0;
-  margin-top: auto;
-  text-align: center;
-  font-size: 0.85rem;
-  color: #ddd;
-  padding: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.15);
-    }
+      footer {
+        flex-shrink: 0;
+        margin-top: auto;
+        text-align: center;
+        font-size: 0.85rem;
+        color: #ddd;
+        padding: 0.5rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+      }
     </style>
   </head>
   <body>
@@ -2576,7 +2579,34 @@
 
     <!-- ==================== JAVASCRIPT ==================== -->
     <script>
-            document.getElementById("footerText").innerHTML =
+      // ============================================================
+      // VALIDACIÓN DE SESIÓN
+      // ============================================================
+
+      const scriptEstado = document.createElement("script");
+      scriptEstado.src = "/comun/estadoSistema.js";
+      document.body.appendChild(scriptEstado);
+
+      const scriptSesion = document.createElement("script");
+      scriptSesion.src = "/comun/sesion_bk.js";
+
+      scriptSesion.onload = function () {
+        console.log("✅ Scripts base cargados");
+
+        if (typeof verificarAutenticacion === "function") {
+          setTimeout(() => {
+            verificarAutenticacion();
+            console.log("✅ Autenticación verificada");
+          }, 100);
+        } else {
+          console.error("❌ verificarAutenticacion no está definida");
+        }
+      };
+
+      document.body.appendChild(scriptSesion);
+    </script>
+    <script>
+      document.getElementById("footerText").innerHTML =
         `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
       // ==================== CONFIGURACIÓN ====================
       const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
@@ -2894,66 +2924,80 @@
       }
 
       // ==================== VISTA PREVIA CON CONTADOR DE PÁGINAS ====================
-function actualizarVistaPrevia() {
-  const preview = document.getElementById("previewDocumento");
-  if (!preview) return;
+      function actualizarVistaPrevia() {
+        const preview = document.getElementById("previewDocumento");
+        if (!preview) return;
 
-  const clave = document.getElementById("clave_opdssj")?.value || "OPDSSJ.SDGM/000/2026";
-  const asunto = document.getElementById("asunto")?.value || "Asunto del oficio";
-  const contenido = obtenerContenidoEditor() || "Redacte el contenido del oficio...";
-  const fundamentacion = document.getElementById("fundamentacion")?.value;
-  const remitente = document.getElementById("remitente")?.value || "Nombre del remitente";
-  const cargoRemitente = document.getElementById("cargo_remitente")?.value || "Cargo del remitente";
-  const destinatario = document.getElementById("destinatario")?.value || "Nombre del destinatario";
-  const departamentoDestino = document.getElementById("departamento_destino")?.value || "";
-  const fecha = document.getElementById("fecha_emision")?.value;
-  const elaboro = document.getElementById("elaboro")?.value;
-  const reviso = document.getElementById("reviso")?.value;
-  const autorizo = document.getElementById("autorizo")?.value;
-  const confidencial = document.getElementById("confidencial")?.checked || false;
+        const clave =
+          document.getElementById("clave_opdssj")?.value ||
+          "OPDSSJ.SDGM/000/2026";
+        const asunto =
+          document.getElementById("asunto")?.value || "Asunto del oficio";
+        const contenido =
+          obtenerContenidoEditor() || "Redacte el contenido del oficio...";
+        const fundamentacion = document.getElementById("fundamentacion")?.value;
+        const remitente =
+          document.getElementById("remitente")?.value || "Nombre del remitente";
+        const cargoRemitente =
+          document.getElementById("cargo_remitente")?.value ||
+          "Cargo del remitente";
+        const destinatario =
+          document.getElementById("destinatario")?.value ||
+          "Nombre del destinatario";
+        const departamentoDestino =
+          document.getElementById("departamento_destino")?.value || "";
+        const fecha = document.getElementById("fecha_emision")?.value;
+        const elaboro = document.getElementById("elaboro")?.value;
+        const reviso = document.getElementById("reviso")?.value;
+        const autorizo = document.getElementById("autorizo")?.value;
+        const confidencial =
+          document.getElementById("confidencial")?.checked || false;
 
-  const fechaFormateada = fecha ? formatearFecha(fecha) : "Fecha de emisión";
+        const fechaFormateada = fecha
+          ? formatearFecha(fecha)
+          : "Fecha de emisión";
 
-  const tieneDatos = document.getElementById("asunto")?.value || 
-                     document.getElementById("remitente")?.value || 
-                     document.getElementById("destinatario")?.value;
+        const tieneDatos =
+          document.getElementById("asunto")?.value ||
+          document.getElementById("remitente")?.value ||
+          document.getElementById("destinatario")?.value;
 
-  if (!tieneDatos) {
-    preview.innerHTML = `
+        if (!tieneDatos) {
+          preview.innerHTML = `
       <div class="empty-message">
         <span class="icono">📝</span>
         Completa el formulario<br>
         <span style="font-size:11px;color:#aaa;">para ver la vista previa</span>
       </div>
     `;
-    return;
-  }
+          return;
+        }
 
-  // Generar HTML de archivos y links
-  let archivosLinksHTML = "";
-  if (archivosSubidos.length > 0 || linksAgregados.length > 0) {
-    archivosLinksHTML = `<div class="archivos-links">`;
-    if (archivosSubidos.length > 0) {
-      archivosLinksHTML += `<div class="titulo">📎 Archivos adjuntos:</div>`;
-      archivosSubidos.forEach((arch) => {
-        archivosLinksHTML += `<div class="item">• ${arch.nombre} <span class="tamano">(${(arch.tamano / 1024).toFixed(0)} KB)</span></div>`;
-      });
-    }
-    if (linksAgregados.length > 0) {
-      if (archivosSubidos.length > 0) {
-        archivosLinksHTML += `<div class="titulo" style="margin-top:6px;">🔗 Enlaces relacionados:</div>`;
-      } else {
-        archivosLinksHTML += `<div class="titulo">🔗 Enlaces relacionados:</div>`;
-      }
-      linksAgregados.forEach((link) => {
-        archivosLinksHTML += `<div class="item">• <a href="${link.url}" target="_blank">${link.descripcion}</a></div>`;
-      });
-    }
-    archivosLinksHTML += `</div>`;
-  }
+        // Generar HTML de archivos y links
+        let archivosLinksHTML = "";
+        if (archivosSubidos.length > 0 || linksAgregados.length > 0) {
+          archivosLinksHTML = `<div class="archivos-links">`;
+          if (archivosSubidos.length > 0) {
+            archivosLinksHTML += `<div class="titulo">📎 Archivos adjuntos:</div>`;
+            archivosSubidos.forEach((arch) => {
+              archivosLinksHTML += `<div class="item">• ${arch.nombre} <span class="tamano">(${(arch.tamano / 1024).toFixed(0)} KB)</span></div>`;
+            });
+          }
+          if (linksAgregados.length > 0) {
+            if (archivosSubidos.length > 0) {
+              archivosLinksHTML += `<div class="titulo" style="margin-top:6px;">🔗 Enlaces relacionados:</div>`;
+            } else {
+              archivosLinksHTML += `<div class="titulo">🔗 Enlaces relacionados:</div>`;
+            }
+            linksAgregados.forEach((link) => {
+              archivosLinksHTML += `<div class="item">• <a href="${link.url}" target="_blank">${link.descripcion}</a></div>`;
+            });
+          }
+          archivosLinksHTML += `</div>`;
+        }
 
-  // Construir el HTML del documento - SIN BORDE EN LA FECHA
-  let documentoHTML = `
+        // Construir el HTML del documento - SIN BORDE EN LA FECHA
+        let documentoHTML = `
     <div class="header-doc">
       <div class="logo-container">
         <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" class="logo-img-left" />
@@ -2970,12 +3014,16 @@ function actualizarVistaPrevia() {
     </div>
     <div class="asunto">Asunto: ${asunto}</div>
     <div class="contenido">${contenido || "Redacte el contenido del oficio..."}</div>
-    ${fundamentacion ? `
+    ${
+      fundamentacion
+        ? `
       <div class="fundamentacion">
         <strong>Fundamentación:</strong><br>
         ${fundamentacion}
       </div>
-    ` : ""}
+    `
+        : ""
+    }
     ${archivosLinksHTML}
     <div class="cierre">
       <div class="atentamente">Atentamente,</div>
@@ -2986,11 +3034,15 @@ function actualizarVistaPrevia() {
         <div class="cargo">${cargoRemitente}</div>
       </div>
     </div>
-    ${confidencial ? `
+    ${
+      confidencial
+        ? `
       <div class="confidencial">
         🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
       </div>
-    ` : ""}
+    `
+        : ""
+    }
     <div class="responsables">
       ${elaboro ? `Elaboró: ${elaboro}` : ""}
       ${reviso ? ` | Revisó: ${reviso}` : ""}
@@ -3012,42 +3064,45 @@ function actualizarVistaPrevia() {
     </div>
   `;
 
-  // Mostrar en preview
-  preview.innerHTML = documentoHTML;
+        // Mostrar en preview
+        preview.innerHTML = documentoHTML;
 
-  // Calcular número de páginas para la vista previa
-  calcularPaginasPreview();
+        // Calcular número de páginas para la vista previa
+        calcularPaginasPreview();
 
-  // Scroll al final
-  const papel = document.getElementById("vistaPapel");
-  if (papel) {
-    setTimeout(() => {
-      papel.scrollTop = papel.scrollHeight;
-    }, 100);
-  }
-}
+        // Scroll al final
+        const papel = document.getElementById("vistaPapel");
+        if (papel) {
+          setTimeout(() => {
+            papel.scrollTop = papel.scrollHeight;
+          }, 100);
+        }
+      }
 
-// ==================== CALCULAR PÁGINAS PARA VISTA PREVIA ====================
-function calcularPaginasPreview() {
-  setTimeout(() => {
-    const previewContent = document.getElementById("previewDocumento");
-    if (!previewContent) return;
+      // ==================== CALCULAR PÁGINAS PARA VISTA PREVIA ====================
+      function calcularPaginasPreview() {
+        setTimeout(() => {
+          const previewContent = document.getElementById("previewDocumento");
+          if (!previewContent) return;
 
-    // Obtener la altura total del contenido
-    const alturaTotal = previewContent.scrollHeight;
-    const alturaVentana = window.innerHeight || 800;
-    
-    // Estimar páginas (asumiendo que una página A4 es ~842px)
-    const ALTURA_PAGINA = 842;
-    const numPaginas = Math.max(1, Math.ceil(alturaTotal / ALTURA_PAGINA));
-    
-    // Actualizar el número de página
-    const pageNumber = document.getElementById("pageNumberPreview");
-    if (pageNumber) {
-      pageNumber.textContent = `Pág. 1 de ${numPaginas}`;
-    }
-  }, 200);
-}
+          // Obtener la altura total del contenido
+          const alturaTotal = previewContent.scrollHeight;
+          const alturaVentana = window.innerHeight || 800;
+
+          // Estimar páginas (asumiendo que una página A4 es ~842px)
+          const ALTURA_PAGINA = 842;
+          const numPaginas = Math.max(
+            1,
+            Math.ceil(alturaTotal / ALTURA_PAGINA),
+          );
+
+          // Actualizar el número de página
+          const pageNumber = document.getElementById("pageNumberPreview");
+          if (pageNumber) {
+            pageNumber.textContent = `Pág. 1 de ${numPaginas}`;
+          }
+        }, 200);
+      }
 
       // ==================== CRUD ====================
       async function cargarDatos() {
@@ -3345,47 +3400,54 @@ function calcularPaginasPreview() {
       }
 
       // ==================== IMPRIMIR CON CONTADOR DE PÁGINAS ====================
-function imprimirOficio(id) {
-  const oficio = todosLosOficios.find((o) => o.id === id);
-  if (!oficio) {
-    mostrarToast("❌ Oficio no encontrado", "error");
-    return;
-  }
+      function imprimirOficio(id) {
+        const oficio = todosLosOficios.find((o) => o.id === id);
+        if (!oficio) {
+          mostrarToast("❌ Oficio no encontrado", "error");
+          return;
+        }
 
-  const clave = oficio.clave_opdssj || "N/A";
-  const cargoRemitente = oficio.cargo_remitente || "Cargo no especificado";
-  const destinatarioNombre = oficio.destinatario || "Destinatario no especificado";
-  const departamentoDestino = oficio.departamento_destino || "";
-  const fechaFormateada = oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : "";
+        const clave = oficio.clave_opdssj || "N/A";
+        const cargoRemitente =
+          oficio.cargo_remitente || "Cargo no especificado";
+        const destinatarioNombre =
+          oficio.destinatario || "Destinatario no especificado";
+        const departamentoDestino = oficio.departamento_destino || "";
+        const fechaFormateada = oficio.fecha_emision
+          ? formatearFecha(oficio.fecha_emision)
+          : "";
 
-  let contenido = oficio.contenido || "Sin contenido";
-  contenido = contenido.replace(/<span class="editor-placeholder">.*?<\/span>/g, '');
-  if (!contenido.trim()) {
-    contenido = "Sin contenido";
-  }
+        let contenido = oficio.contenido || "Sin contenido";
+        contenido = contenido.replace(
+          /<span class="editor-placeholder">.*?<\/span>/g,
+          "",
+        );
+        if (!contenido.trim()) {
+          contenido = "Sin contenido";
+        }
 
-  let archivosHTML = "";
-  if (oficio.archivos && oficio.archivos.length > 0) {
-    archivosHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
+        let archivosHTML = "";
+        if (oficio.archivos && oficio.archivos.length > 0) {
+          archivosHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
       <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">📎 Archivos adjuntos:</div>`;
-    oficio.archivos.forEach((a) => {
-      archivosHTML += `<div style="font-size:9pt;padding:2px 0;">• ${a.nombre} <span style="color:#999;font-size:8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
-    });
-    archivosHTML += `</div>`;
-  }
+          oficio.archivos.forEach((a) => {
+            archivosHTML += `<div style="font-size:9pt;padding:2px 0;">• ${a.nombre} <span style="color:#999;font-size:8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
+          });
+          archivosHTML += `</div>`;
+        }
 
-  let linksHTML = "";
-  if (oficio.links && oficio.links.length > 0) {
-    linksHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
+        let linksHTML = "";
+        if (oficio.links && oficio.links.length > 0) {
+          linksHTML = `<div style="margin:10px 0;padding:10px;background:#f8f9fa;border:1px solid #e9ecef;border-radius:4px;">
       <div style="font-weight:bold;font-size:10pt;margin-bottom:4px;">🔗 Enlaces relacionados:</div>`;
-    oficio.links.forEach((l) => {
-      linksHTML += `<div style="font-size:9pt;padding:2px 0;">• <a href="${l.url}" target="_blank" style="color:#0066cc;text-decoration:underline;">${l.descripcion}</a></div>`;
-    });
-    linksHTML += `</div>`;
-  }
+          oficio.links.forEach((l) => {
+            linksHTML += `<div style="font-size:9pt;padding:2px 0;">• <a href="${l.url}" target="_blank" style="color:#0066cc;text-decoration:underline;">${l.descripcion}</a></div>`;
+          });
+          linksHTML += `</div>`;
+        }
 
-  // Construir el documento completo
-  let documentoCompleto = `
+        // Construir el documento completo
+        let documentoCompleto = `
     <div class="header-doc">
       <div class="logo-container">
         <img src="/img/logo-hrpv-javi.jpeg" alt="Hospital Regional" class="logo-img-left" />
@@ -3418,9 +3480,9 @@ function imprimirOficio(id) {
     <div class="responsables">${oficio.elaboro ? `Elaboró: ${oficio.elaboro}` : ""}${oficio.reviso ? ` | Revisó: ${oficio.reviso}` : ""}${oficio.autorizo ? ` | Autorizó: ${oficio.autorizo}` : ""}</div>
   `;
 
-  // Abrir ventana para imprimir
-  const ventana = window.open("", "_blank");
-  ventana.document.write(`
+        // Abrir ventana para imprimir
+        const ventana = window.open("", "_blank");
+        ventana.document.write(`
     <html>
     <head>
       <title>Oficio ${clave}</title>
@@ -3690,100 +3752,124 @@ function imprimirOficio(id) {
     </body>
     </html>
   `);
-  ventana.document.close();
-}
+        ventana.document.close();
+      }
 
       // ==================== DESCARGAR PDF - VERSIÓN SIMPLIFICADA ====================
-async function descargarPDF(id) {
-  let oficio;
-  
-  if (!id) {
-    const contenido = obtenerContenidoEditor();
-    const contenidoFinal = contenido.includes("editor-placeholder") ? "" : contenido;
-    
-    oficio = {
-      clave_opdssj: document.getElementById("clave_opdssj")?.value || "OPDSSJ.SDGM/000/2026",
-      asunto: document.getElementById("asunto")?.value || "Asunto del oficio",
-      contenido: contenidoFinal || "Redacte el contenido del oficio...",
-      remitente: document.getElementById("remitente")?.value || "Nombre del remitente",
-      cargo_remitente: document.getElementById("cargo_remitente")?.value || "Cargo del remitente",
-      destinatario: document.getElementById("destinatario")?.value || "Nombre del destinatario",
-      departamento_destino: document.getElementById("departamento_destino")?.value || "",
-      fundamentacion: document.getElementById("fundamentacion")?.value || "",
-      elaboro: document.getElementById("elaboro")?.value || "",
-      reviso: document.getElementById("reviso")?.value || "",
-      autorizo: document.getElementById("autorizo")?.value || "",
-      confidencial: document.getElementById("confidencial")?.checked || false,
-      fecha_emision: document.getElementById("fecha_emision")?.value || new Date().toISOString().split('T')[0],
-      archivos: archivosSubidos || [],
-      links: linksAgregados || []
-    };
-  } else {
-    oficio = todosLosOficios.find((o) => o.id === id);
-  }
+      async function descargarPDF(id) {
+        let oficio;
 
-  if (!oficio) {
-    mostrarToast("❌ Oficio no encontrado", "error");
-    return;
-  }
+        if (!id) {
+          const contenido = obtenerContenidoEditor();
+          const contenidoFinal = contenido.includes("editor-placeholder")
+            ? ""
+            : contenido;
 
-  try {
-    mostrarToast("⏳ Generando PDF...", "info");
+          oficio = {
+            clave_opdssj:
+              document.getElementById("clave_opdssj")?.value ||
+              "OPDSSJ.SDGM/000/2026",
+            asunto:
+              document.getElementById("asunto")?.value || "Asunto del oficio",
+            contenido: contenidoFinal || "Redacte el contenido del oficio...",
+            remitente:
+              document.getElementById("remitente")?.value ||
+              "Nombre del remitente",
+            cargo_remitente:
+              document.getElementById("cargo_remitente")?.value ||
+              "Cargo del remitente",
+            destinatario:
+              document.getElementById("destinatario")?.value ||
+              "Nombre del destinatario",
+            departamento_destino:
+              document.getElementById("departamento_destino")?.value || "",
+            fundamentacion:
+              document.getElementById("fundamentacion")?.value || "",
+            elaboro: document.getElementById("elaboro")?.value || "",
+            reviso: document.getElementById("reviso")?.value || "",
+            autorizo: document.getElementById("autorizo")?.value || "",
+            confidencial:
+              document.getElementById("confidencial")?.checked || false,
+            fecha_emision:
+              document.getElementById("fecha_emision")?.value ||
+              new Date().toISOString().split("T")[0],
+            archivos: archivosSubidos || [],
+            links: linksAgregados || [],
+          };
+        } else {
+          oficio = todosLosOficios.find((o) => o.id === id);
+        }
 
-    const clave = oficio.clave_opdssj || "N/A";
-    const cargoRemitente = oficio.cargo_remitente || "Cargo no especificado";
-    const destinatarioNombre = oficio.destinatario || "Destinatario no especificado";
-    const departamentoDestino = oficio.departamento_destino || "";
-    const fechaFormateada = oficio.fecha_emision ? formatearFecha(oficio.fecha_emision) : "";
+        if (!oficio) {
+          mostrarToast("❌ Oficio no encontrado", "error");
+          return;
+        }
 
-    let contenido = oficio.contenido || "Sin contenido";
-    contenido = contenido.replace(/<span class="editor-placeholder">.*?<\/span>/g, '');
-    if (!contenido.trim()) {
-      contenido = "Sin contenido";
-    }
+        try {
+          mostrarToast("⏳ Generando PDF...", "info");
 
-    // Generar archivos
-    let archivosHTML = "";
-    if (oficio.archivos && oficio.archivos.length > 0) {
-      archivosHTML = `
+          const clave = oficio.clave_opdssj || "N/A";
+          const cargoRemitente =
+            oficio.cargo_remitente || "Cargo no especificado";
+          const destinatarioNombre =
+            oficio.destinatario || "Destinatario no especificado";
+          const departamentoDestino = oficio.departamento_destino || "";
+          const fechaFormateada = oficio.fecha_emision
+            ? formatearFecha(oficio.fecha_emision)
+            : "";
+
+          let contenido = oficio.contenido || "Sin contenido";
+          contenido = contenido.replace(
+            /<span class="editor-placeholder">.*?<\/span>/g,
+            "",
+          );
+          if (!contenido.trim()) {
+            contenido = "Sin contenido";
+          }
+
+          // Generar archivos
+          let archivosHTML = "";
+          if (oficio.archivos && oficio.archivos.length > 0) {
+            archivosHTML = `
         <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
           <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">📎 Archivos adjuntos:</div>
       `;
-      oficio.archivos.forEach((a) => {
-        archivosHTML += `<div style="font-size: 9pt; padding: 2px 0;">• ${a.nombre} <span style="color: #999; font-size: 8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
-      });
-      archivosHTML += `</div>`;
-    }
+            oficio.archivos.forEach((a) => {
+              archivosHTML += `<div style="font-size: 9pt; padding: 2px 0;">• ${a.nombre} <span style="color: #999; font-size: 8pt;">(${(a.tamano / 1024).toFixed(0)} KB)</span></div>`;
+            });
+            archivosHTML += `</div>`;
+          }
 
-    // Generar links
-    let linksHTML = "";
-    if (oficio.links && oficio.links.length > 0) {
-      linksHTML = `
+          // Generar links
+          let linksHTML = "";
+          if (oficio.links && oficio.links.length > 0) {
+            linksHTML = `
         <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 4px;">
           <div style="font-weight: bold; font-size: 10pt; margin-bottom: 4px;">🔗 Enlaces relacionados:</div>
       `;
-      oficio.links.forEach((l) => {
-        linksHTML += `<div style="font-size: 9pt; padding: 2px 0;">• <a href="${l.url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${l.descripcion}</a></div>`;
-      });
-      linksHTML += `</div>`;
-    }
+            oficio.links.forEach((l) => {
+              linksHTML += `<div style="font-size: 9pt; padding: 2px 0;">• <a href="${l.url}" target="_blank" style="color: #0066cc; text-decoration: underline;">${l.descripcion}</a></div>`;
+            });
+            linksHTML += `</div>`;
+          }
 
-    // Generar responsables
-    let responsablesHTML = "";
-    let responsables = [];
-    if (oficio.elaboro) responsables.push(`Elaboró: ${oficio.elaboro}`);
-    if (oficio.reviso) responsables.push(`Revisó: ${oficio.reviso}`);
-    if (oficio.autorizo) responsables.push(`Autorizó: ${oficio.autorizo}`);
-    if (responsables.length > 0) {
-      responsablesHTML = `
+          // Generar responsables
+          let responsablesHTML = "";
+          let responsables = [];
+          if (oficio.elaboro) responsables.push(`Elaboró: ${oficio.elaboro}`);
+          if (oficio.reviso) responsables.push(`Revisó: ${oficio.reviso}`);
+          if (oficio.autorizo)
+            responsables.push(`Autorizó: ${oficio.autorizo}`);
+          if (responsables.length > 0) {
+            responsablesHTML = `
         <div style="margin-top: 25px; font-size: 7pt; color: #666; text-align: right; border-top: 1px solid #ddd; padding-top: 6px;">
           ${responsables.join(" | ")}
         </div>
       `;
-    }
+          }
 
-    // Construir el documento HTML
-    const documentoHTML = `
+          // Construir el documento HTML
+          const documentoHTML = `
       <div style="font-family: 'Arial', Times, serif; background: white; color: #1a1a1a; font-size: 11pt; line-height: 1.5; padding: 40px; max-width: 100%;">
         <!-- HEADER -->
         <div style="text-align: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #0f1a2e;">
@@ -3814,11 +3900,15 @@ async function descargarPDF(id) {
           ${contenido}
         </div>
         
-        ${oficio.fundamentacion ? `
+        ${
+          oficio.fundamentacion
+            ? `
           <div style="margin: 10px 0; padding: 6px 12px; background: #f8f9fa; border-left: 4px solid #0f1a2e; font-style: italic; font-size: 10pt;">
             <strong>Fundamentación:</strong><br>${oficio.fundamentacion}
           </div>
-        ` : ""}
+        `
+            : ""
+        }
         
         ${archivosHTML}
         ${linksHTML}
@@ -3834,11 +3924,15 @@ async function descargarPDF(id) {
           </div>
         </div>
         
-        ${oficio.confidencial ? `
+        ${
+          oficio.confidencial
+            ? `
           <div style="margin-top: 10px; padding: 5px 10px; background: #fff5f5; border: 1px solid #ffcdd2; color: #c62828; font-size: 8pt; text-align: center;">
             🔒 <strong>CONFIDENCIALIDAD:</strong> La información contenida en este documento es confidencial y está protegida por la Ley de Protección de Datos Personales.
           </div>
-        ` : ""}
+        `
+            : ""
+        }
         
         ${responsablesHTML}
         
@@ -3858,30 +3952,34 @@ async function descargarPDF(id) {
       </div>
     `;
 
-    // Crear elemento para el PDF
-    const element = document.createElement('div');
-    element.innerHTML = documentoHTML;
-    element.style.cssText = 'position: fixed; left: -9999px; top: 0; width: 595px; background: white; z-index: -1;';
-    document.body.appendChild(element);
+          // Crear elemento para el PDF
+          const element = document.createElement("div");
+          element.innerHTML = documentoHTML;
+          element.style.cssText =
+            "position: fixed; left: -9999px; top: 0; width: 595px; background: white; z-index: -1;";
+          document.body.appendChild(element);
 
-    // Generar PDF
-    html2pdf()
-      .from(element)
-      .save(`OPDSSJ_${clave.replace(/[\/\\]/g, '_')}.pdf`)
-      .then(() => {
-        document.body.removeChild(element);
-        mostrarToast("✅ PDF descargado correctamente", "success");
-      })
-      .catch((err) => {
-        document.body.removeChild(element);
-        throw err;
-      });
-
-  } catch (error) {
-    console.error("Error:", error);
-    mostrarToast("❌ Error al generar PDF: " + (error.message || "Error desconocido"), "error");
-  }
-}
+          // Generar PDF
+          html2pdf()
+            .from(element)
+            .save(`OPDSSJ_${clave.replace(/[\/\\]/g, "_")}.pdf`)
+            .then(() => {
+              document.body.removeChild(element);
+              mostrarToast("✅ PDF descargado correctamente", "success");
+            })
+            .catch((err) => {
+              document.body.removeChild(element);
+              throw err;
+            });
+        } catch (error) {
+          console.error("Error:", error);
+          mostrarToast(
+            "❌ Error al generar PDF: " +
+              (error.message || "Error desconocido"),
+            "error",
+          );
+        }
+      }
 
       // ==================== DETALLE ====================
       async function verDetalle(id) {
@@ -4304,15 +4402,36 @@ async function descargarPDF(id) {
         if (!fecha) return "-";
         const d = new Date(fecha);
         if (isNaN(d.getTime())) return fecha;
-        
-        const diasSemana = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-        const meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-        
+
+        const diasSemana = [
+          "domingo",
+          "lunes",
+          "martes",
+          "miércoles",
+          "jueves",
+          "viernes",
+          "sábado",
+        ];
+        const meses = [
+          "enero",
+          "febrero",
+          "marzo",
+          "abril",
+          "mayo",
+          "junio",
+          "julio",
+          "agosto",
+          "septiembre",
+          "octubre",
+          "noviembre",
+          "diciembre",
+        ];
+
         const diaSemana = diasSemana[d.getDay()];
         const dia = d.getDate();
         const mes = meses[d.getMonth()];
         const año = d.getFullYear();
-        
+
         return `${diaSemana} ${dia} de ${mes} de ${año}`;
       }
 
