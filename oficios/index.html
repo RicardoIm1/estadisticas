@@ -2443,6 +2443,7 @@
               data-stat-filter="total"
               role="button"
               tabindex="0"
+              aria-pressed="false"
               title="Mostrar todos los oficios"
               onclick="filtrarPorStat('total')"
               onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); filtrarPorStat('total'); }"
@@ -2458,6 +2459,7 @@
               data-stat-filter="pendientes"
               role="button"
               tabindex="0"
+              aria-pressed="false"
               title="Mostrar oficios pendientes"
               onclick="filtrarPorStat('pendientes')"
               onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); filtrarPorStat('pendientes'); }"
@@ -2473,6 +2475,7 @@
               data-stat-filter="respondidos"
               role="button"
               tabindex="0"
+              aria-pressed="false"
               title="Mostrar oficios respondidos o archivados"
               onclick="filtrarPorStat('respondidos')"
               onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); filtrarPorStat('respondidos'); }"
@@ -2488,6 +2491,7 @@
               data-stat-filter="vencidos"
               role="button"
               tabindex="0"
+              aria-pressed="false"
               title="Mostrar oficios vencidos"
               onclick="filtrarPorStat('vencidos')"
               onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); filtrarPorStat('vencidos'); }"
@@ -2503,6 +2507,7 @@
               data-stat-filter="urgentes"
               role="button"
               tabindex="0"
+              aria-pressed="false"
               title="Mostrar oficios de alta prioridad"
               onclick="filtrarPorStat('urgentes')"
               onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); filtrarPorStat('urgentes'); }"
@@ -3900,6 +3905,8 @@
       }
 
       // ==================== FILTROS ====================
+      // Filtro rápido de las tarjetas de estadísticas.
+      // Se integra con filtrarTabla() para conservar los filtros existentes.
       let filtroStatActivo = null;
 
       function actualizarEstadoVisualStats() {
@@ -3914,9 +3921,8 @@
       }
 
       function filtrarPorStat(tipo) {
-        // Total funciona como "limpiar filtro de tarjeta".
+        // "Total" funciona como restablecer el filtro de tarjeta.
         filtroStatActivo = tipo === "total" ? null : tipo;
-
         actualizarEstadoVisualStats();
         filtrarTabla();
       }
@@ -3930,7 +3936,7 @@
 
         let filtrados = todosLosOficios;
 
-        // Filtro rápido desde las tarjetas de estadísticas.
+        // Filtro rápido seleccionado desde una tarjeta estadística.
         if (filtroStatActivo === "pendientes") {
           filtrados = filtrados.filter(
             (o) => o.estado === "En Proceso" || o.estado === "Emitido",
@@ -3951,7 +3957,6 @@
           filtrados = filtrados.filter((o) => o.prioridad === "Alta");
         }
 
-        // Los filtros manuales siguen funcionando y se combinan con la tarjeta.
         if (busqueda) {
           filtrados = filtrados.filter(
             (o) =>
