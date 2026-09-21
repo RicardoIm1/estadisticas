@@ -858,29 +858,6 @@
         align-items: center;
         justify-content: center;
         gap: 8px;
-        cursor: pointer;
-        user-select: none;
-        transition:
-          background 0.2s ease,
-          border-color 0.2s ease,
-          transform 0.2s ease;
-      }
-
-      .stat-card:hover {
-        background: rgba(255, 255, 255, 0.07);
-        border-color: rgba(255, 255, 255, 0.08);
-        transform: translateY(-1px);
-      }
-
-      .stat-card:focus-visible {
-        outline: 2px solid rgba(255, 255, 255, 0.25);
-        outline-offset: 2px;
-      }
-
-      .stat-card.activa {
-        background: rgba(255, 255, 255, 0.09);
-        border-color: rgba(255, 255, 255, 0.18);
-        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
       }
 
       .stat-card .icon {
@@ -2438,75 +2415,35 @@
           <div id="alertasContainerTabla"></div>
 
           <div class="stats-grid" id="statsGrid">
-            <div
-              class="stat-card"
-              data-stat-filter="total"
-              role="button"
-              tabindex="0"
-              title="Mostrar todos los oficios"
-              onclick="filtrarPorStat('total')"
-              onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); filtrarPorStat('total'); }"
-            >
+            <div class="stat-card">
               <span class="icon">📄</span>
               <div class="info">
                 <div class="number" id="totalOficios">0</div>
                 <div class="label">Total</div>
               </div>
             </div>
-            <div
-              class="stat-card pendientes"
-              data-stat-filter="pendientes"
-              role="button"
-              tabindex="0"
-              title="Mostrar oficios pendientes"
-              onclick="filtrarPorStat('pendientes')"
-              onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); filtrarPorStat('pendientes'); }"
-            >
+            <div class="stat-card pendientes">
               <span class="icon">⏳</span>
               <div class="info">
                 <div class="number" id="pendientes">0</div>
                 <div class="label">Pendientes</div>
               </div>
             </div>
-            <div
-              class="stat-card respondidos"
-              data-stat-filter="respondidos"
-              role="button"
-              tabindex="0"
-              title="Mostrar oficios respondidos o archivados"
-              onclick="filtrarPorStat('respondidos')"
-              onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); filtrarPorStat('respondidos'); }"
-            >
+            <div class="stat-card respondidos">
               <span class="icon">✅</span>
               <div class="info">
                 <div class="number" id="respondidos">0</div>
                 <div class="label">Respondidos</div>
               </div>
             </div>
-            <div
-              class="stat-card vencidos"
-              data-stat-filter="vencidos"
-              role="button"
-              tabindex="0"
-              title="Mostrar oficios vencidos"
-              onclick="filtrarPorStat('vencidos')"
-              onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); filtrarPorStat('vencidos'); }"
-            >
+            <div class="stat-card vencidos">
               <span class="icon">⚠️</span>
               <div class="info">
                 <div class="number" id="vencidos">0</div>
                 <div class="label">Vencidos</div>
               </div>
             </div>
-            <div
-              class="stat-card urgentes"
-              data-stat-filter="urgentes"
-              role="button"
-              tabindex="0"
-              title="Mostrar oficios de alta prioridad"
-              onclick="filtrarPorStat('urgentes')"
-              onkeydown="if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); filtrarPorStat('urgentes'); }"
-            >
+            <div class="stat-card urgentes">
               <span class="icon">🔴</span>
               <div class="info">
                 <div class="number" id="urgentes">0</div>
@@ -3900,27 +3837,6 @@
       }
 
       // ==================== FILTROS ====================
-      let filtroStatActivo = null;
-
-      function actualizarEstadoVisualStats() {
-        document.querySelectorAll(".stat-card[data-stat-filter]").forEach((card) => {
-          const activo =
-            filtroStatActivo &&
-            card.dataset.statFilter === filtroStatActivo;
-
-          card.classList.toggle("activa", !!activo);
-          card.setAttribute("aria-pressed", activo ? "true" : "false");
-        });
-      }
-
-      function filtrarPorStat(tipo) {
-        // Total funciona como "limpiar filtro de tarjeta".
-        filtroStatActivo = tipo === "total" ? null : tipo;
-
-        actualizarEstadoVisualStats();
-        filtrarTabla();
-      }
-
       function filtrarTabla() {
         const busqueda = document
           .getElementById("buscarOficio")
@@ -3930,28 +3846,6 @@
 
         let filtrados = todosLosOficios;
 
-        // Filtro rápido desde las tarjetas de estadísticas.
-        if (filtroStatActivo === "pendientes") {
-          filtrados = filtrados.filter(
-            (o) => o.estado === "En Proceso" || o.estado === "Emitido",
-          );
-        }
-
-        if (filtroStatActivo === "respondidos") {
-          filtrados = filtrados.filter(
-            (o) => o.estado === "Respondido" || o.estado === "Archivado",
-          );
-        }
-
-        if (filtroStatActivo === "vencidos") {
-          filtrados = filtrados.filter((o) => verificarVencimiento(o));
-        }
-
-        if (filtroStatActivo === "urgentes") {
-          filtrados = filtrados.filter((o) => o.prioridad === "Alta");
-        }
-
-        // Los filtros manuales siguen funcionando y se combinan con la tarjeta.
         if (busqueda) {
           filtrados = filtrados.filter(
             (o) =>
