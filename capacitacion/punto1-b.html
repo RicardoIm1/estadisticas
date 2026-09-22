@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes">
+<title>Data Integrity · Identificación del Paciente</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+:root{
+  --bg:#05070c;
+  --bg-2:#0a0e16;
+  --panel:#0d1220;
+  --line:#1a2333;
+  --line-2:#243044;
+  --fg:#e6edf7;
+  --fg-dim:#7d8aa3;
+  --fg-dimmer:#4a5670;
+  --cyan:#00e5ff;
+  --cyan-dim:#0a4d5c;
+  --green:#00ff9d;
+  --green-dim:#0a4d33;
+  --amber:#ffb020;
+  --red:#ff3860;
+  --purple:#a78bfa;
+  --grid:rgba(0,229,255,.04);
+  --mono:'JetBrains Mono','SF Mono','Fira Code',ui-monospace,monospace;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --pad:clamp(1rem,4.5vw,4rem);
+  --max:1400px;
+}
+
+html,body{height:100%;background:var(--bg);font-family:var(--sans);color:var(--fg);overflow:hidden;-webkit-font-smoothing:antialiased}
+
+/* fondo con grid técnico global */
+body::before{
+  content:"";position:fixed;inset:0;
+  background-image:
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:48px 48px;
+  pointer-events:none;z-index:1;
+  mask-image:radial-gradient(ellipse at center,black 30%,transparent 85%);
+}
+
+.presentation{position:relative;width:100vw;height:100vh;height:100dvh;overflow:hidden;z-index:2}
+
+/* HUD superior fijo */
+.hud{position:fixed;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(1rem,3vw,2rem);font-family:var(--mono);font-size:clamp(.6rem,1.1vw,.72rem);letter-spacing:.12em;text-transform:uppercase;color:var(--fg-dim);z-index:100;border-bottom:1px solid var(--line);background:rgba(5,7,12,.85);backdrop-filter:blur(12px)}
+.hud-left,.hud-right{display:flex;align-items:center;gap:clamp(.6rem,2vw,1.5rem)}
+.hud-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hud .accent{color:var(--cyan)}
+.hud .red{color:var(--red)}
+
+/* barra de progreso fina */
+.progress{position:fixed;top:44px;left:0;right:0;height:1px;background:var(--line);z-index:100}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--cyan),var(--green));width:0;transition:width .5s cubic-bezier(.4,0,.2,1);box-shadow:0 0 8px var(--cyan)}
+
+/* slides */
+.slides{position:relative;width:100%;height:100%;padding-top:45px}
+.slide{position:absolute;inset:45px 0 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--pad);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .5s ease,transform .5s ease;overflow-y:auto;overflow-x:hidden}
+.slide.active{opacity:1;visibility:visible;pointer-events:auto}
+.slide::-webkit-scrollbar{width:3px}
+.slide::-webkit-scrollbar-thumb{background:var(--line-2)}
+
+.wrap{width:100%;max-width:var(--max);display:flex;flex-direction:column;gap:clamp(1.2rem,3vh,2.2rem);position:relative;z-index:2}
+
+/* etiqueta de sección */
+.tag{font-family:var(--mono);font-size:clamp(.65rem,1.1vw,.75rem);letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);display:flex;align-items:center;gap:.7rem}
+.tag::before{content:"";width:24px;height:1px;background:var(--cyan);box-shadow:0 0 6px var(--cyan)}
+.tag .num{color:var(--fg-dim)}
+
+/* tipografía */
+h1{font-size:clamp(2.2rem,7.5vw,6rem);font-weight:800;letter-spacing:-.04em;line-height:.95}
+h2{font-size:clamp(1.4rem,4vw,2.8rem);font-weight:700;letter-spacing:-.02em;line-height:1.05}
+h3{font-size:clamp(1rem,2.2vw,1.5rem);font-weight:600;letter-spacing:-.01em}
+p,.txt{font-size:clamp(.9rem,1.7vw,1.15rem);line-height:1.5;color:var(--fg-dim);max-width:70ch}
+.mono{font-family:var(--mono)}
+.cyan{color:var(--cyan)}.green{color:var(--green)}.amber{color:var(--amber)}.red{color:var(--red)}.purple{color:var(--purple)}
+.dim{color:var(--fg-dim)}
+
+/* ============ SLIDE 1 · PORTADA ============ */
+.hero{display:grid;grid-template-columns:1fr;gap:clamp(1.5rem,4vw,3rem);align-items:center}
+@media(min-width:900px){.hero{grid-template-columns:1.3fr 1fr}}
+
+.hero-left h1{margin-bottom:1.2rem}
+.hero-left h1 .hl{color:var(--cyan);position:relative;display:inline-block}
+.hero-left h1 .hl::after{content:"";position:absolute;left:0;bottom:.08em;width:100%;height:.12em;background:var(--cyan);opacity:.25}
+.hero-meta{font-family:var(--mono);font-size:clamp(.7rem,1.2vw,.82rem);letter-spacing:.1em;color:var(--fg-dim);display:flex;flex-wrap:wrap;gap:.5rem 1.5rem;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--line)}
+.hero-meta span{display:flex;align-items:center;gap:.5rem}
+.hero-meta .k{color:var(--fg-dimmer)}
+
+/* panel de datos animado */
+.data-panel{background:var(--panel);border:1px solid var(--line-2);border-radius:4px;padding:clamp(1rem,2vw,1.5rem);font-family:var(--mono);font-size:clamp(.65rem,1.1vw,.78rem);position:relative;overflow:hidden}
+.data-panel::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--cyan),var(--green),transparent)}
+.data-panel .p-head{display:flex;justify-content:space-between;color:var(--fg-dimmer);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1rem;font-size:.9em}
+.data-panel .p-row{display:flex;justify-content:space-between;padding:.45rem 0;border-bottom:1px dashed var(--line);color:var(--fg-dim)}
+.data-panel .p-row:last-child{border-bottom:none}
+.data-panel .p-row .v{color:var(--cyan);font-weight:600}
+.data-panel .p-row .v.ok{color:var(--green)}
+.data-panel .p-row .v.warn{color:var(--amber)}
+.data-panel .p-row .v.err{color:var(--red)}
+
+/* ============ SLIDE 2 · PIPELINE ============ */
+.pipe{display:grid;grid-template-columns:1fr;gap:1rem;position:relative}
+@media(min-width:800px){.pipe{grid-template-columns:repeat(5,1fr)}}
+.pipe-node{background:var(--panel);border:1px solid var(--line-2);padding:clamp(1rem,2vw,1.4rem);position:relative;transition:.3s;border-top:2px solid var(--line-2)}
+.pipe-node:hover{border-top-color:var(--cyan);background:#0f1626}
+.pipe-node .idx{font-family:var(--mono);font-size:.7rem;color:var(--fg-dimmer);letter-spacing:.15em}
+.pipe-node .ico{margin:.6rem 0;color:var(--cyan);height:28px}
+.pipe-node .ttl{font-size:clamp(.85rem,1.4vw,1rem);font-weight:600;color:var(--fg);margin-bottom:.4rem}
+.pipe-node .dsc{font-size:clamp(.72rem,1.15vw,.82rem);color:var(--fg-dim);line-height:1.4}
+.pipe-node .bar{position:absolute;bottom:0;left:0;height:2px;background:var(--cyan);width:0;transition:width 1.2s ease .2s}
+.pipe-node.active .bar{width:100%}
+
+/* ============ SLIDE 3 · TABLA ============ */
+.tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:clamp(.7rem,1.3vw,.88rem);background:var(--panel);border:1px solid var(--line-2)}
+.tbl th{background:#0a0f1c;color:var(--cyan);text-align:left;padding:clamp(.7rem,1.5vw,1rem);font-weight:600;letter-spacing:.12em;text-transform:uppercase;font-size:.85em;border-bottom:1px solid var(--line-2)}
+.tbl td{padding:clamp(.7rem,1.5vw,1rem);border-bottom:1px solid var(--line);color:var(--fg-dim);vertical-align:top}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:rgba(0,229,255,.03);color:var(--fg)}
+.tbl .k{color:var(--fg);font-weight:600}
+.pill{display:inline-block;padding:.15rem .5rem;border:1px solid;font-size:.8em;letter-spacing:.08em;font-weight:600;border-radius:2px}
+.pill.p{color:var(--cyan);border-color:var(--cyan-dim);background:rgba(0,229,255,.05)}
+.pill.g{color:var(--green);border-color:var(--green-dim);background:rgba(0,255,157,.05)}
+.pill.r{color:var(--red);border-color:rgba(255,56,96,.3);background:rgba(255,56,96,.05)}
+.pill.a{color:var(--amber);border-color:rgba(255,176,32,.3);background:rgba(255,176,32,.05)}
+
+/* ============ SLIDE 4 · KPIs ============ */
+.kpis{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line-2);border:1px solid var(--line-2)}
+@media(min-width:600px){.kpis{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1000px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.kpi{background:var(--panel);padding:clamp(1.2rem,2.5vw,2rem);display:flex;flex-direction:column;gap:.6rem;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;top:0;left:0;width:100%;height:2px;background:var(--line-2)}
+.kpi.c::after{background:var(--cyan);box-shadow:0 0 10px var(--cyan)}
+.kpi.g::after{background:var(--green);box-shadow:0 0 10px var(--green)}
+.kpi.a::after{background:var(--amber);box-shadow:0 0 10px var(--amber)}
+.kpi.r::after{background:var(--red);box-shadow:0 0 10px var(--red)}
+.kpi .lab{font-family:var(--mono);font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;color:var(--fg-dimmer)}
+.kpi .val{font-family:var(--mono);font-size:clamp(2rem,4.5vw,3.2rem);font-weight:800;letter-spacing:-.03em;line-height:1}
+.kpi .sub{font-size:clamp(.72rem,1.15vw,.82rem);color:var(--fg-dim);line-height:1.35}
+
+/* sparkline SVG */
+.spark{width:100%;height:32px;margin-top:.3rem}
+
+/* ============ SLIDE 5 · RIESGOS ============ */
+.risks{display:grid;grid-template-columns:1fr;gap:1rem}
+@media(min-width:700px){.risks{grid-template-columns:repeat(2,1fr)}}
+.risk{background:var(--panel);border:1px solid var(--line-2);border-left:3px solid var(--red);padding:clamp(1rem,2vw,1.5rem);display:flex;flex-direction:column;gap:.6rem;transition:.25s;position:relative}
+.risk:hover{background:#12080f;border-left-color:var(--red);transform:translateX(4px)}
+.risk .code{font-family:var(--mono);font-size:.7rem;color:var(--red);letter-spacing:.15em}
+.risk .ttl{font-size:clamp(.95rem,1.6vw,1.1rem);font-weight:700;color:var(--fg)}
+.risk .dsc{font-size:clamp(.78rem,1.3vw,.9rem);color:var(--fg-dim);line-height:1.45}
+.risk .metric{font-family:var(--mono);font-size:.72rem;color:var(--fg-dimmer);border-top:1px dashed var(--line);padding-top:.6rem;margin-top:auto;display:flex;justify-content:space-between}
+
+/* ============ SLIDE 6 · ADMIN ============ */
+.admin-grid{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line-2);border:1px solid var(--line-2)}
+@media(min-width:800px){.admin-grid{grid-template-columns:1.1fr 1fr}}
+.admin-list{background:var(--panel);padding:clamp(1rem,2vw,1.6rem)}
+.admin-item{display:flex;gap:1rem;padding:.9rem 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.admin-item:last-child{border-bottom:none}
+.admin-item .n{font-family:var(--mono);color:var(--green);font-size:.8rem;font-weight:700;min-width:28px;padding-top:.15rem}
+.admin-item .c strong{color:var(--fg);font-weight:600}
+.admin-item .c{font-size:clamp(.82rem,1.35vw,.95rem);color:var(--fg-dim);line-height:1.45}
+
+/* bloque de sistema SAMIH */
+.system-panel{background:#080b12;padding:clamp(1.2rem,2.5vw,2rem);display:flex;flex-direction:column;gap:1rem;font-family:var(--mono);font-size:clamp(.7rem,1.2vw,.82rem)}
+.system-panel .s-head{display:flex;align-items:center;gap:.6rem;color:var(--green);letter-spacing:.15em;text-transform:uppercase;font-size:.8em}
+.system-panel .s-head .dot{width:6px;height:6px;background:var(--green);border-radius:50%;box-shadow:0 0 8px var(--green);animation:pulse 2s infinite}
+.sys-line{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px dashed var(--line);color:var(--fg-dim)}
+.sys-line .v{color:var(--fg);font-weight:600}
+.sys-line .v.g{color:var(--green)}
+
+/* ============ SLIDE 7 · ESTADÍSTICA ============ */
+.stats{display:grid;grid-template-columns:1fr;gap:clamp(1rem,2.5vw,2rem)}
+@media(min-width:900px){.stats{grid-template-columns:1fr 1fr}}
+.stat-block{background:var(--panel);border:1px solid var(--line-2);padding:clamp(1.2rem,2.5vw,2rem)}
+.stat-block h3{margin-bottom:1.2rem;color:var(--fg);font-family:var(--mono);font-size:clamp(.8rem,1.3vw,.95rem);letter-spacing:.12em;text-transform:uppercase;font-weight:600;display:flex;align-items:center;gap:.6rem}
+.stat-block h3 .dot{width:6px;height:6px;background:var(--amber);border-radius:50%}
+.stat-row{display:grid;grid-template-columns:1fr auto;gap:.4rem .8rem;margin-bottom:1rem;align-items:center}
+.stat-row .nm{font-size:clamp(.78rem,1.3vw,.9rem);color:var(--fg-dim)}
+.stat-row .vl{font-family:var(--mono);font-size:clamp(.82rem,1.4vw,.95rem);font-weight:700;color:var(--amber);text-align:right}
+.stat-row .track{grid-column:1/-1;height:4px;background:var(--line);position:relative;overflow:hidden}
+.stat-row .fill{position:absolute;inset:0;width:0;background:linear-gradient(90deg,var(--amber),var(--red));transition:width 1.4s cubic-bezier(.4,0,.2,1)}
+
+/* gráfico de dona */
+.donut-wrap{display:flex;align-items:center;justify-content:center;gap:clamp(1rem,3vw,2rem);flex-wrap:wrap}
+.donut{position:relative;width:clamp(140px,20vw,180px);height:clamp(140px,20vw,180px)}
+.donut svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut .center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.donut .center .n{font-family:var(--mono);font-size:clamp(1.4rem,3vw,2rem);font-weight:800;color:var(--green)}
+.donut .center .l{font-family:var(--mono);font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--fg-dim);margin-top:.2rem}
+.legend{display:flex;flex-direction:column;gap:.6rem;font-family:var(--mono);font-size:clamp(.72rem,1.15vw,.82rem)}
+.legend .li{display:flex;align-items:center;gap:.6rem;color:var(--fg-dim)}
+.legend .sw{width:10px;height:10px;border:1px solid}
+
+/* ============ SLIDE 8 · ARCHIVO ============ */
+.archive{display:grid;grid-template-columns:1fr;gap:1px;background:var(--line-2);border:1px solid var(--line-2)}
+@media(min-width:700px){.archive{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1100px){.archive{grid-template-columns:repeat(3,1fr)}}
+.arc{background:var(--panel);padding:clamp(1.2rem,2.5vw,1.8rem);display:flex;flex-direction:column;gap:.7rem;transition:.25s}
+.arc:hover{background:#0f1626}
+.arc .code{font-family:var(--mono);font-size:.68rem;color:var(--purple);letter-spacing:.15em}
+.arc .ttl{font-size:clamp(.9rem,1.5vw,1.05rem);font-weight:700;color:var(--fg)}
+.arc .dsc{font-size:clamp(.75rem,1.25vw,.86rem);color:var(--fg-dim);line-height:1.45}
+.arc .micro{font-family:var(--mono);font-size:.68rem;color:var(--fg-dimmer);border-top:1px dashed var(--line);padding-top:.6rem;margin-top:auto;letter-spacing:.08em}
+
+/* ============ SLIDE 9 · CIERRE ============ */
+.close-grid{display:grid;grid-template-columns:1fr;gap:clamp(1.5rem,4vw,3rem);align-items:center}
+@media(min-width:900px){.close-grid{grid-template-columns:1.2fr 1fr}}
+.close-quote{font-size:clamp(1rem,2vw,1.35rem);line-height:1.55;color:var(--fg-dim);font-style:italic;border-left:2px solid var(--cyan);padding-left:1.4rem}
+.close-quote .src{display:block;margin-top:1rem;font-style:normal;font-family:var(--mono);font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;color:var(--cyan)}
+.final-call{font-family:var(--mono);font-size:clamp(.78rem,1.3vw,.9rem);letter-spacing:.1em;color:var(--fg-dim);text-transform:uppercase;display:flex;flex-direction:column;gap:.6rem;margin-top:1.5rem}
+.final-call .li{display:flex;gap:.7rem;align-items:center}
+.final-call .li::before{content:"▸";color:var(--green)}
+
+/* ============ NAV ============ */
+.nav{position:fixed;bottom:clamp(1rem,3vh,2rem);left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:1rem;z-index:200;background:rgba(5,7,12,.85);border:1px solid var(--line-2);padding:.5rem .8rem;border-radius:2px;backdrop-filter:blur(12px)}
+.nav button{background:transparent;border:1px solid var(--line-2);color:var(--fg-dim);width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-family:var(--mono);font-size:1rem;transition:.2s;border-radius:2px}
+.nav button:hover:not(:disabled){border-color:var(--cyan);color:var(--cyan);background:rgba(0,229,255,.06)}
+.nav button:disabled{opacity:.25;cursor:not-allowed}
+.nav .count{font-family:var(--mono);font-size:.75rem;color:var(--fg-dim);letter-spacing:.1em;min-width:60px;text-align:center}
+.nav .count .c{color:var(--cyan);font-weight:700}
+
+@media(max-width:600px){
+  .hud-right .hide-sm{display:none}
+  .nav{gap:.5rem;padding:.35rem .5rem}
+}
+</style>
+</head>
+<body>
+
+<div class="hud">
+  <div class="hud-left">
+    <span class="hud-dot"></span>
+    <span>DATA INTEGRITY · <span class="accent">AESP-1</span></span>
+  </div>
+  <div class="hud-right">
+    <span class="hide-sm">SISTEMA: <span class="accent">SAMIH</span></span>
+    <span class="hide-sm">UPTIME: <span class="accent">99.98%</span></span>
+    <span id="clock" class="accent">--:--:--</span>
+  </div>
+</div>
+<div class="progress"><div class="progress-fill" id="progress"></div></div>
+
+<div class="presentation">
+<div class="slides" id="slides">
+
+  <!-- ============ 01 · PORTADA ============ -->
+  <section class="slide active">
+    <div class="wrap">
+      <div class="hero">
+        <div class="hero-left">
+          <div class="tag"><span class="num">01</span> / Identidad como dato</div>
+          <h1>EL PACIENTE<br>ES UN <span class="hl">REGISTRO</span><br>ÚNICO.</h1>
+          <p style="margin-top:1.5rem;max-width:52ch">
+            Cada nombre y cada fecha de nacimiento son claves primarias que sostienen
+            la seguridad clínica, la estadística hospitalaria y el archivo médico.
+            Si el dato falla, falla todo el sistema.
+          </p>
+          <div class="hero-meta">
+            <span><span class="k">PONENTE</span> Lic. Enf. Guadalupe Quintana Cervantes</span>
+            <span><span class="k">MÓDULO</span> Acción Esencial 1</span>
+            <span><span class="k">VERSIÓN</span> 2023-2</span>
+          </div>
+        </div>
+        <div class="data-panel">
+          <div class="p-head"><span>REGISTRO EN VIVO</span><span class="green">● ACTIVO</span></div>
+          <div class="p-row"><span>nombre_completo</span><span class="v ok">VALIDEZ OK</span></div>
+          <div class="p-row"><span>fecha_nacimiento</span><span class="v ok">VALIDEZ OK</span></div>
+          <div class="p-row"><span>num_cama</span><span class="v err">NO ES ID</span></div>
+          <div class="p-row"><span>diagnostico</span><span class="v warn">VARIABLE</span></div>
+          <div class="p-row"><span>num_expediente</span><span class="v">INDEXADO</span></div>
+          <div class="p-row"><span>brazalete_fisico</span><span class="v ok">PRESENTE</span></div>
+          <div class="p-row"><span>hash_paciente</span><span class="v">0x7F3A…C9E2</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 · PIPELINE ============ -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="tag"><span class="num">02</span> / Flujo del dato</div>
+      <h2>Del brazalete al <span class="cyan">indicador</span>.</h2>
+      <p>El dato de identificación recorre cinco etapas. En cada una se puede degradar o consolidar la seguridad del paciente.</p>
+      <div class="pipe" id="pipe">
+        <div class="pipe-node">
+          <div class="idx">FASE 01</div>
+          <div class="ico">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+          </div>
+          <div class="ttl">Captura</div>
+          <div class="dsc">Interrogatorio directo o fuente secundaria. Nombre completo + fecha de nacimiento.</div>
+          <div class="bar"></div>
+        </div>
+        <div class="pipe-node">
+          <div class="idx">FASE 02</div>
+          <div class="ico">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg>
+          </div>
+          <div class="ttl">Validación</div>
+          <div class="dsc">Doble verificación documental y verbal contra credencial oficial.</div>
+          <div class="bar"></div>
+        </div>
+        <div class="pipe-node">
+          <div class="idx">FASE 03</div>
+          <div class="ico">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="6" rx="9" ry="3"/><path d="M3 6v12c0 1.7 4 3 9 3s9-1.3 9-3V6"/><path d="M3 12c0 1.7 4 3 9 3s9-1.3 9-3"/></svg>
+          </div>
+          <div class="ttl">Almacenamiento</div>
+          <div class="dsc">Registro en SAMIH, libreta de movimientos y expediente físico.</div>
+          <div class="bar"></div>
+        </div>
+        <div class="pipe-node">
+          <div class="idx">FASE 04</div>
+          <div class="ico">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M7 14l3-3 3 3 5-6"/></svg>
+          </div>
+          <div class="ttl">Análisis</div>
+          <div class="dsc">Estadística de morbilidad, ocupación, eventos adversos y trazabilidad.</div>
+          <div class="bar"></div>
+        </div>
+        <div class="pipe-node">
+          <div class="idx">FASE 05</div>
+          <div class="ico">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="ttl">Seguridad</div>
+          <div class="dsc">Prevención de eventos centinela. El dato correcto es la primera barrera.</div>
+          <div class="bar"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 · TABLA DE IDENTIFICADORES ============ -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="tag"><span class="num">03</span> / Estructura del dato</div>
+      <h2>Qué identifica y qué <span class="red">no</span>.</h2>
+      <p>No todos los campos del expediente son identificadores. Confundirlos es el origen del error.</p>
+      <div style="overflow-x:auto">
+      <table class="tbl">
+        <thead>
+          <tr><th>Campo</th><th>Formato</th><th>Rol en el sistema</th><th>Uso analítico</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="k">nombre_completo</td>
+            <td>Nombre(s) + Ap. paterno + Ap. materno</td>
+            <td><span class="pill p">CLAVE PRIMARIA</span></td>
+            <td>Identificación única · Búsqueda · Vinculación</td>
+          </tr>
+          <tr>
+            <td class="k">fecha_nacimiento</td>
+            <td>DD / MM / AAAA</td>
+            <td><span class="pill p">CLAVE PRIMARIA</span></td>
+            <td>Cálculo de edad · Segmentación · Epidemiología</td>
+          </tr>
+          <tr>
+            <td class="k">num_expediente</td>
+            <td>Folio institucional</td>
+            <td><span class="pill g">ADMINISTRATIVO</span></td>
+            <td>Indexación · Archivo clínico · Auditoría</td>
+          </tr>
+          <tr>
+            <td class="k">num_cama</td>
+            <td>Variable por traslado</td>
+            <td><span class="pill r">NO IDENTIFICA</span></td>
+            <td>Recurso físico · Ocupación hospitalaria</td>
+          </tr>
+          <tr>
+            <td class="k">diagnostico</td>
+            <td>CIE-10 / CIE-11</td>
+            <td><span class="pill a">DATO CLÍNICO</span></td>
+            <td>Morbilidad · Mortalidad · No identifica</td>
+          </tr>
+        </tbody>
+      </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 04 · KPIs ============ -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="tag"><span class="num">04</span> / Indicadores</div>
+      <h2>La identificación se <span class="green">mide</span>.</h2>
+      <p>Cuatro indicadores que traducen la identificación correcta en resultados operativos.</p>
+      <div class="kpis">
+        <div class="kpi g">
+          <div class="lab">EVENTOS CENTINELA</div>
+          <div class="val green">0</div>
+          <div class="sub">Por error de identificación en el periodo</div>
+          <svg class="spark" viewBox="0 0 100 32" preserveAspectRatio="none"><polyline points="0,28 20,28 40,28 60,28 80,28 100,28" fill="none" stroke="#00ff9d" stroke-width="1.5"/></svg>
+        </div>
+        <div class="kpi c">
+          <div class="lab">COBERTURA BRAZALETE</div>
+          <div class="val cyan">100%</div>
+          <div class="sub">Pacientes hospitalizados identificados</div>
+          <svg class="spark" viewBox="0 0 100 32" preserveAspectRatio="none"><polyline points="0,28 20,22 40,18 60,12 80,6 100,4" fill="none" stroke="#00e5ff" stroke-width="1.5"/></svg>
+        </div>
+        <div class="kpi a">
+          <div class="lab">PROPORCIÓN NOMBRE</div>
+          <div class="val amber">2:1</div>
+          <div class="sub">Tamaño frente al resto de la ficha</div>
+          <svg class="spark" viewBox="0 0 100 32" preserveAspectRatio="none"><polyline points="0,20 25,20 50,10 75,10 100,20" fill="none" stroke="#ffb020" stroke-width="1.5"/></svg>
+        </div>
+        <div class="kpi r">
+          <div class="lab">PERSONAL CAPACITADO</div>
+          <div class="val red">100%</div>
+          <div class="sub">En AESP-1 · Meta institucional</div>
+          <svg class="spark" viewBox="0 0 100 32" preserveAspectRatio="none"><polyline points="0,30 20,26 40,18 60,12 80,8 100,4" fill="none" stroke="#ff3860" stroke-width="1.5"/></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 · RIESGOS ============ -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="tag"><span class="num">05</span> / Puntos de falla</div>
+      <h2>Cuando el dato falla, el <span class="red">daño es real</span>.</h2>
+      <p>Seis escenarios documentados donde la identificación incorrecta produjo un evento adverso.</p>
+      <div class="risks">
+        <div class="risk">
+          <div class="code">ERR-01 · HOMÓNIMOS</div>
+          <div class="ttl">Dosis letal de insulina</div>
+          <div class="dsc">Dos pacientes con apellidos idénticos. Se omitió verificar la fecha de nacimiento porque "ya se conocía al paciente".</div>
+          <div class="metric"><span>SEVERIDAD</span><span class="red">CENTINELA</span></div>
+        </div>
+        <div class="risk">
+          <div class="code">ERR-02 · INCONSCIENTE</div>
+          <div class="ttl">Transfusión a paciente equivocado</div>
+          <div class="dsc">Paciente intubado. Se administró hemoderivado guiándose solo por la camilla de traslado, sin confrontar el brazalete.</div>
+          <div class="metric"><span>SEVERIDAD</span><span class="red">CENTINELA</span></div>
+        </div>
+        <div class="risk">
+          <div class="code">ERR-03 · QUIRÓFANO</div>
+          <div class="ttl">Artroscopia en rodilla errónea</div>
+          <div class="dsc">El expediente decía "izquierda", el brazalete estaba cubierto por la bata. El equipo asumió por posición en camilla.</div>
+          <div class="metric"><span>SEVERIDAD</span><span class="red">CENTINELA</span></div>
+        </div>
+        <div class="risk">
+          <div class="code">ERR-04 · LABORATORIO</div>
+          <div class="ttl">Muestras cruzadas</div>
+          <div class="dsc">Rotulación en central de enfermería en lugar de a pie de cama. Sangre correcta, etiqueta de la cama vecina.</div>
+          <div class="metric"><span>SEVERIDAD</span><span class="amber">ALTO</span></div>
+        </div>
+        <div class="risk">
+          <div class="code">ERR-05 · DIETA</div>
+          <div class="ttl">Choque anafiláctico</div>
+          <div class="dsc">Entrega de charola basada solo en número de habitación. Paciente alérgico recibe alimento de su compañero.</div>
+          <div class="metric"><span>SEVERIDAD</span><span class="red">CENTINELA</span></div>
+        </div>
+        <div class="risk">
+          <div class="code">ERR-06 · DEFUNCIÓN</div>
+          <div class="ttl">Cadáver mal identificado</div>
+          <div class="dsc">Omisión de los dos membretes obligatorios. La pulsera debe permanecer hasta que el cuerpo salga de la unidad.</div>
+          <div class="metric"><span>SEVERIDAD</span><span class="amber">ALTO</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 · ADMINISTRACIÓN ============ -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="tag"><span class="num">06</span> / Uso administrativo</div>
+      <h2>El dato correcto <span class="green">gobierna</span> el hospital.</h2>
+      <p>Sin identificación válida, ningún proceso administrativo puede auditarse con confianza.</p>
+      <div class="admin-grid">
+        <div class="admin-list">
+          <div class="admin-item"><span class="n">01</span><span class="c"><strong>Admisión.</strong> Registro en libreta, hoja de movimiento diario y SAMIH.</span></div>
+          <div class="admin-item"><span class="n">02</span><span class="c"><strong>Asignación de recursos.</strong> Cama, servicio y personal responsable. La cama es recurso, no identidad.</span></div>
+          <div class="admin-item"><span class="n">03</span><span class="c"><strong>Facturación.</strong> Vinculación de procedimientos a la historia clínica correcta.</span></div>
+          <div class="admin-item"><span class="n">04</span><span class="c"><strong>Auditoría.</strong> Trazabilidad de cada medicamento, estudio y procedimiento.</span></div>
+          <div class="admin-item"><span class="n">05</span><span class="c"><strong>Reportes.</strong> Productividad por servicio, turno y diagnóstico.</span></div>
+        </div>
+        <div class="system-panel">
+          <div class="s-head"><span class="dot"></span> SAMIH · EXPEDIENTE ELECTRÓNICO</div>
+          <div class="sys-line"><span>paciente_id</span><span class="v g">0x7F3A…C9E2</span></div>
+          <div class="sys-line"><span>nombre_completo</span><span class="v g">VALIDEZ OK</span></div>
+          <div class="sys-line"><span>fecha_nacimiento</span><span class="v g">VALIDEZ OK</span></div>
+          <div class="sys-line"><span>num_expediente</span><span class="v">EXP-2024-018742</span></div>
+          <div class="sys-line"><span>servicio</span><span class="v">HOSPITALIZACIÓN</span></div>
+          <div class="sys-line"><span>cama</span><span class="v">R-04</span></div>
+          <div class="sys-line"><span>estado_registro</span><span class="v g">CONSISTENTE</span></div>
+          <div class="sys-line"><span>ultima_verificacion</span><span class="v" id="lastCheck">--:--:--</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 07 · ESTADÍSTICA ============ -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="tag"><span class="num">07</span> / Estadística e investigación</div>
+      <h2>Sin dato limpio, no hay <span class="amber">ciencia</span>.</h2>
+      <p>La validez estadística depende de la validez del registro primario.</p>
+      <div class="stats">
+        <div class="stat-block">
+          <h3><span class="dot"></span> COBERTURA POR PROCESO</h3>
+          <div class="stat-row"><span class="nm">Morbilidad por servicio</span><span class="vl">100%</span><div class="track"><div class="fill" data-w="100"></div></div></div>
+          <div class="stat-row"><span class="nm">Mortalidad hospitalaria</span><span class="vl">100%</span><div class="track"><div class="fill" data-w="100"></div></div></div>
+          <div class="stat-row"><span class="nm">Eventos adversos detectados</span><span class="vl">100%</span><div class="track"><div class="fill" data-w="100"></div></div></div>
+          <div class="stat-row"><span class="nm">Ocupación hospitalaria</span><span class="vl">100%</span><div class="track"><div class="fill" data-w="100"></div></div></div>
+          <div class="stat-row"><span class="nm">Trazabilidad de muestras</span><span class="vl">100%</span><div class="track"><div class="fill" data-w="100"></div></div></div>
+          <div class="stat-row"><span class="nm">Concordancia expediente–brazalete</span><span class="vl">100%</span><div class="track"><div class="fill" data-w="100"></div></div></div>
+        </div>
+        <div class="stat-block">
+          <h3><span class="dot" style="background:var(--cyan)"></span> TRAZABILIDAD DEL REGISTRO</h3>
+          <div class="donut-wrap">
+            <div class="donut">
+              <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="42" fill="none" stroke="#1a2333" stroke-width="8"/>
+                <circle cx="50" cy="50" r="42" fill="none" stroke="#00ff9d" stroke-width="8"
+                  stroke-dasharray="263.9" stroke-dashoffset="0"
+                  stroke-linecap="round" id="donutArc"/>
+              </svg>
+              <div class="center"><div class="n">100%</div><div class="l">TRAZABLE</div></div>
+            </div>
+            <div class="legend">
+              <div class="li"><span class="sw" style="border-color:#00ff9d;background:rgba(0,255,157,.15)"></span> Registro validado</div>
+              <div class="li"><span class="sw" style="border-color:#1a2333"></span> Sin trazabilidad</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 08 · ARCHIVO CLÍNICO ============ -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="tag"><span class="num">08</span> / Archivo clínico</div>
+      <h2>El dato correcto es la <span class="purple">llave</span>.</h2>
+      <p>Todo acceso al expediente depende de la coincidencia entre nombre completo y fecha de nacimiento.</p>
+      <div class="archive">
+        <div class="arc">
+          <div class="code">ARC-01 · FÍSICO</div>
+          <div class="ttl">Expediente en papel</div>
+          <div class="dsc">Organizado por número de expediente y datos del paciente. Búsqueda manual en archivo.</div>
+          <div class="micro">INDEXACIÓN: MANUAL</div>
+        </div>
+        <div class="arc">
+          <div class="code">ARC-02 · DIGITAL</div>
+          <div class="ttl">SAMIH</div>
+          <div class="dsc">Sistema de Administración Médica e Información Hospitalaria. Expediente electrónico.</div>
+          <div class="micro">INDEXACIÓN: AUTOMÁTICA</div>
+        </div>
+        <div class="arc">
+          <div class="code">ARC-03 · RECUPERACIÓN</div>
+          <div class="ttl">Búsqueda precisa</div>
+          <div class="dsc">Por nombre completo + fecha de nacimiento. Reduce falsos positivos por homonimia.</div>
+          <div class="micro">TIEMPO: &lt; 3 SEG</div>
+        </div>
+        <div class="arc">
+          <div class="code">ARC-04 · RETENCIÓN</div>
+          <div class="ttl">Conservación normativa</div>
+          <div class="dsc">Periodos definidos por normatividad. Trazabilidad de cada atención.</div>
+          <div class="micro">NORMA: VIGENTE</div>
+        </div>
+        <div class="arc">
+          <div class="code">ARC-05 · CONFIDENCIALIDAD</div>
+          <div class="ttl">Acceso controlado</div>
+          <div class="dsc">Solo personal autorizado. Datos sensibles protegidos bajo resguardo institucional.</div>
+          <div class="micro">NIVEL: RESTRINGIDO</div>
+        </div>
+        <div class="arc">
+          <div class="code">ARC-06 · INTEROPERABILIDAD</div>
+          <div class="ttl">Referencia y contrarreferencia</div>
+          <div class="dsc">Envío estructurado de datos entre instituciones. El identificador viaja con el paciente.</div>
+          <div class="micro">FORMATO: HL7 / FHIR</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 09 · CIERRE ============ -->
+  <section class="slide">
+    <div class="wrap">
+      <div class="tag"><span class="num">09</span> / Cierre</div>
+      <div class="close-grid">
+        <div>
+          <h1 style="font-size:clamp(1.8rem,5.5vw,4rem)">DATOS <span class="cyan">CORRECTOS</span>.<br>VIDAS <span class="green">SEGURAS</span>.</h1>
+          <div class="final-call">
+            <div class="li">Verificar nombre completo + fecha de nacimiento</div>
+            <div class="li">Confrontar el brazalete a pie de cama</div>
+            <div class="li">Registrar en SAMIH y en el archivo clínico</div>
+            <div class="li">Detener el proceso si el dato no coincide</div>
+          </div>
+        </div>
+        <div class="close-quote">
+          "Hacerlo correcto quiere decir que la persona tiene bien establecido cómo hacer sus procedimientos, porque tiene una base científica. Se ejecuta el cuidado cuando ya está validado por alguien más, y el momento oportuno es de acuerdo al juicio clínico de cada profesional."
+          <span class="src">— Henry Ford · aplicado a la seguridad del paciente</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+</div>
+
+<div class="nav">
+  <button id="prev" aria-label="Anterior">‹</button>
+  <div class="count"><span class="c" id="cur">01</span> / <span id="tot">09</span></div>
+  <button id="next" aria-label="Siguiente">›</button>
+</div>
+
+<script>
+(function(){
+  const slides=document.querySelectorAll('.slide');
+  const prev=document.getElementById('prev');
+  const next=document.getElementById('next');
+  const cur=document.getElementById('cur');
+  const tot=document.getElementById('tot');
+  const progress=document.getElementById('progress');
+  const clock=document.getElementById('clock');
+  const lastCheck=document.getElementById('lastCheck');
+  let i=0;
+  const n=slides.length;
+  tot.textContent=String(n).padStart(2,'0');
+
+  function update(){
+    slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+    cur.textContent=String(i+1).padStart(2,'0');
+    progress.style.width=((i+1)/n*100)+'%';
+    prev.disabled=i===0;
+    next.disabled=i===n-1;
+
+    // animar barras de estadística
+    const active=slides[i];
+    active.querySelectorAll('.fill').forEach(f=>{
+      const w=f.dataset.w||100;
+      f.style.width='0%';
+      requestAnimationFrame(()=>{setTimeout(()=>{f.style.width=w+'%'},80)});
+    });
+    // animar pipeline
+    active.querySelectorAll('.pipe-node').forEach((nd,k)=>{
+      nd.classList.remove('active');
+      setTimeout(()=>nd.classList.add('active'),120*k);
+    });
+    // donut
+    const arc=active.querySelector('#donutArc');
+    if(arc){arc.style.transition='none';arc.style.strokeDashoffset='263.9';requestAnimationFrame(()=>{arc.style.transition='stroke-dashoffset 1.4s cubic-bezier(.4,0,.2,1)';arc.style.strokeDashoffset='0';});}
+  }
+
+  function go(k){i=Math.max(0,Math.min(n-1,k));update();}
+  next.onclick=()=>go(i+1);
+  prev.onclick=()=>go(i-1);
+  document.addEventListener('keydown',e=>{
+    if(['ArrowRight','ArrowDown',' '].includes(e.key)){e.preventDefault();go(i+1);}
+    else if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(i-1);}
+    else if(e.key==='Home'){e.preventDefault();go(0);}
+    else if(e.key==='End'){e.preventDefault();go(n-1);}
+  });
+  let tx=0,ty=0;
+  document.addEventListener('touchstart',e=>{tx=e.changedTouches[0].screenX;ty=e.changedTouches[0].screenY;},{passive:true});
+  document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].screenX-tx, dy=e.changedTouches[0].screenY-ty;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>50){dx>0?go(i-1):go(i+1);}
+  },{passive:true});
+
+  // reloj y última verificación
+  function tick(){
+    const d=new Date();
+    const t=[d.getHours(),d.getMinutes(),d.getSeconds()].map(x=>String(x).padStart(2,'0')).join(':');
+    if(clock)clock.textContent=t;
+    if(lastCheck)lastCheck.textContent=t;
+  }
+  tick();setInterval(tick,1000);
+
+  update();
+  document.body.style.overflow='hidden';
+})();
+</script>
+</body>
+</html>
