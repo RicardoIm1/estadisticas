@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="es-MX">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Médicos Adscritos | HRPV</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    :root{
+      --bg-1:#eef4f7;
+      --bg-2:#dce8ee;
+      --ink:#243746;
+      --muted:#667985;
+      --line:rgba(255,255,255,.72);
+      --glass:rgba(255,255,255,.68);
+      --glass-strong:rgba(255,255,255,.84);
+      --accent:#2f6f8f;
+      --accent-dark:#24566f;
+      --success:#287d55;
+      --danger:#a94343;
+      --shadow:0 18px 45px rgba(38,65,80,.12);
+      --radius:22px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      font-family:Poppins,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      color:var(--ink);
+      background:
+        radial-gradient(circle at 15% 10%,rgba(255,255,255,.95),transparent 32%),
+        radial-gradient(circle at 90% 85%,rgba(174,204,217,.55),transparent 35%),
+        linear-gradient(135deg,var(--bg-1),var(--bg-2));
+    }
+
+    button,input,select,textarea{font:inherit}
+    button{cursor:pointer}
+
+    .app{
+      width:min(1500px,94vw);
+      margin:0 auto;
+      padding:28px 0 50px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      padding:20px 24px;
+      margin-bottom:20px;
+      background:var(--glass);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+    }
+
+    .brand{display:flex;align-items:center;gap:14px}
+    .brand-icon{
+      width:48px;height:48px;border-radius:15px;
+      display:grid;place-items:center;
+      color:white;background:linear-gradient(145deg,var(--accent),#5087a0);
+      box-shadow:0 8px 20px rgba(47,111,143,.22);
+    }
+    h1{font-size:1.35rem;margin:0;font-weight:650}
+    .subtitle{font-size:.78rem;color:var(--muted);margin-top:3px}
+
+    .btn{
+      border:0;border-radius:13px;padding:11px 16px;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      transition:.18s ease;
+    }
+    .btn-primary{background:var(--accent);color:#fff}
+    .btn-primary:hover{background:var(--accent-dark);transform:translateY(-1px)}
+    .btn-secondary{background:rgba(255,255,255,.72);color:var(--ink);border:1px solid rgba(80,110,125,.14)}
+    .btn-danger{background:#fff0f0;color:var(--danger);border:1px solid #f0cccc}
+    .btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(340px,470px) 1fr;
+      gap:20px;
+      align-items:start;
+    }
+
+    .panel{
+      background:var(--glass);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(18px);
+      -webkit-backdrop-filter:blur(18px);
+    }
+
+    .form-panel{padding:22px;position:sticky;top:18px}
+    .list-panel{padding:22px}
+
+    .panel-title{
+      display:flex;align-items:center;justify-content:space-between;
+      gap:12px;margin-bottom:18px;
+    }
+    .panel-title h2{font-size:1rem;margin:0;font-weight:650}
+    .panel-title small{color:var(--muted)}
+
+    .section{
+      margin-top:20px;padding-top:17px;
+      border-top:1px solid rgba(70,100,115,.12);
+    }
+    .section h3{
+      margin:0 0 12px;font-size:.77rem;text-transform:uppercase;
+      letter-spacing:.08em;color:var(--accent-dark);font-weight:700;
+    }
+
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    .field{display:flex;flex-direction:column;gap:5px}
+    .field.full{grid-column:1/-1}
+    label{font-size:.72rem;font-weight:600;color:#50636e}
+    input,select,textarea{
+      width:100%;border:1px solid rgba(75,104,118,.16);
+      background:rgba(255,255,255,.74);color:var(--ink);
+      border-radius:11px;padding:10px 11px;outline:none;
+      transition:.15s ease;
+    }
+    input:focus,select:focus,textarea:focus{
+      border-color:rgba(47,111,143,.55);
+      box-shadow:0 0 0 3px rgba(47,111,143,.09);
+      background:#fff;
+    }
+    textarea{min-height:82px;resize:vertical}
+
+    .toggle-grid{
+      display:grid;grid-template-columns:1fr 1fr;gap:8px;
+    }
+    .toggle-row{
+      display:flex;align-items:center;justify-content:space-between;gap:8px;
+      min-height:48px;padding:9px 10px;
+      border-radius:12px;background:rgba(255,255,255,.55);
+      border:1px solid rgba(75,104,118,.10);
+    }
+    .toggle-label{font-size:.7rem;line-height:1.25;font-weight:600}
+
+    .switch{position:relative;width:40px;height:23px;flex:0 0 auto}
+    .switch input{opacity:0;width:0;height:0;position:absolute}
+    .slider{
+      position:absolute;inset:0;border-radius:30px;background:#b8c5cb;
+      transition:.2s;
+    }
+    .slider:before{
+      content:"";position:absolute;width:17px;height:17px;left:3px;top:3px;
+      background:white;border-radius:50%;box-shadow:0 2px 5px rgba(0,0,0,.18);
+      transition:.2s;
+    }
+    .switch input:checked + .slider{background:var(--success)}
+    .switch input:checked + .slider:before{transform:translateX(17px)}
+
+    .form-actions{display:flex;gap:9px;margin-top:20px}
+    .form-actions .btn{flex:1}
+
+    .toolbar{
+      display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:15px;
+    }
+    .search{position:relative}
+    .search i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#83939b}
+    .search input{padding-left:38px}
+
+    .filters{display:flex;gap:7px;flex-wrap:wrap}
+    .filter{
+      border:1px solid rgba(75,104,118,.13);background:rgba(255,255,255,.56);
+      color:var(--muted);padding:8px 12px;border-radius:10px;font-size:.72rem;
+    }
+    .filter.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+    .stats{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:15px}
+    .stat{
+      padding:8px 11px;border-radius:11px;background:rgba(255,255,255,.52);
+      font-size:.72rem;color:var(--muted)
+    }
+    .stat strong{color:var(--ink)}
+
+    .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:12px}
+    .card{
+      background:var(--glass-strong);border:1px solid rgba(255,255,255,.8);
+      border-radius:17px;padding:15px;box-shadow:0 9px 25px rgba(38,65,80,.08);
+    }
+    .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+    .person{min-width:0}
+    .name{font-weight:700;font-size:.9rem;line-height:1.25}
+    .meta{color:var(--muted);font-size:.68rem;margin-top:4px}
+    .status{
+      border-radius:20px;padding:5px 9px;font-size:.63rem;font-weight:700;
+      white-space:nowrap
+    }
+    .status.on{background:#e7f5ed;color:var(--success)}
+    .status.off{background:#f3eeee;color:#8a6565}
+
+    .card-info{
+      display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:14px 0;
+    }
+    .info{
+      padding:8px;border-radius:10px;background:rgba(235,242,245,.58);
+      min-width:0;
+    }
+    .info small{display:block;color:#7a8b94;font-size:.58rem;text-transform:uppercase;letter-spacing:.04em}
+    .info span{display:block;font-size:.68rem;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .permissions{display:flex;flex-wrap:wrap;gap:5px}
+    .pill{
+      font-size:.58rem;padding:4px 7px;border-radius:8px;background:#edf4f7;color:#526a76
+    }
+    .pill.yes{background:#e7f5ed;color:#27724e}
+    .card-actions{display:flex;gap:7px;margin-top:13px}
+    .card-actions .btn{flex:1;padding:8px 9px;font-size:.68rem}
+
+    .empty{
+      padding:50px 20px;text-align:center;color:var(--muted);
+      background:rgba(255,255,255,.38);border-radius:16px;
+    }
+    .empty i{font-size:28px;margin-bottom:10px;color:#78909c}
+    .loading{opacity:.65;pointer-events:none}
+
+    .toast{
+      position:fixed;right:22px;bottom:22px;z-index:50;
+      min-width:280px;max-width:420px;padding:13px 16px;border-radius:13px;
+      color:#fff;box-shadow:0 15px 35px rgba(0,0,0,.18);
+      animation:toastIn .2s ease;
+      font-size:.78rem;
+    }
+    .toast.success{background:#287d55}
+    .toast.error{background:#a94343}
+    .toast.info{background:#2f6f8f}
+    @keyframes toastIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    @media(max-width:1050px){
+      .layout{grid-template-columns:1fr}
+      .form-panel{position:static}
+    }
+    @media(max-width:650px){
+      .app{width:96vw;padding-top:12px}
+      .topbar{padding:15px}
+      .grid,.toggle-grid,.card-info{grid-template-columns:1fr}
+      .toolbar{grid-template-columns:1fr}
+      .form-actions{flex-direction:column}
+      .brand-icon{width:42px;height:42px}
+      h1{font-size:1.1rem}
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon"><i class="fa-solid fa-user-doctor"></i></div>
+      <div>
+        <h1>Médicos Adscritos</h1>
+        <div class="subtitle">Registro y control administrativo · Hospital Regional Puerto Vallarta</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="newBtn">
+      <i class="fa-solid fa-plus"></i> Nuevo adscrito
+    </button>
+  </header>
+
+  <main class="layout">
+
+    <section class="panel form-panel" id="formPanel">
+      <div class="panel-title">
+        <div>
+          <h2 id="formTitle">Registrar médico adscrito</h2>
+          <small id="formSubtitle">Alta de un nuevo registro</small>
+        </div>
+      </div>
+
+      <form id="doctorForm">
+
+        <div class="section" style="margin-top:0;padding-top:0;border-top:0">
+          <h3>Identificación</h3>
+          <div class="grid">
+            <div class="field full">
+              <label for="curp">CURP *</label>
+              <input id="curp" maxlength="18" required autocomplete="off">
+            </div>
+            <div class="field">
+              <label for="nombre_certificante">Nombre *</label>
+              <input id="nombre_certificante" required>
+            </div>
+            <div class="field">
+              <label for="primer_apellido_certificante">Primer apellido *</label>
+              <input id="primer_apellido_certificante" required>
+            </div>
+            <div class="field">
+              <label for="segundo_apellido_certificante">Segundo apellido</label>
+              <input id="segundo_apellido_certificante">
+            </div>
+            <div class="field">
+              <label for="correo_electronico">Correo electrónico</label>
+              <input id="correo_electronico" type="email">
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Adscripción profesional</h3>
+          <div class="grid">
+            <div class="field full">
+              <label for="nombre_unidad_medica">Nombre unidad médica</label>
+              <input id="nombre_unidad_medica">
+            </div>
+            <div class="field">
+              <label for="clues">CLUES</label>
+              <input id="clues" maxlength="20">
+            </div>
+            <div class="field">
+              <label for="tipo_medico">Tipo de médico</label>
+              <input id="tipo_medico" placeholder="Ej. Médico general, especialista...">
+            </div>
+            <div class="field">
+              <label for="ultima_especialidad_medica">Última especialidad médica</label>
+              <input id="ultima_especialidad_medica">
+            </div>
+            <div class="field">
+              <label for="cedula_profesional">Cédula profesional</label>
+              <input id="cedula_profesional">
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Facultades y FIEL</h3>
+          <div class="toggle-grid">
+            <div class="toggle-row">
+              <span class="toggle-label">Firma electrónica (FIEL)</span>
+              <label class="switch"><input type="checkbox" id="tiene_fiel"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Consulta</span>
+              <label class="switch"><input type="checkbox" id="consulta"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Certificante</span>
+              <label class="switch"><input type="checkbox" id="certificante"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Exportador</span>
+              <label class="switch"><input type="checkbox" id="exportador"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Administrador general</span>
+              <label class="switch"><input type="checkbox" id="administrador_general"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Registro activo</span>
+              <label class="switch"><input type="checkbox" id="activo" checked><span class="slider"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Documentación</h3>
+          <div class="toggle-grid">
+            <div class="toggle-row">
+              <span class="toggle-label">Cédula profesional</span>
+              <label class="switch"><input type="checkbox" id="copia_cedula_profesional"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Constancia curso certificado de defunción</span>
+              <label class="switch"><input type="checkbox" id="copia_constancia_defuncion"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Identificación IFE / INE</span>
+              <label class="switch"><input type="checkbox" id="copia_identificacion"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Comprobante de domicilio</span>
+              <label class="switch"><input type="checkbox" id="copia_comprobante_domicilio"><span class="slider"></span></label>
+            </div>
+            <div class="toggle-row">
+              <span class="toggle-label">Constancia capacitación CIE-11</span>
+              <label class="switch"><input type="checkbox" id="copia_constancia_cie11"><span class="slider"></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3>Observaciones</h3>
+          <div class="field">
+            <textarea id="observaciones" placeholder="Notas administrativas..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="cancelBtn">Limpiar</button>
+          <button type="submit" class="btn btn-primary" id="saveBtn">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel list-panel">
+      <div class="panel-title">
+        <div>
+          <h2>Directorio de adscritos</h2>
+          <small>Consulta y control de registros</small>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <div class="search">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input id="search" placeholder="Buscar por nombre, CURP, cédula, CLUES o unidad...">
+        </div>
+        <div class="filters">
+          <button class="filter active" data-filter="todos">Todos</button>
+          <button class="filter" data-filter="activos">Activos</button>
+          <button class="filter" data-filter="inactivos">Inactivos</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">Total: <strong id="countTotal">0</strong></div>
+        <div class="stat">Activos: <strong id="countActivos">0</strong></div>
+        <div class="stat">Inactivos: <strong id="countInactivos">0</strong></div>
+      </div>
+
+      <div id="cards" class="cards">
+        <div class="empty"><i class="fa-solid fa-spinner fa-spin"></i><div>Cargando registros...</div></div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ============================================================
+  // CONFIGURACIÓN SUPABASE
+  // Misma instancia/clave pública que utiliza la app de internos.
+  // Nunca colocar aquí service_role ni una secret key.
+  // ============================================================
+  const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
+  const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjZHBsYSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzg1MzMyMDkyLCJleHAiOjIxMDA5MDgwOTJ9.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
+
+  const supabaseClient = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_ANON_KEY
+  );
+
+  const TABLE = "ascritos";
+
+  let records = [];
+  let editingId = null;
+  let currentFilter = "todos";
+
+  const $ = id => document.getElementById(id);
+
+  const textFields = [
+    "curp",
+    "nombre_certificante",
+    "primer_apellido_certificante",
+    "segundo_apellido_certificante",
+    "correo_electronico",
+    "nombre_unidad_medica",
+    "clues",
+    "tipo_medico",
+    "ultima_especialidad_medica",
+    "cedula_profesional",
+    "observaciones"
+  ];
+
+  const boolFields = [
+    "tiene_fiel",
+    "consulta",
+    "certificante",
+    "exportador",
+    "administrador_general",
+    "copia_cedula_profesional",
+    "copia_constancia_defuncion",
+    "copia_identificacion",
+    "copia_comprobante_domicilio",
+    "copia_constancia_cie11",
+    "activo"
+  ];
+
+  function cleanText(value, upper = false){
+    const v = String(value ?? "").trim().replace(/\s+/g, " ");
+    return upper ? v.toUpperCase() : v;
+  }
+
+  function escapeHtml(value){
+    return String(value ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function showToast(message, type = "info"){
+    document.querySelector(".toast")?.remove();
+    const el = document.createElement("div");
+    el.className = `toast ${type}`;
+    el.textContent = message;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+  }
+
+  function fullName(r){
+    return [
+      r.nombre_certificante,
+      r.primer_apellido_certificante,
+      r.segundo_apellido_certificante
+    ].filter(Boolean).join(" ");
+  }
+
+  function getFormData(){
+    const data = {};
+
+    textFields.forEach(id => {
+      let value = $(id).value;
+      data[id] = cleanText(value, id !== "correo_electronico" && id !== "observaciones");
+      if(data[id] === "") data[id] = null;
+    });
+
+    boolFields.forEach(id => {
+      data[id] = $(id).checked;
+    });
+
+    data.correo_electronico = data.correo_electronico
+      ? data.correo_electronico.toLowerCase()
+      : null;
+
+    return data;
+  }
+
+  function setFormData(r){
+    textFields.forEach(id => {
+      $(id).value = r[id] ?? "";
+    });
+
+    boolFields.forEach(id => {
+      $(id).checked = Boolean(r[id]);
+    });
+  }
+
+  function clearForm(){
+    editingId = null;
+    $("doctorForm").reset();
+    $("activo").checked = true;
+    $("formTitle").textContent = "Registrar médico adscrito";
+    $("formSubtitle").textContent = "Alta de un nuevo registro";
+    $("saveBtn").innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar';
+  }
+
+  function editRecord(id){
+    const r = records.find(x => x.id === id);
+    if(!r) return;
+
+    editingId = id;
+    setFormData(r);
+    $("formTitle").textContent = "Editar médico adscrito";
+    $("formSubtitle").textContent = "Modificación del registro";
+    $("saveBtn").innerHTML = '<i class="fa-solid fa-pen-to-square"></i> Actualizar';
+    $("formPanel").scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  async function toggleActive(id, active){
+    const {error} = await supabaseClient
+      .from(TABLE)
+      .update({activo: active})
+      .eq("id", id);
+
+    if(error){
+      console.error(error);
+      showToast("No fue posible actualizar el estado: " + error.message, "error");
+      return;
+    }
+
+    const r = records.find(x => x.id === id);
+    if(r) r.activo = active;
+    render();
+    showToast(active ? "Médico activado." : "Médico marcado como inactivo.", "success");
+  }
+
+  async function loadRecords(){
+    $("cards").classList.add("loading");
+
+    const {data, error} = await supabaseClient
+      .from(TABLE)
+      .select("*")
+      .order("primer_apellido_certificante", {ascending:true})
+      .order("nombre_certificante", {ascending:true});
+
+    $("cards").classList.remove("loading");
+
+    if(error){
+      console.error(error);
+      $("cards").innerHTML = `
+        <div class="empty">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <div><strong>No fue posible cargar los registros.</strong></div>
+          <div style="margin-top:7px;font-size:.7rem">${escapeHtml(error.message)}</div>
+        </div>`;
+      return;
+    }
+
+    records = data || [];
+    render();
+  }
+
+  function render(){
+    const term = cleanText($("search").value).toLowerCase();
+
+    let filtered = records.filter(r => {
+      if(currentFilter === "activos" && !r.activo) return false;
+      if(currentFilter === "inactivos" && r.activo) return false;
+
+      if(!term) return true;
+
+      const haystack = [
+        fullName(r),
+        r.curp,
+        r.cedula_profesional,
+        r.clues,
+        r.nombre_unidad_medica,
+        r.tipo_medico,
+        r.ultima_especialidad_medica
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      return haystack.includes(term);
+    });
+
+    $("countTotal").textContent = records.length;
+    $("countActivos").textContent = records.filter(r => r.activo).length;
+    $("countInactivos").textContent = records.filter(r => !r.activo).length;
+
+    if(!filtered.length){
+      $("cards").innerHTML = `
+        <div class="empty">
+          <i class="fa-solid fa-user-doctor"></i>
+          <div>No hay registros que coincidan con el filtro.</div>
+        </div>`;
+      return;
+    }
+
+    $("cards").innerHTML = filtered.map(r => {
+      const permissions = [
+        ["Consulta", r.consulta],
+        ["Certificante", r.certificante],
+        ["Exportador", r.exportador],
+        ["Administrador", r.administrador_general],
+        ["FIEL", r.tiene_fiel]
+      ];
+
+      const docs = [
+        r.copia_cedula_profesional,
+        r.copia_constancia_defuncion,
+        r.copia_identificacion,
+        r.copia_comprobante_domicilio,
+        r.copia_constancia_cie11
+      ].filter(Boolean).length;
+
+      return `
+        <article class="card">
+          <div class="card-head">
+            <div class="person">
+              <div class="name">${escapeHtml(fullName(r) || "Sin nombre")}</div>
+              <div class="meta">${escapeHtml(r.tipo_medico || "Tipo no especificado")}</div>
+            </div>
+            <span class="status ${r.activo ? "on" : "off"}">${r.activo ? "ACTIVO" : "INACTIVO"}</span>
+          </div>
+
+          <div class="card-info">
+            <div class="info"><small>CURP</small><span>${escapeHtml(r.curp || "No capturada")}</span></div>
+            <div class="info"><small>Cédula</small><span>${escapeHtml(r.cedula_profesional || "No capturada")}</span></div>
+            <div class="info"><small>CLUES</small><span>${escapeHtml(r.clues || "No capturada")}</span></div>
+            <div class="info"><small>Documentos</small><span>${docs}/5 entregados</span></div>
+            <div class="info" style="grid-column:1/-1"><small>Unidad médica</small><span>${escapeHtml(r.nombre_unidad_medica || "No capturada")}</span></div>
+          </div>
+
+          <div class="permissions">
+            ${permissions.map(([label,yes]) =>
+              `<span class="pill ${yes ? "yes" : ""}">${yes ? "✓" : "○"} ${label}</span>`
+            ).join("")}
+          </div>
+
+          <div class="card-actions">
+            <button class="btn btn-secondary" onclick="editRecord('${r.id}')">
+              <i class="fa-solid fa-pen"></i> Editar
+            </button>
+            <button class="btn ${r.activo ? "btn-danger" : "btn-primary"}" onclick="toggleActive('${r.id}', ${!r.activo})">
+              <i class="fa-solid ${r.activo ? "fa-toggle-off" : "fa-toggle-on"}"></i>
+              ${r.activo ? "Desactivar" : "Activar"}
+            </button>
+          </div>
+        </article>`;
+    }).join("");
+  }
+
+  $("doctorForm").addEventListener("submit", async event => {
+    event.preventDefault();
+
+    const saveBtn = $("saveBtn");
+    saveBtn.disabled = true;
+
+    try{
+      const data = getFormData();
+
+      if(!data.curp || !data.nombre_certificante || !data.primer_apellido_certificante){
+        showToast("CURP, nombre y primer apellido son obligatorios.", "error");
+        return;
+      }
+
+      let query;
+
+      if(editingId){
+        query = await supabaseClient
+          .from(TABLE)
+          .update(data)
+          .eq("id", editingId)
+          .select()
+          .single();
+      }else{
+        query = await supabaseClient
+          .from(TABLE)
+          .insert(data)
+          .select()
+          .single();
+      }
+
+      if(query.error) throw query.error;
+
+      showToast(editingId ? "Registro actualizado correctamente." : "Médico adscrito registrado correctamente.", "success");
+      clearForm();
+      await loadRecords();
+
+    }catch(error){
+      console.error(error);
+
+      if(error.code === "23505"){
+        showToast("Ya existe un registro con esa CURP.", "error");
+      }else{
+        showToast("No fue posible guardar: " + error.message, "error");
+      }
+    }finally{
+      saveBtn.disabled = false;
+    }
+  });
+
+  $("newBtn").addEventListener("click", () => {
+    clearForm();
+    $("formPanel").scrollIntoView({behavior:"smooth",block:"start"});
+  });
+
+  $("cancelBtn").addEventListener("click", clearForm);
+  $("search").addEventListener("input", render);
+
+  document.querySelectorAll(".filter").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".filter").forEach(x => x.classList.remove("active"));
+      btn.classList.add("active");
+      currentFilter = btn.dataset.filter;
+      render();
+    });
+  });
+
+  loadRecords();
+</script>
+</body>
+</html>
