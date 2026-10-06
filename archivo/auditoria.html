@@ -1,300 +1,4131 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auditoría de Expediente Clínico - Área Física</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Archivo Clínico | Cédula Integral de Cumplimiento</title>
     <style>
-        /* --- DISEÑO SISH (UI/UX UNIVERSAL) --- */
-        :root {
-            --primary: #13322b; /* Verde institucional (Gobierno/Salud) */
-            --primary-light: #e8f0ec;
-            --accent: #9d2449; /* Guinda institucional de acento */
-            --success: #28a745;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --text-dark: #333333;
-            --text-light: #666666;
-            --bg-gray: #f4f6f9;
-            --white: #ffffff;
-            --radius: 8px;
-            --shadow: 0 4px 6px rgba(0,0,0,0.05);
+      :root {
+        --navy: #13322b;
+        --green: #1f6f5b;
+        --green2: #e8f0ec;
+        --burgundy: #9d2449;
+        --ok: #198754;
+        --warn: #d99b00;
+        --bad: #c62828;
+        --info: #2563a8;
+        --bg: #f4f6f9;
+        --card: #fff;
+        --text: #263238;
+        --muted: #68757d;
+        --line: #e2e7ea;
+        --shadow: 0 8px 24px rgba(20, 35, 40, 0.07);
+        --radius: 12px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: Inter, "Segoe UI", Arial, sans-serif;
+        line-height: 1.45;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        font: inherit;
+      }
+      button {
+        cursor: pointer;
+      }
+      .app {
+        max-width: 1500px;
+        margin: auto;
+        padding: 22px;
+      }
+      header {
+        background: linear-gradient(135deg, #13322b, #285746);
+        color: white;
+        border-radius: 16px;
+        padding: 26px 30px;
+        box-shadow: var(--shadow);
+        display: flex;
+        justify-content: space-between;
+        gap: 25px;
+        align-items: flex-start;
+      }
+      h1 {
+        font-size: clamp(1.35rem, 2vw, 2rem);
+        margin: 0 0 5px;
+        font-weight: 700;
+      }
+      header p {
+        margin: 3px 0;
+        opacity: 0.88;
+      }
+      .meta {
+        text-align: right;
+        font-size: 0.9rem;
+      }
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 15px 0;
+      }
+      .btn {
+        border: 1px solid var(--line);
+        background: white;
+        color: var(--navy);
+        padding: 9px 13px;
+        border-radius: 9px;
+        font-weight: 650;
+      }
+      .btn:hover {
+        background: #f1f5f3;
+      }
+      .btn.primary {
+        background: var(--burgundy);
+        color: white;
+        border-color: var(--burgundy);
+      }
+      .btn.dark {
+        background: var(--navy);
+        color: white;
+        border-color: var(--navy);
+      }
+      .btn.small {
+        padding: 6px 9px;
+        font-size: 0.82rem;
+      }
+      input[type="file"] {
+        display: none;
+      }
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(6, minmax(130px, 1fr));
+        gap: 12px;
+        margin-bottom: 15px;
+      }
+      .metric {
+        background: var(--card);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px;
+        border-left: 4px solid var(--navy);
+      }
+      .metric.ok {
+        border-left-color: var(--ok);
+      }
+      .metric.bad {
+        border-left-color: var(--bad);
+      }
+      .metric.warn {
+        border-left-color: var(--warn);
+      }
+      .metric .label {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--muted);
+        font-weight: 700;
+      }
+      .metric .value {
+        font-size: 1.65rem;
+        font-weight: 800;
+        margin-top: 3px;
+      }
+      .progress {
+        height: 7px;
+        background: #e8ecee;
+        border-radius: 9px;
+        overflow: hidden;
+        margin-top: 9px;
+      }
+      .progress > i {
+        display: block;
+        height: 100%;
+        width: 0;
+        background: var(--green);
+        transition: 0.25s;
+      }
+      .filters {
+        background: white;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px;
+        margin-bottom: 15px;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr 1fr 1fr 1fr;
+        gap: 9px;
+      }
+      .filters input,
+      .filters select,
+      .modal input,
+      .modal select,
+      .modal textarea {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 9px;
+        background: white;
+        color: var(--text);
+      }
+      .table-wrap {
+        background: white;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: auto;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1250px;
+      }
+      th {
+        position: sticky;
+        top: 0;
+        background: #f8faf9;
+        color: #526068;
+        font-size: 0.73rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        text-align: left;
+        z-index: 2;
+      }
+      th,
+      td {
+        padding: 11px 12px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      tr:hover td {
+        background: #fbfcfc;
+      }
+      .id {
+        font-family: ui-monospace, monospace;
+        font-size: 0.78rem;
+        color: #63717a;
+        font-weight: 700;
+      }
+      .dim {
+        font-size: 0.73rem;
+        background: #e9f0ed;
+        color: var(--navy);
+        padding: 4px 7px;
+        border-radius: 6px;
+        display: inline-block;
+        font-weight: 750;
+        white-space: nowrap;
+      }
+      .crit {
+        font-weight: 750;
+      }
+      .req {
+        font-size: 0.84rem;
+        margin-top: 3px;
+      }
+      .basis {
+        font-size: 0.76rem;
+        color: var(--muted);
+        margin-top: 5px;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 5px 8px;
+        border-radius: 7px;
+        font-size: 0.76rem;
+        font-weight: 750;
+        white-space: nowrap;
+      }
+      .b-p {
+        background: #eef1f3;
+        color: #59656c;
+      }
+      .b-ok {
+        background: #e8f5ed;
+        color: #14733e;
+      }
+      .b-pa {
+        background: #fff5d8;
+        color: #946b00;
+      }
+      .b-no {
+        background: #fdeaea;
+        color: #a31f1f;
+      }
+      .b-na {
+        background: #e7eef8;
+        color: #245b91;
+      }
+      .c-critical {
+        color: #b21f2c;
+      }
+      .c-high {
+        color: #9a5b00;
+      }
+      .c-medium {
+        color: #5d6970;
+      }
+      .c-low {
+        color: #6f7c82;
+      }
+      .actions {
+        white-space: nowrap;
+      }
+      .empty {
+        padding: 40px;
+        text-align: center;
+        color: var(--muted);
+      }
+      footer {
+        margin: 16px 0;
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+      .notice {
+        background: #fff9e9;
+        border: 1px solid #ead28c;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin: 15px 0;
+        color: #69520b;
+        font-size: 0.84rem;
+      }
+      .modal-back {
+        position: fixed;
+        inset: 0;
+        background: rgba(10, 20, 20, 0.48);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 18px;
+        z-index: 20;
+      }
+      .modal-back.show {
+        display: flex;
+      }
+      .modal {
+        background: white;
+        border-radius: 16px;
+        width: min(900px, 100%);
+        max-height: 92vh;
+        overflow: auto;
+        box-shadow: 0 20px 70px rgba(0, 0, 0, 0.25);
+        padding: 22px;
+      }
+      .modal h2 {
+        margin: 0 0 3px;
+      }
+      .modal .sub {
+        color: var(--muted);
+        font-size: 0.85rem;
+        margin-bottom: 16px;
+      }
+      .formgrid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .field {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .field.full {
+        grid-column: 1/-1;
+      }
+      .field label {
+        font-size: 0.75rem;
+        font-weight: 750;
+        color: #59656c;
+        text-transform: uppercase;
+      }
+      .modal textarea {
+        min-height: 95px;
+        resize: vertical;
+      }
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .kpi-note {
+        font-size: 0.78rem;
+        color: var(--muted);
+        margin-top: 7px;
+      }
+      @media (max-width: 1050px) {
+        .metrics {
+          grid-template-columns: repeat(3, 1fr);
         }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        .filters {
+          grid-template-columns: 1fr 1fr;
         }
-
-        body {
-            background-color: var(--bg-gray);
-            color: var(--text-dark);
-            line-height: 1.6;
-            padding: 20px;
+      }
+      @media (max-width: 650px) {
+        .app {
+          padding: 10px;
         }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        /* --- ENCABEZADO --- */
         header {
-            background-color: var(--primary);
-            color: var(--white);
-            padding: 20px 30px;
-            border-radius: var(--radius);
-            margin-bottom: 25px;
-            box-shadow: var(--shadow);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
+          padding: 20px;
+          flex-direction: column;
         }
-
-        header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
+        .meta {
+          text-align: left;
         }
-
-        header p {
-            font-size: 0.9rem;
-            opacity: 0.85;
+        .metrics {
+          grid-template-columns: 1fr 1fr;
         }
-
-        .meta-hospital {
-            text-align: right;
+        .filters {
+          grid-template-columns: 1fr;
         }
-
-        /* --- DASHBOARD METRICS --- */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
-            margin-bottom: 25px;
+      }
+      @media print {
+        body {
+          background: white;
         }
-
-        .metric-card {
-            background: var(--white);
-            padding: 20px;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            border-left: 5px solid var(--primary);
-            display: flex;
-            flex-direction: column;
+        .app {
+          max-width: none;
+          padding: 0;
         }
-
-        .metric-card.success { border-left-color: var(--success); }
-        .metric-card.danger { border-left-color: var(--danger); }
-        .metric-card.warning { border-left-color: var(--warning); }
-
-        .metric-title {
-            font-size: 0.85rem;
-            color: var(--text-light);
-            text-transform: uppercase;
-            margin-bottom: 5px;
-            font-weight: bold;
+        header {
+          box-shadow: none;
+          border-radius: 0;
+          color: black;
+          background: white;
+          border-bottom: 2px solid #222;
         }
-
-        .metric-value {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--text-dark);
+        .toolbar,
+        .filters,
+        .actions,
+        footer,
+        .notice {
+          display: none !important;
         }
-
-        /* --- TABLA DE AUDITORÍA --- */
-        .table-container {
-            background: var(--white);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            margin-bottom: 25px;
+        .metrics {
+          grid-template-columns: repeat(4, 1fr);
+          box-shadow: none;
         }
-
-        .table-title {
-            background: var(--primary-light);
-            color: var(--primary);
-            padding: 15px 20px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            border-bottom: 1px solid #ddd;
+        .table-wrap {
+          box-shadow: none;
+          overflow: visible;
         }
-
         table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
+          min-width: 0;
+          font-size: 9px;
         }
-
-        th, td {
-            padding: 14px 20px;
-            border-bottom: 1px solid #eeeeee;
-            font-size: 0.95rem;
+        th,
+        td {
+          padding: 5px;
         }
-
-        th {
-            background-color: var(--white);
-            color: var(--text-light);
-            font-weight: 600;
-            text-transform: uppercase;
-            font-size: 0.8rem;
-            letter-spacing: 0.5px;
+        .modal-back {
+          display: none !important;
         }
-
-        tr:hover {
-            background-color: rgba(0,0,0,0.01);
-        }
-
-        /* --- BADGES Y ESTADOS --- */
-        .category-badge {
-            display: inline-block;
-            background: #e1e7e4;
-            color: var(--primary);
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-        
-        .category-badge.infra { background: #e3effd; color: #1d6edc; }
-        .category-badge.mobi { background: #fef3d6; color: #b27b00; }
-        .category-badge.segu { background: #fce8e6; color: #c5221f; }
-        .category-badge.accs { background: #e6f4ea; color: #137333; }
-        .category-badge.ciclo { background: #f1f3f4; color: #5f6368; }
-
-        .status {
-            display: inline-flex;
-            align-items: center;
-            font-weight: 600;
-            font-size: 0.85rem;
-        }
-
-        .status::before {
-            content: "";
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            margin-right: 8px;
-        }
-
-        .status.cumple { color: var(--success); }
-        .status.cumple::before { background-color: var(--success); }
-
-        .status.no-cumple { color: var(--danger); }
-        .status.no-cumple::before { background-color: var(--danger); }
-
-        .status.pendiente { color: var(--warning); }
-        .status.pendiente::before { background-color: var(--warning); }
-
-        /* --- ACCIONES --- */
-        .btn {
-            background-color: var(--accent);
-            color: var(--white);
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.85rem;
-            transition: background 0.2s ease;
-        }
-
-        .btn:hover {
-            opacity: 0.9;
-        }
-
-        .btn-outline {
-            background-color: transparent;
-            color: var(--primary);
-            border: 1px solid var(--primary);
-            margin-right: 5px;
-        }
-
-        .btn-outline:hover {
-            background-color: var(--primary-light);
-        }
-
-        .actions-cell {
-            white-space: nowrap;
-        }
-
-        /* --- RESPONSIVO --- */
-        @media (max-width: 768px) {
-            header { flex-direction: column; text-align: center; }
-            .meta-hospital { text-align: center; }
-            table, thead, tbody, th, td, tr { display: block; }
-            thead { display: none; }
-            tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: var(--radius); padding: 10px; background: #fff; }
-            td { border: none; padding: 8px 10px; text-align: right; position: relative; display: flex; justify-content: space-between; align-items: center; }
-            td::before { content: attr(data-label); font-weight: bold; text-transform: uppercase; font-size: 0.75rem; color: var(--text-light); float: left; }
-            .actions-cell { justify-content: flex-end; }
-        }
+      }
     </style>
-</head>
-<body>
-
-<div class="container">
-
-    <!-- Encabezado de la UI -->
-    <header>
+  </head>
+  <body>
+    <div class="app">
+      <header>
         <div>
-            <h1>Cédula de Evaluación Física del Archivo Clínico</h1>
-            <p>Auditoría de Cumplimiento Normativo (NOM-004-SSA3-2012 / Ley General de Archivos)</p>
+          <h1>
+            Cédula Integral de Cumplimiento y Desempeño del Archivo Clínico
+          </h1>
+          <p>
+            Hospital público · Auditoría física, documental, operativa,
+            archivística y de seguridad
+          </p>
+          <p id="lastSave">Sin cambios registrados</p>
         </div>
-        <div class="meta-hospital">
-            <p><strong>Hospital Central del Estado</strong></p>
-            <p>Estatus: Evaluación Física | Año Auditoría: 2026</p>
+        <div class="meta">
+          <strong id="hospitalName">Hospital Regional Puerto Vallarta</strong>
+          <div>Ejercicio <span id="year">2026</span></div>
+          <div id="auditStatus">Evaluación en curso</div>
         </div>
-    </header>
+      </header>
 
-    <!-- Tarjetas de Métricas de UX (Datos resumidos del checklist) -->
-    <div class="metrics-grid">
-        <div class="metric-card success">
-            <span class="metric-title">Índice de Cumplimiento</span>
-            <span class="metric-value">76.4%</span>
-        </div>
-        <div class="metric-card success">
-            <span class="metric-title">Criterios Evaluados</span>
-            <span class="metric-value">17 / 17</span>
-        </div>
-        <div class="metric-card danger">
-            <span class="metric-title">Riesgos Críticos (No Cumple)</span>
-            <span class="metric-value">3</span>
-        </div>
-        <div class="metric-card warning">
-            <span class="metric-title">Puntos en Observación</span>
-            <span class="metric-value">1</span>
-        </div>
+      <div class="notice">
+        <strong>Criterio de uso:</strong> los fundamentos jurídicos se muestran
+        como marco de referencia. Los criterios identificados como técnicos o
+        institucionales no deben presentarse como obligaciones textuales de una
+        NOM. Antes de usar la cédula como instrumento oficial, deberá validarse
+        por las áreas jurídica, de calidad, archivo institucional y/o autoridad
+        competente.
+      </div>
+
+      <div class="toolbar">
+        <button class="btn dark" onclick="newAudit()">Nueva evaluación</button>
+        <button class="btn" onclick="exportJSON()">Exportar evaluación</button>
+        <label class="btn"
+          >Importar evaluación<input
+            id="fileIn"
+            type="file"
+            accept=".json"
+            onchange="importJSON(event)"
+        /></label>
+        <button class="btn" onclick="window.print()">Imprimir / PDF</button>
+        <button class="btn primary" onclick="showSummary()">
+          Ver resumen ejecutivo
+        </button>
+      </div>
+
+      <section class="metrics" id="metrics"></section>
+
+      <div class="filters">
+        <input
+          id="search"
+          placeholder="Buscar criterio, requisito, evidencia..."
+          oninput="render()"
+        />
+        <select id="dim" onchange="render()">
+          <option value="">Todas las dimensiones</option>
+        </select>
+        <select id="status" onchange="render()">
+          <option value="">Todos los estados</option>
+          <option>Pendiente</option>
+          <option>Cumple</option>
+          <option>Parcial</option>
+          <option>No cumple</option>
+          <option>No aplica</option>
+        </select>
+        <select id="risk" onchange="render()">
+          <option value="">Toda criticidad</option>
+          <option>Crítica</option>
+          <option>Alta</option>
+          <option>Media</option>
+          <option>Baja</option>
+        </select>
+        <select id="source" onchange="render()">
+          <option value="">Todo fundamento</option>
+        </select>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Dimensión</th>
+              <th>Criterio / requisito</th>
+              <th>Fundamento</th>
+              <th>Evidencia esperada</th>
+              <th>Criticidad</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+
+      <footer>
+        <strong>Nota técnica:</strong> esta versión prioriza trazabilidad y
+        evidencia. El índice global excluye los criterios marcados como “No
+        aplica” y pondera los criterios según criticidad. Un criterio crítico
+        incumplido se mantiene visible como riesgo aunque el porcentaje global
+        sea alto.
+      </footer>
     </div>
 
-    <!-- Módulo de Tabla de Auditoría Basada en el Checklist Propuesto -->
-    <div class="table-container">
-        <div class="table-title">Resultados de Inspección In Situ</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Categoría</th>
-                    <th>Criterio Normativo e Institucional</th>
-                    <th>Estado</th>
-                    <th>Observaciones / Hallazgos Registrados</th>
-                    <th style="text-align: right;">Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- 1. INFRAESTRUCTURA -->
-                <tr>
-                    <td data-label="Categoría"><span class="category-badge infra">1. Infraestructura</span></td>
-                    <td data-label="Criterio">Techos y paredes sin rastros de humedad, goteras o filtraciones activas.</td>
-                    <td data-label="Estado"><span class="status cumple">Cumple</span></td>
-                    <td data-label="Observaciones">Sin novedades. Impermeabilización externa vigente.</td>
-                    <td data-label="Acción" style="text-align: right;" class="actions-cell"><button class="btn btn-outline">Editar</button></td>
-                </tr>
-                <tr>
-                    <td data-label="Categoría"><span class="category-badge infra">1. Infraestructura</span></td>
-                    <td data-label="Criterio">Control de temperatura diaria mediante termohidrómetros (Ideal 18°C - 22°C).</td>
-                    <td data-label="Estado"><span class="status pendiente">En Revisión</span></td>
+    <div class="modal-back" id="modal">
+      <div class="modal">
+        <h2 id="modalTitle">Editar criterio</h2>
+        <div class="sub" id="modalSub"></div>
+        <div class="formgrid">
+          <div class="field">
+            <label>Estado</label
+            ><select id="fStatus">
+              <option>Pendiente</option>
+              <option>Cumple</option>
+              <option>Parcial</option>
+              <option>No cumple</option>
+              <option>No aplica</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Responsable</label
+            ><input
+              id="fResponsible"
+              placeholder="Área / persona responsable"
+            />
+          </div>
+          <div class="field">
+            <label>Fecha compromiso</label><input id="fDue" type="date" />
+          </div>
+          <div class="field">
+            <label>Verificado</label
+            ><select id="fVerified">
+              <option value="false">No</option>
+              <option value="true">Sí</option>
+            </select>
+          </div>
+          <div class="field full">
+            <label>Hallazgo / observación</label
+            ><textarea
+              id="fFinding"
+              placeholder="Describa el hecho verificable, evitando interpretaciones no sustentadas."
+            ></textarea>
+          </div>
+          <div class="field full">
+            <label>Acción correctiva / preventiva</label
+            ><textarea
+              id="fAction"
+              placeholder="Qué debe hacerse para corregir o prevenir el riesgo."
+            ></textarea>
+          </div>
+          <div class="field full">
+            <label>Evidencia / notas</label
+            ><textarea
+              id="fNotes"
+              placeholder="Documento, fotografía, folio, registro, acta, ubicación o referencia de evidencia."
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn" onclick="closeModal()">Cancelar</button
+          ><button class="btn primary" onclick="saveItem()">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const STORAGE = "archivo_clinico_auditoria_v1";
+      let items = [
+        {
+          id: "AC-001",
+          code: "GOB",
+          dimension: "Gobierno y organización",
+          criterion: "Responsable formal",
+          requirement:
+            "Existe designación vigente del responsable del Archivo Clínico.",
+          basis: "Institucional / organizacional",
+          evidence: "Documento de designación",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-002",
+          code: "GOB",
+          dimension: "Gobierno y organización",
+          criterion: "Organigrama",
+          requirement:
+            "El Archivo Clínico está identificado en el organigrama vigente.",
+          basis: "Institucional / organizacional",
+          evidence: "Organigrama autorizado",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-003",
+          code: "GOB",
+          dimension: "Gobierno y organización",
+          criterion: "Funciones",
+          requirement:
+            "Las funciones y responsabilidades del personal están documentadas.",
+          basis: "Institucional / organizacional",
+          evidence: "Manual / perfiles",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-004",
+          code: "GOB",
+          dimension: "Gobierno y organización",
+          criterion: "Procedimiento general",
+          requirement:
+            "Existe procedimiento vigente para operación del Archivo Clínico.",
+          basis: "Institucional / organizacional",
+          evidence: "Procedimiento autorizado",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-005",
+          code: "GOB",
+          dimension: "Gobierno y organización",
+          criterion: "Préstamo",
+          requirement:
+            "Existe procedimiento documentado para solicitud, salida y devolución de expedientes.",
+          basis: "NOM-004 / institucional",
+          evidence: "Procedimiento + bitácora",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-006",
+          code: "GOB",
+          dimension: "Gobierno y organización",
+          criterion: "Extraviados",
+          requirement:
+            "Existe procedimiento para expedientes no localizados o extraviados.",
+          basis: "Institucional / gestión de riesgo",
+          evidence: "Procedimiento + reportes",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-007",
+          code: "GOB",
+          dimension: "Gobierno y organización",
+          criterion: "Duplicados",
+          requirement:
+            "Existe procedimiento para identificar y resolver expedientes duplicados.",
+          basis: "Gestión documental / calidad",
+          evidence: "Procedimiento + registros",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-008",
+          code: "GOB",
+          dimension: "Gobierno y organización",
+          criterion: "Contingencias",
+          requirement:
+            "Existe procedimiento para proteger y recuperar expedientes ante incendio, inundación, sismo u otra contingencia.",
+          basis: "Archivos / Protección Civil",
+          evidence: "Plan + evidencia",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-009",
+          code: "GOB",
+          dimension: "Gobierno y organización",
+          criterion: "Capacitación",
+          requirement:
+            "El personal recibe capacitación documentada sobre operación y confidencialidad.",
+          basis: "Protección de datos / institucional",
+          evidence: "Programa + constancias",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-010",
+          code: "GOB",
+          dimension: "Gobierno y organización",
+          criterion: "Auditoría",
+          requirement:
+            "Existe programa periódico de revisión del Archivo Clínico.",
+          basis: "Gestión de calidad",
+          evidence: "Programa + informes",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-011",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Espacio",
+          requirement:
+            "El área dispone de espacio suficiente para operación segura y crecimiento previsto.",
+          basis: "NOM-016 / criterio técnico",
+          evidence: "Inspección + plano",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-012",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Circulación",
+          requirement:
+            "Los pasillos y áreas de trabajo permanecen libres de obstáculos.",
+          basis: "Seguridad / criterio técnico",
+          evidence: "Inspección",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-013",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Estantería",
+          requirement:
+            "La estantería se encuentra en condiciones seguras y estables.",
+          basis: "Seguridad / criterio técnico",
+          evidence: "Inspección",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-014",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Anclaje",
+          requirement:
+            "La estantería que lo requiera cuenta con medidas para evitar vuelco.",
+          basis: "Seguridad / criterio técnico",
+          evidence: "Inspección",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-015",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Piso",
+          requirement:
+            "No se almacenan expedientes directamente sobre el piso.",
+          basis: "Conservación / criterio técnico",
+          evidence: "Inspección",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-016",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Muros",
+          requirement:
+            "Los expedientes se mantienen alejados de fuentes evidentes de humedad o filtración.",
+          basis: "Conservación / criterio técnico",
+          evidence: "Inspección",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-017",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Tuberías",
+          requirement:
+            "No existen tuberías con riesgo evidente de afectar directamente los expedientes.",
+          basis: "Conservación / criterio técnico",
+          evidence: "Inspección",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-018",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Iluminación",
+          requirement:
+            "Existe iluminación suficiente para trabajo y localización segura.",
+          basis: "Seguridad / criterio técnico",
+          evidence: "Inspección",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-019",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Ventilación",
+          requirement:
+            "Existe ventilación adecuada para las condiciones de operación.",
+          basis: "Conservación / criterio técnico",
+          evidence: "Inspección",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-020",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Ergonomía",
+          requirement:
+            "Los puestos de trabajo permiten manipulación segura de expedientes.",
+          basis: "Seguridad laboral",
+          evidence: "Inspección",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-021",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Accesibilidad",
+          requirement:
+            "La circulación y acceso al área consideran las condiciones de accesibilidad aplicables.",
+          basis: "NOM-030-SSA3-2013 / criterio técnico",
+          evidence: "Inspección",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-022",
+          code: "INF",
+          dimension: "Infraestructura física",
+          criterion: "Señalización",
+          requirement:
+            "El área cuenta con señalización de acceso restringido y seguridad aplicable.",
+          basis: "NOM-026-STPS-2008 / institucional",
+          evidence: "Inspección",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-023",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Temperatura",
+          requirement:
+            "Existe medición documentada de temperatura como control técnico de conservación.",
+          basis: "Criterio técnico / institucional",
+          evidence: "Bitácora",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-024",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Humedad",
+          requirement:
+            "Existe medición documentada de humedad relativa como control técnico de conservación.",
+          basis: "Criterio técnico / institucional",
+          evidence: "Bitácora",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-025",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Instrumentos",
+          requirement:
+            "Los instrumentos de medición ambiental están identificados y sujetos a verificación/calibración según corresponda.",
+          basis: "Gestión de medición / institucional",
+          evidence: "Registro",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-026",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Registros",
+          requirement:
+            "Las mediciones ambientales se registran con periodicidad definida.",
+          basis: "Criterio técnico",
+          evidence: "Bitácora",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-027",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Filtraciones",
+          requirement: "No existen filtraciones, goteras o humedad activa.",
+          basis: "Conservación",
+          evidence: "Inspección",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-028",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Hongos",
+          requirement: "No se observan indicios de proliferación de hongos.",
+          basis: "Conservación",
+          evidence: "Inspección",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-029",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Plagas",
+          requirement: "Existe programa o control documentado contra plagas.",
+          basis: "Conservación",
+          evidence: "Programa + registros",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-030",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Limpieza",
+          requirement:
+            "Existe programa documentado de limpieza del área y estantería.",
+          basis: "Conservación",
+          evidence: "Programa + bitácora",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-031",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Luz solar",
+          requirement:
+            "Los expedientes están protegidos de exposición solar directa perjudicial.",
+          basis: "Conservación",
+          evidence: "Inspección",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-032",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Alimentos",
+          requirement:
+            "No se almacenan ni consumen alimentos o bebidas junto a expedientes.",
+          basis: "Conservación / higiene",
+          evidence: "Inspección",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-033",
+          code: "CON",
+          dimension: "Conservación y ambiente",
+          criterion: "Deterioro",
+          requirement:
+            "Existe mecanismo para identificar, separar y atender documentos deteriorados.",
+          basis: "Gestión documental",
+          evidence: "Procedimiento + registros",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-034",
+          code: "SEG",
+          dimension: "Seguridad y emergencias",
+          criterion: "Extintores",
+          requirement:
+            "Existen extintores adecuados, accesibles, señalizados y vigentes.",
+          basis: "NOM-002-STPS-2010",
+          evidence: "Inspección + registros",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-035",
+          code: "SEG",
+          dimension: "Seguridad y emergencias",
+          criterion: "Evacuación",
+          requirement:
+            "Las rutas de evacuación están identificadas y libres de obstáculos.",
+          basis: "Protección Civil / NOM-026-STPS",
+          evidence: "Inspección",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-036",
+          code: "SEG",
+          dimension: "Seguridad y emergencias",
+          criterion: "Salidas",
+          requirement: "Las salidas y rutas aplicables permanecen operables.",
+          basis: "Protección Civil",
+          evidence: "Inspección",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-037",
+          code: "SEG",
+          dimension: "Seguridad y emergencias",
+          criterion: "Alarma",
+          requirement:
+            "El sistema de alarma aplicable se encuentra operativo y probado.",
+          basis: "Protección Civil / institucional",
+          evidence: "Prueba + registro",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-038",
+          code: "SEG",
+          dimension: "Seguridad y emergencias",
+          criterion: "Simulacros",
+          requirement:
+            "El personal conoce su actuación ante contingencias y participa en simulacros conforme al programa institucional.",
+          basis: "Protección Civil",
+          evidence: "Constancias + actas",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-039",
+          code: "SEG",
+          dimension: "Seguridad y emergencias",
+          criterion: "Plan de emergencia",
+          requirement:
+            "Existe procedimiento específico para proteger documentos durante una contingencia.",
+          basis: "Archivos / Protección Civil",
+          evidence: "Plan",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-040",
+          code: "SEG",
+          dimension: "Seguridad y emergencias",
+          criterion: "Riesgo eléctrico",
+          requirement:
+            "No existen conexiones eléctricas improvisadas o condiciones evidentes de riesgo.",
+          basis: "Seguridad laboral",
+          evidence: "Inspección",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-041",
+          code: "SEG",
+          dimension: "Seguridad y emergencias",
+          criterion: "Acceso restringido",
+          requirement:
+            "El acceso al área está limitado al personal autorizado.",
+          basis: "Seguridad / datos personales",
+          evidence: "Inspección + control",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-042",
+          code: "SEG",
+          dimension: "Seguridad y emergencias",
+          criterion: "Visitantes",
+          requirement:
+            "Existe control de visitantes cuando éstos ingresan al área restringida.",
+          basis: "Seguridad",
+          evidence: "Bitácora",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-043",
+          code: "SEG",
+          dimension: "Seguridad y emergencias",
+          criterion: "Llaves",
+          requirement:
+            "Existe control de llaves, tarjetas o mecanismos de acceso físico.",
+          basis: "Seguridad",
+          evidence: "Registro",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-044",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Identificación",
+          requirement:
+            "El expediente permite identificar inequívocamente al paciente.",
+          basis: "NOM-004-SSA3-2012",
+          evidence: "Muestreo de expedientes",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-045",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Número de expediente",
+          requirement: "El número de expediente es único y consistente.",
+          basis: "NOM-004 / gestión documental",
+          evidence: "Muestreo",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-046",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Integridad",
+          requirement:
+            "Los documentos corresponden al mismo paciente y episodio cuando aplica.",
+          basis: "NOM-004",
+          evidence: "Muestreo",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-047",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Orden",
+          requirement:
+            "Los documentos mantienen el orden establecido institucionalmente.",
+          basis: "NOM-004 / institucional",
+          evidence: "Muestreo",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-048",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Legibilidad",
+          requirement: "Los documentos físicos son legibles.",
+          basis: "NOM-004",
+          evidence: "Muestreo",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-049",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Fecha",
+          requirement:
+            "Las notas y documentos clínicos contienen la fecha que corresponde.",
+          basis: "NOM-004",
+          evidence: "Muestreo",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-050",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Hora",
+          requirement:
+            "Las notas clínicas contienen la hora cuando corresponde conforme a la NOM.",
+          basis: "NOM-004",
+          evidence: "Muestreo",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-051",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Autoría",
+          requirement:
+            "Las notas permiten identificar al profesional que las elaboró.",
+          basis: "NOM-004",
+          evidence: "Muestreo",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-052",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Firma",
+          requirement:
+            "Las notas cuentan con la firma correspondiente conforme al medio utilizado.",
+          basis: "NOM-004",
+          evidence: "Muestreo",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-053",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Enmendaduras",
+          requirement:
+            "No existen alteraciones o enmendaduras que contravengan las reglas aplicables.",
+          basis: "NOM-004",
+          evidence: "Muestreo",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-054",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Duplicidad",
+          requirement:
+            "No existen expedientes duplicados para un mismo paciente sin control institucional.",
+          basis: "Gestión documental",
+          evidence: "Muestreo + sistema",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-055",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Integración",
+          requirement:
+            "El expediente contiene los documentos que correspondan a los servicios otorgados.",
+          basis: "NOM-004 / institucional",
+          evidence: "Muestreo",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-056",
+          code: "EXP",
+          dimension: "Integración y calidad del expediente",
+          criterion: "Conservación",
+          requirement: "Existe control del periodo de conservación aplicable.",
+          basis: "NOM-004 / archivos",
+          evidence: "Matriz de retención",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-057",
+          code: "TRA",
+          dimension: "Préstamo y trazabilidad",
+          criterion: "Solicitud",
+          requirement:
+            "Toda salida de expediente tiene una solicitud identificable.",
+          basis: "NOM-004 / institucional",
+          evidence: "Bitácora",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-058",
+          code: "TRA",
+          dimension: "Préstamo y trazabilidad",
+          criterion: "Solicitante",
+          requirement: "Se identifica quién solicita o recibe el expediente.",
+          basis: "Seguridad / datos personales",
+          evidence: "Bitácora",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-059",
+          code: "TRA",
+          dimension: "Préstamo y trazabilidad",
+          criterion: "Servicio",
+          requirement: "Se identifica el servicio o unidad solicitante.",
+          basis: "Gestión operativa",
+          evidence: "Bitácora",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-060",
+          code: "TRA",
+          dimension: "Préstamo y trazabilidad",
+          criterion: "Fecha salida",
+          requirement: "Se registra fecha y hora de salida.",
+          basis: "Trazabilidad",
+          evidence: "Bitácora",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-061",
+          code: "TRA",
+          dimension: "Préstamo y trazabilidad",
+          criterion: "Fecha devolución",
+          requirement: "Se registra fecha y hora de devolución.",
+          basis: "Trazabilidad",
+          evidence: "Bitácora",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-062",
+          code: "TRA",
+          dimension: "Préstamo y trazabilidad",
+          criterion: "Ubicación actual",
+          requirement:
+            "El sistema permite conocer la ubicación o responsable actual del expediente.",
+          basis: "Trazabilidad",
+          evidence: "Sistema / bitácora",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-063",
+          code: "TRA",
+          dimension: "Préstamo y trazabilidad",
+          criterion: "No localizado",
+          requirement:
+            "Los expedientes no localizados generan incidencia y seguimiento.",
+          basis: "Gestión de riesgo",
+          evidence: "Reporte",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-064",
+          code: "TRA",
+          dimension: "Préstamo y trazabilidad",
+          criterion: "Tiempo de respuesta",
+          requirement: "Se mide el tiempo de localización/entrega.",
+          basis: "Gestión de desempeño",
+          evidence: "Indicador",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-065",
+          code: "TRA",
+          dimension: "Préstamo y trazabilidad",
+          criterion: "Devolución oportuna",
+          requirement:
+            "Se mide el porcentaje de devoluciones dentro del plazo institucional.",
+          basis: "Gestión de desempeño",
+          evidence: "Indicador",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-066",
+          code: "TRA",
+          dimension: "Préstamo y trazabilidad",
+          criterion: "Cadena de custodia",
+          requirement:
+            "Los movimientos relevantes del expediente pueden reconstruirse.",
+          basis: "Seguridad / trazabilidad",
+          evidence: "Bitácora",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-067",
+          code: "ARC",
+          dimension: "Gestión archivística",
+          criterion: "Sistema institucional",
+          requirement:
+            "El Archivo Clínico está integrado a la gestión institucional de archivos conforme corresponda.",
+          basis: "Ley General de Archivos / Jalisco",
+          evidence: "Documental",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-068",
+          code: "ARC",
+          dimension: "Gestión archivística",
+          criterion: "Clasificación",
+          requirement:
+            "La documentación está organizada conforme a los instrumentos archivísticos aplicables.",
+          basis: "Ley General de Archivos / Jalisco",
+          evidence: "Instrumentos + inspección",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-069",
+          code: "ARC",
+          dimension: "Gestión archivística",
+          criterion: "Inventarios",
+          requirement:
+            "Existen inventarios o controles documentales aplicables.",
+          basis: "Ley General de Archivos / Jalisco",
+          evidence: "Inventarios",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-070",
+          code: "ARC",
+          dimension: "Gestión archivística",
+          criterion: "Valoración",
+          requirement:
+            "Existe valoración documental conforme al sistema institucional aplicable.",
+          basis: "Ley General de Archivos / Jalisco",
+          evidence: "Dictámenes / instrumentos",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-071",
+          code: "ARC",
+          dimension: "Gestión archivística",
+          criterion: "Disposición",
+          requirement:
+            "La baja o disposición documental, cuando proceda, se realiza mediante el procedimiento autorizado.",
+          basis: "Ley General de Archivos / Jalisco",
+          evidence: "Actas / dictámenes",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-072",
+          code: "ARC",
+          dimension: "Gestión archivística",
+          criterion: "Transferencias",
+          requirement:
+            "Las transferencias documentales se realizan conforme al procedimiento institucional.",
+          basis: "Ley General de Archivos / Jalisco",
+          evidence: "Actas / inventarios",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-073",
+          code: "ARC",
+          dimension: "Gestión archivística",
+          criterion: "Conservación",
+          requirement:
+            "Existe control documentado de los plazos de conservación.",
+          basis: "Ley General de Archivos / NOM-004",
+          evidence: "Catálogo / matriz",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-074",
+          code: "ARC",
+          dimension: "Gestión archivística",
+          criterion: "Memoria institucional",
+          requirement:
+            "Se preservan los documentos que deban conservarse por su valor documental o histórico conforme a la normativa aplicable.",
+          basis: "Ley General de Archivos",
+          evidence: "Valoración",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-075",
+          code: "DAT",
+          dimension: "Confidencialidad y datos personales",
+          criterion: "Acceso autorizado",
+          requirement: "Sólo personal autorizado accede a expedientes.",
+          basis: "Protección de datos / NOM-004",
+          evidence: "Muestreo + controles",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-076",
+          code: "DAT",
+          dimension: "Confidencialidad y datos personales",
+          criterion: "Confidencialidad",
+          requirement:
+            "El personal conoce y observa el deber de confidencialidad.",
+          basis: "Protección de datos / NOM-004",
+          evidence: "Entrevista + constancias",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-077",
+          code: "DAT",
+          dimension: "Confidencialidad y datos personales",
+          criterion: "Copias",
+          requirement:
+            "La reproducción de expedientes se controla conforme a las reglas aplicables.",
+          basis: "Protección de datos / institucional",
+          evidence: "Procedimiento + registros",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-078",
+          code: "DAT",
+          dimension: "Confidencialidad y datos personales",
+          criterion: "Fotografías",
+          requirement:
+            "Existe control institucional sobre captura de imágenes de expedientes.",
+          basis: "Protección de datos",
+          evidence: "Inspección + procedimiento",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-079",
+          code: "DAT",
+          dimension: "Confidencialidad y datos personales",
+          criterion: "Transferencias",
+          requirement:
+            "Las entregas a terceros o autoridades se documentan y realizan conforme a fundamento aplicable.",
+          basis: "Protección de datos / NOM-004",
+          evidence: "Registros",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-080",
+          code: "DAT",
+          dimension: "Confidencialidad y datos personales",
+          criterion: "Incidentes",
+          requirement:
+            "Existe mecanismo para reportar y atender accesos o divulgaciones no autorizadas.",
+          basis: "Protección de datos",
+          evidence: "Procedimiento",
+          criticality: "Crítica",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-081",
+          code: "DAT",
+          dimension: "Confidencialidad y datos personales",
+          criterion: "Digitalización",
+          requirement:
+            "Cuando se digitaliza, existe control de integridad, acceso y trazabilidad del documento digital.",
+          basis: "Protección de datos / información",
+          evidence: "Procedimiento + sistema",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-082",
+          code: "DAT",
+          dimension: "Confidencialidad y datos personales",
+          criterion: "Respaldos",
+          requirement:
+            "Los sistemas que contienen información del Archivo cuentan con respaldo y recuperación conforme a la política institucional.",
+          basis: "Seguridad de información",
+          evidence: "Evidencia técnica",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-083",
+          code: "KPI",
+          dimension: "Gestión y mejora",
+          criterion: "Expedientes no localizados",
+          requirement:
+            "Se calcula periódicamente la proporción de expedientes no localizados.",
+          basis: "Gestión de calidad",
+          evidence: "Indicador",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-084",
+          code: "KPI",
+          dimension: "Gestión y mejora",
+          criterion: "Tiempo de localización",
+          requirement:
+            "Se calcula el tiempo promedio y/o percentiles de localización.",
+          basis: "Gestión de calidad",
+          evidence: "Indicador",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-085",
+          code: "KPI",
+          dimension: "Gestión y mejora",
+          criterion: "Integridad",
+          requirement:
+            "Se mide el porcentaje de expedientes que cumplen criterios de integridad.",
+          basis: "NOM-004 / calidad",
+          evidence: "Auditoría de muestra",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-086",
+          code: "KPI",
+          dimension: "Gestión y mejora",
+          criterion: "Cumplimiento físico",
+          requirement:
+            "Se mide el cumplimiento de infraestructura y conservación.",
+          basis: "Gestión de calidad",
+          evidence: "Cédula",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-087",
+          code: "KPI",
+          dimension: "Gestión y mejora",
+          criterion: "Cumplimiento de seguridad",
+          requirement:
+            "Se mide el cumplimiento de controles de acceso y emergencias.",
+          basis: "Gestión de riesgo",
+          evidence: "Cédula",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-088",
+          code: "KPI",
+          dimension: "Gestión y mejora",
+          criterion: "Acciones correctivas",
+          requirement:
+            "Los hallazgos generan acciones con responsable y fecha compromiso.",
+          basis: "Gestión de calidad",
+          evidence: "Plan de acción",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-089",
+          code: "KPI",
+          dimension: "Gestión y mejora",
+          criterion: "Cierre",
+          requirement:
+            "Se verifica objetivamente el cierre de acciones correctivas.",
+          basis: "Gestión de calidad",
+          evidence: "Evidencia de cierre",
+          criticality: "Alta",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-090",
+          code: "KPI",
+          dimension: "Gestión y mejora",
+          criterion: "Revisión directiva",
+          requirement:
+            "Los resultados se comunican periódicamente a la jefatura/dirección correspondiente.",
+          basis: "Gobernanza",
+          evidence: "Informe",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+        {
+          id: "AC-091",
+          code: "KPI",
+          dimension: "Gestión y mejora",
+          criterion: "Mejora continua",
+          requirement:
+            "Los resultados de auditoría alimentan un plan de mejora del Archivo.",
+          basis: "Gestión de calidad",
+          evidence: "Plan + seguimiento",
+          criticality: "Media",
+          status: "Pendiente",
+          finding: "",
+          action: "",
+          responsible: "",
+          dueDate: "",
+          verified: false,
+          notes: "",
+        },
+      ];
+      let currentId = null;
+
+      const score = {
+        Cumple: 1,
+        Parcial: 0.5,
+        "No cumple": 0,
+        Pendiente: 0,
+        "No aplica": null,
+      };
+      const weight = { Crítica: 4, Alta: 3, Media: 2, Baja: 1 };
+
+      function save() {
+        localStorage.setItem(STORAGE, JSON.stringify(items));
+        document.getElementById("lastSave").textContent =
+          "Último guardado: " + new Date().toLocaleString("es-MX");
+      }
+      function load() {
+        try {
+          const x = JSON.parse(localStorage.getItem(STORAGE));
+          if (Array.isArray(x) && x.length) items = x;
+        } catch (e) {}
+      }
+      function initFilters() {
+        const dims = [...new Set(items.map((x) => x.dimension))].sort();
+        const bases = [...new Set(items.map((x) => x.basis))].sort();
+        document.getElementById("dim").innerHTML =
+          '<option value="">Todas las dimensiones</option>' +
+          dims.map((x) => `<option>${esc(x)}</option>`).join("");
+        document.getElementById("source").innerHTML =
+          '<option value="">Todo fundamento</option>' +
+          bases.map((x) => `<option>${esc(x)}</option>`).join("");
+      }
+      function esc(s) {
+        return String(s ?? "").replace(
+          /[&<>"']/g,
+          (m) =>
+            ({
+              "&": "&amp;",
+              "<": "&lt;",
+              ">": "&gt;",
+              '"': "&quot;",
+              "'": "&#039;",
+            })[m],
+        );
+      }
+      function badgeStatus(s) {
+        const cls =
+          {
+            Cumple: "b-ok",
+            Parcial: "b-pa",
+            "No cumple": "b-no",
+            Pendiente: "b-p",
+            "No aplica": "b-na",
+          }[s] || "b-p";
+        return `<span class="badge ${cls}">${esc(s)}</span>`;
+      }
+      function riskClass(r) {
+        return r === "Crítica"
+          ? "c-critical"
+          : r === "Alta"
+            ? "c-high"
+            : r === "Media"
+              ? "c-medium"
+              : "c-low";
+      }
+      function render() {
+        const q = document.getElementById("search").value.toLowerCase().trim();
+        const d = document.getElementById("dim").value,
+          s = document.getElementById("status").value;
+        const r = document.getElementById("risk").value,
+          b = document.getElementById("source").value;
+        const filtered = items.filter((x) => {
+          const blob = (
+            x.id +
+            " " +
+            x.dimension +
+            " " +
+            x.criterion +
+            " " +
+            x.requirement +
+            " " +
+            x.basis +
+            " " +
+            x.evidence +
+            " " +
+            x.finding +
+            " " +
+            x.action
+          ).toLowerCase();
+          return (
+            (!q || blob.includes(q)) &&
+            (!d || x.dimension === d) &&
+            (!s || x.status === s) &&
+            (!r || x.criticality === r) &&
+            (!b || x.basis === b)
+          );
+        });
+        document.getElementById("tbody").innerHTML = filtered.length
+          ? filtered
+              .map(
+                (x) => `
+ <tr>
+  <td><span class="id">${x.id}</span></td>
+  <td><span class="dim">${esc(x.dimension)}</span></td>
+  <td><div class="crit">${esc(x.criterion)}</div><div class="req">${esc(x.requirement)}</div></td>
+  <td><div class="basis">${esc(x.basis)}</div></td>
+  <td><div class="basis">${esc(x.evidence)}</div></td>
+  <td><span class="${riskClass(x.criticality)}"><strong>${esc(x.criticality)}</strong></span></td>
+  <td>${badgeStatus(x.status)}${x.verified ? '<div class="basis">✓ Verificado</div>' : ""}</td>
+  <td class="actions"><button class="btn small" onclick="editItem('${x.id}')">Evaluar</button></td>
+ </tr>`,
+              )
+              .join("")
+          : `<tr><td colspan="8" class="empty">No hay criterios que coincidan con los filtros.</td></tr>`;
+        updateMetrics();
+      }
+      function updateMetrics() {
+        const applicable = items.filter((x) => x.status !== "No aplica");
+        const w = applicable.reduce(
+          (a, x) => a + (weight[x.criticality] || 1),
+          0,
+        );
+        const got = applicable.reduce(
+          (a, x) => a + (score[x.status] ?? 0) * (weight[x.criticality] || 1),
+          0,
+        );
+        const pct = w ? (got / w) * 100 : 0;
+        const ok = items.filter((x) => x.status === "Cumple").length;
+        const partial = items.filter((x) => x.status === "Parcial").length;
+        const no = items.filter((x) => x.status === "No cumple").length;
+        const pending = items.filter((x) => x.status === "Pendiente").length;
+        const na = items.filter((x) => x.status === "No aplica").length;
+        const critical = items.filter(
+          (x) => x.criticality === "Crítica" && x.status === "No cumple",
+        ).length;
+        document.getElementById("metrics").innerHTML = `
+ <div class="metric ${pct >= 85 ? "ok" : pct >= 70 ? "warn" : "bad"}"><div class="label">Índice ponderado</div><div class="value">${pct.toFixed(1)}%</div><div class="progress"><i style="width:${pct}%"></i></div></div>
+ <div class="metric ok"><div class="label">Cumple</div><div class="value">${ok}</div><div class="kpi-note">de ${items.length} criterios</div></div>
+ <div class="metric warn"><div class="label">Parcial</div><div class="value">${partial}</div></div>
+ <div class="metric bad"><div class="label">No cumple</div><div class="value">${no}</div></div>
+ <div class="metric"><div class="label">Pendientes</div><div class="value">${pending}</div></div>
+ <div class="metric bad"><div class="label">Riesgos críticos</div><div class="value">${critical}</div><div class="kpi-note">${na} no aplica</div></div>`;
+      }
+      function editItem(id) {
+        currentId = id;
+        const x = items.find((y) => y.id === id);
+        if (!x) return;
+        document.getElementById("modalTitle").textContent =
+          x.id + " · " + x.criterion;
+        document.getElementById("modalSub").textContent =
+          x.requirement + " · " + x.basis;
+        document.getElementById("fStatus").value = x.status;
+        document.getElementById("fResponsible").value = x.responsible || "";
+        document.getElementById("fDue").value = x.dueDate || "";
+        document.getElementById("fVerified").value = String(!!x.verified);
+        document.getElementById("fFinding").value = x.finding || "";
+        document.getElementById("fAction").value = x.action || "";
+        document.getElementById("fNotes").value = x.notes || "";
+        document.getElementById("modal").classList.add("show");
+      }
+      function closeModal() {
+        document.getElementById("modal").classList.remove("show");
+        currentId = null;
+      }
+      function saveItem() {
+        const x = items.find((y) => y.id === currentId);
+        if (!x) return;
+        x.status = document.getElementById("fStatus").value;
+        x.responsible = document.getElementById("fResponsible").value.trim();
+        x.dueDate = document.getElementById("fDue").value;
+        x.verified = document.getElementById("fVerified").value === "true";
+        x.finding = document.getElementById("fFinding").value.trim();
+        x.action = document.getElementById("fAction").value.trim();
+        x.notes = document.getElementById("fNotes").value.trim();
+        save();
+        closeModal();
+        render();
+      }
+      function newAudit() {
+        if (
+          !confirm(
+            "Esto restablecerá los 91 criterios a Pendiente y borrará la evaluación local. ¿Continuar?",
+          )
+        )
+          return;
+        items = [
+          {
+            id: "AC-001",
+            code: "GOB",
+            dimension: "Gobierno y organización",
+            criterion: "Responsable formal",
+            requirement:
+              "Existe designación vigente del responsable del Archivo Clínico.",
+            basis: "Institucional / organizacional",
+            evidence: "Documento de designación",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-002",
+            code: "GOB",
+            dimension: "Gobierno y organización",
+            criterion: "Organigrama",
+            requirement:
+              "El Archivo Clínico está identificado en el organigrama vigente.",
+            basis: "Institucional / organizacional",
+            evidence: "Organigrama autorizado",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-003",
+            code: "GOB",
+            dimension: "Gobierno y organización",
+            criterion: "Funciones",
+            requirement:
+              "Las funciones y responsabilidades del personal están documentadas.",
+            basis: "Institucional / organizacional",
+            evidence: "Manual / perfiles",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-004",
+            code: "GOB",
+            dimension: "Gobierno y organización",
+            criterion: "Procedimiento general",
+            requirement:
+              "Existe procedimiento vigente para operación del Archivo Clínico.",
+            basis: "Institucional / organizacional",
+            evidence: "Procedimiento autorizado",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-005",
+            code: "GOB",
+            dimension: "Gobierno y organización",
+            criterion: "Préstamo",
+            requirement:
+              "Existe procedimiento documentado para solicitud, salida y devolución de expedientes.",
+            basis: "NOM-004 / institucional",
+            evidence: "Procedimiento + bitácora",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-006",
+            code: "GOB",
+            dimension: "Gobierno y organización",
+            criterion: "Extraviados",
+            requirement:
+              "Existe procedimiento para expedientes no localizados o extraviados.",
+            basis: "Institucional / gestión de riesgo",
+            evidence: "Procedimiento + reportes",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-007",
+            code: "GOB",
+            dimension: "Gobierno y organización",
+            criterion: "Duplicados",
+            requirement:
+              "Existe procedimiento para identificar y resolver expedientes duplicados.",
+            basis: "Gestión documental / calidad",
+            evidence: "Procedimiento + registros",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-008",
+            code: "GOB",
+            dimension: "Gobierno y organización",
+            criterion: "Contingencias",
+            requirement:
+              "Existe procedimiento para proteger y recuperar expedientes ante incendio, inundación, sismo u otra contingencia.",
+            basis: "Archivos / Protección Civil",
+            evidence: "Plan + evidencia",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-009",
+            code: "GOB",
+            dimension: "Gobierno y organización",
+            criterion: "Capacitación",
+            requirement:
+              "El personal recibe capacitación documentada sobre operación y confidencialidad.",
+            basis: "Protección de datos / institucional",
+            evidence: "Programa + constancias",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-010",
+            code: "GOB",
+            dimension: "Gobierno y organización",
+            criterion: "Auditoría",
+            requirement:
+              "Existe programa periódico de revisión del Archivo Clínico.",
+            basis: "Gestión de calidad",
+            evidence: "Programa + informes",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-011",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Espacio",
+            requirement:
+              "El área dispone de espacio suficiente para operación segura y crecimiento previsto.",
+            basis: "NOM-016 / criterio técnico",
+            evidence: "Inspección + plano",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-012",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Circulación",
+            requirement:
+              "Los pasillos y áreas de trabajo permanecen libres de obstáculos.",
+            basis: "Seguridad / criterio técnico",
+            evidence: "Inspección",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-013",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Estantería",
+            requirement:
+              "La estantería se encuentra en condiciones seguras y estables.",
+            basis: "Seguridad / criterio técnico",
+            evidence: "Inspección",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-014",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Anclaje",
+            requirement:
+              "La estantería que lo requiera cuenta con medidas para evitar vuelco.",
+            basis: "Seguridad / criterio técnico",
+            evidence: "Inspección",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-015",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Piso",
+            requirement:
+              "No se almacenan expedientes directamente sobre el piso.",
+            basis: "Conservación / criterio técnico",
+            evidence: "Inspección",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-016",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Muros",
+            requirement:
+              "Los expedientes se mantienen alejados de fuentes evidentes de humedad o filtración.",
+            basis: "Conservación / criterio técnico",
+            evidence: "Inspección",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-017",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Tuberías",
+            requirement:
+              "No existen tuberías con riesgo evidente de afectar directamente los expedientes.",
+            basis: "Conservación / criterio técnico",
+            evidence: "Inspección",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-018",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Iluminación",
+            requirement:
+              "Existe iluminación suficiente para trabajo y localización segura.",
+            basis: "Seguridad / criterio técnico",
+            evidence: "Inspección",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-019",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Ventilación",
+            requirement:
+              "Existe ventilación adecuada para las condiciones de operación.",
+            basis: "Conservación / criterio técnico",
+            evidence: "Inspección",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-020",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Ergonomía",
+            requirement:
+              "Los puestos de trabajo permiten manipulación segura de expedientes.",
+            basis: "Seguridad laboral",
+            evidence: "Inspección",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-021",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Accesibilidad",
+            requirement:
+              "La circulación y acceso al área consideran las condiciones de accesibilidad aplicables.",
+            basis: "NOM-030-SSA3-2013 / criterio técnico",
+            evidence: "Inspección",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-022",
+            code: "INF",
+            dimension: "Infraestructura física",
+            criterion: "Señalización",
+            requirement:
+              "El área cuenta con señalización de acceso restringido y seguridad aplicable.",
+            basis: "NOM-026-STPS-2008 / institucional",
+            evidence: "Inspección",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-023",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Temperatura",
+            requirement:
+              "Existe medición documentada de temperatura como control técnico de conservación.",
+            basis: "Criterio técnico / institucional",
+            evidence: "Bitácora",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-024",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Humedad",
+            requirement:
+              "Existe medición documentada de humedad relativa como control técnico de conservación.",
+            basis: "Criterio técnico / institucional",
+            evidence: "Bitácora",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-025",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Instrumentos",
+            requirement:
+              "Los instrumentos de medición ambiental están identificados y sujetos a verificación/calibración según corresponda.",
+            basis: "Gestión de medición / institucional",
+            evidence: "Registro",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-026",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Registros",
+            requirement:
+              "Las mediciones ambientales se registran con periodicidad definida.",
+            basis: "Criterio técnico",
+            evidence: "Bitácora",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-027",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Filtraciones",
+            requirement: "No existen filtraciones, goteras o humedad activa.",
+            basis: "Conservación",
+            evidence: "Inspección",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-028",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Hongos",
+            requirement: "No se observan indicios de proliferación de hongos.",
+            basis: "Conservación",
+            evidence: "Inspección",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-029",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Plagas",
+            requirement: "Existe programa o control documentado contra plagas.",
+            basis: "Conservación",
+            evidence: "Programa + registros",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-030",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Limpieza",
+            requirement:
+              "Existe programa documentado de limpieza del área y estantería.",
+            basis: "Conservación",
+            evidence: "Programa + bitácora",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-031",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Luz solar",
+            requirement:
+              "Los expedientes están protegidos de exposición solar directa perjudicial.",
+            basis: "Conservación",
+            evidence: "Inspección",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-032",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Alimentos",
+            requirement:
+              "No se almacenan ni consumen alimentos o bebidas junto a expedientes.",
+            basis: "Conservación / higiene",
+            evidence: "Inspección",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-033",
+            code: "CON",
+            dimension: "Conservación y ambiente",
+            criterion: "Deterioro",
+            requirement:
+              "Existe mecanismo para identificar, separar y atender documentos deteriorados.",
+            basis: "Gestión documental",
+            evidence: "Procedimiento + registros",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-034",
+            code: "SEG",
+            dimension: "Seguridad y emergencias",
+            criterion: "Extintores",
+            requirement:
+              "Existen extintores adecuados, accesibles, señalizados y vigentes.",
+            basis: "NOM-002-STPS-2010",
+            evidence: "Inspección + registros",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-035",
+            code: "SEG",
+            dimension: "Seguridad y emergencias",
+            criterion: "Evacuación",
+            requirement:
+              "Las rutas de evacuación están identificadas y libres de obstáculos.",
+            basis: "Protección Civil / NOM-026-STPS",
+            evidence: "Inspección",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-036",
+            code: "SEG",
+            dimension: "Seguridad y emergencias",
+            criterion: "Salidas",
+            requirement: "Las salidas y rutas aplicables permanecen operables.",
+            basis: "Protección Civil",
+            evidence: "Inspección",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-037",
+            code: "SEG",
+            dimension: "Seguridad y emergencias",
+            criterion: "Alarma",
+            requirement:
+              "El sistema de alarma aplicable se encuentra operativo y probado.",
+            basis: "Protección Civil / institucional",
+            evidence: "Prueba + registro",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-038",
+            code: "SEG",
+            dimension: "Seguridad y emergencias",
+            criterion: "Simulacros",
+            requirement:
+              "El personal conoce su actuación ante contingencias y participa en simulacros conforme al programa institucional.",
+            basis: "Protección Civil",
+            evidence: "Constancias + actas",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-039",
+            code: "SEG",
+            dimension: "Seguridad y emergencias",
+            criterion: "Plan de emergencia",
+            requirement:
+              "Existe procedimiento específico para proteger documentos durante una contingencia.",
+            basis: "Archivos / Protección Civil",
+            evidence: "Plan",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-040",
+            code: "SEG",
+            dimension: "Seguridad y emergencias",
+            criterion: "Riesgo eléctrico",
+            requirement:
+              "No existen conexiones eléctricas improvisadas o condiciones evidentes de riesgo.",
+            basis: "Seguridad laboral",
+            evidence: "Inspección",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-041",
+            code: "SEG",
+            dimension: "Seguridad y emergencias",
+            criterion: "Acceso restringido",
+            requirement:
+              "El acceso al área está limitado al personal autorizado.",
+            basis: "Seguridad / datos personales",
+            evidence: "Inspección + control",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-042",
+            code: "SEG",
+            dimension: "Seguridad y emergencias",
+            criterion: "Visitantes",
+            requirement:
+              "Existe control de visitantes cuando éstos ingresan al área restringida.",
+            basis: "Seguridad",
+            evidence: "Bitácora",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-043",
+            code: "SEG",
+            dimension: "Seguridad y emergencias",
+            criterion: "Llaves",
+            requirement:
+              "Existe control de llaves, tarjetas o mecanismos de acceso físico.",
+            basis: "Seguridad",
+            evidence: "Registro",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-044",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Identificación",
+            requirement:
+              "El expediente permite identificar inequívocamente al paciente.",
+            basis: "NOM-004-SSA3-2012",
+            evidence: "Muestreo de expedientes",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-045",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Número de expediente",
+            requirement: "El número de expediente es único y consistente.",
+            basis: "NOM-004 / gestión documental",
+            evidence: "Muestreo",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-046",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Integridad",
+            requirement:
+              "Los documentos corresponden al mismo paciente y episodio cuando aplica.",
+            basis: "NOM-004",
+            evidence: "Muestreo",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-047",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Orden",
+            requirement:
+              "Los documentos mantienen el orden establecido institucionalmente.",
+            basis: "NOM-004 / institucional",
+            evidence: "Muestreo",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-048",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Legibilidad",
+            requirement: "Los documentos físicos son legibles.",
+            basis: "NOM-004",
+            evidence: "Muestreo",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-049",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Fecha",
+            requirement:
+              "Las notas y documentos clínicos contienen la fecha que corresponde.",
+            basis: "NOM-004",
+            evidence: "Muestreo",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-050",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Hora",
+            requirement:
+              "Las notas clínicas contienen la hora cuando corresponde conforme a la NOM.",
+            basis: "NOM-004",
+            evidence: "Muestreo",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-051",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Autoría",
+            requirement:
+              "Las notas permiten identificar al profesional que las elaboró.",
+            basis: "NOM-004",
+            evidence: "Muestreo",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-052",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Firma",
+            requirement:
+              "Las notas cuentan con la firma correspondiente conforme al medio utilizado.",
+            basis: "NOM-004",
+            evidence: "Muestreo",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-053",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Enmendaduras",
+            requirement:
+              "No existen alteraciones o enmendaduras que contravengan las reglas aplicables.",
+            basis: "NOM-004",
+            evidence: "Muestreo",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-054",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Duplicidad",
+            requirement:
+              "No existen expedientes duplicados para un mismo paciente sin control institucional.",
+            basis: "Gestión documental",
+            evidence: "Muestreo + sistema",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-055",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Integración",
+            requirement:
+              "El expediente contiene los documentos que correspondan a los servicios otorgados.",
+            basis: "NOM-004 / institucional",
+            evidence: "Muestreo",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-056",
+            code: "EXP",
+            dimension: "Integración y calidad del expediente",
+            criterion: "Conservación",
+            requirement:
+              "Existe control del periodo de conservación aplicable.",
+            basis: "NOM-004 / archivos",
+            evidence: "Matriz de retención",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-057",
+            code: "TRA",
+            dimension: "Préstamo y trazabilidad",
+            criterion: "Solicitud",
+            requirement:
+              "Toda salida de expediente tiene una solicitud identificable.",
+            basis: "NOM-004 / institucional",
+            evidence: "Bitácora",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-058",
+            code: "TRA",
+            dimension: "Préstamo y trazabilidad",
+            criterion: "Solicitante",
+            requirement: "Se identifica quién solicita o recibe el expediente.",
+            basis: "Seguridad / datos personales",
+            evidence: "Bitácora",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-059",
+            code: "TRA",
+            dimension: "Préstamo y trazabilidad",
+            criterion: "Servicio",
+            requirement: "Se identifica el servicio o unidad solicitante.",
+            basis: "Gestión operativa",
+            evidence: "Bitácora",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-060",
+            code: "TRA",
+            dimension: "Préstamo y trazabilidad",
+            criterion: "Fecha salida",
+            requirement: "Se registra fecha y hora de salida.",
+            basis: "Trazabilidad",
+            evidence: "Bitácora",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-061",
+            code: "TRA",
+            dimension: "Préstamo y trazabilidad",
+            criterion: "Fecha devolución",
+            requirement: "Se registra fecha y hora de devolución.",
+            basis: "Trazabilidad",
+            evidence: "Bitácora",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-062",
+            code: "TRA",
+            dimension: "Préstamo y trazabilidad",
+            criterion: "Ubicación actual",
+            requirement:
+              "El sistema permite conocer la ubicación o responsable actual del expediente.",
+            basis: "Trazabilidad",
+            evidence: "Sistema / bitácora",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-063",
+            code: "TRA",
+            dimension: "Préstamo y trazabilidad",
+            criterion: "No localizado",
+            requirement:
+              "Los expedientes no localizados generan incidencia y seguimiento.",
+            basis: "Gestión de riesgo",
+            evidence: "Reporte",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-064",
+            code: "TRA",
+            dimension: "Préstamo y trazabilidad",
+            criterion: "Tiempo de respuesta",
+            requirement: "Se mide el tiempo de localización/entrega.",
+            basis: "Gestión de desempeño",
+            evidence: "Indicador",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-065",
+            code: "TRA",
+            dimension: "Préstamo y trazabilidad",
+            criterion: "Devolución oportuna",
+            requirement:
+              "Se mide el porcentaje de devoluciones dentro del plazo institucional.",
+            basis: "Gestión de desempeño",
+            evidence: "Indicador",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-066",
+            code: "TRA",
+            dimension: "Préstamo y trazabilidad",
+            criterion: "Cadena de custodia",
+            requirement:
+              "Los movimientos relevantes del expediente pueden reconstruirse.",
+            basis: "Seguridad / trazabilidad",
+            evidence: "Bitácora",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-067",
+            code: "ARC",
+            dimension: "Gestión archivística",
+            criterion: "Sistema institucional",
+            requirement:
+              "El Archivo Clínico está integrado a la gestión institucional de archivos conforme corresponda.",
+            basis: "Ley General de Archivos / Jalisco",
+            evidence: "Documental",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-068",
+            code: "ARC",
+            dimension: "Gestión archivística",
+            criterion: "Clasificación",
+            requirement:
+              "La documentación está organizada conforme a los instrumentos archivísticos aplicables.",
+            basis: "Ley General de Archivos / Jalisco",
+            evidence: "Instrumentos + inspección",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-069",
+            code: "ARC",
+            dimension: "Gestión archivística",
+            criterion: "Inventarios",
+            requirement:
+              "Existen inventarios o controles documentales aplicables.",
+            basis: "Ley General de Archivos / Jalisco",
+            evidence: "Inventarios",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-070",
+            code: "ARC",
+            dimension: "Gestión archivística",
+            criterion: "Valoración",
+            requirement:
+              "Existe valoración documental conforme al sistema institucional aplicable.",
+            basis: "Ley General de Archivos / Jalisco",
+            evidence: "Dictámenes / instrumentos",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-071",
+            code: "ARC",
+            dimension: "Gestión archivística",
+            criterion: "Disposición",
+            requirement:
+              "La baja o disposición documental, cuando proceda, se realiza mediante el procedimiento autorizado.",
+            basis: "Ley General de Archivos / Jalisco",
+            evidence: "Actas / dictámenes",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-072",
+            code: "ARC",
+            dimension: "Gestión archivística",
+            criterion: "Transferencias",
+            requirement:
+              "Las transferencias documentales se realizan conforme al procedimiento institucional.",
+            basis: "Ley General de Archivos / Jalisco",
+            evidence: "Actas / inventarios",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-073",
+            code: "ARC",
+            dimension: "Gestión archivística",
+            criterion: "Conservación",
+            requirement:
+              "Existe control documentado de los plazos de conservación.",
+            basis: "Ley General de Archivos / NOM-004",
+            evidence: "Catálogo / matriz",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-074",
+            code: "ARC",
+            dimension: "Gestión archivística",
+            criterion: "Memoria institucional",
+            requirement:
+              "Se preservan los documentos que deban conservarse por su valor documental o histórico conforme a la normativa aplicable.",
+            basis: "Ley General de Archivos",
+            evidence: "Valoración",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-075",
+            code: "DAT",
+            dimension: "Confidencialidad y datos personales",
+            criterion: "Acceso autorizado",
+            requirement: "Sólo personal autorizado accede a expedientes.",
+            basis: "Protección de datos / NOM-004",
+            evidence: "Muestreo + controles",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-076",
+            code: "DAT",
+            dimension: "Confidencialidad y datos personales",
+            criterion: "Confidencialidad",
+            requirement:
+              "El personal conoce y observa el deber de confidencialidad.",
+            basis: "Protección de datos / NOM-004",
+            evidence: "Entrevista + constancias",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-077",
+            code: "DAT",
+            dimension: "Confidencialidad y datos personales",
+            criterion: "Copias",
+            requirement:
+              "La reproducción de expedientes se controla conforme a las reglas aplicables.",
+            basis: "Protección de datos / institucional",
+            evidence: "Procedimiento + registros",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-078",
+            code: "DAT",
+            dimension: "Confidencialidad y datos personales",
+            criterion: "Fotografías",
+            requirement:
+              "Existe control institucional sobre captura de imágenes de expedientes.",
+            basis: "Protección de datos",
+            evidence: "Inspección + procedimiento",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-079",
+            code: "DAT",
+            dimension: "Confidencialidad y datos personales",
+            criterion: "Transferencias",
+            requirement:
+              "Las entregas a terceros o autoridades se documentan y realizan conforme a fundamento aplicable.",
+            basis: "Protección de datos / NOM-004",
+            evidence: "Registros",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-080",
+            code: "DAT",
+            dimension: "Confidencialidad y datos personales",
+            criterion: "Incidentes",
+            requirement:
+              "Existe mecanismo para reportar y atender accesos o divulgaciones no autorizadas.",
+            basis: "Protección de datos",
+            evidence: "Procedimiento",
+            criticality: "Crítica",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-081",
+            code: "DAT",
+            dimension: "Confidencialidad y datos personales",
+            criterion: "Digitalización",
+            requirement:
+              "Cuando se digitaliza, existe control de integridad, acceso y trazabilidad del documento digital.",
+            basis: "Protección de datos / información",
+            evidence: "Procedimiento + sistema",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-082",
+            code: "DAT",
+            dimension: "Confidencialidad y datos personales",
+            criterion: "Respaldos",
+            requirement:
+              "Los sistemas que contienen información del Archivo cuentan con respaldo y recuperación conforme a la política institucional.",
+            basis: "Seguridad de información",
+            evidence: "Evidencia técnica",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-083",
+            code: "KPI",
+            dimension: "Gestión y mejora",
+            criterion: "Expedientes no localizados",
+            requirement:
+              "Se calcula periódicamente la proporción de expedientes no localizados.",
+            basis: "Gestión de calidad",
+            evidence: "Indicador",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-084",
+            code: "KPI",
+            dimension: "Gestión y mejora",
+            criterion: "Tiempo de localización",
+            requirement:
+              "Se calcula el tiempo promedio y/o percentiles de localización.",
+            basis: "Gestión de calidad",
+            evidence: "Indicador",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-085",
+            code: "KPI",
+            dimension: "Gestión y mejora",
+            criterion: "Integridad",
+            requirement:
+              "Se mide el porcentaje de expedientes que cumplen criterios de integridad.",
+            basis: "NOM-004 / calidad",
+            evidence: "Auditoría de muestra",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-086",
+            code: "KPI",
+            dimension: "Gestión y mejora",
+            criterion: "Cumplimiento físico",
+            requirement:
+              "Se mide el cumplimiento de infraestructura y conservación.",
+            basis: "Gestión de calidad",
+            evidence: "Cédula",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-087",
+            code: "KPI",
+            dimension: "Gestión y mejora",
+            criterion: "Cumplimiento de seguridad",
+            requirement:
+              "Se mide el cumplimiento de controles de acceso y emergencias.",
+            basis: "Gestión de riesgo",
+            evidence: "Cédula",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-088",
+            code: "KPI",
+            dimension: "Gestión y mejora",
+            criterion: "Acciones correctivas",
+            requirement:
+              "Los hallazgos generan acciones con responsable y fecha compromiso.",
+            basis: "Gestión de calidad",
+            evidence: "Plan de acción",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-089",
+            code: "KPI",
+            dimension: "Gestión y mejora",
+            criterion: "Cierre",
+            requirement:
+              "Se verifica objetivamente el cierre de acciones correctivas.",
+            basis: "Gestión de calidad",
+            evidence: "Evidencia de cierre",
+            criticality: "Alta",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-090",
+            code: "KPI",
+            dimension: "Gestión y mejora",
+            criterion: "Revisión directiva",
+            requirement:
+              "Los resultados se comunican periódicamente a la jefatura/dirección correspondiente.",
+            basis: "Gobernanza",
+            evidence: "Informe",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+          {
+            id: "AC-091",
+            code: "KPI",
+            dimension: "Gestión y mejora",
+            criterion: "Mejora continua",
+            requirement:
+              "Los resultados de auditoría alimentan un plan de mejora del Archivo.",
+            basis: "Gestión de calidad",
+            evidence: "Plan + seguimiento",
+            criticality: "Media",
+            status: "Pendiente",
+            finding: "",
+            action: "",
+            responsible: "",
+            dueDate: "",
+            verified: false,
+            notes: "",
+          },
+        ];
+        save();
+        render();
+      }
+      function exportJSON() {
+        const payload = {
+          version: 1,
+          generatedAt: new Date().toISOString(),
+          hospital: document.getElementById("hospitalName").textContent,
+          year: document.getElementById("year").textContent,
+          items,
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], {
+          type: "application/json",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download =
+          "auditoria_archivo_clinico_" +
+          new Date().toISOString().slice(0, 10) +
+          ".json";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }
+      function importJSON(ev) {
+        const f = ev.target.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+          try {
+            const p = JSON.parse(reader.result);
+            if (!Array.isArray(p.items))
+              throw new Error("Formato no reconocido");
+            if (
+              !confirm(
+                "Se reemplazará la evaluación actual por el archivo importado. ¿Continuar?",
+              )
+            )
+              return;
+            items = p.items;
+            save();
+            initFilters();
+            render();
+          } catch (e) {
+            alert("No fue posible importar: " + e.message);
+          }
+        };
+        reader.readAsText(f);
+        ev.target.value = "";
+      }
+      function showSummary() {
+        const applicable = items.filter((x) => x.status !== "No aplica");
+        const w = applicable.reduce(
+          (a, x) => a + (weight[x.criticality] || 1),
+          0,
+        );
+        const got = applicable.reduce(
+          (a, x) => a + (score[x.status] ?? 0) * (weight[x.criticality] || 1),
+          0,
+        );
+        const pct = w ? (got / w) * 100 : 0;
+        const critical = items.filter(
+          (x) => x.criticality === "Crítica" && x.status === "No cumple",
+        );
+        const open = items.filter((x) =>
+          ["No cumple", "Parcial"].includes(x.status),
+        );
+        const dims = {};
+        items.forEach((x) => {
+          if (!dims[x.dimension]) dims[x.dimension] = { n: 0, w: 0, g: 0 };
+          if (x.status !== "No aplica") {
+            const ww = weight[x.criticality] || 1;
+            dims[x.dimension].n++;
+            dims[x.dimension].w += ww;
+            dims[x.dimension].g += (score[x.status] ?? 0) * ww;
+          }
+        });
+        let lines = Object.entries(dims)
+          .map(([k, v]) => `${k}: ${v.w ? ((v.g / v.w) * 100).toFixed(1) : 0}%`)
+          .join("\\n");
+        alert(
+          `RESUMEN EJECUTIVO\\n\\nÍndice ponderado: ${pct.toFixed(1)}%\\nCriterios: ${items.length}\\nNo cumple: ${items.filter((x) => x.status === "No cumple").length}\\nParciales: ${items.filter((x) => x.status === "Parcial").length}\\nPendientes: ${items.filter((x) => x.status === "Pendiente").length}\\nRiesgos críticos: ${critical.length}\\n\\nPOR DIMENSIÓN\\n${lines}\\n\\nPrioridad inmediata:\\n${
+            critical
+              .slice(0, 10)
+              .map((x) => x.id + " · " + x.criterion)
+              .join("\\n") || "Sin incumplimientos críticos registrados."
+          }`,
+        );
+      }
+      load();
+      initFilters();
+      render();
+    </script>
+  </body>
+</html>
