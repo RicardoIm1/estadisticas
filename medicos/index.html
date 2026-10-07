@@ -163,6 +163,7 @@
     .switch input:checked + .slider{background:var(--success)}
     .switch input:checked + .slider:before{transform:translateX(17px)}
 
+    .rrhh-note{font-size:.68rem;color:var(--muted);margin:-3px 0 10px}
     .form-actions{display:flex;gap:9px;margin-top:20px}
     .form-actions .btn{flex:1}
 
@@ -336,6 +337,32 @@
         </div>
 
         <div class="section">
+          <h3>Datos de RRHH</h3>
+          <div class="rrhh-note">Información administrativa proveniente del registro de Recursos Humanos.</div>
+          <div class="grid">
+            <div class="field"><label for="rfc">RFC</label><input id="rfc"></div>
+            <div class="field"><label for="nombre">Nombre (RRHH)</label><input id="nombre"></div>
+            <div class="field"><label for="ur">UR</label><input id="ur"></div>
+            <div class="field"><label for="codigo">Código</label><input id="codigo"></div>
+            <div class="field"><label for="region">Región</label><input id="region"></div>
+            <div class="field"><label for="zona">Zona</label><input id="zona"></div>
+            <div class="field"><label for="programa">Programa</label><input id="programa"></div>
+            <div class="field"><label for="turno">Turno</label><input id="turno"></div>
+            <div class="field"><label for="jornada">Jornada</label><input id="jornada"></div>
+            <div class="field"><label for="servicio">Servicio</label><input id="servicio"></div>
+            <div class="field"><label for="componente">Componente</label><input id="componente"></div>
+            <div class="field"><label for="funcion_real">Función real</label><input id="funcion_real"></div>
+            <div class="field"><label for="tipo_comision">Tipo de comisión</label><input id="tipo_comision"></div>
+            <div class="field"><label for="clues_comision">CLUES comisión</label><input id="clues_comision"></div>
+            <div class="field"><label for="fecha_ingreso_opd">Fecha ingreso OPD</label><input id="fecha_ingreso_opd" type="date"></div>
+            <div class="field"><label for="area_adscripcion">Área de adscripción</label><input id="area_adscripcion"></div>
+          </div>
+          <div class="toggle-grid" style="margin-top:8px">
+            <div class="toggle-row"><span class="toggle-label">Comisión</span><label class="switch"><input type="checkbox" id="comision"><span class="slider"></span></label></div>
+          </div>
+        </div>
+
+        <div class="section">
           <h3>Facultades y FIEL</h3>
           <div class="toggle-grid">
             <div class="toggle-row">
@@ -474,7 +501,10 @@
     "tipo_medico",
     "ultima_especialidad_medica",
     "cedula_profesional",
-    "observaciones"
+    "observaciones",
+    "rfc","nombre","ur","codigo","region","zona","programa","turno","jornada",
+    "servicio","componente","funcion_real","tipo_comision","clues_comision",
+    "area_adscripcion"
   ];
 
   const boolFields = [
@@ -539,6 +569,8 @@
       ? data.correo_electronico.toLowerCase()
       : null;
 
+    data.fecha_ingreso_opd = $("fecha_ingreso_opd").value || null;
+
     return data;
   }
 
@@ -550,6 +582,8 @@
     boolFields.forEach(id => {
       $(id).checked = Boolean(r[id]);
     });
+
+    $("fecha_ingreso_opd").value = r.fecha_ingreso_opd ?? "";
   }
 
   function clearForm(){
@@ -633,7 +667,10 @@
         r.clues,
         r.nombre_unidad_medica,
         r.tipo_medico,
-        r.ultima_especialidad_medica
+        r.ultima_especialidad_medica,
+        r.rfc,r.nombre,r.ur,r.codigo,r.region,r.zona,r.programa,r.turno,
+        r.jornada,r.servicio,r.componente,r.funcion_real,r.tipo_comision,
+        r.clues_comision,r.area_adscripcion
       ].filter(Boolean).join(" ").toLowerCase();
 
       return haystack.includes(term);
@@ -674,7 +711,7 @@
           <div class="card-head">
             <div class="person">
               <div class="name">${escapeHtml(fullName(r) || "Sin nombre")}</div>
-              <div class="meta">${escapeHtml(r.tipo_medico || "Tipo no especificado")}</div>
+              <div class="meta">${escapeHtml([r.tipo_medico,r.funcion_real,r.area_adscripcion].filter(Boolean).join(" · ") || "Tipo no especificado")}</div>
             </div>
             <span class="status ${r.activo ? "on" : "off"}">${r.activo ? "ACTIVO" : "INACTIVO"}</span>
           </div>
@@ -683,6 +720,10 @@
             <div class="info"><small>CURP</small><span>${escapeHtml(r.curp || "No capturada")}</span></div>
             <div class="info"><small>Cédula</small><span>${escapeHtml(r.cedula_profesional || "No capturada")}</span></div>
             <div class="info"><small>CLUES</small><span>${escapeHtml(r.clues || "No capturada")}</span></div>
+            <div class="info"><small>RFC</small><span>${escapeHtml(r.rfc || "No capturado")}</span></div>
+            <div class="info"><small>UR</small><span>${escapeHtml(r.ur || "No capturada")}</span></div>
+            <div class="info"><small>Servicio</small><span>${escapeHtml(r.servicio || "No capturado")}</span></div>
+            <div class="info"><small>Turno</small><span>${escapeHtml(r.turno || "No capturado")}</span></div>
             <div class="info"><small>Documentos</small><span>${docs}/5 entregados</span></div>
             <div class="info" style="grid-column:1/-1"><small>Unidad médica</small><span>${escapeHtml(r.nombre_unidad_medica || "No capturada")}</span></div>
           </div>
