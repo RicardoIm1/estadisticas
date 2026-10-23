@@ -889,6 +889,9 @@
           <button class="btn-purple" onclick="generarInforme()">
             📊 Generar Informe
           </button>
+          <button class="btn-secondary" onclick="imprimirFormatoCaptura()" style="background:#34495e;color:white">
+            Imprimir formato para oficinas
+          </button>
         </div>
 
       </div>
@@ -2772,6 +2775,122 @@
             toggle.textContent = "▼";
           }
         });
+      }
+
+      // ============================================================
+      // FORMATO IMPRESO PARA RECOLECCIÓN MANUAL
+      // ============================================================
+      function imprimirFormatoCaptura() {
+        const month = document.getElementById("month");
+        const year = document.getElementById("year");
+        const monthName = month.options[month.selectedIndex].text;
+        const yearValue = year.value;
+
+        const escapeHtml = (value) =>
+          String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+
+        const sections = categories
+          .map((category) => {
+            const fields = category.fields
+              .map(
+                (field) => `
+                  <div class="field">
+                    <div class="label">${escapeHtml(field.label)}</div>
+                    <div class="answer" aria-label="Espacio para respuesta"></div>
+                  </div>
+                `,
+              )
+              .join("");
+
+            return `
+              <section class="category">
+                <h2>${escapeHtml(category.name.replace(/^\\S+\\s*/, ""))}</h2>
+                <div class="fields">${fields}</div>
+              </section>
+            `;
+          })
+          .join("");
+
+        const printWindow = window.open("", "_blank");
+        if (!printWindow) {
+          showToast(
+            "Ventana bloqueada",
+            "Permite las ventanas emergentes para imprimir el formato.",
+            "error",
+          );
+          return;
+        }
+
+        printWindow.document.open();
+        printWindow.document.write(`<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Formato de recolección de indicadores - ${escapeHtml(monthName)} ${escapeHtml(yearValue)}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; color: #17212b; font-family: Arial, Helvetica, sans-serif; font-size: 10pt; }
+  .page { max-width: 190mm; margin: 0 auto; }
+  header { border-bottom: 2px solid #263b50; padding-bottom: 10px; margin-bottom: 12px; }
+  h1 { margin: 0 0 5px; font-size: 17pt; text-align: center; letter-spacing: .2px; }
+  .subtitle { margin: 0 0 12px; text-align: center; font-size: 10pt; color: #3d4c5b; }
+  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px; margin-top: 12px; }
+  .meta-line { min-height: 24px; border-bottom: 1px solid #6d7781; padding: 4px 0; }
+  .meta-line strong { font-weight: 700; }
+  .category { margin: 12px 0 14px; break-inside: avoid; page-break-inside: avoid; }
+  h2 { margin: 0 0 7px; padding: 6px 9px; font-size: 11pt; color: #17212b; background: #edf1f4; border: 1px solid #aeb8c2; border-left: 4px solid #34495e; }
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 12px; }
+  .field { display: grid; grid-template-columns: minmax(0, 1fr) 27mm; gap: 7px; align-items: center; min-height: 13mm; padding: 4px 5px; border: 1px solid #c6cdd4; border-radius: 3px; break-inside: avoid; page-break-inside: avoid; }
+  .label { line-height: 1.25; overflow-wrap: anywhere; }
+  .answer { height: 10mm; border: 1px solid #737d87; background: #fff; }
+  .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 28px; break-inside: avoid; }
+  .signature { border-top: 1px solid #4f5963; padding-top: 5px; text-align: center; font-size: 9pt; }
+  footer { margin-top: 14px; padding-top: 5px; border-top: 1px solid #c6cdd4; font-size: 8pt; color: #4f5963; text-align: center; }
+  .no-print { margin: 20px 0; text-align: center; }
+  .no-print button { border: 0; border-radius: 5px; background: #263b50; color: #fff; padding: 10px 18px; font-size: 11pt; cursor: pointer; }
+  @page { size: A4 portrait; margin: 12mm; }
+  @media print {
+    body { font-size: 9pt; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .page { max-width: none; }
+    .no-print { display: none; }
+    .category { margin-top: 8px; margin-bottom: 10px; }
+    .field { min-height: 12mm; }
+    .answer { height: 9mm; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <header>
+    <h1>RECOLECCIÓN DE INDICADORES HOSPITALARIOS</h1>
+    <p class="subtitle">Formato de apoyo para el reporte manual de información</p>
+    <div class="meta">
+      <div class="meta-line"><strong>Periodo:</strong> ${escapeHtml(monthName)} ${escapeHtml(yearValue)}</div>
+      <div class="meta-line"><strong>Oficina / servicio:</strong></div>
+      <div class="meta-line"><strong>Nombre de quien reporta:</strong></div>
+      <div class="meta-line"><strong>Fecha de entrega:</strong></div>
+    </div>
+  </header>
+  ${sections}
+  <div class="signatures">
+    <div class="signature">Nombre y firma de quien reporta</div>
+    <div class="signature">Recibido por Estadística y Archivo Clínico</div>
+  </div>
+  <footer>Registrar un valor por indicador. Si un dato no corresponde al servicio, dejar el espacio en blanco y aclararlo al entregar.</footer>
+</div>
+<div class="no-print"><button onclick="window.print()">Imprimir formato</button></div>
+<script>
+  window.addEventListener("load", () => setTimeout(() => window.print(), 250));
+</script>
+</body>
+</html>`);
+        printWindow.document.close();
       }
 
       // ============================================================
