@@ -886,24 +886,11 @@
           >
             💾 Guardar en Supabase
           </button>
-          <button class="btn-primary" onclick="validateAll()">
-            ✅ Validar formulario
-          </button>
-          <button class="btn-secondary" onclick="showSummary()">
-            📊 Ver resumen
-          </button>
-          <button class="btn-success" onclick="exportCSV()">
-            ⬇️ Exportar a CSV
-          </button>
-          <button class="btn-danger" onclick="eliminarRegistro()">
-            🗑️ Eliminar registro
-          </button>
           <button class="btn-purple" onclick="generarInforme()">
             📊 Generar Informe
           </button>
         </div>
 
-        <div id="summaryBox" class="summary-box"></div>
       </div>
 
       <!-- TAB: INFORME -->
@@ -1236,45 +1223,6 @@
             btn.textContent = textoOriginal;
             btn.disabled = false;
           }
-        }
-      }
-
-      async function eliminarRegistro() {
-        const mes = parseInt(document.getElementById("month").value);
-        const anio = parseInt(document.getElementById("year").value);
-        const monthName = document.querySelector(
-          "#month option:checked",
-        ).textContent;
-
-        const confirmar = await showConfirm(
-          "¿Eliminar registro?",
-          `¿Está seguro que desea ELIMINAR el registro de ${monthName} ${anio}?\n\nEsta acción NO se puede deshacer.`,
-          "danger",
-          "Eliminar",
-        );
-
-        if (!confirmar) return;
-
-        try {
-          const { error } = await supabaseClient
-            .from("indicadores_mensuales")
-            .delete()
-            .eq("mes", mes)
-            .eq("anio", anio);
-
-          if (error) throw error;
-
-          showToast(
-            "Eliminado",
-            `Registro de ${monthName} ${anio} eliminado correctamente`,
-            "success",
-          );
-          registroExistente = null;
-          datosCargados = false;
-          resetForm();
-        } catch (error) {
-          console.error("Error al eliminar:", error);
-          showToast("Error", "Error al eliminar: " + error.message, "error");
         }
       }
 
@@ -1748,123 +1696,6 @@
       // ============================================================
       // VALIDACIONES CRUZADAS
       // ============================================================
-      function validateAll() {
-        let errors = [];
-        let warnings = [];
-
-        const totalU = getVal("urgencias_totales");
-        const sumU =
-          getVal("urgencias_pediatricas") + getVal("urgencias_adulto");
-        if (totalU !== sumU) {
-          errors.push(
-            "⚠️ Urgencias totales no coincide con la suma de pediátricas + adulto",
-          );
-          showValidation(
-            "urgencias_totales",
-            "Debe ser = pediátricas + adulto",
-          );
-        } else {
-          clearValidation("urgencias_totales");
-        }
-
-        const totalM = getVal("total_medicos");
-        const sumM =
-          getVal("medicos_ce") +
-          getVal("medicos_hosp") +
-          getVal("medicos_admin");
-        if (totalM !== sumM) {
-          errors.push(
-            "⚠️ Total de médicos no coincide con la suma de sus componentes",
-          );
-          showValidation(
-            "total_medicos",
-            "Debe ser = CE + Hospital + Administrativos",
-          );
-        } else {
-          clearValidation("total_medicos");
-        }
-
-        const totalE = getVal("total_enfermeras");
-        const sumE =
-          getVal("enf_ce") + getVal("enf_hosp") + getVal("enf_admin");
-        if (totalE !== sumE) {
-          errors.push(
-            "⚠️ Total de enfermeras no coincide con la suma de sus componentes",
-          );
-          showValidation(
-            "total_enfermeras",
-            "Debe ser = CE + Hospital + Administrativas",
-          );
-        } else {
-          clearValidation("total_enfermeras");
-        }
-
-        const totalL = getVal("lab_total");
-        const sumL =
-          getVal("lab_ce") + getVal("lab_hosp") + getVal("lab_urgencias");
-        if (totalL !== sumL) {
-          errors.push(
-            "⚠️ Total de laboratorio no coincide con la suma de CE + Hospitalización + Urgencias",
-          );
-          showValidation(
-            "lab_total",
-            "Debe ser = CE + Hospitalización + Urgencias",
-          );
-        } else {
-          clearValidation("lab_total");
-        }
-
-        const totalR = getVal("rx_total");
-        const sumR =
-          getVal("rx_ce") + getVal("rx_hosp") + getVal("rx_urgencias");
-        if (totalR !== sumR) {
-          errors.push(
-            "⚠️ Total de radiología no coincide con la suma de CE + Hospitalización + Urgencias",
-          );
-          showValidation(
-            "rx_total",
-            "Debe ser = CE + Hospitalización + Urgencias",
-          );
-        } else {
-          clearValidation("rx_total");
-        }
-
-        const partosAt = getVal("partos_atendidos");
-        const sumPartos =
-          getVal("partos_cesarea") +
-          getVal("partos_espontaneos") +
-          getVal("partos_asistidos");
-        if (partosAt !== sumPartos && partosAt > 0) {
-          warnings.push(
-            "⚠️ Partos atendidos no coincide con cesárea + espontáneos + asistidos (verificar)",
-          );
-        }
-
-        const summaryBox = document.getElementById("summaryBox");
-        if (errors.length > 0 || warnings.length > 0) {
-          let msg = "🔍 RESULTADO DE VALIDACIÓN:\n";
-          if (errors.length > 0) {
-            msg +=
-              "\n❌ ERRORES (deben corregirse):\n" +
-              errors.map((e) => "  • " + e).join("\n");
-          }
-          if (warnings.length > 0) {
-            msg +=
-              "\n\n⚠️ ADVERTENCIAS (revisar):\n" +
-              warnings.map((w) => "  • " + w).join("\n");
-          }
-          summaryBox.textContent = msg;
-          summaryBox.className = "summary-box visible";
-          summaryBox.style.borderColor =
-            errors.length > 0 ? "#c62828" : "#f9a825";
-        } else {
-          summaryBox.textContent =
-            "✅ ¡Todos los totales calculados son consistentes! El formulario está correcto.";
-          summaryBox.className = "summary-box visible";
-          summaryBox.style.borderColor = "#2e7d32";
-        }
-      }
-
       function showValidation(id, msg) {
         const el = document.getElementById(`val-${id}`);
         if (el) {
@@ -2917,70 +2748,6 @@
       // RESUMEN Y EXPORTACIÓN (CSV del formulario)
       // ============================================================
 
-      function showSummary() {
-        const summaryBox = document.getElementById("summaryBox");
-        const month = document.getElementById("month").value;
-        const year = document.getElementById("year").value;
-        const monthName = document.querySelector(
-          "#month option:checked",
-        ).textContent;
-
-        let lines = [];
-        lines.push(`📊 RESUMEN - ${monthName} ${year}`);
-        lines.push("=".repeat(50));
-
-        let allFields = [];
-        categories.forEach((cat) => {
-          cat.fields.forEach((f) => {
-            allFields.push({
-              category: cat.name,
-              label: f.label,
-              id: f.id,
-              value: getVal(f.id),
-            });
-          });
-        });
-
-        let currentCat = "";
-        allFields.forEach((f) => {
-          if (f.category !== currentCat) {
-            currentCat = f.category;
-            lines.push(`\n${currentCat}`);
-            lines.push("-".repeat(30));
-          }
-          lines.push(`  ${f.label}: ${f.value}`);
-        });
-
-        summaryBox.textContent = lines.join("\n");
-        summaryBox.className = "summary-box visible";
-      }
-
-      function exportCSV() {
-        const month = document.getElementById("month").value;
-        const year = document.getElementById("year").value;
-        const monthName = document.querySelector(
-          "#month option:checked",
-        ).textContent;
-
-        let rows = [];
-        rows.push("Categoría;Indicador;Valor");
-
-        categories.forEach((cat) => {
-          cat.fields.forEach((f) => {
-            const val = getVal(f.id);
-            rows.push(`${cat.name};${f.label};${val}`);
-          });
-        });
-
-        const csv = rows.join("\n");
-        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = `indicadores_${monthName}_${year}.csv`;
-        link.click();
-        URL.revokeObjectURL(link.href);
-      }
-
       function resetForm() {
         document.querySelectorAll('input[type="number"]').forEach((input) => {
           if (!input.readOnly && input.id !== "year") {
@@ -2995,8 +2762,6 @@
           el.textContent = "";
           el.className = "validation-msg";
         });
-        document.getElementById("summaryBox").className = "summary-box";
-        document.getElementById("summaryBox").textContent = "";
 
         // Expandir todas las categorías
         categories.forEach((cat, idx) => {
