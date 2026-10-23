@@ -1257,6 +1257,49 @@
           }
         });
 
+        // Incluir explícitamente los campos calculados en el payload.
+        // Los campos readOnly se excluyen del bucle anterior, pero la base
+        // de datos valida que estos totales coincidan con sus componentes.
+        const valorNumerico = (id) => {
+          const valor = parseFloat(document.getElementById(id)?.value);
+          return Number.isFinite(valor) ? valor : 0;
+        };
+
+        datos.total_medicos =
+          valorNumerico("medicos_ce") +
+          valorNumerico("medicos_hosp") +
+          valorNumerico("medicos_admin");
+
+        datos.total_enfermeras =
+          valorNumerico("enf_ce") +
+          valorNumerico("enf_hosp") +
+          valorNumerico("enf_admin");
+
+        datos.urgencias_totales =
+          valorNumerico("urgencias_pediatricas") +
+          valorNumerico("urgencias_adulto");
+
+        datos.lab_total =
+          valorNumerico("lab_ce") +
+          valorNumerico("lab_hosp") +
+          valorNumerico("lab_urgencias");
+
+        datos.rx_total =
+          valorNumerico("rx_ce") +
+          valorNumerico("rx_hosp") +
+          valorNumerico("rx_urgencias");
+
+        const egresosTotales = valorNumerico("egresos_totales");
+        datos.intervalo_sustitucion =
+          egresosTotales === 0
+            ? 0
+            : Math.round(
+                ((valorNumerico("dias_cama") -
+                  valorNumerico("dias_paciente")) /
+                  egresosTotales) *
+                  10000,
+              ) / 10000;
+
         return datos;
       }
 
