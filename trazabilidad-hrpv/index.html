@@ -283,6 +283,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { storageKey: AUTH_STORAGE_KEY, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
 });
 document.body.classList.add("auth-pending");
+window.__hrpvAuthReady = new Promise(resolve => { window.__hrpvAuthResolve = resolve; });
 try {
   const { data, error } = await supabase.auth.getSession();
   if (error || !data.session) {
@@ -322,6 +323,8 @@ try {
   }
 } catch {
   location.replace("./login-indicadores.html");
+} finally {
+  window.__hrpvAuthResolve?.();
 }
 </script>
 
@@ -1275,6 +1278,7 @@ $("hideReport").addEventListener("click",()=>{$("reportPanel").hidden=true});
 
 $("collapseAll").addEventListener("click",()=>{const sections=[...document.querySelectorAll(".category")],allOpen=sections.length>0&&sections.every(s=>s.classList.contains("open"));sections.forEach(s=>{s.classList.toggle("open",!allOpen);s.querySelector(".cat-toggle").setAttribute("aria-expanded",String(!allOpen))});$("collapseAll").textContent=allOpen?"Abrir categorías":"Cerrar categorías"});
 $("detailModal").addEventListener("click",e=>{if(e.target===$("detailModal"))$("detailModal").close()});
+await window.__hrpvAuthReady;
 try{await initializeSupabaseRecords();render();}catch(err){dbReady=false;render();console.error("Procedencia HRPV:",err);}
 </script>
 </body>
