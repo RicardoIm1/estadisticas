@@ -118,6 +118,61 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 .indicator-table .action-cell{text-align:right}
 @media(max-width:900px){.indicator-table{min-width:850px}.console-table{min-width:850px}}
 
+
+/* Informe hospitalario adaptado desde indicadores/variables.html */
+.list-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.report-panel{margin-top:20px}
+.report-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 15px;margin-bottom:12px;background:#fff;border:1px solid var(--line);border-radius:10px}
+.report-toolbar strong{display:block;color:var(--navy);font-size:13px}
+.report-toolbar span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.report-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.report-container{padding:22px;background:#fff;border:1px solid #dde3ed;border-radius:12px;overflow-x:auto}
+.report-header{text-align:center;margin-bottom:20px;border-bottom:3px solid #0a2a44;padding-bottom:15px}
+.report-header h1{font-size:20px;line-height:1.3;color:#0a2a44;margin:0 0 10px;letter-spacing:.2px}
+.report-meta{display:flex;justify-content:center;gap:10px;font-size:11px;color:#555;flex-wrap:wrap}
+.report-meta div{background:#f5f7fa;padding:5px 10px;border-radius:4px}
+.report-container .section-title{color:#0a2a44;font-size:14px;margin:22px 0 10px;padding:8px 12px;background:#e8edf4;border-left:4px solid #1a73e8;border-radius:4px}
+.report-table{width:100%;min-width:760px;border-collapse:collapse;font-size:11px;margin-bottom:16px;color:#253748}
+.report-table th{background:#0a2a44;color:#fff;padding:8px 9px;text-align:left;font-weight:650}
+.report-table td{padding:7px 9px;border-bottom:1px solid #e2eaf3;vertical-align:top}
+.report-table tr:nth-child(even){background:#f8faff}
+.report-table tr:hover{background:#edf3fa}
+.report-table .col-num{text-align:center;width:36px;color:#6b7d93}
+.report-table .col-indicador{min-width:185px}
+.report-table .col-formula{min-width:180px;font-size:10px;color:#555;font-style:italic}
+.report-table .col-numerador,.report-table .col-denominador,.report-table .col-resultado{text-align:center;min-width:72px;font-variant-numeric:tabular-nums}
+.report-table .col-resultado{font-weight:800;color:#0a2a44}
+.report-table .col-resultado.highlight{color:#1a73e8}
+.report-table .col-resultado.warning{color:#b54747}
+.report-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:18px 0;padding:13px;background:#e8edf4;border-radius:9px}
+.report-summary .summary-item{text-align:center}
+.report-summary .summary-item .label{font-size:10px;color:#6b7d93}
+.report-summary .summary-item .value{font-size:19px;font-weight:800;color:#0a2a44;margin-top:3px}
+.report-warning{padding:10px 12px;border:1px solid #f0d7a0;background:#fff8e8;color:#775619;border-radius:7px;font-size:11px;margin:12px 0}
+.report-footer{margin-top:20px;border-top:1px solid #d0dbe8;padding-top:10px;font-size:9px;color:#687887;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.report-provenance .report-table{min-width:800px}
+.report-provenance .report-table td:nth-child(1){width:30px;text-align:center}
+.report-provenance .source-cell{overflow-wrap:anywhere}
+.report-empty{padding:20px;border:1px dashed #cbd8e2;background:#f8fafc;color:#718092;border-radius:8px}
+@media(max-width:760px){.report-container{padding:12px}.report-toolbar{align-items:flex-start}.report-buttons{width:100%}.report-buttons .btn{flex:1}.report-header h1{font-size:17px}}
+@media print{
+ body{background:#fff!important}
+ .app,dialog,.report-toolbar,.report-panel .no-print,.foot{display:none!important}
+ #reportPanel{display:block!important;border:0;margin:0;padding:0}
+ #reportOutput{display:block!important;border:0;padding:0;margin:0;overflow:visible}
+ .report-header{margin-bottom:12px}
+ .report-header h1{font-size:16pt}
+ .report-meta{font-size:8pt}
+ .section-title{font-size:10pt!important;margin:12px 0 7px!important;break-after:avoid}
+ .report-table{min-width:0!important;width:100%;font-size:7.5pt;break-inside:auto}
+ .report-table th{background:#0a2a44!important;color:white!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;padding:4px}
+ .report-table td{padding:3px 4px}
+ .report-table tr{break-inside:avoid}
+ .report-table thead{display:table-header-group}
+ .report-footer{font-size:7pt}
+ @page{size:letter landscape;margin:1.2cm}
+}
+
 </style>
 </head>
 <body class="auth-pending">
@@ -154,8 +209,20 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 <button class="viewbtn" data-view="resolved" type="button">Resueltos</button>
 <button class="viewbtn" data-view="all" type="button">Todos</button>
 </div>
-<div class="listhead"><div><h2 id="listTitle">Indicadores pendientes</h2><p id="listSubtitle">Se muestra el indicador concreto y los datos que faltan.</p></div><span class="tag" id="resultCount">0 indicadores</span></div>
+<div class="listhead"><div><h2 id="listTitle">Indicadores pendientes</h2><p id="listSubtitle">Se muestra el indicador concreto y los datos que faltan.</p></div><div class="list-actions"><span class="tag" id="resultCount">0 indicadores</span><button class="btn primary" id="generateReport" type="button">Generar informe</button></div></div>
 <div id="categoriesList"></div>
+<section id="reportPanel" class="report-panel" hidden aria-live="polite">
+  <div class="report-toolbar no-print">
+    <div><strong>Informe de indicadores hospitalarios</strong><span>Basado en los registros guardados para el periodo seleccionado.</span></div>
+    <div class="report-buttons">
+      <button class="btn primary" id="printReport" type="button">Imprimir / PDF</button>
+      <button class="btn" id="wordReport" type="button">Exportar Word</button>
+      <button class="btn" id="csvReport" type="button">Exportar Excel (CSV)</button>
+      <button class="btn" id="hideReport" type="button">Ocultar</button>
+    </div>
+  </div>
+  <div id="reportOutput" class="report-container"></div>
+</section>
 <div class="foot">Catálogo y agrupación tomados de indicadores/variables.html. La ruta declarada no demuestra por sí sola que el archivo respalde la cifra.</div>
 </div>
 </main>
@@ -341,6 +408,692 @@ function render(){
   section.append(toggle,body);container.append(section);
  });
 }
+
+function getReportValue(id){
+ const p=currentPeriod(),record=getRecord({id},p);
+ if(!record||record.value===""||record.value===null||record.value===undefined)return NaN;
+ const value=Number(record.value);
+ return Number.isFinite(value)?value:NaN;
+}
+function generarTablaIndicadores() {
+        const v = getReportValue;
+
+        // Calcular totales
+        const totalMedicos =
+          v("medicos_ce") + v("medicos_hosp") + v("medicos_admin");
+        const totalEnfermeras = v("enf_ce") + v("enf_hosp") + v("enf_admin");
+
+        // 1. Recursos Humanos
+        const rhIndicadores = [
+          {
+            no: 1,
+            indicador: "Razón de médicos por consultorio",
+            formula: "Médicos CE / Número de consultorios",
+            num: v("medicos_ce"),
+            den: v("consultorios"),
+            result: v("consultorios") ? v("medicos_ce") / v("consultorios") : 0,
+          },
+          {
+            no: 2,
+            indicador: "Razón de enfermeras por médico",
+            formula: "Enfermeras CE / Médicos CE",
+            num: v("enf_ce"),
+            den: v("medicos_ce"),
+            result: v("medicos_ce") ? v("enf_ce") / v("medicos_ce") : 0,
+          },
+          {
+            no: 3,
+            indicador: "Razón de médicos por cama censable",
+            formula: "Médicos Hospital / Camas censables",
+            num: v("medicos_hosp"),
+            den: v("camas_censables"),
+            result: v("camas_censables")
+              ? v("medicos_hosp") / v("camas_censables")
+              : 0,
+          },
+          {
+            no: 4,
+            indicador: "Razón de enfermeras por cama censable",
+            formula: "Enfermeras Hospital / Camas censables",
+            num: v("enf_hosp"),
+            den: v("camas_censables"),
+            result: v("camas_censables")
+              ? v("enf_hosp") / v("camas_censables")
+              : 0,
+          },
+          {
+            no: 5,
+            indicador: "% de médicos en actividades administrativas",
+            formula: "(Médicos Admin / Total médicos) × 100",
+            num: v("medicos_admin"),
+            den: totalMedicos,
+            result: totalMedicos
+              ? (v("medicos_admin") / totalMedicos) * 100
+              : 0,
+          },
+          {
+            no: 6,
+            indicador: "% de enfermeras en actividades administrativas",
+            formula: "(Enfermeras Admin / Total enfermeras) × 100",
+            num: v("enf_admin"),
+            den: totalEnfermeras,
+            result: totalEnfermeras
+              ? (v("enf_admin") / totalEnfermeras) * 100
+              : 0,
+          },
+        ];
+
+        // 2. Productividad
+        const prodIndicadores = [
+          {
+            no: 7,
+            indicador: "Promedio diario de consultas",
+            formula: "Consultas totales / 252",
+            num: v("consultas_totales"),
+            den: 252,
+            result: v("consultas_totales") / 252,
+          },
+          {
+            no: 8,
+            indicador: "Promedio diario de consultas por consultorio",
+            formula: "Consultas totales / Consultorios / 252",
+            num: v("consultas_totales"),
+            den: v("consultorios") * 252,
+            result: v("consultorios")
+              ? v("consultas_totales") / v("consultorios") / 252
+              : 0,
+          },
+          {
+            no: 9,
+            indicador: "Consultas diarias por médico",
+            formula: "Consultas externas / Médicos CE / 252",
+            num: v("consultas_externas"),
+            den: v("medicos_ce") * 252,
+            result: v("medicos_ce")
+              ? v("consultas_externas") / v("medicos_ce") / 252
+              : 0,
+          },
+          {
+            no: 10,
+            indicador: "Consultas por médico especialista",
+            formula:
+              "Consultas especialidad / (Especialistas+Residentes) / 252",
+            num: v("consultas_especialidad"),
+            den: (v("total_especialistas") + v("total_residentes")) * 252,
+            result:
+              v("total_especialistas") + v("total_residentes")
+                ? v("consultas_especialidad") /
+                  (v("total_especialistas") + v("total_residentes")) /
+                  252
+                : 0,
+          },
+          {
+            no: 11,
+            indicador: "Consultas por odontólogo",
+            formula: "Consultas odonto / Total odontólogos / 252",
+            num: v("consultas_odonto"),
+            den: v("total_odontologos") * 252,
+            result: v("total_odontologos")
+              ? v("consultas_odonto") / v("total_odontologos") / 252
+              : 0,
+          },
+          {
+            no: 12,
+            indicador:
+              "Promedio diario de intervenciones quirúrgicas por quirófano",
+            formula: "Intervenciones / Quirófanos / 365",
+            num: v("interv_quirurgicas"),
+            den: v("quirofanos") * 365,
+            result: v("quirofanos")
+              ? v("interv_quirurgicas") / v("quirofanos") / 365
+              : 0,
+          },
+          {
+            no: 13,
+            indicador: "% de cirugías suspendidas",
+            formula: "(Cirugías suspendidas / Cirugías programadas) × 100",
+            num: v("cirugias_suspendidas"),
+            den: v("cirugias_programadas"),
+            result: v("cirugias_programadas")
+              ? (v("cirugias_suspendidas") / v("cirugias_programadas")) * 100
+              : 0,
+          },
+          {
+            no: 14,
+            indicador: "% de cirugías ambulatorias",
+            formula:
+              "(Cirugías ambulatorias / Intervenciones realizadas) × 100",
+            num: v("cirugias_ambulatorias"),
+            den: v("interv_realizadas"),
+            result: v("interv_realizadas")
+              ? (v("cirugias_ambulatorias") / v("interv_realizadas")) * 100
+              : 0,
+          },
+        ];
+
+        // 3. Proceso
+        const procIndicadores = [
+          {
+            no: 15,
+            indicador: "Promedio diario de egresos",
+            formula: "Egresos totales / 365",
+            num: v("egresos_totales"),
+            den: 365,
+            result: v("egresos_totales") / 365,
+          },
+          {
+            no: 16,
+            indicador: "Promedio diario de urgencias",
+            formula: "Urgencias totales / 365",
+            num: v("urgencias_totales"),
+            den: 365,
+            result: v("urgencias_totales") / 365,
+          },
+          {
+            no: 17,
+            indicador: "Promedio diario de urgencias pediátricas",
+            formula: "Urgencias pediátricas / 365",
+            num: v("urgencias_pediatricas"),
+            den: 365,
+            result: v("urgencias_pediatricas") / 365,
+          },
+          {
+            no: 18,
+            indicador: "Promedio diario de urgencias adulto",
+            formula: "Urgencias adulto / 365",
+            num: v("urgencias_adulto"),
+            den: 365,
+            result: v("urgencias_adulto") / 365,
+          },
+          {
+            no: 19,
+            indicador: "Intervalo de sustitución",
+            formula: "(Días cama - Días paciente) / Egresos totales",
+            num: v("dias_cama") - v("dias_paciente"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("dias_cama") - v("dias_paciente")) / v("egresos_totales")
+              : 0,
+          },
+          {
+            no: 20,
+            indicador: "% de egreso hospitalario de corta estancia",
+            formula: "(Egresos corta estancia / Egresos totales) × 100",
+            num: v("egresos_corta_estancia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("egresos_corta_estancia") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 21,
+            indicador: "% de ocupación hospitalaria",
+            formula: "(Días paciente / (Camas × 365)) × 100",
+            num: v("dias_paciente"),
+            den: v("camas_censables") * 365,
+            result: v("camas_censables")
+              ? (v("dias_paciente") / (v("camas_censables") * 365)) * 100
+              : 0,
+          },
+          {
+            no: 22,
+            indicador: "Promedio de días de estancia",
+            formula: "Días paciente / Egresos totales",
+            num: v("dias_paciente"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? v("dias_paciente") / v("egresos_totales")
+              : 0,
+          },
+          {
+            no: 23,
+            indicador: "Índice de rotación",
+            formula: "Egresos totales / Camas censables",
+            num: v("egresos_totales"),
+            den: v("camas_censables"),
+            result: v("camas_censables")
+              ? v("egresos_totales") / v("camas_censables")
+              : 0,
+          },
+          {
+            no: 24,
+            indicador: "Motivo de egreso hospitalario (%)",
+            formula: "(Causas de egreso / Egresos totales) × 100",
+            num: v("causas_egreso"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("causas_egreso") / v("egresos_totales")) * 100
+              : 0,
+          },
+        ];
+
+        // 4. Seguridad del Paciente
+        const segIndicadores = [
+          {
+            no: 25,
+            indicador: "% de Infecciones Nosocomiales",
+            formula: "(Infecciones / Egresos totales) × 100",
+            num:
+              v("iaas_cirugia") +
+              v("iaas_pediatria") +
+              v("iaas_ucin") +
+              v("iaas_gineco") +
+              v("iaas_ucia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? ((v("iaas_cirugia") +
+                  v("iaas_pediatria") +
+                  v("iaas_ucin") +
+                  v("iaas_gineco") +
+                  v("iaas_ucia")) /
+                  v("egresos_totales")) *
+                100
+              : 0,
+          },
+          {
+            no: 26,
+            indicador: "% de Infección Nosocomial en Cirugía",
+            formula: "(Infecciones Cirugía / Egresos totales) × 100",
+            num: v("iaas_cirugia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_cirugia") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 27,
+            indicador: "% de Infección Nosocomial en Pediatría",
+            formula: "(Infecciones Pediatría / Egresos totales) × 100",
+            num: v("iaas_pediatria"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_pediatria") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 28,
+            indicador: "% de Infección Nosocomial en UCIN",
+            formula: "(Infecciones UCIN / Egresos totales) × 100",
+            num: v("iaas_ucin"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_ucin") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 29,
+            indicador: "% de Infección Nosocomial en Ginecobstetricia",
+            formula: "(Infecciones Gineco / Egresos totales) × 100",
+            num: v("iaas_gineco"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_gineco") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 30,
+            indicador: "% de Infección Nosocomial en UCIA",
+            formula: "(Infecciones UCIA / Egresos totales) × 100",
+            num: v("iaas_ucia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_ucia") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 31,
+            indicador:
+              "% de Infecciones Asociadas a la Atención en Salud (IAAS)",
+            formula: "(Total IAAS / Egresos totales) × 100",
+            num:
+              v("iaas_cirugia") +
+              v("iaas_pediatria") +
+              v("iaas_ucin") +
+              v("iaas_gineco") +
+              v("iaas_ucia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? ((v("iaas_cirugia") +
+                  v("iaas_pediatria") +
+                  v("iaas_ucin") +
+                  v("iaas_gineco") +
+                  v("iaas_ucia")) /
+                  v("egresos_totales")) *
+                100
+              : 0,
+          },
+          {
+            no: 32,
+            indicador: "Tasa de Infección en sitio quirúrgico",
+            formula: "Infecciones sitio quirúrgico / Intervenciones realizadas",
+            num: v("infeccion_sitio_quir"),
+            den: v("interv_realizadas"),
+            result: v("interv_realizadas")
+              ? v("infeccion_sitio_quir") / v("interv_realizadas")
+              : 0,
+          },
+          {
+            no: 33,
+            indicador: "Tasa de Bacteriemia asociada a Catéter Venoso Central",
+            formula: "Bacteriemias / Días catéter central",
+            num: v("bacteriemias_cateter"),
+            den: v("dias_cateter"),
+            result: v("dias_cateter")
+              ? v("bacteriemias_cateter") / v("dias_cateter")
+              : 0,
+          },
+          {
+            no: 34,
+            indicador: "Tasa de Neumonías Asociadas a Ventilador",
+            formula: "Neumonías / Días ventilador",
+            num: v("neumonias_ventilador"),
+            den: v("dias_ventilador"),
+            result: v("dias_ventilador")
+              ? v("neumonias_ventilador") / v("dias_ventilador")
+              : 0,
+          },
+          {
+            no: 35,
+            indicador:
+              "Tasa de Infección de Vías Urinarias asociada a sonda vesical",
+            formula: "Infecciones sonda / Días sonda",
+            num: v("infecciones_sonda"),
+            den: v("dias_sonda"),
+            result: v("dias_sonda")
+              ? v("infecciones_sonda") / v("dias_sonda")
+              : 0,
+          },
+        ];
+
+        // 5. Salud Reproductiva y Materno Infantil
+        const srmiIndicadores = [
+          {
+            no: 36,
+            indicador: "Promedio de consultas prenatales",
+            formula: "Consultas prenatales / Prenatales primera vez",
+            num: v("consultas_prenatal"),
+            den: v("prenatal_primera_vez"),
+            result: v("prenatal_primera_vez")
+              ? v("consultas_prenatal") / v("prenatal_primera_vez")
+              : 0,
+          },
+          {
+            no: 37,
+            indicador: "% de embarazadas captadas en el primer trimestre",
+            formula: "(Captadas 1er trim / Total consultas embarazo) × 100",
+            num: v("embarazadas_1er_trim"),
+            den: v("consultas_embarazo"),
+            result: v("consultas_embarazo")
+              ? (v("embarazadas_1er_trim") / v("consultas_embarazo")) * 100
+              : 0,
+          },
+          {
+            no: 38,
+            indicador: "% de partos por cesárea",
+            formula: "(Cesáreas / Partos atendidos) × 100",
+            num: v("partos_cesarea"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_cesarea") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 39,
+            indicador: "% de partos eutócicos",
+            formula: "(Partos espontáneos / Partos atendidos) × 100",
+            num: v("partos_espontaneos"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_espontaneos") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 40,
+            indicador: "% de partos distócicos",
+            formula: "(Partos asistidos / Partos atendidos) × 100",
+            num: v("partos_asistidos"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_asistidos") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 41,
+            indicador: "Razón de morbilidad materna severa",
+            formula: "(Mujeres con complicaciones / Nacidos vivos) × 100",
+            num: v("mujeres_complicaciones"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("mujeres_complicaciones") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+          {
+            no: 42,
+            indicador: "% de trauma obstétrico",
+            formula: "(Trauma obstétrico / Partos atendidos) × 100",
+            num: v("partos_trauma"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_trauma") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 43,
+            indicador: "% de nacidos vivos pequeños para la edad gestacional",
+            formula: "(Peso < percentil 10 / Nacidos vivos) × 100",
+            num: v("nacidos_p10"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("nacidos_p10") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+          {
+            no: 44,
+            indicador: "% de nacidos vivos grandes para la edad gestacional",
+            formula: "(Peso > percentil 90 / Nacidos vivos) × 100",
+            num: v("nacidos_p90"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("nacidos_p90") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+          {
+            no: 45,
+            indicador: "% de nacidos vivos con bajo peso",
+            formula: "(Peso < 2500g / Nacidos vivos) × 100",
+            num: v("nacidos_menos_2500"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("nacidos_menos_2500") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+        ];
+
+        // 6. Auxiliares de Diagnóstico y Tratamiento
+        const adtIndicadores = [
+          {
+            no: 46,
+            indicador: "% de exámenes de laboratorio en consulta externa",
+            formula: "(Lab CE / Lab total) × 100",
+            num: v("lab_ce"),
+            den: v("lab_total"),
+            result: v("lab_total") ? (v("lab_ce") / v("lab_total")) * 100 : 0,
+          },
+          {
+            no: 47,
+            indicador: "% de exámenes de laboratorio en hospitalización",
+            formula: "(Lab Hospitalización / Lab total) × 100",
+            num: v("lab_hosp"),
+            den: v("lab_total"),
+            result: v("lab_total") ? (v("lab_hosp") / v("lab_total")) * 100 : 0,
+          },
+          {
+            no: 48,
+            indicador: "% de exámenes de laboratorio en urgencias",
+            formula: "(Lab Urgencias / Lab total) × 100",
+            num: v("lab_urgencias"),
+            den: v("lab_total"),
+            result: v("lab_total")
+              ? (v("lab_urgencias") / v("lab_total")) * 100
+              : 0,
+          },
+          {
+            no: 49,
+            indicador: "% de estudios de radiología en consulta externa",
+            formula: "(Rx CE / Rx total) × 100",
+            num: v("rx_ce"),
+            den: v("rx_total"),
+            result: v("rx_total") ? (v("rx_ce") / v("rx_total")) * 100 : 0,
+          },
+          {
+            no: 50,
+            indicador: "% de estudios de radiología en hospitalización",
+            formula: "(Rx Hospitalización / Rx total) × 100",
+            num: v("rx_hosp"),
+            den: v("rx_total"),
+            result: v("rx_total") ? (v("rx_hosp") / v("rx_total")) * 100 : 0,
+          },
+          {
+            no: 51,
+            indicador: "% de estudios de radiología en urgencias",
+            formula: "(Rx Urgencias / Rx total) × 100",
+            num: v("rx_urgencias"),
+            den: v("rx_total"),
+            result: v("rx_total")
+              ? (v("rx_urgencias") / v("rx_total")) * 100
+              : 0,
+          },
+        ];
+
+        const secciones = [
+          { titulo: "1. Recursos Humanos", data: rhIndicadores },
+          { titulo: "2. Productividad", data: prodIndicadores },
+          {
+            titulo: "3. Proceso (Egresos, Urgencias, Ocupación)",
+            data: procIndicadores,
+          },
+          { titulo: "4. Seguridad del Paciente", data: segIndicadores },
+          {
+            titulo: "5. Salud Reproductiva y Materno Infantil",
+            data: srmiIndicadores,
+          },
+          {
+            titulo: "6. Auxiliares de Diagnóstico y Tratamiento",
+            data: adtIndicadores,
+          },
+        ];
+
+        let html = "";
+
+        secciones.forEach((seccion) => {
+          html += `<h3 class="section-title">${seccion.titulo}</h3>`;
+          html += `
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th class="col-num">No</th>
+              <th class="col-indicador">Indicador</th>
+              <th class="col-formula">Fórmula</th>
+              <th class="col-numerador">Numerador</th>
+              <th class="col-denominador">Denominador</th>
+              <th class="col-resultado">Resultado</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+          seccion.data.forEach((item) => {
+            const resultado =
+              Number.isFinite(item.num) && Number.isFinite(item.den) && Number.isFinite(item.result)
+                ? item.result.toFixed(4)
+                : "N/D";
+            const numDisplay = Number.isFinite(item.num) ? item.num.toFixed(0) : "N/D";
+            const denDisplay = Number.isFinite(item.den) ? item.den.toFixed(0) : "N/D";
+
+            html += `
+          <tr>
+            <td class="col-num">${item.no}</td>
+            <td class="col-indicador">${item.indicador}</td>
+            <td class="col-formula">${item.formula}</td>
+            <td class="col-numerador">${numDisplay}</td>
+            <td class="col-denominador">${denDisplay}</td>
+            <td class="col-resultado">${resultado}</td>
+          </tr>
+        `;
+          });
+
+          html += `
+          </tbody>
+        </table>
+      `;
+        });
+
+        return html;
+      }
+
+      // ============================================================
+      // IMPRIMIR INFORME
+      // ============================================================
+function generarTablaProcedencia(){
+ const p=currentPeriod();
+ const items=allFields.map((field,index)=>{
+  const record=getRecord(field,p),missing=missingParts(record),status=statusOf(record);
+  return {field,index,record,missing,status};
+ });
+ let html='<section class="report-provenance"><h3 class="section-title">7. Trazabilidad y procedencia de las cifras</h3><p style="font-size:10px;color:#526474;margin:0 0 10px">Detalle de los valores guardados, su fuente declarada, fecha de actualización y estado de revisión. La fuente registrada no implica validación automática del documento.</p><table class="report-table"><thead><tr><th>No.</th><th>Indicador / variable</th><th>Valor guardado</th><th>Fuente declarada</th><th>Última actualización</th><th>Estado</th><th>Pendiente por resolver</th></tr></thead><tbody>';
+ items.forEach(({field,index,record,missing,status})=>{
+  const value=record&&record.value!==""&&record.value!==null&&record.value!==undefined?String(record.value):"N/D";
+  const date=record?.updatedAt?new Date(record.updatedAt).toLocaleString("es-MX"):"Sin cambios guardados";
+  const state=status==="resolved"?"Resuelto":status==="review"?"En revisión":"Pendiente";
+  html+='<tr><td class="col-num">'+(index+1)+'</td><td>'+esc(field.label)+'<br><small style="color:#718092">'+esc(field.id)+'</small></td><td class="col-resultado">'+esc(value)+'</td><td class="source-cell">'+esc(record?.source||"No registrada")+'</td><td>'+esc(date)+'</td><td>'+esc(state)+'</td><td>'+esc(missing.length?missing.join(", "):"Ninguno")+'</td></tr>';
+ });
+ html+='</tbody></table></section>';
+ return html;
+}
+function generarInforme(){
+ const period=periodLabel(currentPeriod());
+ const reportInputs=["medicos_ce","medicos_hosp","medicos_admin","enf_ce","enf_hosp","enf_admin","consultorios","camas_censables","consultas_totales","consultas_externas","consultas_especialidad","total_especialistas","total_residentes","consultas_odonto","total_odontologos","interv_quirurgicas","quirofanos","cirugias_suspendidas","cirugias_programadas","cirugias_ambulatorias","interv_realizadas","egresos_totales","urgencias_totales","urgencias_pediatricas","urgencias_adulto","dias_cama","dias_paciente","egresos_corta_estancia","causas_egreso","iaas_cirugia","iaas_pediatria","iaas_ucin","iaas_gineco","iaas_ucia","infeccion_sitio_quir","bacteriemias_cateter","dias_cateter","neumonias_ventilador","dias_ventilador","infecciones_sonda","dias_sonda","consultas_prenatal","prenatal_primera_vez","embarazadas_1er_trim","consultas_embarazo","partos_cesarea","partos_atendidos","partos_espontaneos","partos_asistidos","mujeres_complicaciones","nacidos_vivos","partos_trauma","nacidos_p10","nacidos_p90","nacidos_menos_2500","lab_ce","lab_total","lab_hosp","lab_urgencias","rx_ce","rx_total","rx_hosp","rx_urgencias"];
+ const present=reportInputs.filter(id=>Number.isFinite(getReportValue(id))).length;
+ if(!present){toast("No hay valores guardados para "+period+". No se generó el informe.");return;}
+ const missing=reportInputs.length-present;
+ const now=new Date();
+ const resolved=currentItems().filter(x=>x.status==="resolved").length;
+ const total=currentItems().length;
+ const report=$("reportOutput");
+ report.innerHTML='<div id="reportPrint"><div class="report-header"><h1>INFORME DE INDICADORES HOSPITALARIOS</h1><div class="report-meta"><div><strong>Periodo:</strong> '+esc(period)+'</div><div><strong>Generado:</strong> '+esc(now.toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"}))+'</div><div><strong>Hora:</strong> '+esc(now.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"}))+'</div></div></div><div class="report-summary"><div class="summary-item"><div class="label">Variables con valor</div><div class="value">'+present+' / '+reportInputs.length+'</div></div><div class="summary-item"><div class="label">Indicadores resueltos</div><div class="value">'+resolved+' / '+total+'</div></div><div class="summary-item"><div class="label">Avance de trazabilidad</div><div class="value">'+(total?Math.round(resolved/total*100):0)+'%</div></div></div>'+(missing?'<div class="report-warning">ATENCIÓN: '+missing+' de las variables requeridas para los cálculos no tienen un valor numérico guardado en este periodo. Se muestran como “N/D” cuando afectan el cálculo; no se deben interpretar como cero.</div>':'')+generarTablaIndicadores()+generarTablaProcedencia()+'<div class="report-footer"><span>HRPV · Estadísticas y Archivo Clínico</span><span>Documento generado desde Procedencia de cifras</span></div></div>';
+ $("reportPanel").hidden=false;
+ $("reportPanel").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function printGeneratedReport(){
+ const content=$("reportPrint");if(!content){toast("Genera primero el informe.");return;}
+ const win=window.open("","_blank","width=1200,height=850");
+ if(!win){toast("Permite las ventanas emergentes para imprimir el informe.");return;}
+ const css=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
+ win.document.open();
+ win.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de Indicadores</title><style>'+css+'body{background:#fff!important;color:#1a2a3a;font-family:Arial,sans-serif;padding:18px}.report-container{border:0;padding:0}.report-table{min-width:0!important;width:100%;font-size:8pt}.report-table th{background:#0a2a44!important;color:#fff!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}@page{size:letter landscape;margin:1.2cm}@media print{body{padding:0}.report-table{break-inside:auto}.report-table tr{break-inside:avoid}.report-table thead{display:table-header-group}}</style></head><body>'+content.outerHTML+'</body></html>');
+ win.document.close();win.focus();setTimeout(()=>win.print(),300);
+}
+function exportGeneratedWord(){
+ const content=$("reportPrint");if(!content){toast("Genera primero el informe.");return;}
+ const p=currentPeriod(),html='<!doctype html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Informe de Indicadores</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:9pt;color:#1a2a3a}h1{text-align:center;color:#0a2a44;font-size:18pt}.report-meta{text-align:center;margin-bottom:16px}.section-title{background:#e8edf4;color:#0a2a44;padding:6px;border-left:4px solid #1a73e8}table{width:100%;border-collapse:collapse;font-size:8pt;margin-bottom:12px}th{background:#0a2a44;color:white;padding:5px;border:1px solid #0a2a44}td{padding:4px;border:1px solid #cbd5df}.report-summary{background:#e8edf4;padding:8px}.report-footer{margin-top:15px;color:#687887}</style></head><body>'+content.outerHTML+'</body></html>';
+ const blob=new Blob([html],{type:"application/msword;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+ link.href=url;link.download="Informe_Indicadores_"+p.year+"_"+String(p.month).padStart(2,"0")+".doc";link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportGeneratedCSV(){
+ const content=$("reportPrint");if(!content){toast("Genera primero el informe.");return;}
+ const tables=[...content.querySelectorAll("table")];
+ const csvCell=value=>'"'+String(value??"").replace(/"/g,'""')+'"';
+ const lines=[];
+ tables.forEach((table,idx)=>{
+  if(idx)lines.push("");
+  const section=table.previousElementSibling?.textContent?.trim();
+  if(section)lines.push(csvCell(section));
+  table.querySelectorAll("tr").forEach(row=>lines.push([...row.querySelectorAll("th,td")].map(cell=>csvCell(cell.innerText.trim())).join(","));
+ });
+ const p=currentPeriod(),blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+ link.href=url;link.download="Informe_Indicadores_"+p.year+"_"+String(p.month).padStart(2,"0")+".csv";link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
 async function loadAuditHistory(record,field,p){
  const box=$("auditContent");box.replaceChildren();
  if(!record?.id){box.innerHTML='<div class="console-empty">[INFO] La ficha aún no tiene un registro guardado en la base de datos.</div>';return;}
@@ -472,6 +1225,13 @@ $("nextBtn").addEventListener("click",()=>{if(activeIndex<allFields.length-1)ope
 document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{viewMode=b.dataset.view;render()}));
 $("month").addEventListener("change",render);$("year").addEventListener("change",render);$("search").addEventListener("input",render);
 $("importVariables").addEventListener("click",importVariablesValues);
+
+$("generateReport").addEventListener("click",generarInforme);
+$("printReport").addEventListener("click",printGeneratedReport);
+$("wordReport").addEventListener("click",exportGeneratedWord);
+$("csvReport").addEventListener("click",exportGeneratedCSV);
+$("hideReport").addEventListener("click",()=>{$("reportPanel").hidden=true});
+
 $("collapseAll").addEventListener("click",()=>{const sections=[...document.querySelectorAll(".category")],allOpen=sections.length>0&&sections.every(s=>s.classList.contains("open"));sections.forEach(s=>{s.classList.toggle("open",!allOpen);s.querySelector(".cat-toggle").setAttribute("aria-expanded",String(!allOpen))});$("collapseAll").textContent=allOpen?"Abrir categorías":"Cerrar categorías"});
 $("detailModal").addEventListener("click",e=>{if(e.target===$("detailModal"))$("detailModal").close()});
 try{await initializeSupabaseRecords();render();}catch(err){dbReady=false;render();console.error("Procedencia HRPV:",err);}
