@@ -141,10 +141,10 @@
   "use strict";
   const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storageKey: "hrpv-indicadores-auth-v1", persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
   const $ = id => document.getElementById(id);
   const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  const n = (r,k) => Number(r && r[k] != null ? r[k] : 0);
+  const n = (r,k) => { const value = r ? r[k] : null; return value === null || value === undefined || value === "" ? NaN : Number(value); };
   const sum = (...keys) => r => keys.reduce((t,k)=>t+n(r,k),0);
   const field = key => r => n(r,key);
   const defs = [
@@ -257,7 +257,7 @@
     $("detailDen").textContent=focus?fmt(focus.den):"—";
     $("detailFactor").textContent=d.factor===100?"× 100 (porcentaje)":"× 1";
     $("detailPeriod").textContent=focus?meses[focus.month-1]+" "+year:"Sin periodo calculable";
-    $("detailState").innerHTML=focus?'<span class="pill ok">Calculable</span>':'<span class="pill">Sin denominador válido</span>';
+    $("detailState").innerHTML=focus?'<span class="pill ok">Calculable</span>':'<span class="pill">No calculable</span>';
     drawChart(data);
     renderTable(data);
   }
@@ -284,25 +284,39 @@
       const prev=data[i-1],delta=d.value!==null&&prev&&prev.value!==null?d.value-prev.value:null;
       const pct=delta!==null&&prev.value!==0?delta/Math.abs(prev.value)*100:null;
       const tr=document.createElement("tr");
-      const vals=[meses[d.month-1],d.record?fmt(d.num):"—",d.record?fmt(d.den):"—",fmt(d.value),delta===null?"—":(delta>0?"+":"")+fmt(delta),pct===null?"—":(pct>0?"+":"")+fmt(pct,2)+"%",d.record?"Registrado":"Sin registro"];
-      vals.forEach((v,j)=>{const td=document.createElement("td");td.textContent=v;if((j===1||j===2||j===3)&&!d.record)td.className="missing";if(j===6){td.innerHTML="";const pill=document.createElement("span");pill.className="pill"+(d.record?" ok":"");pill.textContent=v;td.appendChild(pill);}tr.appendChild(td);});
+      const state=d.value!==null?"Calculable":d.record?"Incompleto":"Sin registro";
+      const vals=[meses[d.month-1],d.record?fmt(d.num):"—",d.record?fmt(d.den):"—",fmt(d.value),delta===null?"—":(delta>0?"+":"")+fmt(delta),pct===null?"—":(pct>0?"+":"")+fmt(pct,2)+"%",state];
+      vals.forEach((v,j)=>{const td=document.createElement("td");td.textContent=v;if((j===1||j===2||j===3)&&!d.record)td.className="missing";if(j===6){td.innerHTML="";const pill=document.createElement("span");pill.className="pill"+(d.value!==null?" ok":"");pill.textContent=v;td.appendChild(pill);}tr.appendChild(td);});
       body.appendChild(tr);
     });
   }
   async function cargarDatos(){
-    $("app").classList.add("loading");$("refreshBtn").disabled=true;setStatus("Consultando registros mensuales…");hideNotice();
+    $("app").classList.add("loading");$("refreshBtn").disabled=true;setStatus("Validando sesión y consultando procedencia…");hideNotice();
     try{
-      const {data,error}=await db.from("indicadores_mensuales").select("*").order("anio",{ascending:true}).order("mes",{ascending:true});
+      const {data:sessionData,error:sessionError}=await db.auth.getSession();
+      if(sessionError)throw sessionError;
+      const session=sessionData?.session;
+      if(!session){setStatus("Sesión no disponible");showNotice("Inicia sesión en el módulo de indicadores para consultar la procedencia.");location.replace("./login-indicadores.html");return;}
+      if(session.user.id!=="64e0ea67-03ac-43f0-889c-418d1236c96d"){
+        await db.auth.signOut({scope:"local"});setStatus("Cuenta sin autorización");showNotice("Esta vista está restringida a la cuenta autorizada.");location.replace("./login-indicadores.html");return;
+      }
+      const {data,error}=await db.from("procedencia_cifras_hrpv").select("anio,mes,indicador_id,valor,usuario_id").eq("usuario_id",session.user.id).order("anio",{ascending:true}).order("mes",{ascending:true});
       if(error)throw error;
-      rows=data||[];byMonth=new Map();
-      rows.forEach(r=>byMonth.set(Number(r.anio)+"-"+Number(r.mes),r));
+      const periods=new Map();
+      (data||[]).forEach(item=>{
+        const year=Number(item.anio),month=Number(item.mes),key=year+"-"+month;
+        if(!periods.has(key))periods.set(key,{anio:year,mes:month});
+        periods.get(key)[item.indicador_id]=item.valor===null||item.valor===undefined||item.valor===""?null:Number(item.valor);
+      });
+      rows=[...periods.values()].sort((a,b)=>a.anio-b.anio||a.mes-b.mes);
+      byMonth=new Map();rows.forEach(r=>byMonth.set(Number(r.anio)+"-"+Number(r.mes),r));
       renderYearOptions();render();
-      setStatus(rows.length+" registro(s) mensual(es) recuperado(s)");
-      if(!rows.length)showNotice("La consulta fue correcta, pero no existen registros en indicadores_mensuales para mostrar.");
+      setStatus((data||[]).length+" ficha(s) de procedencia · "+rows.length+" periodo(s) con registros");
+      if(!rows.length)showNotice("La consulta fue correcta, pero no hay fichas guardadas en procedencia_cifras_hrpv para esta cuenta.");
     }catch(err){
-      console.error("Error al consultar indicadores:",err);
+      console.error("Error al consultar procedencia:",err);
       setStatus("No fue posible cargar los datos");
-      showNotice("Error al consultar Supabase: "+(err.message||"Error desconocido")+". Verifica la conexión y las políticas de acceso de la tabla indicadores_mensuales.");
+      showNotice("Error al consultar Supabase: "+(err.message||"Error desconocido")+". Verifica la sesión y las políticas de acceso de procedencia_cifras_hrpv.");
       $("monthRows").innerHTML='<tr><td colspan="7" class="empty">No se pudo consultar la información.</td></tr>';
     }finally{$("app").classList.remove("loading");$("refreshBtn").disabled=false;}
   }
