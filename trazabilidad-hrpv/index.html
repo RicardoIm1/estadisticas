@@ -252,9 +252,15 @@ function render(){
  $("collapseAll").disabled=false;
  categories.forEach((cat,ci)=>{const catItems=shown.filter(x=>x.field.categoryIndex===ci);if(!catItems.length)return;
   const section=document.createElement("section");section.className="category";section.dataset.category=String(ci);
+  const allCategoryItems=items.filter(x=>x.field.categoryIndex===ci);
+  const categoryResolved=allCategoryItems.filter(x=>x.status==="resolved").length;
+  const categoryPct=allCategoryItems.length?Math.round(categoryResolved/allCategoryItems.length*100):0;
   const unresolved=catItems.filter(x=>x.status!=="resolved").length;
   const toggle=document.createElement("button");toggle.type="button";toggle.className="cat-toggle";toggle.setAttribute("aria-expanded","false");
-  toggle.innerHTML='<span class="catchev">›</span><span class="catname">'+esc(cat.name)+'</span><span class="catmeta">'+catItems.length+' mostrado'+(catItems.length===1?"":"s")+(unresolved?' · '+unresolved+' pendiente'+(unresolved===1?"":"s"):"")+'</span>';
+  toggle.style.backgroundImage="linear-gradient(90deg, #dff3e5 0%, #dff3e5 "+categoryPct+"%, transparent "+categoryPct+"%, transparent 100%)";
+  toggle.setAttribute("aria-label",cat.name+". "+categoryPct+"% completado. "+categoryResolved+" de "+allCategoryItems.length+" indicadores resueltos.");
+  toggle.title=categoryPct+"% completado · "+categoryResolved+" de "+allCategoryItems.length+" indicadores resueltos";
+  toggle.innerHTML='<span class="catchev">›</span><span class="catname">'+esc(cat.name)+'</span><span class="catmeta">'+categoryPct+'% completo · '+catItems.length+' mostrado'+(catItems.length===1?"":"s")+(unresolved?' · '+unresolved+' pendiente'+(unresolved===1?"":"s"):"")+'</span>';
   const body=document.createElement("div");body.className="catbody";
   toggle.addEventListener("click",()=>{const open=section.classList.toggle("open");toggle.setAttribute("aria-expanded",String(open))});
   catItems.forEach(item=>{const row=document.createElement("div");row.className="item";const missing=item.missing;let statusText=item.status==="resolved"?"Resuelto":item.status==="review"?"En revisión":"Pendiente";let statusClass=item.status==="resolved"?"done":item.status==="review"?"review":"";
