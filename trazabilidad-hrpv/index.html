@@ -254,10 +254,10 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 <header class="top"><div>Estadísticas y Archivo Clínico &nbsp;/&nbsp; <strong style="color:#2c3e50">Procedencia de cifras</strong></div><div class="user"><span style="font-size:10px;color:#718092">HRPV · Control de trazabilidad</span><div class="avatar">HR</div></div></header>
 <div class="content">
 <div class="views" role="group" aria-label="Filtrar indicadores">
-<button class="viewbtn active" data-view="pending" type="button">Pendientes</button>
+<button class="viewbtn" data-view="pending" type="button">Pendientes</button>
 <button class="viewbtn" data-view="review" type="button">En revisión</button>
 <button class="viewbtn" data-view="resolved" type="button">Resueltos</button>
-<button class="viewbtn" data-view="all" type="button">Todos</button>
+<button class="viewbtn active" data-view="all" type="button">Todos</button>
 </div>
 <div class="listhead"><div><h2 id="listTitle">Indicadores pendientes</h2><p id="listSubtitle">Se muestra el indicador concreto y los datos que faltan.</p></div><div class="list-actions"><span class="tag" id="resultCount">0 indicadores</span><button class="btn primary" id="generateReport" type="button">Generar informe</button></div></div>
 <div id="categoriesList"></div>
@@ -421,8 +421,8 @@ function getRecord(field,p=currentPeriod()){return records.find(r=>r.key===recor
 function missingParts(r){if(!r)return ["valor","archivo de procedencia","confirmación de revisión"];const miss=[];if(r.value===""||r.value===null||r.value===undefined)miss.push("valor");if(!r.source||!r.source.trim())miss.push("archivo de procedencia");if(!r.verified)miss.push("confirmación de revisión");return miss}
 function statusOf(r){const missing=missingParts(r);if(missing.length===0)return "resolved";if(missing.includes("valor")||missing.includes("archivo de procedencia"))return "pending";return "review"}
 function fieldFor(id){return allFields.find(f=>f.id===id)}
-function currentItems(){const p=currentPeriod();return allFields.map(field=>({field,record:getRecord(field,p),status:statusOf(getRecord(field,p)),missing:missingParts(getRecord(field,p)),key:recordKey(field,p)}))}
-function visibleItems(){const q=$("search").value.trim().toLocaleLowerCase("es-MX");return currentItems().filter(item=>{const text=(item.field.label+" "+item.field.id+" "+item.field.category+" "+(item.record?.source||"")+" "+(item.record?.note||"")).toLocaleLowerCase("es-MX");if(q&&!text.includes(q))return false;if(viewMode==="all")return true;return item.status===viewMode})}
+function currentItems(){const p=currentPeriod(),byKey=new Map(records.map(record=>[record.key,record]));return allFields.map(field=>{const key=recordKey(field,p),record=byKey.get(key)||null,missing=missingParts(record);return {field,record,status:missing.length===0?"resolved":(missing.includes("valor")||missing.includes("archivo de procedencia")?"pending":"review"),missing,key}})}
+function visibleItems(items){const q=$("search").value.trim().toLocaleLowerCase("es-MX");return items.filter(item=>{const text=(item.field.label+" "+item.field.id+" "+item.field.category+" "+(item.record?.source||"")+" "+(item.record?.note||"")).toLocaleLowerCase("es-MX");if(q&&!text.includes(q))return false;if(viewMode==="all")return true;return item.status===viewMode})}
 function toast(message){$("toast").textContent=message;$("toast").classList.add("show");window.clearTimeout(toast.timer);toast.timer=window.setTimeout(()=>$("toast").classList.remove("show"),2800)}
 function render(){
  const items=currentItems(),pending=items.filter(x=>x.status==="pending").length,review=items.filter(x=>x.status==="review").length,resolved=items.filter(x=>x.status==="resolved").length;
@@ -432,20 +432,21 @@ function render(){
  const subs={pending:"Cada fila indica el indicador, el valor, la fecha del último cambio y su estatus.",review:"Tienen algún dato guardado, pero aún no cumplen todos los requisitos.",resolved:"Conservan su valor, fuente, confirmación e historial de cambios.",all:"Catálogo completo para consultar o corregir cualquier indicador."};
  $("listTitle").textContent=titles[viewMode];$("listSubtitle").textContent=subs[viewMode];
  document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===viewMode));
- const shown=visibleItems();$("resultCount").textContent=shown.length+" indicador"+(shown.length===1?"":"es");
+ const shown=visibleItems(items);$("resultCount").textContent=shown.length+" indicador"+(shown.length===1?"":"es");
+  const openCategories=new Set([...document.querySelectorAll("#categoriesList .category.open")].map(section=>section.dataset.category));
  const container=$("categoriesList");container.replaceChildren();
  if(!shown.length){const empty=document.createElement("div");empty.className="empty";empty.textContent=$("search").value.trim()?"No hay indicadores que coincidan con la búsqueda en esta vista.":viewMode==="pending"?"No quedan indicadores pendientes para este periodo.":viewMode==="review"?"No hay indicadores en revisión para este periodo.":viewMode==="resolved"?"Todavía no hay indicadores resueltos para este periodo.":"No hay indicadores que mostrar.";container.append(empty);$("collapseAll").disabled=true;return}
  $("collapseAll").disabled=false;
  categories.forEach((cat,ci)=>{
   const catItems=shown.filter(x=>x.field.categoryIndex===ci);if(!catItems.length)return;
-  const section=document.createElement("section");section.className="category";section.dataset.category=String(ci);
+  const section=document.createElement("section");section.className="category"+(openCategories.has(String(ci))?" open":"");section.dataset.category=String(ci);
   const allCategoryItems=items.filter(x=>x.field.categoryIndex===ci),categoryResolved=allCategoryItems.filter(x=>x.status==="resolved").length;
   // Avance gradual: cada indicador aporta hasta tres requisitos (valor, fuente y revisión).
   const categoryRequirements=allCategoryItems.reduce((sum,x)=>sum+(x.record&&x.record.value!==""&&x.record.value!==null&&x.record.value!==undefined?1:0)+(x.record&&x.record.source&&x.record.source.trim()?1:0)+(x.record&&x.record.verified?1:0),0);
   const categoryRequirementTotal=allCategoryItems.length*3;
   const categoryPct=categoryRequirementTotal?Math.round(categoryRequirements/categoryRequirementTotal*100):0;
   const unresolved=catItems.filter(x=>x.status!=="resolved").length;
-  const toggle=document.createElement("button");toggle.type="button";toggle.className="cat-toggle";toggle.setAttribute("aria-expanded","false");
+  const toggle=document.createElement("button");toggle.type="button";toggle.className="cat-toggle";toggle.setAttribute("aria-expanded",String(openCategories.has(String(ci))));
   toggle.style.backgroundImage="linear-gradient(90deg, #dff3e5 0%, #dff3e5 "+categoryPct+"%, #eaf0f5 "+categoryPct+"%, #eaf0f5 100%)";
   toggle.setAttribute("aria-label",cat.name+". "+categoryPct+"% de requisitos completados. "+categoryResolved+" de "+allCategoryItems.length+" indicadores resueltos.");
   toggle.title=categoryPct+"% de requisitos completados · "+categoryResolved+" de "+allCategoryItems.length+" indicadores resueltos";
@@ -1287,7 +1288,7 @@ async function saveModal(e){
   persist();render();updateModalStatus();toast(statusOf(next)==="resolved"?"Indicador resuelto y guardado en Supabase.":"Ficha guardada en Supabase. Pendiente: "+missingParts(next).join(", ")+".");$("detailModal").close();
  }catch(err){toast("No se guardó en Supabase: "+(err?.message||"error de conexión"));}
 }
-const initialDate=new Date();$("month").value=String(initialDate.getMonth()+1);$("year").value=String(initialDate.getFullYear());
+const initialDate=new Date(),defaultPeriod=new Date(initialDate.getFullYear(),initialDate.getMonth()-1,1);$("month").value=String(defaultPeriod.getMonth()+1);$("year").value=String(defaultPeriod.getFullYear());
 $("detailForm").addEventListener("submit",saveModal);
 ["detailValue","detailSource","detailNote","detailVerified"].forEach(id=>$(id).addEventListener("input",updateModalStatus));
 $("detailVerified").addEventListener("change",updateModalStatus);
