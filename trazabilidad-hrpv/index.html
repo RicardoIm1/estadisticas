@@ -75,6 +75,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 <div class="toolbar">
 <div class="field"><label for="month">Periodo · mes</label><select id="month"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div>
 <div class="field"><label for="year">Año</label><input id="year" type="number" min="2000" max="2100" step="1" value="2026"></div>
+<button class="btn" id="importVariables" type="button" title="Importa solo valores faltantes; no copia fuentes ni confirma revisiones">Cargar valores de Variables</button>
 <div class="field searchfield"><label for="search">Buscar indicador</label><input id="search" type="search" placeholder="Escribe el nombre o parte del nombre…" aria-label="Buscar indicador"></div>
 <button class="btn" id="collapseAll" type="button">Cerrar categorías</button>
 </div>
@@ -114,6 +115,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 </div>
 <div class="hint" id="missingHint">Se indicará aquí qué falta para resolver el indicador.</div>
 <details class="history" id="historyBox"><summary>Historial de cambios de este indicador</summary><div class="historycontent" id="historyContent">Todavía no hay cambios guardados.</div></details>
+<details class="history" id="auditBox"><summary>Bitácora de base de datos (auditoría)</summary><div class="historycontent" id="auditContent">Cargando bitácora…</div></details>
 </div>
 <div class="modalfoot"><button type="button" class="btn" id="previousBtn">← Anterior</button><div class="right"><button type="button" class="btn" id="nextBtn">Siguiente →</button><button type="submit" class="btn primary">Guardar ficha</button></div></div>
 </form>
@@ -210,7 +212,7 @@ updateDateAndDeadline();
 const allFields=categories.flatMap((cat,ci)=>cat.fields.map(field=>({...field,category:cat.name,categoryIndex:ci})));
 function readRecords(){try{const data=JSON.parse(localStorage.getItem(STORE)||"[]");return Array.isArray(data)?data:[]}catch{return []}}
 function persist(){localStorage.setItem(STORE,JSON.stringify(records))}
-function rowToRecord(row){return {key:recordKey({id:row.indicador_id},{year:row.anio,month:row.mes}),year:row.anio,month:row.mes,indicator:row.indicador_id,label:row.indicador_nombre,category:row.categoria,value:row.valor===null?"":String(row.valor),source:row.fuente||"",note:row.nota||"",verified:Boolean(row.verificado),updatedAt:row.actualizado_en,history:Array.isArray(row.historial)?row.historial:[]}}
+function rowToRecord(row){return {id:row.id,key:recordKey({id:row.indicador_id},{year:row.anio,month:row.mes}),year:row.anio,month:row.mes,indicator:row.indicador_id,label:row.indicador_nombre,category:row.categoria,value:row.valor===null?"":String(row.valor),source:row.fuente||"",note:row.nota||"",verified:Boolean(row.verificado),updatedAt:row.actualizado_en,history:Array.isArray(row.historial)?row.historial:[]}}
 function recordToRow(r,userId){return {anio:Number(r.year),mes:Number(r.month),indicador_id:r.indicator,indicador_nombre:r.label,categoria:r.category,valor:r.value===""||r.value===null?null:Number(r.value),fuente:r.source||"",nota:r.note||"",verificado:Boolean(r.verified),historial:Array.isArray(r.history)?r.history:[],usuario_id:userId,actualizado_en:r.updatedAt||new Date().toISOString()}}
 async function initializeSupabaseRecords(){
  const notice=$("connectionNotice"),client=window.__hrpvSupabase,userId=window.__hrpvUserId;
@@ -272,6 +274,73 @@ function render(){
   section.append(toggle,body);container.append(section);
  });
 }
+async function loadAuditHistory(record,field,p){
+ const box=$("auditContent");box.replaceChildren();
+ if(!record?.id){box.textContent="La ficha aún no tiene un registro guardado en la base de datos.";return;}
+ box.textContent="Consultando eventos registrados por el servidor…";
+ try{
+  const {data,error}=await window.__hrpvSupabase.from("procedencia_cifras_hrpv_audit")
+   .select("evento,actor_uid,ocurrido_en,antes,despues")
+   .eq("registro_id",record.id).order("ocurrido_en",{ascending:false}).limit(30);
+  if(error)throw error;
+  box.replaceChildren();
+  if(!data?.length){box.textContent="No hay eventos de auditoría para esta ficha desde que se instaló la bitácora.";return;}
+  data.forEach(event=>{
+   const row=document.createElement("div");row.className="historyrow";
+   const before=event.antes||{},after=event.despues||{};
+   const oldVal=before.valor===null||before.valor===undefined?"vacío":String(before.valor);
+   const newVal=after.valor===null||after.valor===undefined?"vacío":String(after.valor);
+   const actor=event.actor_uid||"No disponible (operación sin usuario autenticado)";
+   const details=document.createElement("div");
+   details.textContent=new Date(event.ocurrido_en).toLocaleString("es-MX")+" · "+event.evento+" · actor: "+actor+" · valor: "+oldVal+" → "+newVal;
+   row.append(details);
+   const source=document.createElement("div");source.className="itemmeta";
+   source.textContent="Fuente: "+(before.fuente||"vacía")+" → "+(after.fuente||"vacía")+" · Revisión: "+(before.verificado?"confirmada":"pendiente")+" → "+(after.verificado?"confirmada":"pendiente");
+   row.append(source);
+   const note=document.createElement("div");note.className="itemmeta";
+   note.textContent="Nota: "+(before.nota||"vacía")+" → "+(after.nota||"vacía");
+   row.append(note);box.append(row);
+  });
+ }catch(err){box.textContent="No se pudo consultar la bitácora: "+(err?.message||"error de conexión");}
+}
+async function importVariablesValues(){
+ if(!dbReady){toast("La conexión segura no está lista. No se importó nada.");return;}
+ const button=$("importVariables"),p=currentPeriod(),period=periodLabel(p);
+ button.disabled=true;const original=button.textContent;button.textContent="Consultando…";
+ try{
+  const {data,error}=await window.__hrpvSupabase.from("indicadores_mensuales").select("*").eq("mes",p.month).eq("anio",p.year).maybeSingle();
+  if(error)throw error;
+  if(!data){toast("No hay un registro disponible en Variables para "+period+". No se modificó ninguna ficha.");return;}
+  const at=new Date().toISOString(),pending=[];
+  allFields.forEach(field=>{
+   const raw=data[field.id];
+   if(raw===null||raw===undefined||raw==="")return;
+   const key=recordKey(field,p),existing=records.find(r=>r.key===key);
+   if(existing&&existing.value!==""&&existing.value!==null&&existing.value!==undefined)return;
+   const next={
+    ...(existing||{}),key,year:p.year,month:p.month,indicator:field.id,label:field.label,category:field.category,
+    value:String(raw),source:existing?.source||"",note:existing?.note||"",verified:Boolean(existing?.verified),
+    updatedAt:at,
+    history:[...(existing?.history||[]),{at,summary:"Valor importado desde Variables para "+period+" · fuente y confirmación de revisión no importadas."}]
+   };
+   pending.push(next);
+  });
+  if(!pending.length){toast("No hay valores faltantes que importar para "+period+". Los valores existentes se conservaron.");return;}
+  const {data:savedRows,error:saveError}=await window.__hrpvSupabase.from("procedencia_cifras_hrpv")
+   .upsert(pending.map(r=>recordToRow(r,window.__hrpvUserId)),{onConflict:"anio,mes,indicador_id"})
+   .select("id,anio,mes,indicador_id");
+  if(saveError)throw saveError;
+  pending.forEach(next=>{
+   const saved=savedRows?.find(row=>row.anio===next.year&&row.mes===next.month&&row.indicador_id===next.indicator);
+   if(saved)next.id=saved.id;
+   const idx=records.findIndex(r=>r.key===next.key);
+   if(idx>=0)records[idx]=next;else records.push(next);
+  });
+  persist();render();
+  toast("Se cargaron "+pending.length+" valores de Variables para "+period+". Las fuentes y revisiones siguen pendientes.");
+ }catch(err){toast("No se pudo cargar desde Variables: "+(err?.message||"error de conexión")+". No se confirmó la importación.");}
+ finally{button.disabled=false;button.textContent=original;}
+}
 function openModal(fieldId){
  const field=fieldFor(fieldId);if(!field)return;const p=currentPeriod();const key=recordKey(field,p);const record=records.find(r=>r.key===key)||null;
  activeKey=key;activeIndex=allFields.findIndex(f=>f.id===fieldId);
@@ -283,6 +352,7 @@ function openModal(fieldId){
  else history.slice().reverse().forEach(h=>{const el=document.createElement("div");el.className="historyrow";el.textContent=new Date(h.at).toLocaleString("es-MX")+" · "+h.summary;$("historyContent").append(el)});
  updateModalStatus();$("previousBtn").disabled=activeIndex<=0;$("nextBtn").disabled=activeIndex>=allFields.length-1;
  if(!$("detailModal").open)$("detailModal").showModal();
+ loadAuditHistory(record,field,p);
 }
 function updateModalStatus(){
  const draft={value:$("detailValue").value,source:$("detailSource").value,note:$("detailNote").value,verified:$("detailVerified").checked};
@@ -301,12 +371,14 @@ async function saveModal(e){
  if(changed)history.push({at:snapshot.at,summary:(old?"Actualización":"Registro inicial")+" · valor "+(old?.value??"vacío")+" → "+(value===""?"vacío":value)+" · fuente "+(source?"registrada":"vacía")+(verified?" · revisión confirmada":"")});
  const next={key:activeKey,year:p.year,month:p.month,indicator:field.id,label:field.label,category:field.category,value,source,note,verified,updatedAt:changed?snapshot.at:(old?.updatedAt||snapshot.at),history};
  try{
-  const {error}=await window.__hrpvSupabase.from("procedencia_cifras_hrpv").upsert(recordToRow(next,window.__hrpvUserId),{onConflict:"anio,mes,indicador_id"});
+  const {data:saved,error}=await window.__hrpvSupabase.from("procedencia_cifras_hrpv").upsert(recordToRow(next,window.__hrpvUserId),{onConflict:"anio,mes,indicador_id"}).select("id").single();
   if(error)throw error;
+  next.id=saved.id;
   if(old)records=records.map(r=>r.key===activeKey?next:r);else records.push(next);
   persist();render();updateModalStatus();toast(statusOf(next)==="resolved"?"Indicador resuelto y guardado en Supabase.":"Ficha guardada en Supabase. Pendiente: "+missingParts(next).join(", ")+".");$("detailModal").close();
  }catch(err){toast("No se guardó en Supabase: "+(err?.message||"error de conexión"));}
 }
+const initialDate=new Date();$("month").value=String(initialDate.getMonth()+1);$("year").value=String(initialDate.getFullYear());
 $("detailForm").addEventListener("submit",saveModal);
 ["detailValue","detailSource","detailNote","detailVerified"].forEach(id=>$(id).addEventListener("input",updateModalStatus));
 $("detailVerified").addEventListener("change",updateModalStatus);
@@ -315,6 +387,7 @@ $("previousBtn").addEventListener("click",()=>{if(activeIndex>0)openModal(allFie
 $("nextBtn").addEventListener("click",()=>{if(activeIndex<allFields.length-1)openModal(allFields[activeIndex+1].id)});
 document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{viewMode=b.dataset.view;render()}));
 $("month").addEventListener("change",render);$("year").addEventListener("change",render);$("search").addEventListener("input",render);
+$("importVariables").addEventListener("click",importVariablesValues);
 $("collapseAll").addEventListener("click",()=>{const sections=[...document.querySelectorAll(".category")],allOpen=sections.length>0&&sections.every(s=>s.classList.contains("open"));sections.forEach(s=>{s.classList.toggle("open",!allOpen);s.querySelector(".cat-toggle").setAttribute("aria-expanded",String(!allOpen))});$("collapseAll").textContent=allOpen?"Abrir categorías":"Cerrar categorías"});
 $("detailModal").addEventListener("click",e=>{if(e.target===$("detailModal"))$("detailModal").close()});
 try{await initializeSupabaseRecords();render();}catch(err){dbReady=false;render();console.error("Procedencia HRPV:",err);}
