@@ -56,9 +56,14 @@ main{min-width:0}
 @media(max-width:1050px){.app{grid-template-columns:minmax(300px,350px) minmax(0,1fr)}.content{padding:20px 16px}}
 @media(max-width:760px){.app{display:block}aside{min-height:0;max-height:none;padding:14px}.sidebar-content .head h1{font-size:21px}.sidebar-content .stats{grid-template-columns:repeat(2,minmax(0,1fr))}.sidebarDate{margin-bottom:12px}.sidefoot{margin-top:12px}.content{padding:18px 12px}}
 
+
+/* Puerta de acceso exclusiva de este módulo; no afecta otros archivos. */
+body.auth-pending .app{display:none!important}
+body.auth-pending{min-height:100vh;background:#f3f6f9}
+
 </style>
 </head>
-<body>
+<body class="auth-pending">
 <div class="app">
 <aside>
 <div class="brand"><div class="mark">H</div><div><strong>HRPV · Estadísticas</strong><small>Procedencia de cifras</small></div></div>
@@ -114,6 +119,51 @@ main{min-width:0}
 </form>
 </dialog>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZhY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
+const AUTH_STORAGE_KEY = "hrpv-indicadores-auth-v1";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { storageKey: AUTH_STORAGE_KEY, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+});
+document.body.classList.add("auth-pending");
+try {
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session) {
+    location.replace("./login-indicadores.html");
+  } else {
+    document.body.classList.remove("auth-pending");
+    const userArea = document.querySelector(".user");
+    if (userArea && !document.getElementById("logoutIndicators")) {
+      const label = userArea.querySelector("span");
+      if (label) label.textContent = data.session.user.email || "Sesión de indicadores";
+      const avatar = userArea.querySelector(".avatar");
+      if (avatar) avatar.textContent = "HR";
+      const logout = document.createElement("button");
+      logout.id = "logoutIndicators";
+      logout.type = "button";
+      logout.textContent = "Cerrar sesión";
+      logout.style.cssText = "border:1px solid #d5dfe7;background:white;color:#425767;border-radius:8px;padding:7px 10px;font:600 11px inherit;cursor:pointer";
+      userArea.append(logout);
+      logout.addEventListener("click", async () => {
+        logout.disabled = true;
+        const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
+        if (signOutError) {
+          logout.disabled = false;
+          alert("No se pudo cerrar la sesión. Intenta de nuevo.");
+          return;
+        }
+        location.replace("./login-indicadores.html");
+      });
+    }
+  }
+} catch {
+  location.replace("./login-indicadores.html");
+}
+</script>
+
 <script>
 const categories = [
 {name:"👤 Personal",fields:[
