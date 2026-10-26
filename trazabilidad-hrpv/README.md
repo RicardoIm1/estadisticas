@@ -1,50 +1,32 @@
 # Trazabilidad HRPV
 
-Rama experimental e independiente para diseñar un registro de trazabilidad documental para Estadísticas y Archivo Clínico del Hospital Regional de Puerto Vallarta.
+Prototipo experimental para centralizar la recepción mensual de cifras de Estadísticas y Archivo Clínico del Hospital Regional de Puerto Vallarta.
 
-## Objetivo del piloto
+## Modelo de trabajo
 
-Registrar manualmente valores de indicadores y dejar evidencia verificable de su origen, periodo, revisión y comparación con la aplicación correspondiente.
+1. Cada responsable de área entrega su archivo mensual por el canal institucional vigente.
+2. Se registra una ficha por área y periodo: responsable, fecha de recepción, folio, cantidad de indicadores y estado.
+3. Las entregas recibidas pasan a una etapa distinta de revisión de fuente, definición operativa, periodo, unidad y consistencia.
+4. Las discrepancias se aclaran con el área de origen antes de incorporar cifras al consolidado.
+5. Se conserva la referencia al archivo original y al responsable que informó. La recepción no equivale a validación.
 
-## Límites del piloto
+## Límites de esta versión
 
-- No modificar las páginas existentes de la aplicación de Estadísticas.
-- No desplegar cambios en Supabase ni ejecutar migraciones desde esta rama.
-- No subir documentos originales, expedientes clínicos, datos personales ni rutas completas del disco institucional.
-- No extraer datos automáticamente de archivos locales.
-- Los documentos fuente permanecen en el almacenamiento institucional.
-- Los valores y metadatos que se capturen en la futura interfaz web se transmitirán a Supabase; requieren autenticación, autorización y políticas RLS antes de habilitar escritura.
+- La rama es experimental; no se integra a `main` ni altera el sistema actual.
+- No conecta con Supabase ni con ningún servidor institucional.
+- La lista de áreas y entregas es ficticia.
+- El selector de archivo solo muestra localmente nombre y tamaño. No lee ni sube el contenido.
+- Los cambios de la interfaz se pierden al recargar.
+- No registrar nombres reales, datos personales, datos de pacientes, expedientes ni información institucional sensible en esta demostración.
+- Antes de persistir datos se deben definir autenticación, permisos por rol, políticas RLS, auditoría de cambios, respaldo y autorización institucional.
 
-## Identificación de documentos
+## Siguiente validación propuesta
 
-La interfaz usará un código documental y el nombre de archivo para relacionar cada registro con su original. La ruta completa del archivo permanecerá local, salvo que una evaluación institucional posterior autorice expresamente almacenarla en línea.
+Probar el flujo con datos completamente ficticios y confirmar con el responsable del proceso:
+- cuáles son las áreas que deben informar;
+- el calendario y fecha límite mensual;
+- el formato o plantilla oficial que entrega cada área;
+- quién puede marcar una entrega como recibida, aclarada o validada;
+- qué campos son obligatorios para la integración del consolidado.
 
-## Modelo conceptual propuesto
-
-- **Documentos:** código, nombre, tipo, periodo y referencia documental no sensible.
-- **Indicadores:** nombre, definición operativa, unidad y regla de comparación.
-- **Evidencias:** documento, indicador, valor transcrito, ubicación exacta dentro de la fuente, valor comparado y diferencia.
-- **Revisiones:** estado, observaciones, responsable y fecha.
-- **Historial de cambios:** registro de modificaciones y motivo.
-
-Este modelo es conceptual. No crea tablas ni altera ninguna base de datos.
-
-## Primer caso de prueba
-
-- Periodo: agosto de 2026.
-- Documento: `032-reporteEgresos-AGO2026.xls`.
-- Indicador candidato: egresos totales.
-- Valor reportado: 429.
-- Ubicación propuesta: B65, pendiente de confirmación directa en el archivo original.
-- Valor de aplicación: 429.
-- Estado inicial: pendiente de validación semántica y documental.
-
-No se debe cerrar la revisión solo porque ambos valores coincidan numéricamente.
-
-## Siguientes hitos
-
-1. Confirmar el diseño de datos y el modelo de acceso.
-2. Preparar una interfaz estática de demostración, sin conexión a Supabase.
-3. Revisar el esquema de autenticación y las políticas RLS antes de implementar persistencia.
-4. Probar con datos ficticios y después con el piloto autorizado.
-5. Solicitar revisión antes de integrar cualquier elemento a la aplicación existente.
+La lista de 15 áreas no es un catálogo oficial y debe sustituirse por el listado confirmado por HRPV antes de usar el sistema para trabajo real.
