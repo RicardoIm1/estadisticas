@@ -98,7 +98,7 @@ function periodLabel(p){return new Date(p.year,p.month-1,1).toLocaleDateString("
 function recordKey(field,p){return p.year+"-"+String(p.month).padStart(2,"0")+"::"+field.id}
 function getRecord(field,p=currentPeriod()){return records.find(r=>r.key===recordKey(field,p))||null}
 function missingParts(r){if(!r)return ["valor","archivo de procedencia","confirmación de revisión"];const miss=[];if(r.value===""||r.value===null||r.value===undefined)miss.push("valor");if(!r.source||!r.source.trim())miss.push("archivo de procedencia");if(!r.verified)miss.push("confirmación de revisión");return miss}
-function statusOf(r){const missing=missingParts(r);if(missing.length===0)return "resolved";if(r&&(r.value!==""||r.source||r.note||r.verified))return "review";return "pending"}
+function statusOf(r){const missing=missingParts(r);if(missing.length===0)return "resolved";if(missing.includes("valor")||missing.includes("archivo de procedencia"))return "pending";return "review"}
 function fieldFor(id){return allFields.find(f=>f.id===id)}
 function currentItems(){const p=currentPeriod();return allFields.map(field=>({field,record:getRecord(field,p),status:statusOf(getRecord(field,p)),missing:missingParts(getRecord(field,p)),key:recordKey(field,p)}))}
 function visibleItems(){const q=$("search").value.trim().toLocaleLowerCase("es-MX");return currentItems().filter(item=>{const text=(item.field.label+" "+item.field.id+" "+item.field.category+" "+(item.record?.source||"")+" "+(item.record?.note||"")).toLocaleLowerCase("es-MX");if(q&&!text.includes(q))return false;if(viewMode==="all")return true;return item.status===viewMode})}
@@ -144,7 +144,7 @@ function openModal(fieldId){
 }
 function updateModalStatus(){
  const draft={value:$("detailValue").value,source:$("detailSource").value,note:$("detailNote").value,verified:$("detailVerified").checked};
- const missing=missingParts(draft);const status=missing.length===0?"resolved":(draft.value!==""||draft.source||draft.note||draft.verified?"review":"pending");
+ const missing=missingParts(draft);const status=missing.length===0?"resolved":(missing.includes("valor")||missing.includes("archivo de procedencia")?"pending":"review");
  $("modalStatus").className="status "+(status==="resolved"?"done":status==="review"?"review":"");$("modalStatus").textContent=status==="resolved"?"Resuelto":status==="review"?"En revisión":"Pendiente";
  $("missingHint").textContent=status==="resolved"?"Completo: valor, fuente declarada y confirmación de revisión registrados.":("Para resolverlo falta: "+missing.join(", ")+".");
 }
