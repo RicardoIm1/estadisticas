@@ -70,7 +70,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 <div class="sidebarDate"><span>Fecha actual</span><strong id="currentDate">Fecha local</strong></div>
 <div class="sidebar-content">
 <div class="head"><div class="eyebrow">Control de procedencia · HRPV</div><h1>¿Qué cifras faltan por documentar?</h1><p>La lista muestra el nombre exacto de cada indicador pendiente, su periodo y qué falta resolver. Al completar una ficha, deja de aparecer en pendientes y permanece disponible en el historial de resueltos.</p></div>
-<div class="notice"><strong>Prototipo independiente</strong>Los registros se guardan en este navegador. Todavía no se conectan a Supabase ni al sistema de indicadores. No introduzcas información confidencial en esta versión de prueba.</div>
+<div class="notice" id="connectionNotice"><strong>Procedencia de cifras</strong>Conectando con el almacenamiento seguro del módulo…</div>
 <div class="deadline" id="deadlineBox"><div class="deadline-icon">◷</div><div class="deadline-copy"><strong id="deadlineTitle">Fecha límite mensual</strong><span id="deadlineText">Calculando periodo de entrega…</span></div><span class="deadline-state" id="deadlineState">Fecha límite</span></div>
 <div class="toolbar">
 <div class="field"><label for="month">Periodo · mes</label><select id="month"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div>
@@ -85,7 +85,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 <div class="stat"><span>Avance del periodo</span><strong id="progressLabel">0%</strong><div class="progress"><span id="progressBar"></span></div></div>
 </div>
 </div>
-<div class="sidefoot">Prototipo independiente<br>Sin conexión institucional</div>
+<div class="sidefoot">Módulo aislado · Supabase<br>Sin conexión con indicadores institucionales</div>
 </aside>
 <main>
 <header class="top"><div>Estadísticas y Archivo Clínico &nbsp;/&nbsp; <strong style="color:#2c3e50">Procedencia de cifras</strong></div><div class="user"><span style="font-size:10px;color:#718092">HRPV · Control de trazabilidad</span><div class="avatar">HR</div></div></header>
@@ -123,7 +123,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 <script type="module">
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
 const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZhY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
 const AUTH_STORAGE_KEY = "hrpv-indicadores-auth-v1";
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { storageKey: AUTH_STORAGE_KEY, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
@@ -134,6 +134,13 @@ try {
   if (error || !data.session) {
     location.replace("./login-indicadores.html");
   } else {
+    if (data.session.user.id !== "64e0ea67-03ac-43f0-889c-418d1236c96d") {
+      await supabase.auth.signOut({ scope: "local" });
+      location.replace("./login-indicadores.html");
+      throw new Error("Cuenta sin autorización para este módulo.");
+    }
+    window.__hrpvSupabase = supabase;
+    window.__hrpvUserId = data.session.user.id;
     document.body.classList.remove("auth-pending");
     const userArea = document.querySelector(".user");
     if (userArea && !document.getElementById("logoutIndicators")) {
@@ -164,7 +171,7 @@ try {
 }
 </script>
 
-<script>
+<script type="module">
 const categories = [
 {name:"👤 Personal",fields:[
 {id:"medicos_ce",label:"Médicos en contacto (consulta externa)"},{id:"medicos_hosp",label:"Médicos en contacto (hospital)"},{id:"enf_ce",label:"Enfermeras en contacto (consulta externa)"},{id:"enf_hosp",label:"Enfermeras en contacto (hospital)"},{id:"medicos_admin",label:"Médicos en labores administrativas"},{id:"enf_admin",label:"Enfermeras en labores administrativas"},{id:"total_medicos",label:"Total de médicos en el hospital",calculated:true},{id:"total_enfermeras",label:"Total de enfermeras en el hospital",calculated:true},{id:"total_odontologos",label:"Total de odontólogos"},{id:"total_especialistas",label:"Total de especialistas"},{id:"total_residentes",label:"Total de residentes"}]},
@@ -181,7 +188,8 @@ const categories = [
 ];
 const $=id=>document.getElementById(id);
 const STORE="hrpv-procedencia-v2";
-let records=readRecords(),viewMode="pending",activeKey=null,activeIndex=0;
+const MIGRATION_FLAG="hrpv-procedencia-migrated-v1";
+let records=[],viewMode="pending",activeKey=null,activeIndex=0,dbReady=false;
 const today=new Date();
 const expectedPeriod=new Date(today.getFullYear(),today.getMonth()-1,1);
 $("month").value=String(expectedPeriod.getMonth()+1);
@@ -202,6 +210,24 @@ updateDateAndDeadline();
 const allFields=categories.flatMap((cat,ci)=>cat.fields.map(field=>({...field,category:cat.name,categoryIndex:ci})));
 function readRecords(){try{const data=JSON.parse(localStorage.getItem(STORE)||"[]");return Array.isArray(data)?data:[]}catch{return []}}
 function persist(){localStorage.setItem(STORE,JSON.stringify(records))}
+function rowToRecord(row){return {key:recordKey({id:row.indicador_id},{year:row.anio,month:row.mes}),year:row.anio,month:row.mes,indicator:row.indicador_id,label:row.indicador_nombre,category:row.categoria,value:row.valor===null?"":String(row.valor),source:row.fuente||"",note:row.nota||"",verified:Boolean(row.verificado),updatedAt:row.actualizado_en,history:Array.isArray(row.historial)?row.historial:[]}}
+function recordToRow(r,userId){return {anio:Number(r.year),mes:Number(r.month),indicador_id:r.indicator,indicador_nombre:r.label,categoria:r.category,valor:r.value===""||r.value===null?null:Number(r.value),fuente:r.source||"",nota:r.note||"",verificado:Boolean(r.verified),historial:Array.isArray(r.history)?r.history:[],usuario_id:userId,actualizado_en:r.updatedAt||new Date().toISOString()}}
+async function initializeSupabaseRecords(){
+ const notice=$("connectionNotice"),client=window.__hrpvSupabase,userId=window.__hrpvUserId;
+ if(!client||userId!=="64e0ea67-03ac-43f0-889c-418d1236c96d"){notice.innerHTML="<strong>Acceso no disponible</strong>No se pudo validar la cuenta autorizada. Cierra sesión y vuelve a entrar.";throw new Error("No hay sesión autorizada para la tabla de procedencia.");}
+ const localRecords=readRecords();
+ if(localStorage.getItem(MIGRATION_FLAG)!=="1"&&localRecords.length){
+   const payload=localRecords.map(r=>recordToRow(r,userId));
+   const {error:migrationError}=await client.from("procedencia_cifras_hrpv").upsert(payload,{onConflict:"anio,mes,indicador_id"});
+   if(migrationError){notice.innerHTML="<strong>No se pudieron migrar las fichas locales</strong>"+esc(migrationError.message)+" No se borraron los datos del navegador.";throw migrationError;}
+   localStorage.setItem(MIGRATION_FLAG,"1");
+ }
+ const {data,error}=await client.from("procedencia_cifras_hrpv").select("*").eq("usuario_id",userId).order("anio",{ascending:false}).order("mes",{ascending:false});
+ if(error){notice.innerHTML="<strong>Error de conexión</strong>"+esc(error.message)+" No guardes cambios hasta restablecer el acceso.";throw error;}
+ records=(data||[]).map(rowToRecord);
+ persist();dbReady=true;
+ notice.innerHTML="<strong>Conectado a Supabase</strong>Las fichas se guardan en una tabla aislada del módulo. La fuente se registra como referencia declarada, no se verifica automáticamente el archivo.";
+}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function currentPeriod(){return {month:Number($("month").value),year:Number($("year").value)}}
 function periodLabel(p){return new Date(p.year,p.month-1,1).toLocaleDateString("es-MX",{month:"long",year:"numeric"})}
@@ -258,8 +284,9 @@ function updateModalStatus(){
  $("modalStatus").className="status "+(status==="resolved"?"done":status==="review"?"review":"");$("modalStatus").textContent=status==="resolved"?"Resuelto":status==="review"?"En revisión":"Pendiente";
  $("missingHint").textContent=status==="resolved"?"Completo: valor, fuente declarada y confirmación de revisión registrados.":("Para resolverlo falta: "+missing.join(", ")+".");
 }
-function saveModal(e){
+async function saveModal(e){
  if(e)e.preventDefault();if(!activeKey)return;
+ if(!dbReady){toast("La conexión segura no está lista. No se guardó la ficha.");return;}
  const field=allFields[activeIndex],p=currentPeriod(),old=records.find(r=>r.key===activeKey);
  const value=$("detailValue").value.trim(),source=$("detailSource").value.trim(),note=$("detailNote").value.trim(),verified=$("detailVerified").checked;
  const snapshot={value,source,note,verified,at:new Date().toISOString()};
@@ -267,7 +294,12 @@ function saveModal(e){
  const history=(old?.history||[]).slice();
  if(changed)history.push({at:snapshot.at,summary:(old?"Actualización":"Registro inicial")+" · valor "+(old?.value??"vacío")+" → "+(value===""?"vacío":value)+" · fuente "+(source?"registrada":"vacía")+(verified?" · revisión confirmada":"")});
  const next={key:activeKey,year:p.year,month:p.month,indicator:field.id,label:field.label,category:field.category,value,source,note,verified,updatedAt:changed?snapshot.at:(old?.updatedAt||snapshot.at),history};
- try{if(old)records=records.map(r=>r.key===activeKey?next:r);else records.push(next);persist();render();updateModalStatus();toast(statusOf(next)==="resolved"?"Indicador resuelto y guardado en este navegador.":"Ficha guardada. Pendiente: "+missingParts(next).join(", ")+".");$("detailModal").close();}catch(err){toast("No se pudo guardar. Revisa el almacenamiento disponible del navegador.")}
+ try{
+  const {error}=await window.__hrpvSupabase.from("procedencia_cifras_hrpv").upsert(recordToRow(next,window.__hrpvUserId),{onConflict:"anio,mes,indicador_id"});
+  if(error)throw error;
+  if(old)records=records.map(r=>r.key===activeKey?next:r);else records.push(next);
+  persist();render();updateModalStatus();toast(statusOf(next)==="resolved"?"Indicador resuelto y guardado en Supabase.":"Ficha guardada en Supabase. Pendiente: "+missingParts(next).join(", ")+".");$("detailModal").close();
+ }catch(err){toast("No se guardó en Supabase: "+(err?.message||"error de conexión"));}
 }
 $("detailForm").addEventListener("submit",saveModal);
 ["detailValue","detailSource","detailNote","detailVerified"].forEach(id=>$(id).addEventListener("input",updateModalStatus));
@@ -279,7 +311,7 @@ document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",(
 $("month").addEventListener("change",render);$("year").addEventListener("change",render);$("search").addEventListener("input",render);
 $("collapseAll").addEventListener("click",()=>{const sections=[...document.querySelectorAll(".category")],allOpen=sections.length>0&&sections.every(s=>s.classList.contains("open"));sections.forEach(s=>{s.classList.toggle("open",!allOpen);s.querySelector(".cat-toggle").setAttribute("aria-expanded",String(!allOpen))});$("collapseAll").textContent=allOpen?"Abrir categorías":"Cerrar categorías"});
 $("detailModal").addEventListener("click",e=>{if(e.target===$("detailModal"))$("detailModal").close()});
-render();
+try{await initializeSupabaseRecords();render();}catch(err){dbReady=false;render();console.error("Procedencia HRPV:",err);}
 </script>
 </body>
 </html>
