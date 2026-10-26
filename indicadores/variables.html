@@ -831,7 +831,7 @@
       <nav class="module-nav" aria-label="Navegación de indicadores">
         <a href="../trazabilidad-hrpv/">Procedencia de cifras</a>
         <a href="tendencias.html">Tendencias</a>
-        <a href="variables.html" aria-current="page">Formato para oficinas</a>
+        <a href="variables.html?vista=formato-oficinas" aria-current="page">Formato para oficinas</a>
       </nav>
       <h1>Informe de Indicadores</h1>
       <div class="subtitle">
@@ -2872,8 +2872,11 @@
           })
           .join("");
 
-        const printWindow = window.open("", "_blank");
-        if (!printWindow) {
+        // En la navegación "Formato para oficinas", esta misma página se convierte
+        // en una vista independiente: solo muestra el formato imprimible.
+        const standalone = new URLSearchParams(window.location.search).get("vista") === "formato-oficinas";
+        const printWindow = standalone ? window : window.open("", "_blank");
+        if (!standalone && !printWindow) {
           showToast(
             "Ventana bloqueada",
             "Permite las ventanas emergentes para imprimir el formato.",
@@ -2944,8 +2947,12 @@
       // ============================================================
       // INICIALIZACIÓN
       // ============================================================
-      renderForm();
-      dispararCalculos();
+      if (new URLSearchParams(window.location.search).get("vista") === "formato-oficinas") {
+        imprimirFormatoCaptura();
+      } else {
+        renderForm();
+        dispararCalculos();
+      }
     </script>
   </body>
 </html>
