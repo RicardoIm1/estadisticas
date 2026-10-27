@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#2c3e50">
 <title>Procedencia de cifras · HRPV</title>
 <style>
+.source-picker{display:grid;gap:7px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#f8fafc}.source-picker input[type=file]{width:100%;max-width:100%;font-size:13px}.source-picker small{font-size:12px;color:var(--muted);line-height:1.45}.source-file-status{font-size:12px;color:var(--muted);overflow-wrap:anywhere}.source-file-status[data-selected=true]{color:var(--green);font-weight:600}
 :root{--navy:#2c3e50;--blue:#3498db;--bg:#f3f6f9;--line:#e0e7ed;--muted:#718092;--ink:#293845;--green:#26734d;--amber:#946200;--red:#a63e3e}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #a9d4f5;outline-offset:2px}
 .app{min-height:100vh;display:grid;grid-template-columns:215px minmax(0,1fr)}aside{background:var(--navy);color:#edf3f7;padding:23px 16px}.brand{display:flex;align-items:center;gap:11px;margin-bottom:34px}.mark{width:38px;height:38px;border:1px solid #7890a3;border-radius:10px;display:grid;place-items:center;font-weight:800}.brand strong{display:block;font-size:13px}.brand small{font-size:11px;color:#a8bbc9}.navtitle{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#94aabc;margin:0 8px 9px}.nav{padding:10px 11px;border-radius:8px;color:#c7d5df;margin:3px 0;font-size:12px}aside .module-nav{display:grid;gap:5px;margin:-18px 0 25px}
@@ -287,7 +288,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 <div class="modalbody">
 <div class="modalgrid">
 <div class="field"><label for="detailValue">Valor del indicador</label><input id="detailValue" type="number" step="any"></div>
-<div class="field"><label for="detailSource">Archivo de procedencia</label><input id="detailSource" type="text" placeholder="Pega la ruta o referencia del archivo"></div>
+<div class="field full"><label for="detailFile">Seleccionar archivo de procedencia</label><div class="source-picker"><input id="detailFile" type="file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx,.odt,.ods,.txt,.jpg,.jpeg,.png"><small>El archivo no se sube. El navegador puede mostrar solo el nombre, no la ruta completa de la carpeta institucional.</small><div id="detailFileStatus" class="source-file-status" aria-live="polite">Ningún archivo seleccionado.</div></div></div><div class="field full"><label for="detailSource">Ruta o referencia del archivo</label><input id="detailSource" type="text" placeholder="Ej. R:\\Estadisticas\\Agosto\\egresos.xlsx o nombre del archivo"><small>Si el selector no proporciona la ruta completa, escríbela aquí o completa la referencia manualmente.</small></div>
 <div class="field full"><label for="detailNote">Nota de localización (opcional)</label><input id="detailNote" type="text" placeholder="Ej. Hoja Resumen, celda F27"></div>
 <div class="field full"><div class="checkrow"><input id="detailVerified" type="checkbox"><div><label for="detailVerified">Confirmo que contrasté la cifra con el archivo indicado.</label><small>Al marcarlo, confirmas tu revisión. La aplicación no abre ni verifica el contenido del archivo.</small></div></div></div>
 </div>
@@ -377,6 +378,8 @@ const categories = [
 ];
 const $=id=>document.getElementById(id);
 const STORE="hrpv-procedencia-v2";
+const sourceFileInput=document.getElementById("detailFile");
+sourceFileInput.addEventListener("change",()=>{const file=sourceFileInput.files?.[0],status=document.getElementById("detailFileStatus");if(!file){status.textContent="Ningún archivo seleccionado.";status.dataset.selected="false";return;}status.textContent="Seleccionado: "+file.name+" · "+(file.size<1024*1024?Math.round(file.size/1024)+" KB":(file.size/1024/1024).toFixed(2)+" MB")+". No se subirá ni guardará el contenido.";status.dataset.selected="true";const field=document.getElementById("detailSource");if(!field.value.trim())field.value=file.name;});
 const MIGRATION_FLAG="hrpv-procedencia-migrated-v1";
 let records=[],viewMode="all",activeKey=null,activeIndex=0,dbReady=false,periodClosure=null,periodClosureReady=false;
 const today=new Date();
