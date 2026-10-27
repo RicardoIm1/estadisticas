@@ -288,7 +288,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 <div class="modalbody">
 <div class="modalgrid">
 <div class="field"><label for="detailValue">Valor del indicador</label><input id="detailValue" type="number" step="any"></div>
-<div class="field full"><label for="detailFile">Seleccionar archivo de procedencia</label><div class="source-picker"><input id="detailFile" type="file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx,.odt,.ods,.txt,.jpg,.jpeg,.png"><small>El archivo no se sube. El navegador puede mostrar solo el nombre, no la ruta completa de la carpeta institucional.</small><div id="detailFileStatus" class="source-file-status" aria-live="polite">Ningún archivo seleccionado.</div></div></div><div class="field full"><label for="detailSource">Ruta o referencia del archivo</label><input id="detailSource" type="text" placeholder="Ej. R:\\Estadisticas\\Agosto\\egresos.xlsx o nombre del archivo"><small>Si el selector no proporciona la ruta completa, escríbela aquí o completa la referencia manualmente.</small></div>
+<div class="field full"><label for="detailFile">Archivo de procedencia</label><div class="source-picker"><input id="detailFile" type="file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx,.odt,.ods,.txt,.jpg,.jpeg,.png"><small>Se guardará únicamente el nombre del archivo como referencia. El archivo no se sube ni se almacena; por seguridad, el navegador no permite obtener de forma fiable la ruta completa de la carpeta.</small><div id="detailFileStatus" class="source-file-status" aria-live="polite">Ningún archivo seleccionado.</div></div><input id="detailSource" type="hidden"></div>
 <div class="field full"><label for="detailNote">Nota de localización (opcional)</label><input id="detailNote" type="text" placeholder="Ej. Hoja Resumen, celda F27"></div>
 <div class="field full"><div class="checkrow"><input id="detailVerified" type="checkbox"><div><label for="detailVerified">Confirmo que contrasté la cifra con el archivo indicado.</label><small>Al marcarlo, confirmas tu revisión. La aplicación no abre ni verifica el contenido del archivo.</small></div></div></div>
 </div>
@@ -379,7 +379,7 @@ const categories = [
 const $=id=>document.getElementById(id);
 const STORE="hrpv-procedencia-v2";
 const sourceFileInput=document.getElementById("detailFile");
-sourceFileInput.addEventListener("change",()=>{const file=sourceFileInput.files?.[0],status=document.getElementById("detailFileStatus");if(!file){status.textContent="Ningún archivo seleccionado.";status.dataset.selected="false";return;}status.textContent="Seleccionado: "+file.name+" · "+(file.size<1024*1024?Math.round(file.size/1024)+" KB":(file.size/1024/1024).toFixed(2)+" MB")+". No se subirá ni guardará el contenido.";status.dataset.selected="true";const field=document.getElementById("detailSource");if(!field.value.trim())field.value=file.name;});
+sourceFileInput.addEventListener("change",()=>{const file=sourceFileInput.files?.[0],status=document.getElementById("detailFileStatus"),field=document.getElementById("detailSource");if(!file){status.textContent=field.value?"Referencia guardada: "+field.value+".":"Ningún archivo seleccionado.";status.dataset.selected=field.value?"true":"false";return;}field.value=file.name;status.textContent="Archivo seleccionado: "+file.name+". Solo se guardará este nombre; el archivo no se subirá ni almacenará.";status.dataset.selected="true";});
 const MIGRATION_FLAG="hrpv-procedencia-migrated-v1";
 let records=[],viewMode="all",activeKey=null,activeIndex=0,dbReady=false,periodClosure=null,periodClosureReady=false;
 const today=new Date();
@@ -1307,7 +1307,7 @@ function openModal(fieldId){
  const field=fieldFor(fieldId);if(!field)return;const p=currentPeriod();const key=recordKey(field,p);const record=records.find(r=>r.key===key)||null;
  activeKey=key;activeIndex=allFields.findIndex(f=>f.id===fieldId);
  $("modalCategory").textContent=field.category;$("modalTitle").textContent=field.label;$("modalPeriod").textContent=periodLabel(p)+" · "+field.id;$("modalSequence").textContent="Indicador "+(activeIndex+1)+" de "+allFields.length+" · Zona "+(field.categoryIndex+1);
- $("detailValue").value=record?.value??"";$("detailSource").value=record?.source??"";$("detailNote").value=record?.note??"";$("detailVerified").checked=Boolean(record?.verified);
+ $("detailValue").value=record?.value??"";$("detailSource").value=record?.source??"";$("detailFile").value="";$("detailFileStatus").textContent=record?.source?"Referencia guardada: "+record.source+". Para cambiarla, selecciona otro archivo.":"Ningún archivo seleccionado.";$("detailFileStatus").dataset.selected=record?.source?"true":"false";$("detailNote").value=record?.note??"";$("detailVerified").checked=Boolean(record?.verified);
  $("historyContent").replaceChildren();
   const history=record?.history||[];
   if(!history.length){$("historyContent").innerHTML='<div class="console-empty">[INFO] Todavía no hay cambios guardados para este indicador y periodo.</div>'}
