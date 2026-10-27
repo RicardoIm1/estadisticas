@@ -219,6 +219,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
  @page{size:letter landscape;margin:1.2cm}
 }
 
+.period-closure{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:12px 0 16px;padding:13px 15px;border:1px solid var(--line);border-left:5px solid var(--green);border-radius:10px;background:#f7fafc}.period-closure[data-state="closed"]{border-color:#e6b7b7;border-left-color:var(--red);background:#fff5f5}.period-closure[data-state="error"]{border-left-color:var(--red);background:#fff5f5}.period-closure strong{display:block;margin-bottom:3px}.period-closure span{display:block;color:var(--muted);font-size:12px}.period-closure .btn{flex-shrink:0}.period-closure[data-state="closed"] .btn{background:var(--red);color:#fff;border-color:var(--red)}.period-closure .btn:disabled{opacity:.55;cursor:not-allowed}@media(max-width:700px){.period-closure{align-items:stretch;flex-direction:column}.period-closure .btn{width:100%}}
 </style>
 </head>
 <body class="auth-pending">
@@ -242,6 +243,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 <div class="field searchfield"><label for="search">Buscar indicador</label><input id="search" type="search" placeholder="Escribe el nombre o parte del nombre…" aria-label="Buscar indicador"></div>
 <button class="btn" id="collapseAll" type="button">Cerrar categorías</button>
 </div>
+<section class="period-closure" id="periodClosureBanner" data-state="unknown" role="status" aria-live="polite"><div><strong id="periodClosureTitle">Verificando estado del periodo…</strong><span id="periodClosureText">No guardes cambios hasta comprobar el estado.</span></div><button class="btn" id="periodClosureAction" type="button" disabled>Consultando…</button></section>
 <div class="stats">
 <div class="stat"><span>Pendientes</span><strong id="pendingCount">0</strong><span>Valor, fuente o revisión faltante</span></div>
 <div class="stat"><span>En revisión</span><strong id="reviewCount">0</strong><span>Falta confirmar la verificación</span></div>
@@ -376,7 +378,7 @@ const categories = [
 const $=id=>document.getElementById(id);
 const STORE="hrpv-procedencia-v2";
 const MIGRATION_FLAG="hrpv-procedencia-migrated-v1";
-let records=[],viewMode="all",activeKey=null,activeIndex=0,dbReady=false;
+let records=[],viewMode="all",activeKey=null,activeIndex=0,dbReady=false,periodClosure=null,periodClosureReady=false;
 const today=new Date();
 const expectedPeriod=new Date(today.getFullYear(),today.getMonth()-1,1);
 $("month").value=String(expectedPeriod.getMonth()+1);
@@ -417,6 +419,29 @@ async function initializeSupabaseRecords(){
 }
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function currentPeriod(){return {month:Number($("month").value),year:Number($("year").value)}}
+async function refreshPeriodClosure(){
+ periodClosureReady=false;renderPeriodClosure();const p=currentPeriod();
+ try{const {data,error}=await window.__hrpvSupabase.from("cierres_mensuales_hrpv").select("anio,mes,cerrado,cerrado_en,reabierto_en,motivo_reapertura").eq("anio",p.year).eq("mes",p.month).maybeSingle();if(error)throw error;periodClosure=data||{anio:p.year,mes:p.month,cerrado:false};periodClosureReady=true;}
+ catch(err){periodClosure=null;console.error("No se pudo consultar el cierre mensual:",err);}
+ renderPeriodClosure();return periodClosureReady?{ok:true,cerrado:Boolean(periodClosure?.cerrado)}:{ok:false,cerrado:false};
+}
+function renderPeriodClosure(){
+ const banner=$("periodClosureBanner"),title=$("periodClosureTitle"),text=$("periodClosureText"),button=$("periodClosureAction");if(!banner||!title||!text||!button)return;
+ const p=currentPeriod(),closed=Boolean(periodClosure?.cerrado),allowed=window.__hrpvUserId==="64e0ea67-03ac-43f0-889c-418d1236c96d";
+ banner.dataset.state=periodClosureReady?(closed?"closed":"open"):"error";title.textContent=!periodClosureReady?"No se pudo verificar el cierre":(closed?"Periodo cerrado: ":"Periodo abierto: ")+periodLabel(p);
+ text.textContent=!periodClosureReady?"No guardes cambios hasta recuperar la conexión con el control de cierres.":(closed?"Las cifras están protegidas. Para corregirlas, reabre el periodo e indica el motivo.":"Puedes documentar la procedencia. Cierra el mes cuando las cifras estén conciliadas.");if(!allowed)text.textContent+=" Se requiere la cuenta HRPV autorizada para administrar cierres.";
+ button.textContent=closed?"Reabrir mes":"Cerrar mes";button.disabled=!periodClosureReady||!allowed;
+}
+async function managePeriodClosure(){
+ const status=await refreshPeriodClosure();if(!status.ok){toast("No se pudo verificar el cierre. No se modificó nada.");return;}const p=currentPeriod(),label=periodLabel(p);let reason=null;
+ if(status.cerrado){reason=window.prompt("Motivo obligatorio para reabrir "+label+". La reapertura quedará registrada en la bitácora:");if(reason===null)return;reason=reason.trim();if(!reason){toast("Escribe un motivo para reabrir el periodo.");return;}}
+ else{const ok=window.confirm("¿Cerrar "+label+"? Las fichas de procedencia y las cifras mensuales quedarán protegidas contra modificaciones. Para corregirlas después será obligatorio reabrir el mes con motivo.");if(!ok)return;}
+ const button=$("periodClosureAction");button.disabled=true;
+ try{const {error}=await window.__hrpvSupabase.rpc("cambiar_cierre_mensual_hrpv",{p_anio:p.year,p_mes:p.month,p_cerrar:!status.cerrado,p_motivo:reason});if(error)throw error;await refreshPeriodClosure();toast(status.cerrado?"Periodo reabierto. El motivo quedó registrado.":"Periodo cerrado y protegido.");}
+ catch(err){console.error("Error administrando cierre:",err);toast("No se cambió el cierre: "+(err?.message||"error de conexión"));await refreshPeriodClosure();}
+}
+async function ensurePeriodOpen(action){const status=await refreshPeriodClosure();if(!status.ok){toast("Acción bloqueada: no se pudo verificar el cierre mensual.");return false;}if(status.cerrado){toast("Periodo cerrado. Reabre "+periodLabel(currentPeriod())+" con motivo antes de "+action+".");return false;}return true;}
+
 function periodLabel(p){return new Date(p.year,p.month-1,1).toLocaleDateString("es-MX",{month:"long",year:"numeric"})}
 function recordKey(field,p){return p.year+"-"+String(p.month).padStart(2,"0")+"::"+field.id}
 function getRecord(field,p=currentPeriod()){return records.find(r=>r.key===recordKey(field,p))||null}
@@ -1215,6 +1240,7 @@ async function loadAuditHistory(record,field,p){
 }
 async function importVariablesValues(){
  if(!dbReady){toast("La conexión segura no está lista. No se importó nada.");return;}
+ if(!(await ensurePeriodOpen("importar valores")))return;
  const button=$("importVariables"),p=currentPeriod(),period=periodLabel(p);
  button.disabled=true;const original=button.textContent;button.textContent="Consultando…";
  try{
@@ -1295,6 +1321,7 @@ function updateModalStatus(){
 async function saveModal(e){
  if(e)e.preventDefault();if(!activeKey)return;
  if(!dbReady){toast("La conexión segura no está lista. No se guardó la ficha.");return;}
+ if(!(await ensurePeriodOpen("guardar esta ficha")))return;
  const field=allFields[activeIndex],p=currentPeriod(),old=records.find(r=>r.key===activeKey);
  const value=$("detailValue").value.trim(),source=$("detailSource").value.trim(),note=$("detailNote").value.trim(),verified=$("detailVerified").checked;
  const snapshot={value,source,note,verified,at:new Date().toISOString()};
@@ -1319,7 +1346,7 @@ $("previousBtn").addEventListener("click",()=>{if(activeIndex>0)openModal(allFie
 $("nextBtn").addEventListener("click",()=>{if(activeIndex<allFields.length-1)openModal(allFields[activeIndex+1].id)});
 document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{viewMode=b.dataset.view;render()}));
 function syncCompendiumLink(){const link=$("printCompendiumLink");if(link)link.href="../indicadores/compendio-captura.html?mes="+encodeURIComponent($("month").value)+"&anio="+encodeURIComponent($("year").value)}
- $("month").addEventListener("change",()=>{syncCompendiumLink();render()});$("year").addEventListener("change",()=>{syncCompendiumLink();render()});$("search").addEventListener("input",render);
+ $("month").addEventListener("change",()=>{syncCompendiumLink();render();refreshPeriodClosure()});$("year").addEventListener("change",()=>{syncCompendiumLink();render();refreshPeriodClosure()});$("periodClosureAction").addEventListener("click",managePeriodClosure);$("search").addEventListener("input",render);
 $("importVariables").addEventListener("click",importVariablesValues);
 
 $("generateReport").addEventListener("click",generarInforme);
@@ -1331,7 +1358,7 @@ $("hideReport").addEventListener("click",()=>{$("reportPanel").hidden=true});
 $("collapseAll").addEventListener("click",()=>{const sections=[...document.querySelectorAll(".category")],allOpen=sections.length>0&&sections.every(s=>s.classList.contains("open"));sections.forEach(s=>{s.classList.toggle("open",!allOpen);s.querySelector(".cat-toggle").setAttribute("aria-expanded",String(!allOpen))});$("collapseAll").textContent=allOpen?"Abrir categorías":"Cerrar categorías"});
 $("detailModal").addEventListener("click",e=>{if(e.target===$("detailModal"))$("detailModal").close()});
 await window.__hrpvAuthReady;
-syncCompendiumLink();try{await initializeSupabaseRecords();render();}catch(err){dbReady=false;render();console.error("Procedencia HRPV:",err);}
+syncCompendiumLink();try{await initializeSupabaseRecords();await refreshPeriodClosure();render();}catch(err){dbReady=false;render();console.error("Procedencia HRPV:",err);}
 </script>
 </body>
 </html>
