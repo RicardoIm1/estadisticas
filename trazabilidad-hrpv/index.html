@@ -228,6 +228,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 <nav class="module-nav" aria-label="Navegación de indicadores">
 <a href="./" aria-current="page">Procedencia de cifras</a>
 <a href="../indicadores/tendencias.html">Tendencias</a>
+<a id="printCompendiumLink" href="../indicadores/compendio-captura.html">Informe para imprimir</a>
 </nav>
 <div class="sidebarDate"><span>Fecha actual</span><strong id="currentDate">Fecha local</strong></div>
 <div class="sidebar-content">
@@ -1297,7 +1298,8 @@ $("closeModal").addEventListener("click",()=>$("detailModal").close());
 $("previousBtn").addEventListener("click",()=>{if(activeIndex>0)openModal(allFields[activeIndex-1].id)});
 $("nextBtn").addEventListener("click",()=>{if(activeIndex<allFields.length-1)openModal(allFields[activeIndex+1].id)});
 document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{viewMode=b.dataset.view;render()}));
-$("month").addEventListener("change",render);$("year").addEventListener("change",render);$("search").addEventListener("input",render);
+function syncCompendiumLink(){const link=$("printCompendiumLink");if(link)link.href="../indicadores/compendio-captura.html?mes="+encodeURIComponent($("month").value)+"&anio="+encodeURIComponent($("year").value)}
+ $("month").addEventListener("change",()=>{syncCompendiumLink();render()});$("year").addEventListener("change",()=>{syncCompendiumLink();render()});$("search").addEventListener("input",render);
 $("importVariables").addEventListener("click",importVariablesValues);
 
 $("generateReport").addEventListener("click",generarInforme);
@@ -1309,7 +1311,7 @@ $("hideReport").addEventListener("click",()=>{$("reportPanel").hidden=true});
 $("collapseAll").addEventListener("click",()=>{const sections=[...document.querySelectorAll(".category")],allOpen=sections.length>0&&sections.every(s=>s.classList.contains("open"));sections.forEach(s=>{s.classList.toggle("open",!allOpen);s.querySelector(".cat-toggle").setAttribute("aria-expanded",String(!allOpen))});$("collapseAll").textContent=allOpen?"Abrir categorías":"Cerrar categorías"});
 $("detailModal").addEventListener("click",e=>{if(e.target===$("detailModal"))$("detailModal").close()});
 await window.__hrpvAuthReady;
-try{await initializeSupabaseRecords();render();}catch(err){dbReady=false;render();console.error("Procedencia HRPV:",err);}
+syncCompendiumLink();try{await initializeSupabaseRecords();render();}catch(err){dbReady=false;render();console.error("Procedencia HRPV:",err);}
 </script>
 </body>
 </html>
