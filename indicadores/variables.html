@@ -824,7 +824,8 @@
           page-break-inside: avoid;
         }
       }
-    </style>
+    .period-closure{display:flex;gap:16px;align-items:center;justify-content:space-between;margin:16px 0;padding:14px 16px;border:1px solid #d5e0e8;border-left:5px solid #718092;border-radius:10px;background:#f7fafc;color:#293845}.period-closure[data-state="closed"]{border-color:#e2b9b9;border-left-color:#a63e3e;background:#fff5f5}.period-closure[data-state="open"]{border-left-color:#26734d}.period-closure[data-state="error"]{border-left-color:#a63e3e;background:#fff5f5}.period-closure strong{display:block;font-size:14px;margin-bottom:3px}.period-closure span{display:block;color:#526474;font-size:12px}.period-closure button{flex-shrink:0;border:0;border-radius:7px;padding:10px 13px;background:#2c3e50;color:#fff;font-weight:600}.period-closure button:disabled{opacity:.55;cursor:not-allowed}.period-closure[data-state="closed"] button{background:#a63e3e}@media(max-width:620px){.period-closure{align-items:stretch;flex-direction:column}.period-closure button{width:100%}}
+</style>
   </head>
   <body>
     <div class="container" id="app">
@@ -872,6 +873,11 @@
         <button onclick="cargarDatos()">📂 Cargar datos</button>
         <button onclick="resetForm()">🔄 Limpiar todo</button>
       </div>
+
+      <section class="period-closure" id="periodClosureBanner" data-state="unknown" role="status" aria-live="polite">
+        <div><strong id="periodClosureTitle">Verificando estado del periodo…</strong><span id="periodClosureText">El sistema comprobará si el mes está abierto o cerrado antes de guardar.</span></div>
+        <button id="periodClosureAction" type="button" disabled>Consultando…</button>
+      </section>
 
       <!-- TABS -->
       <div class="tabs">
@@ -1053,7 +1059,22 @@
       const supabaseClient = supabase.createClient(
         SUPABASE_URL,
         SUPABASE_ANON_KEY,
+        { auth: { storageKey: "hrpv-indicadores-auth-v1", persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } },
       );
+
+      let periodClosureReady = false, periodClosure = null;
+      const AUTHORIZED_HRPV_UID = "64e0ea67-03ac-43f0-889c-418d1236c96d";
+      function selectedPeriodLabel(mes, anio) { return (document.querySelector("#month option:checked")?.textContent || String(mes)) + " " + anio; }
+      function renderPeriodClosure() {
+        const banner=document.getElementById("periodClosureBanner"),title=document.getElementById("periodClosureTitle"),text=document.getElementById("periodClosureText"),button=document.getElementById("periodClosureAction"); if(!banner||!title||!text||!button)return;
+        const mes=parseInt(document.getElementById("month").value,10),anio=parseInt(document.getElementById("year").value,10),closed=Boolean(periodClosure?.cerrado);
+        banner.dataset.state=periodClosureReady?(closed?"closed":"open"):"error";title.textContent=!periodClosureReady?"No se pudo verificar el cierre":(closed?"Periodo cerrado: ":"Periodo abierto: ")+selectedPeriodLabel(mes,anio);
+        text.textContent=!periodClosureReady?"No guardes cambios hasta recuperar la conexión con el control de cierres.":(closed?"Las cifras están protegidas. Para corregirlas, reabre el periodo e indica el motivo.":"Puedes capturar o corregir cifras. Cierra el mes cuando hayas conciliado la información.");button.textContent=closed?"Reabrir mes":"Cerrar mes";button.disabled=!periodClosureReady;
+        supabaseClient.auth.getUser().then(({data})=>{const allowed=data?.user?.id===AUTHORIZED_HRPV_UID;button.disabled=!periodClosureReady||!allowed;if(!allowed)text.textContent+=" Para administrar cierres, inicia sesión con la cuenta HRPV autorizada en Control de procedencia.";}).catch(()=>{button.disabled=true;});
+      }
+      async function refreshPeriodClosure() { periodClosureReady=false;renderPeriodClosure();const mes=parseInt(document.getElementById("month").value,10),anio=parseInt(document.getElementById("year").value,10);try{const {data,error}=await supabaseClient.from("cierres_mensuales_hrpv").select("anio,mes,cerrado,cerrado_en,reabierto_en,motivo_reapertura").eq("anio",anio).eq("mes",mes).maybeSingle();if(error)throw error;periodClosure=data||{anio,mes,cerrado:false};periodClosureReady=true;}catch(error){periodClosure=null;console.error("No se pudo consultar el cierre mensual:",error);}renderPeriodClosure();return periodClosureReady?{ok:true,cerrado:Boolean(periodClosure?.cerrado)}:{ok:false,cerrado:false};}
+      async function managePeriodClosure() { const status=await refreshPeriodClosure();if(!status.ok){showToast("No se pudo verificar","No se cambió el cierre. Comprueba la conexión e inténtalo de nuevo.","error");return;}const mes=parseInt(document.getElementById("month").value,10),anio=parseInt(document.getElementById("year").value,10),label=selectedPeriodLabel(mes,anio);let reason=null;if(status.cerrado){reason=window.prompt("Motivo obligatorio para reabrir "+label+". La reapertura quedará registrada en la bitácora:");if(reason===null)return;reason=reason.trim();if(!reason){showToast("Falta el motivo","Escribe el motivo de reapertura. No se modificó el cierre.","warning");return;}}else{if(!(await verificarExistencia(mes,anio))){showToast("No se puede cerrar","Primero guarda las cifras de "+label+" y verifica que correspondan al periodo correcto.","warning");return;}const ok=await showConfirm("Cerrar "+label+"?","El periodo quedará protegido contra inserciones, cambios y eliminaciones. Para corregirlo después será obligatorio reabrirlo con motivo.","warning","Cerrar mes");if(!ok)return;}const button=document.getElementById("periodClosureAction");button.disabled=true;try{const {error}=await supabaseClient.rpc("cambiar_cierre_mensual_hrpv",{p_anio:anio,p_mes:mes,p_cerrar:!status.cerrado,p_motivo:reason});if(error)throw error;await refreshPeriodClosure();showToast(status.cerrado?"Periodo reabierto":"Periodo cerrado",label+(status.cerrado?" puede volver a corregirse. El motivo quedó registrado.":" quedó protegido contra modificaciones."),"success");}catch(error){console.error("Error administrando cierre:",error);showToast("No se cambió el cierre",error.message||"Error de conexión o permisos.","error");await refreshPeriodClosure();}}
+      async function ensurePeriodOpenForSave(mes,anio) { if(mes!==parseInt(document.getElementById("month").value,10)||anio!==parseInt(document.getElementById("year").value,10))return false;const status=await refreshPeriodClosure();if(!status.ok){showToast("Guardado bloqueado","No se pudo comprobar si el periodo está cerrado. No se guardó nada.","error");return false;}if(status.cerrado){showToast("Periodo cerrado","No se modificó "+selectedPeriodLabel(mes,anio)+". Reábrelo e indica el motivo antes de corregir cifras.","warning");return false;}return true; }
 
       let datosCargados = false;
       let registroExistente = null;
@@ -1161,6 +1182,7 @@
             "#month option:checked",
           ).textContent;
 
+          if (!(await ensurePeriodOpenForSave(mes, anio))) { btn.textContent = textoOriginal; btn.disabled = false; return; }
           const datos = recolectarDatos();
 
           const tieneDatos = Object.values(datos).some((v) => v > 0);
@@ -2947,11 +2969,15 @@
       // ============================================================
       // INICIALIZACIÓN
       // ============================================================
+      document.getElementById("periodClosureAction").addEventListener("click", managePeriodClosure);
+      document.getElementById("month").addEventListener("change", refreshPeriodClosure);
+      document.getElementById("year").addEventListener("change", refreshPeriodClosure);
       if (new URLSearchParams(window.location.search).get("vista") === "formato-oficinas") {
         imprimirFormatoCaptura();
       } else {
         renderForm();
         dispararCalculos();
+        refreshPeriodClosure();
       }
     </script>
   </body>
