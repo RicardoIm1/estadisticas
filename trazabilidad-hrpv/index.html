@@ -423,7 +423,27 @@ function getRecord(field,p=currentPeriod()){return records.find(r=>r.key===recor
 function missingParts(r){if(!r)return ["valor","archivo de procedencia","confirmación de revisión"];const miss=[];if(r.value===""||r.value===null||r.value===undefined)miss.push("valor");if(!r.source||!r.source.trim())miss.push("archivo de procedencia");if(!r.verified)miss.push("confirmación de revisión");return miss}
 function statusOf(r){const missing=missingParts(r);if(missing.length===0)return "resolved";if(missing.includes("valor")||missing.includes("archivo de procedencia"))return "pending";return "review"}
 function fieldFor(id){return allFields.find(f=>f.id===id)}
-function currentItems(){const p=currentPeriod(),byKey=new Map(records.map(record=>[record.key,record]));return allFields.map(field=>{const key=recordKey(field,p),record=byKey.get(key)||null,missing=missingParts(record);return {field,record,status:missing.length===0?"resolved":(missing.includes("valor")||missing.includes("archivo de procedencia")?"pending":"review"),missing,key}})}
+function calculateDerivedValue(field,p,byKey){
+ const formulas={
+  total_medicos:["medicos_ce","medicos_hosp","medicos_admin"],
+  total_enfermeras:["enf_ce","enf_hosp","enf_admin"]
+ };
+ const factors=formulas[field.id];if(!factors)return null;
+ const values=factors.map(id=>byKey.get(recordKey({id},p)));
+ if(values.some(r=>!r||r.value===""||r.value===null||r.value===undefined||!Number.isFinite(Number(r.value))))return null;
+ return values.reduce((sum,r)=>sum+Number(r.value),0);
+}
+function currentItems(){
+ const p=currentPeriod(),byKey=new Map(records.map(record=>[record.key,record]));
+ return allFields.map(field=>{
+  const key=recordKey(field,p),savedRecord=byKey.get(key)||null;
+  const calculatedValue=calculateDerivedValue(field,p,byKey);
+  const isCalculatedTotal=calculatedValue!==null;
+  const record=isCalculatedTotal?{...(savedRecord||{}),key,year:p.year,month:p.month,indicator:field.id,label:field.label,category:field.category,value:String(calculatedValue),source:"",verified:false,updatedAt:null}:savedRecord;
+  const missing=isCalculatedTotal?[]:missingParts(record);
+  return {field,record,status:isCalculatedTotal?"resolved":(missing.length===0?"resolved":(missing.includes("valor")||missing.includes("archivo de procedencia")?"pending":"review")),missing,key,calculatedValue:isCalculatedTotal?calculatedValue:null};
+ });
+}
 function visibleItems(items){const q=$("search").value.trim().toLocaleLowerCase("es-MX");return items.filter(item=>{const text=(item.field.label+" "+item.field.id+" "+item.field.category+" "+(item.record?.source||"")+" "+(item.record?.note||"")).toLocaleLowerCase("es-MX");if(q&&!text.includes(q))return false;if(viewMode==="all")return true;return item.status===viewMode})}
 function toast(message){$("toast").textContent=message;$("toast").classList.add("show");window.clearTimeout(toast.timer);toast.timer=window.setTimeout(()=>$("toast").classList.remove("show"),2800)}
 function render(){
@@ -444,7 +464,7 @@ function render(){
   const section=document.createElement("section");section.className="category"+(openCategories.has(String(ci))?" open":"");section.dataset.category=String(ci);
   const allCategoryItems=items.filter(x=>x.field.categoryIndex===ci),categoryResolved=allCategoryItems.filter(x=>x.status==="resolved").length;
   // Avance gradual: cada indicador aporta hasta tres requisitos (valor, fuente y revisión).
-  const categoryRequirements=allCategoryItems.reduce((sum,x)=>sum+(x.record&&x.record.value!==""&&x.record.value!==null&&x.record.value!==undefined?1:0)+(x.record&&x.record.source&&x.record.source.trim()?1:0)+(x.record&&x.record.verified?1:0),0);
+  const categoryRequirements=allCategoryItems.reduce((sum,x)=>sum+(x.calculatedValue!==null?3:(x.record&&x.record.value!==""&&x.record.value!==null&&x.record.value!==undefined?1:0)+(x.record&&x.record.source&&x.record.source.trim()?1:0)+(x.record&&x.record.verified?1:0)),0);
   const categoryRequirementTotal=allCategoryItems.length*3;
   const categoryPct=categoryRequirementTotal?Math.round(categoryRequirements/categoryRequirementTotal*100):0;
   const unresolved=catItems.filter(x=>x.status!=="resolved").length;
@@ -464,9 +484,9 @@ function render(){
    const statusText=item.status==="resolved"?"Resuelto":item.status==="review"?"En revisión":"Pendiente";
    const statusClass=item.status==="resolved"?"done":item.status==="review"?"review":hasValue?"saved":"";
    const sequence=allFields.findIndex(f=>f.id===item.field.id)+1;
-   const date=item.record?.updatedAt?new Date(item.record.updatedAt).toLocaleString("es-MX"):"Sin cambios guardados";
-   row.innerHTML='<td class="seq-cell"><span class="itemseq">'+sequence+'</span></td><td class="name-cell"><div class="itemname">'+esc(item.field.label)+'</div><div class="itemmeta">'+esc(item.field.id)+'</div></td><td class="value-cell">'+(hasValue?'<span class="itemvalue">'+esc(item.record.value)+'</span>':'<span class="item-empty">Sin valor</span>')+'</td><td class="date-cell"><span class="itemdate">'+esc(date)+'</span></td><td class="status-cell"><span class="status '+statusClass+'">'+statusText+'</span></td><td class="action-cell"><button type="button" class="mini" data-open="'+esc(item.field.id)+'">Editar</button></td>';
-   row.querySelector("[data-open]").addEventListener("click",()=>openModal(item.field.id));tbody.append(row);
+   const date=item.calculatedValue!==null?"Cálculo automático":item.record?.updatedAt?new Date(item.record.updatedAt).toLocaleString("es-MX"):"Sin cambios guardados";
+   row.innerHTML='<td class="seq-cell"><span class="itemseq">'+sequence+'</span></td><td class="name-cell"><div class="itemname">'+esc(item.field.label)+'</div><div class="itemmeta">'+esc(item.field.id)+(item.calculatedValue!==null?' · Calculado automáticamente':'')+'</div></td><td class="value-cell">'+(hasValue?'<span class="itemvalue">'+esc(item.record.value)+'</span>':'<span class="item-empty">Sin valor</span>')+'</td><td class="date-cell"><span class="itemdate">'+esc(date)+'</span></td><td class="status-cell"><span class="status '+statusClass+'">'+statusText+'</span></td><td class="action-cell">'+(item.calculatedValue!==null?'<span class="itemmeta">Automático</span>':'<button type="button" class="mini" data-open="'+esc(item.field.id)+'">Editar</button>')+'</td>';
+   const openButton=row.querySelector("[data-open]");if(openButton)openButton.addEventListener("click",()=>openModal(item.field.id));tbody.append(row);
   });
   tableWrap.append(table);body.append(tableWrap);
   toggle.addEventListener("click",()=>{const open=section.classList.toggle("open");toggle.setAttribute("aria-expanded",String(open))});
