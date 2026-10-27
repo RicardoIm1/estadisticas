@@ -619,6 +619,9 @@ function getReportValue(id){
 }
 function generarTablaIndicadores() {
         const v = getReportValue;
+        const period = currentPeriod();
+        // Días naturales del mes seleccionado; Date calcula correctamente febrero en años bisiestos.
+        const daysInPeriod = new Date(period.year, period.month, 0).getDate();
 
         // Calcular totales
         const totalMedicos =
@@ -690,64 +693,64 @@ function generarTablaIndicadores() {
           {
             no: 7,
             indicador: "Promedio diario de consultas",
-            formula: "Consultas totales / 252",
+            formula: "Consultas totales / días del mes",
             num: v("consultas_totales"),
-            den: 252,
-            result: v("consultas_totales") / 252,
+            den: daysInPeriod,
+            result: v("consultas_totales") / daysInPeriod,
           },
           {
             no: 8,
             indicador: "Promedio diario de consultas por consultorio",
-            formula: "Consultas totales / Consultorios / 252",
+            formula: "Consultas totales / Consultorios / días del mes",
             num: v("consultas_totales"),
-            den: v("consultorios") * 252,
+            den: v("consultorios") * daysInPeriod,
             result: v("consultorios")
-              ? v("consultas_totales") / v("consultorios") / 252
+              ? v("consultas_totales") / v("consultorios") / daysInPeriod
               : 0,
           },
           {
             no: 9,
             indicador: "Consultas diarias por médico",
-            formula: "Consultas externas / Médicos CE / 252",
+            formula: "Consultas externas / Médicos CE / días del mes",
             num: v("consultas_externas"),
-            den: v("medicos_ce") * 252,
+            den: v("medicos_ce") * daysInPeriod,
             result: v("medicos_ce")
-              ? v("consultas_externas") / v("medicos_ce") / 252
+              ? v("consultas_externas") / v("medicos_ce") / daysInPeriod
               : 0,
           },
           {
             no: 10,
             indicador: "Consultas por médico especialista",
             formula:
-              "Consultas especialidad / (Especialistas+Residentes) / 252",
+              "Consultas especialidad / (Especialistas+Residentes) / días del mes",
             num: v("consultas_especialidad"),
-            den: (v("total_especialistas") + v("total_residentes")) * 252,
+            den: (v("total_especialistas") + v("total_residentes")) * daysInPeriod,
             result:
               v("total_especialistas") + v("total_residentes")
                 ? v("consultas_especialidad") /
                   (v("total_especialistas") + v("total_residentes")) /
-                  252
+                  daysInPeriod
                 : 0,
           },
           {
             no: 11,
             indicador: "Consultas por odontólogo",
-            formula: "Consultas odonto / Total odontólogos / 252",
+            formula: "Consultas odonto / Total odontólogos / días del mes",
             num: v("consultas_odonto"),
-            den: v("total_odontologos") * 252,
+            den: v("total_odontologos") * daysInPeriod,
             result: v("total_odontologos")
-              ? v("consultas_odonto") / v("total_odontologos") / 252
+              ? v("consultas_odonto") / v("total_odontologos") / daysInPeriod
               : 0,
           },
           {
             no: 12,
             indicador:
               "Promedio diario de intervenciones quirúrgicas por quirófano",
-            formula: "Intervenciones / Quirófanos / 365",
+            formula: "Intervenciones / Quirófanos / días del mes",
             num: v("interv_quirurgicas"),
-            den: v("quirofanos") * 365,
+            den: v("quirofanos") * daysInPeriod,
             result: v("quirofanos")
-              ? v("interv_quirurgicas") / v("quirofanos") / 365
+              ? v("interv_quirurgicas") / v("quirofanos") / daysInPeriod
               : 0,
           },
           {
@@ -778,34 +781,34 @@ function generarTablaIndicadores() {
           {
             no: 15,
             indicador: "Promedio diario de egresos",
-            formula: "Egresos totales / 365",
+            formula: "Egresos totales / días del mes",
             num: v("egresos_totales"),
-            den: 365,
-            result: v("egresos_totales") / 365,
+            den: daysInPeriod,
+            result: v("egresos_totales") / daysInPeriod,
           },
           {
             no: 16,
             indicador: "Promedio diario de urgencias",
-            formula: "Urgencias totales / 365",
+            formula: "Urgencias totales / días del mes",
             num: v("urgencias_totales"),
-            den: 365,
-            result: v("urgencias_totales") / 365,
+            den: daysInPeriod,
+            result: v("urgencias_totales") / daysInPeriod,
           },
           {
             no: 17,
             indicador: "Promedio diario de urgencias pediátricas",
-            formula: "Urgencias pediátricas / 365",
+            formula: "Urgencias pediátricas / días del mes",
             num: v("urgencias_pediatricas"),
-            den: 365,
-            result: v("urgencias_pediatricas") / 365,
+            den: daysInPeriod,
+            result: v("urgencias_pediatricas") / daysInPeriod,
           },
           {
             no: 18,
             indicador: "Promedio diario de urgencias adulto",
-            formula: "Urgencias adulto / 365",
+            formula: "Urgencias adulto / días del mes",
             num: v("urgencias_adulto"),
-            den: 365,
-            result: v("urgencias_adulto") / 365,
+            den: daysInPeriod,
+            result: v("urgencias_adulto") / daysInPeriod,
           },
           {
             no: 19,
@@ -830,11 +833,11 @@ function generarTablaIndicadores() {
           {
             no: 21,
             indicador: "% de ocupación hospitalaria",
-            formula: "(Días paciente / (Camas × 365)) × 100",
+            formula: "(Días paciente / (Camas × días del mes)) × 100",
             num: v("dias_paciente"),
-            den: v("camas_censables") * 365,
+            den: v("camas_censables") * daysInPeriod,
             result: v("camas_censables")
-              ? (v("dias_paciente") / (v("camas_censables") * 365)) * 100
+              ? (v("dias_paciente") / (v("camas_censables") * daysInPeriod)) * 100
               : 0,
           },
           {
