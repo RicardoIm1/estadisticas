@@ -421,7 +421,7 @@ function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&l
 function currentPeriod(){return {month:Number($("month").value),year:Number($("year").value)}}
 async function refreshPeriodClosure(){
  periodClosureReady=false;renderPeriodClosure();const p=currentPeriod();
- try{const {data,error}=await window.__hrpvSupabase.from("cierres_mensuales_hrpv").select("anio,mes,cerrado,cerrado_en,reabierto_en,motivo_reapertura").eq("anio",p.year).eq("mes",p.month).maybeSingle();if(error)throw error;periodClosure=data||{anio:p.year,mes:p.month,cerrado:false};periodClosureReady=true;}
+ try{const {data,error}=await window.__hrpvSupabase.rpc("consultar_estado_cierre_mensual_hrpv",{p_anio:p.year,p_mes:p.month});if(error)throw error;periodClosure=data||{anio:p.year,mes:p.month,cerrado:false};periodClosureReady=true;}
  catch(err){periodClosure=null;console.error("No se pudo consultar el cierre mensual:",err);}
  renderPeriodClosure();return periodClosureReady?{ok:true,cerrado:Boolean(periodClosure?.cerrado)}:{ok:false,cerrado:false};
 }
