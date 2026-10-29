@@ -166,7 +166,7 @@ body.auth-pending{min-height:100vh;background:#f3f6f9}
 @media(max-width:900px){.indicator-table{min-width:850px}.console-table{min-width:850px}}
 
 
-/* Informe hospitalario adaptado desde indicadores/variables.html */
+/* Informe hospitalario integrado al módulo de procedencia de cifras */
 .list-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .report-panel{margin-top:20px}
 .report-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 15px;margin-bottom:12px;background:#fff;border:1px solid var(--line);border-radius:10px}
@@ -293,7 +293,6 @@ dialog#detailModal{width:min(700px,calc(100% - 20px));height:min(680px,88vh);max
 <div class="toolbar">
 <div class="field"><label for="month">Periodo · mes</label><select id="month"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div>
 <div class="field"><label for="year">Año</label><input id="year" type="number" min="2000" max="2100" step="1" value="2026"></div>
-<button class="btn" id="importVariables" type="button" title="Importa solo valores faltantes; no copia fuentes ni confirma revisiones">Cargar valores de Variables</button>
 <div class="field searchfield"><label for="search">Buscar indicador</label><input id="search" type="search" placeholder="Escribe el nombre o parte del nombre…" aria-label="Buscar indicador"></div>
 <button class="btn" id="collapseAll" type="button">Cerrar categorías</button>
 </div>
@@ -331,7 +330,7 @@ dialog#detailModal{width:min(700px,calc(100% - 20px));height:min(680px,88vh);max
   </div>
   <div id="reportOutput" class="report-container"></div>
 </section>
-<div class="foot">Catálogo y agrupación tomados de indicadores/variables.html. La ruta declarada no demuestra por sí sola que el archivo respalde la cifra.</div>
+<div class="foot">Catálogo y agrupación integrados en este módulo. La procedencia documental se verifica por separado para cada cifra.</div>
 </div>
 </main>
 </div>
@@ -1333,45 +1332,6 @@ async function loadAuditHistory(record,field,p){
   wrap.append(table);box.append(wrap);
  }catch(err){box.innerHTML='<div class="console-empty">[ERROR] No se pudo consultar la bitácora: '+esc(err?.message||"error de conexión")+'</div>';}
 }
-async function importVariablesValues(){
- if(!dbReady){toast("La conexión segura no está lista. No se importó nada.");return;}
- if(!(await ensurePeriodOpen("importar valores")))return;
- const button=$("importVariables"),p=currentPeriod(),period=periodLabel(p);
- button.disabled=true;const original=button.textContent;button.textContent="Consultando…";
- try{
-  const {data,error}=await window.__hrpvSupabase.from("indicadores_mensuales").select("*").eq("mes",p.month).eq("anio",p.year).maybeSingle();
-  if(error)throw error;
-  if(!data){toast("No hay un registro disponible en Variables para "+period+". No se modificó ninguna ficha.");return;}
-  const at=new Date().toISOString(),pending=[];
-  allFields.forEach(field=>{
-   const raw=data[field.id];
-   if(raw===null||raw===undefined||raw==="")return;
-   const key=recordKey(field,p),existing=records.find(r=>r.key===key);
-   if(existing&&existing.value!==""&&existing.value!==null&&existing.value!==undefined)return;
-   const next={
-    ...(existing||{}),key,year:p.year,month:p.month,indicator:field.id,label:field.label,category:field.category,
-    value:String(raw),source:existing?.source||"",note:existing?.note||"",verified:Boolean(existing?.verified),
-    updatedAt:at,
-    history:[...(existing?.history||[]),{at,summary:"Valor importado desde Variables para "+period+" · fuente y confirmación de revisión no importadas."}]
-   };
-   pending.push(next);
-  });
-  if(!pending.length){toast("No hay valores faltantes que importar para "+period+". Los valores existentes se conservaron.");return;}
-  const {data:savedRows,error:saveError}=await window.__hrpvSupabase.from("procedencia_cifras_hrpv")
-   .upsert(pending.map(r=>recordToRow(r,window.__hrpvUserId)),{onConflict:"anio,mes,indicador_id"})
-   .select("id,anio,mes,indicador_id");
-  if(saveError)throw saveError;
-  pending.forEach(next=>{
-   const saved=savedRows?.find(row=>row.anio===next.year&&row.mes===next.month&&row.indicador_id===next.indicator);
-   if(saved)next.id=saved.id;
-   const idx=records.findIndex(r=>r.key===next.key);
-   if(idx>=0)records[idx]=next;else records.push(next);
-  });
-  persist();render();
-  toast("Se cargaron "+pending.length+" valores de Variables para "+period+". Las fuentes y revisiones siguen pendientes.");
- }catch(err){toast("No se pudo cargar desde Variables: "+(err?.message||"error de conexión")+". No se confirmó la importación.");}
- finally{button.disabled=false;button.textContent=original;}
-}
 function openModal(fieldId){
  const field=fieldFor(fieldId);if(!field)return;const p=currentPeriod();const key=recordKey(field,p);const record=records.find(r=>r.key===key)||null;
  activeKey=key;activeIndex=allFields.findIndex(f=>f.id===fieldId);
@@ -1442,7 +1402,6 @@ $("nextBtn").addEventListener("click",()=>{if(activeIndex<allFields.length-1)ope
 document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{viewMode=b.dataset.view;render()}));
 function syncCompendiumLink(){const link=$("printCompendiumLink");if(link)link.href="../indicadores/compendio-captura.html?mes="+encodeURIComponent($("month").value)+"&anio="+encodeURIComponent($("year").value)}
  $("month").addEventListener("change",()=>{syncCompendiumLink();render();refreshPeriodClosure()});$("year").addEventListener("change",()=>{syncCompendiumLink();render();refreshPeriodClosure()});$("periodClosureAction").addEventListener("click",managePeriodClosure);$("periodHistoryToggle").addEventListener("click",()=>{const panel=$("periodHistoryPanel");if(panel.hidden)loadPeriodClosureHistory();else panel.hidden=true;});$("search").addEventListener("input",render);
-$("importVariables").addEventListener("click",importVariablesValues);
 
 $("generateReport").addEventListener("click",generarInforme);
 $("printReport").addEventListener("click",printGeneratedReport);
