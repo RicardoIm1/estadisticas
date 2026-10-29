@@ -281,6 +281,31 @@ dialog#detailModal{width:min(700px,calc(100% - 20px));height:min(680px,88vh);max
  #detailModal .modalfoot{padding:6px 8px}
 }
 
+
+/* Gamificación discreta: avance real, siguiente paso y cierre de categoría */
+.mission-panel{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px;align-items:center;padding:18px 20px;margin:0 0 20px;background:linear-gradient(115deg,#fff 0%,#f4f8fb 100%);border:1px solid #d8e3eb;border-radius:14px;box-shadow:0 5px 18px #24394b08}
+.mission-kicker{font-size:9px;font-weight:850;letter-spacing:1.25px;text-transform:uppercase;color:#26734d}
+.mission-panel h2{margin:4px 0 5px;font-size:17px;line-height:1.3;color:var(--navy);letter-spacing:-.2px}
+.mission-copy{font-size:11px;line-height:1.55;color:#647587;max-width:650px}
+.mission-progress-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px;font-size:10px;color:#637486}
+.mission-progress-line strong{color:#2d4c3a;font-variant-numeric:tabular-nums}
+.mission-track{height:6px;border-radius:99px;background:#e4ebf0;overflow:hidden;margin-top:6px}
+.mission-track span{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#7bbd91,#26734d);transition:width .35s ease}
+.mission-action{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:145px}
+.mission-next{font-size:10px;color:#718092;text-align:right;max-width:200px;line-height:1.4}
+.mission-btn{border:1px solid #2c5941;background:#2c5941;color:#fff;border-radius:9px;padding:10px 13px;font-size:11px;font-weight:750;white-space:nowrap}
+.mission-btn:hover{background:#224833}
+.mission-btn:disabled{background:#e6f2e9;border-color:#c9e3d0;color:#26734d;cursor:default}
+.mission-milestones{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px}
+.mission-milestone{font-size:9px;color:#82909c;border:1px solid #e0e7ec;background:#fff;padding:3px 7px;border-radius:99px}
+.mission-milestone.reached{color:#26734d;border-color:#c9e3d0;background:#edf7f0}
+.category{transition:border-color .18s ease,background .18s ease}
+.category.just-completed{border-color:#9ccdae}
+.category.just-completed .cat-toggle{background-color:#edf7f0!important}
+.category-feedback{padding:9px 15px;background:#f0f8f2;border-top:1px solid #d6eadc;color:#27633d;font-size:11px;font-weight:650}
+@media(max-width:760px){.mission-panel{grid-template-columns:1fr;gap:13px;padding:15px}.mission-action{align-items:stretch;min-width:0}.mission-next{text-align:left;max-width:none}.mission-btn{width:100%}.mission-panel h2{font-size:16px}}
+@media(prefers-reduced-motion:reduce){.mission-track span,.category{transition:none}}
+
 </style>
 </head>
 <body>
@@ -316,6 +341,17 @@ dialog#detailModal{width:min(700px,calc(100% - 20px));height:min(680px,88vh);max
 <main>
 <header class="top"><div>Estadísticas y Archivo Clínico &nbsp;/&nbsp; <strong style="color:#2c3e50">Procedencia de cifras</strong></div><div class="user"><span style="font-size:10px;color:#718092">HRPV · Control de trazabilidad</span><div class="avatar">HR</div></div></header>
 <div class="content">
+<section class="mission-panel" aria-labelledby="missionTitle" aria-live="polite">
+  <div>
+    <div class="mission-kicker" id="missionKicker">Tu siguiente avance</div>
+    <h2 id="missionTitle">Preparando el siguiente paso…</h2>
+    <div class="mission-copy" id="missionCopy">El avance se calcula a partir de los registros reales del periodo.</div>
+    <div class="mission-progress-line"><span id="missionProgressText">Avance del periodo</span><strong id="missionProgressValue">0%</strong></div>
+    <div class="mission-track" role="progressbar" aria-label="Avance de trazabilidad del periodo" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="missionProgressTrack"><span id="missionProgressFill"></span></div>
+    <div class="mission-milestones" aria-label="Hitos del periodo"><span class="mission-milestone" data-milestone="25">25% · Primer tramo</span><span class="mission-milestone" data-milestone="50">50% · Mitad del camino</span><span class="mission-milestone" data-milestone="75">75% · Último tramo</span><span class="mission-milestone" data-milestone="100">100% · Periodo completo</span></div>
+  </div>
+  <div class="mission-action"><div class="mission-next" id="missionNextLabel">Una ficha a la vez.</div><button class="mission-btn" id="missionAction" type="button">Abrir siguiente ficha</button></div>
+</section>
 <div class="views" role="group" aria-label="Filtrar indicadores">
 <button class="viewbtn" data-view="pending" type="button">Pendientes</button>
 <button class="viewbtn" data-view="review" type="button">En revisión</button>
@@ -568,12 +604,41 @@ function currentItems(){
 }
 function visibleItems(items){const q=$("search").value.trim().toLocaleLowerCase("es-MX");return items.filter(item=>{const text=(item.field.label+" "+item.field.id+" "+item.field.category+" "+(item.record?.source||"")+" "+(item.record?.note||"")).toLocaleLowerCase("es-MX");if(q&&!text.includes(q))return false;if(viewMode==="all")return true;return item.status===viewMode})}
 function toast(message){$("toast").textContent=message;$("toast").classList.add("show");window.clearTimeout(toast.timer);toast.timer=window.setTimeout(()=>$("toast").classList.remove("show"),2800)}
+function updateMission(items,resolved,pct){
+ const period=periodLabel(currentPeriod());
+ const target=items.find(item=>!item.field.calculated&&item.status!=="resolved")||items.find(item=>item.status!=="resolved")||null;
+ const resolvedCount=items.filter(item=>item.status==="resolved").length;
+ const total=items.length;
+ const remaining=Math.max(0,total-resolvedCount);
+ $("missionProgressText").textContent=resolvedCount+" de "+total+" indicadores resueltos · "+period;
+ $("missionProgressValue").textContent=pct+"%";
+ $("missionProgressFill").style.width=pct+"%";
+ $("missionProgressTrack").setAttribute("aria-valuenow",String(pct));
+ document.querySelectorAll("[data-milestone]").forEach(el=>el.classList.toggle("reached",pct>=Number(el.dataset.milestone)));
+ const action=$("missionAction");
+ if(!target){
+  $("missionKicker").textContent="Hito alcanzado";
+  $("missionTitle").textContent="Periodo completo";
+  $("missionCopy").textContent="Todos los indicadores del periodo aparecen resueltos. Puedes generar el informe y revisar la trazabilidad antes de la entrega.";
+  $("missionNextLabel").textContent="No hay fichas pendientes de completar.";
+  action.textContent="Generar informe";action.disabled=false;action.dataset.mode="report";action.dataset.field="";
+ }else{
+  const categoryItems=items.filter(item=>item.field.categoryIndex===target.field.categoryIndex);
+  const categoryDone=categoryItems.filter(item=>item.status==="resolved").length;
+  const categoryRemaining=categoryItems.length-categoryDone;
+  $("missionKicker").textContent=resolvedCount===0?"Empieza con un avance pequeño":pct>=75?"Último tramo":"Tu siguiente avance";
+  $("missionTitle").textContent=target.field.label;
+  $("missionCopy").textContent="Registra el valor, identifica el archivo de procedencia y confirma la revisión. Al guardar, el avance se actualizará automáticamente.";
+  $("missionNextLabel").textContent=target.field.category+" · "+categoryRemaining+" indicador"+(categoryRemaining===1?" pendiente":"es pendientes")+" en esta categoría";
+  action.textContent="Abrir ficha pendiente";action.disabled=Boolean(target.field.calculated);action.dataset.mode="field";action.dataset.field=target.field.calculated?"":target.field.id;
+ }
+}
 function render(){
  if(window.__hrpvCategoryFillTimers){window.__hrpvCategoryFillTimers.forEach(id=>window.clearTimeout(id));}
  window.__hrpvCategoryFillTimers=[];
  const items=currentItems(),pending=items.filter(x=>x.status==="pending").length,review=items.filter(x=>x.status==="review").length,resolved=items.filter(x=>x.status==="resolved").length;
  $("pendingCount").textContent=pending;$("reviewCount").textContent=review;$("resolvedCount").textContent=resolved;
- const pct=items.length?Math.round(resolved/items.length*100):0;$("progressLabel").textContent=pct+"%";$("progressBar").style.width=pct+"%";
+ const pct=items.length?Math.round(resolved/items.length*100):0;$("progressLabel").textContent=pct+"%";$("progressBar").style.width=pct+"%";updateMission(items,resolved,pct);
  const titles={pending:"Indicadores pendientes",review:"Indicadores en revisión",resolved:"Indicadores resueltos",all:"Todos los indicadores"};
  const subs={pending:"Cada fila indica el indicador, el valor, la fecha del último cambio y su estatus.",review:"Tienen algún dato guardado, pero aún no cumplen todos los requisitos.",resolved:"Conservan su valor, fuente, confirmación e historial de cambios.",all:"Catálogo completo para consultar o corregir cualquier indicador."};
  $("listTitle").textContent=titles[viewMode];$("listSubtitle").textContent=subs[viewMode];$("loadedPeriod").textContent=periodLabel(currentPeriod());
@@ -1420,7 +1485,7 @@ async function saveModal(e){
   if(error)throw error;
   next.id=saved.id;
   if(old)records=records.map(r=>r.key===activeKey?next:r);else records.push(next);
-  persist();render();updateModalStatus();toast(statusOf(next)==="resolved"?"Indicador resuelto y guardado en Supabase.":"Ficha guardada en Supabase. Pendiente: "+missingParts(next).join(", ")+".");$("detailModal").close();
+  persist();render();updateModalStatus();const categoryItems=currentItems().filter(x=>x.field.categoryIndex===field.categoryIndex);const categoryComplete=categoryItems.length>0&&categoryItems.every(x=>x.status==="resolved");toast(categoryComplete?"Categoría completa. Todos sus indicadores están resueltos.":statusOf(next)==="resolved"?"Indicador resuelto y guardado. Buen avance.":"Ficha guardada. Pendiente: "+missingParts(next).join(", ")+".");$("detailModal").close();
  }catch(err){toast("No se guardó en Supabase: "+(err?.message||"error de conexión"));}
 }
 const initialDate=new Date(),defaultPeriod=new Date(initialDate.getFullYear(),initialDate.getMonth()-1,1);$("month").value=String(defaultPeriod.getMonth()+1);$("year").value=String(defaultPeriod.getFullYear());
@@ -1431,6 +1496,7 @@ $("closeModal").addEventListener("click",()=>$("detailModal").close());
 $("previousBtn").addEventListener("click",()=>{if(activeIndex>0)openModal(allFields[activeIndex-1].id)});
 $("nextBtn").addEventListener("click",()=>{if(activeIndex<allFields.length-1)openModal(allFields[activeIndex+1].id)});
 document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{viewMode=b.dataset.view;render()}));
+$("missionAction").addEventListener("click",()=>{const button=$("missionAction");if(button.dataset.mode==="report"){generarInforme();return;}const id=button.dataset.field;if(id)openModal(id);});
 function syncCompendiumLink(){const link=$("printCompendiumLink");if(link)link.href="../indicadores/compendio-captura.html?mes="+encodeURIComponent($("month").value)+"&anio="+encodeURIComponent($("year").value)}
  $("month").addEventListener("change",()=>{syncCompendiumLink();render();refreshPeriodClosure()});$("year").addEventListener("change",()=>{syncCompendiumLink();render();refreshPeriodClosure()});$("periodClosureAction").addEventListener("click",managePeriodClosure);$("periodHistoryToggle").addEventListener("click",()=>{const panel=$("periodHistoryPanel");if(panel.hidden)loadPeriodClosureHistory();else panel.hidden=true;});$("search").addEventListener("input",render);
 
