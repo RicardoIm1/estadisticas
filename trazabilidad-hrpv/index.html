@@ -561,6 +561,8 @@ function currentItems(){
 function visibleItems(items){const q=$("search").value.trim().toLocaleLowerCase("es-MX");return items.filter(item=>{const text=(item.field.label+" "+item.field.id+" "+item.field.category+" "+(item.record?.source||"")+" "+(item.record?.note||"")).toLocaleLowerCase("es-MX");if(q&&!text.includes(q))return false;if(viewMode==="all")return true;return item.status===viewMode})}
 function toast(message){$("toast").textContent=message;$("toast").classList.add("show");window.clearTimeout(toast.timer);toast.timer=window.setTimeout(()=>$("toast").classList.remove("show"),2800)}
 function render(){
+ if(window.__hrpvCategoryFillTimers){window.__hrpvCategoryFillTimers.forEach(id=>window.clearTimeout(id));}
+ window.__hrpvCategoryFillTimers=[];
  const items=currentItems(),pending=items.filter(x=>x.status==="pending").length,review=items.filter(x=>x.status==="review").length,resolved=items.filter(x=>x.status==="resolved").length;
  $("pendingCount").textContent=pending;$("reviewCount").textContent=review;$("resolvedCount").textContent=resolved;
  const pct=items.length?Math.round(resolved/items.length*100):0;$("progressLabel").textContent=pct+"%";$("progressBar").style.width=pct+"%";
@@ -569,6 +571,7 @@ function render(){
  $("listTitle").textContent=titles[viewMode];$("listSubtitle").textContent=subs[viewMode];$("loadedPeriod").textContent=periodLabel(currentPeriod());
  document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===viewMode));
  const shown=visibleItems(items);$("resultCount").textContent=shown.length+" indicador"+(shown.length===1?"":"es");
+ let categoryAnimationIndex=0;
   const openCategories=new Set([...document.querySelectorAll("#categoriesList .category.open")].map(section=>section.dataset.category));
  const container=$("categoriesList");container.replaceChildren();
  if(!shown.length){const empty=document.createElement("div");empty.className="empty";empty.textContent=$("search").value.trim()?"No hay indicadores que coincidan con la búsqueda en esta vista.":viewMode==="pending"?"No quedan indicadores pendientes para este periodo.":viewMode==="review"?"No hay indicadores en revisión para este periodo.":viewMode==="resolved"?"Todavía no hay indicadores resueltos para este periodo.":"No hay indicadores que mostrar.";container.append(empty);$("collapseAll").disabled=true;return}
@@ -592,7 +595,9 @@ function render(){
   if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){
    toggle.style.backgroundSize=categoryPct+"% 100%";
   }else{
-   requestAnimationFrame(()=>requestAnimationFrame(()=>{toggle.style.backgroundSize=categoryPct+"% 100%"}));
+   const fillOrder=categoryAnimationIndex++;
+   const fillTimer=window.setTimeout(()=>{if(toggle.isConnected)toggle.style.backgroundSize=categoryPct+"% 100%"},fillOrder*2700);
+   window.__hrpvCategoryFillTimers.push(fillTimer);
   }
   toggle.setAttribute("aria-label",cat.name+". "+categoryPct+"% de requisitos completados. "+categoryResolved+" de "+allCategoryItems.length+" indicadores resueltos.");
   toggle.title=categoryPct+"% de requisitos completados · "+categoryResolved+" de "+allCategoryItems.length+" indicadores resueltos";
