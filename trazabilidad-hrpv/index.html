@@ -668,7 +668,16 @@ function render(){
   const categoryPct=categoryRequirementTotal?Math.round(categoryRequirements/categoryRequirementTotal*100):0;
   const unresolved=catItems.filter(x=>x.status!=="resolved").length;
   const toggle=document.createElement("button");toggle.type="button";toggle.className="cat-toggle";toggle.setAttribute("aria-expanded",String(openCategories.has(String(ci))));
-  toggle.style.backgroundImage="linear-gradient(90deg, #dff3e5 0%, #dff3e5 "+categoryPct+"%, #eaf0f5 "+categoryPct+"%, #eaf0f5 100%)";
+  toggle.style.backgroundColor="#eaf0f5";
+  toggle.style.backgroundImage="linear-gradient(90deg, #dff3e5 0%, #dff3e5 100%)";
+  toggle.style.backgroundRepeat="no-repeat";
+  toggle.style.backgroundSize="0% 100%";
+  toggle.style.transition="background-size 900ms cubic-bezier(.22,.61,.36,1)";
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+   toggle.style.backgroundSize=categoryPct+"% 100%";
+  }else{
+   requestAnimationFrame(()=>requestAnimationFrame(()=>{toggle.style.backgroundSize=categoryPct+"% 100%"}));
+  }
   toggle.setAttribute("aria-label",cat.name+". "+categoryPct+"% de requisitos completados. "+categoryResolved+" de "+allCategoryItems.length+" indicadores resueltos.");
   toggle.title=categoryPct+"% de requisitos completados · "+categoryResolved+" de "+allCategoryItems.length+" indicadores resueltos";
   toggle.innerHTML='<span class="catchev">›</span><span class="catname">'+esc(cat.name)+'</span><span class="catmeta">'+categoryPct+'% de requisitos · '+categoryResolved+'/'+allCategoryItems.length+' resueltos · '+catItems.length+' mostrado'+(catItems.length===1?"":"s")+'</span>';
