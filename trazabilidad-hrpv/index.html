@@ -591,14 +591,17 @@ main>.top #logoutIndicators:hover{
 <button class="viewbtn" data-view="resolved" type="button">Resueltos</button>
 <button class="viewbtn active" data-view="all" type="button">Todos</button>
 <span class="period-chip" aria-live="polite" title="Periodo de los indicadores mostrados"><span class="period-dot" aria-hidden="true"></span>Periodo cargado: <strong id="loadedPeriod">—</strong><span class="connection-led" id="connectionLed" data-state="connecting" role="img" aria-label="Conectando con Supabase" title="Conectando con Supabase"></span></span>
+<div class="period-closure-actions view-closure-actions"><button class="btn" id="periodClosureAction" type="button" disabled>Consultando…</button><button class="btn" id="periodHistoryToggle" type="button">Ver historial</button></div>
 </div>
 <div class="toolbar">
+<div class="period-fields">
 <div class="field"><label for="month">Periodo · mes</label><select id="month"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div>
-<div class="field"><label for="year">Año</label><input id="year" type="number" min="2000" max="2100" step="1" value="2026"></div>
+<div class="field year-field"><label for="year">Año</label><input id="year" type="number" min="2000" max="2100" step="1" value="2026"></div>
+</div>
 <div class="field searchfield"><label for="search">Buscar indicador</label><input id="search" type="search" placeholder="Escribe el nombre o parte del nombre…" aria-label="Buscar indicador"></div>
 <button class="btn" id="collapseAll" type="button">Cerrar categorías</button>
 </div>
-<section class="period-closure" id="periodClosureBanner" data-state="unknown" role="status" aria-live="polite"><div><strong id="periodClosureTitle">Verificando estado del periodo…</strong><span id="periodClosureText">No guardes cambios hasta comprobar el estado.</span></div><div class="period-closure-actions"><button class="btn" id="periodClosureAction" type="button" disabled>Consultando…</button><button class="btn" id="periodHistoryToggle" type="button">Ver historial</button></div></section><section id="periodHistoryPanel" class="panel period-history" hidden><div class="panel-head"><h2>Historial del periodo</h2><p>Registro de cierres, reaperturas y cambios en las cifras mensuales.</p></div><div id="periodHistoryContent" class="console-empty">Selecciona “Ver historial” para consultar la bitácora.</div></section>
+<section class="period-closure" id="periodClosureBanner" data-state="unknown" role="status" aria-live="polite"><div><strong id="periodClosureTitle">Verificando estado del periodo…</strong><span id="periodClosureText">No guardes cambios hasta comprobar el estado.</span></div></section><section id="periodHistoryPanel" class="panel period-history" hidden><div class="panel-head"><h2>Historial del periodo</h2><p>Registro de cierres, reaperturas y cambios en las cifras mensuales.</p></div><div id="periodHistoryContent" class="console-empty">Selecciona “Ver historial” para consultar la bitácora.</div></section>
 <div class="listhead"><div><h2 id="listTitle">Indicadores pendientes</h2><p id="listSubtitle">Se muestra el indicador concreto y los datos que faltan.</p></div><div class="list-actions"><span class="tag" id="resultCount">0 indicadores</span><button class="btn primary" id="generateReport" type="button">Generar informe</button></div></div>
 <div id="categoriesList"></div>
 <section id="reportPanel" class="report-panel" hidden aria-live="polite">
@@ -1587,7 +1590,25 @@ function printGeneratedReport(){
 function exportGeneratedWord(){
  const content=$("reportPrint");if(!content){toast("Genera primero el informe.");return;}
  const p=currentPeriod();
- const html='<!doctype html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Informe de Indicadores</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:9pt;color:#1a2a3a}h1{text-align:center;color:#0a2a44;font-size:18pt}.report-meta{text-align:center;margin-bottom:16px}.section-title{background:#e8edf4;color:#0a2a44;padding:6px;border-left:4px solid #1a73e8}table{width:100%;border-collapse:collapse;font-size:8pt;margin-bottom:12px}th{background:#0a2a44;color:white;padding:5px;border:1px solid #0a2a44}td{padding:4px;border:1px solid #cbd5df}.report-summary{background:#e8edf4;padding:8px}.report-footer{margin-top:15px;color:#687887}</style></head><body>'+content.outerHTML+'</body></html>';
+ const html='<!doctype html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Informe de Indicadores</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:9pt;color:#1a2a3a}h1{text-align:center;color:#0a2a44;font-size:18pt}.report-meta{text-align:center;margin-bottom:16px}.section-title{background:#e8edf4;color:#0a2a44;padding:6px;border-left:4px solid #1a73e8}table{width:100%;border-collapse:collapse;font-size:8pt;margin-bottom:12px}th{background:#0a2a44;color:white;padding:5px;border:1px solid #0a2a44}td{padding:4px;border:1px solid #cbd5df}.report-summary{background:#e8edf4;padding:8px}.report-footer{margin-top:15px;color:#687887}
+/* Controles compactos para escritorio y acciones de cierre integradas a filtros */
+.toolbar{display:flex;align-items:end;gap:10px}
+.period-fields{display:flex;align-items:end;gap:8px;flex:0 0 auto}
+.period-fields .field:first-child{width:132px}
+.period-fields .year-field{width:82px}
+.toolbar .field{min-width:0}
+.toolbar .searchfield{flex:1 1 230px;min-width:190px}
+.toolbar .btn{white-space:nowrap;min-height:37px}
+.period-fields select,.period-fields input{padding:8px 9px;min-height:37px}
+.views{gap:6px}
+.view-closure-actions{display:flex;align-items:center;gap:6px;margin-left:auto;flex:0 0 auto}
+.view-closure-actions .btn{white-space:nowrap;padding:8px 10px}
+.period-closure{padding:10px 13px;margin:9px 0 13px}
+.period-closure strong{font-size:12px}
+.period-closure span{font-size:11px}
+@media(max-width:900px){.toolbar{gap:8px}.period-fields .field:first-child{width:124px}.period-fields .year-field{width:76px}.toolbar .searchfield{min-width:160px}}
+@media(max-width:650px){.toolbar{align-items:stretch}.period-fields{width:100%;display:grid;grid-template-columns:minmax(0,1fr) 88px}.period-fields .field:first-child,.period-fields .year-field{width:auto}.toolbar .searchfield{flex:1 1 100%;min-width:100%}.toolbar .btn{width:100%}.views{align-items:stretch}.view-closure-actions{width:100%;margin-left:0}.view-closure-actions .btn{flex:1}.period-chip{order:-1}}
+</style></head><body>'+content.outerHTML+'</body></html>';
  const blob=new Blob([html],{type:"application/msword;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");
  link.href=url;link.download="Informe_Indicadores_"+p.year+"_"+String(p.month).padStart(2,"0")+".doc";link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
