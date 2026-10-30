@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Compendio de captura mensual | HRPV</title>
+<style>
+  :root{color-scheme:light}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:#fff;color:#182633;font-family:Arial,Helvetica,sans-serif}
+  body{font-size:10pt;line-height:1.25}
+  .report{max-width:8.5in;margin:0 auto;padding:.35in}
+  .report-header{border-bottom:2px solid #253d50;padding:0 0 10px;margin-bottom:14px}
+  .eyebrow{font-size:8pt;letter-spacing:.12em;text-transform:uppercase;color:#526575;font-weight:700;margin-bottom:5px}
+  h1{font-size:19pt;line-height:1.1;margin:0 0 5px;color:#183247}
+  .subtitle{font-size:9pt;color:#4b5b68;margin:0 0 10px}
+  .period{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:11pt;font-weight:700}
+  .period-value{display:inline-block;border:1px solid #718393;border-radius:3px;padding:4px 10px;min-width:150px}
+  .instructions{font-size:8.5pt;color:#455460;margin:9px 0 0}
+  .section{margin:0 0 15px;break-inside:avoid-page;page-break-inside:avoid}
+  .section-title{display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:1px solid #53697b;background:#edf1f4;padding:7px 8px;margin:0 0 0;font-size:11pt;color:#20394c;break-after:avoid-page;page-break-after:avoid}
+  .section-title small{font-size:7.5pt;font-weight:400;color:#526575;white-space:nowrap}
+  table{width:100%;border-collapse:collapse;table-layout:fixed}
+  col.label{width:75%} col.value{width:25%}
+  th{font-size:8pt;text-align:left;padding:5px 7px;border:1px solid #8c9aa5;background:#f7f8f9;color:#253d50}
+  td{padding:5px 7px;border:1px solid #aab4bc;vertical-align:middle}
+  tbody tr{break-inside:avoid;page-break-inside:avoid}
+  td.value{height:28px}
+  .write-line{height:15px;border-bottom:1px solid #d3d9de}
+  .derived td{background:#f7f8f9;color:#53616b;font-size:8.5pt}
+  .indicator-number{display:inline-block;min-width:2.1em;font-weight:700;color:#425a6b;font-variant-numeric:tabular-nums}.derived-label:after{content:" · cálculo automático";font-style:italic;color:#677987;font-size:8pt}
+  .section-period{font-size:7.5pt;font-weight:700;color:#425a6b;margin:0 0 5px}
+  .footer{border-top:1px solid #9aa7b1;margin-top:14px;padding-top:6px;font-size:7.5pt;color:#53616b;display:flex;justify-content:space-between;gap:12px}
+  @page{size:letter portrait;margin:.42in}
+  @media print{
+    html,body{width:auto;background:#fff}
+    body{font-size:9.5pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .report{max-width:none;margin:0;padding:0}
+    .report-header{margin-bottom:10px}
+    .section{margin-bottom:11px}
+    .section-title{background:#edf1f4}
+    .footer{margin-top:10px}
+    thead{display:table-header-group}
+    tr,td,th{break-inside:avoid;page-break-inside:avoid}
+  }
+  @media screen{
+    body{background:#e8edf1;padding:18px}
+    .report{background:white;box-shadow:0 2px 14px #18263318;min-height:11in}
+  }
+</style>
+</head>
+<body>
+<main class="report">
+  <header class="report-header">
+    <div class="eyebrow">Hospital Regional Puerto Vallarta · Estadísticas y Archivo Clínico</div>
+    <h1>Compendio mensual de captura</h1>
+    <p class="subtitle">Relación de datos requeridos para integrar los indicadores hospitalarios</p>
+    <div class="period"><span>PERIODO DEL REGISTRO:</span><span class="period-value" id="periodLabel">—</span></div>
+    <p class="instructions">Registrar a mano el valor correspondiente al periodo indicado. Los renglones señalados como cálculo automático se obtienen dentro del sistema y no requieren solicitar una cifra independiente.</p>
+  </header>
+  <div id="sections"></div>
+  <footer class="footer"><span>Formato de trabajo para recopilación manual de datos.</span><span id="footerPeriod">Periodo: —</span></footer>
+</main>
+<script>
+const groups = [
+ {name:"1. Personal",fields:[["Médicos en contacto (consulta externa)"],["Médicos en contacto (hospital)"],["Enfermeras en contacto (consulta externa)"],["Enfermeras en contacto (hospital)"],["Médicos en labores administrativas"],["Enfermeras en labores administrativas"],["Total de médicos en el hospital",true],["Total de enfermeras en el hospital",true],["Total de odontólogos"],["Total de especialistas"],["Total de residentes"]]},
+ {name:"2. Infraestructura",fields:[["Número de consultorios"],["Número de camas censables"],["Número de quirófanos en el hospital"]]},
+ {name:"3. Consultas",fields:[["Consultas otorgadas totales"],["Consultas externas"],["Consultas por especialidad"],["Consultas de odontólogos"],["Consulta externa prenatal"],["Consultas prenatales de primera vez"],["Embarazadas captadas por 1ª vez en 1er trimestre"],["Total de consultas por embarazo"]]},
+ {name:"4. Egresos y hospitalización",fields:[["Total de egresos hospitalarios en el mes"],["Egresos de corta estancia"],["Días cama"],["Días paciente"],["Total días de estancia en el hospital"],["Número de causas motivo de egreso"]]},
+ {name:"5. Urgencias",fields:[["Total de urgencias en el mes",true],["Urgencias pediátricas en el mes"],["Urgencias adulto en el mes"]]},
+ {name:"6. Cirugías y partos",fields:[["Número de intervenciones quirúrgicas"],["Cirugías suspendidas"],["Cirugías programadas"],["Intervenciones quirúrgicas ambulatorias"],["Total de intervenciones quirúrgicas realizadas"],["Partos por cesárea"],["Total de partos atendidos"],["Partos únicos espontáneos"],["Partos con fórceps/ventosa/otros asistidos"],["Mujeres con alguna complicación señalada"],["Partos atendidos con trauma obstétrico"]]},
+ {name:"7. Nacimientos",fields:[["Total de nacidos vivos"],["Nacidos vivos con peso < percentil 10"],["Nacidos vivos con peso > percentil 90"],["Nacidos vivos con peso < 2500 g"]]},
+ {name:"8. Laboratorio",fields:[["Exámenes de laboratorio en consulta externa"],["Exámenes de laboratorio en hospitalización"],["Exámenes de laboratorio en urgencias"],["Total de exámenes de laboratorio",true]]},
+ {name:"9. Radiología",fields:[["Estudios de radiología en consulta externa"],["Estudios de radiología en hospitalización"],["Estudios de radiología en urgencias"],["Total de estudios de radiología",true]]},
+ {name:"10. Infecciones (IAAS)",fields:[["Infección nosocomial en cirugía"],["Infección nosocomial en pediatría"],["Infección nosocomial en UCIN"],["Infección nosocomial en ginecobstetricia"],["Infección nosocomial en UCIA"],["Total infecciones en sitio quirúrgico"],["Bacteriemias asociadas a catéter venoso central"],["Días catéter central"],["Neumonías asociadas a ventilador"],["Días ventilador"],["Infecciones asociadas a sonda vesical"],["Días sonda vesical"]]},
+ {name:"11. Otros",fields:[["Intervalo de sustitución",true]]}
+];
+const meses=["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
+const params=new URLSearchParams(location.search);
+const now=new Date();
+const requestedMonth=Number(params.get("mes"));
+const requestedYear=Number(params.get("anio"));
+const month=(Number.isInteger(requestedMonth)&&requestedMonth>=1&&requestedMonth<=12)?requestedMonth:now.getMonth()+1;
+const year=(Number.isInteger(requestedYear)&&requestedYear>=2000&&requestedYear<=2100)?requestedYear:now.getFullYear();
+const period=meses[month-1]+" "+year;
+document.title="Compendio de captura · "+period+" · HRPV";
+document.getElementById("periodLabel").textContent=period;
+document.getElementById("footerPeriod").textContent="Periodo: "+period;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+let indicatorNumber=0;
+document.getElementById("sections").innerHTML=groups.map(group=>{
+ const rows=group.fields.map(([label,derived],i)=>'<tr class="'+(derived?'derived':'')+'"><td class="'+(derived?'derived-label':'')+'"><span class="indicator-number">'+(++indicatorNumber)+'.</span> '+esc(label)+'</td><td class="value">'+(derived?'No solicitar por separado':'<div class="write-line"></div>')+'</td></tr>').join("");
+ return '<section class="section"><h2 class="section-title"><span>'+esc(group.name)+'</span><small>'+esc(period)+'</small></h2><table><colgroup><col class="label"><col class="value"></colgroup><thead><tr><th>Dato requerido</th><th>Valor registrado</th></tr></thead><tbody>'+rows+'</tbody></table></section>';
+}).join("");
+</script>
+</body>
+</html>
