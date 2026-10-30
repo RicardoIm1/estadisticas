@@ -1072,6 +1072,27 @@
           width: 100%;
         }
       }
+
+      /* === CIFRAS DEL ÚLTIMO MES CERRADO === */
+      .monthly-data { margin: 0 0 2rem; padding: 1.25rem; border: 1px solid rgba(100, 200, 255, 0.16); border-radius: 16px; background: rgba(255, 255, 255, 0.035); backdrop-filter: blur(10px); }
+      .monthly-data-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+      .monthly-data-head h2 { margin: 0.2rem 0; color: #fff; font-size: 1.2rem; font-weight: 600; }
+      .monthly-data-head p { margin: 0; color: rgba(255, 255, 255, 0.68); font-size: 0.85rem; }
+      .monthly-eyebrow { color: #64c8ff; font-size: 0.68rem; font-weight: 700; letter-spacing: 1.1px; }
+      .monthly-state { padding: 0.35rem 0.65rem; border: 1px solid rgba(100, 200, 255, 0.2); border-radius: 999px; color: #9bdcff; font-size: 0.72rem; white-space: nowrap; }
+      .monthly-state[data-state="error"] { color: #ffb3b3; border-color: rgba(255, 107, 107, 0.3); }
+      .monthly-message { margin: 0 0 1rem; color: rgba(255, 255, 255, 0.7); font-size: 0.82rem; line-height: 1.5; }
+      .monthly-message a { color: #8bd5ff; text-decoration: underline; }
+      .monthly-indicator-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 10px; }
+      .monthly-indicator-card { min-width: 0; min-height: 112px; display: flex; flex-direction: column; justify-content: space-between; gap: 0.65rem; padding: 0.9rem; border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 11px; background: rgba(255, 255, 255, 0.045); }
+      .monthly-indicator-category { color: #8bcdf0; font-size: 0.65rem; line-height: 1.3; }
+      .monthly-indicator-card h3 { margin: 0.35rem 0 0; color: rgba(255, 255, 255, 0.82); font-size: 0.74rem; font-weight: 500; line-height: 1.35; }
+      .monthly-indicator-value { color: #00ff89; font-size: 1.55rem; font-weight: 700; line-height: 1.1; overflow-wrap: anywhere; }
+      .monthly-indicator-review { color: rgba(255, 255, 255, 0.48); font-size: 0.64rem; }
+      .monthly-data-note { margin: 1.8rem 0 0.8rem; color: rgba(255, 255, 255, 0.75); font-size: 0.9rem; font-weight: 600; }
+      .monthly-data-note small { display: block; margin-top: 0.25rem; color: rgba(255, 255, 255, 0.48); font-size: 0.72rem; font-weight: 400; }
+      @media (max-width: 600px) { .monthly-data { padding: 0.9rem; } .monthly-indicator-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .monthly-indicator-card { min-height: 105px; padding: 0.7rem; } .monthly-indicator-value { font-size: 1.3rem; } }
+
     </style>
   </head>
 
@@ -1416,6 +1437,22 @@
             <span class="total">Total: 19 Cocientes</span>
           </div>
         </div>
+      </div>      <section class="monthly-data" id="monthlyDataSection" aria-labelledby="monthlyDataTitle">
+        <div class="monthly-data-head">
+          <div>
+            <span class="monthly-eyebrow">PROCEDENCIA DE CIFRAS</span>
+            <h2 id="monthlyDataTitle">Cifras del último mes cerrado</h2>
+            <p id="monthlyDataPeriod">Consultando el periodo...</p>
+          </div>
+          <span class="monthly-state" id="monthlyDataState" data-state="loading">Conectando</span>
+        </div>
+        <p class="monthly-message" id="monthlyDataMessage" role="status" aria-live="polite">Consultando las cifras protegidas de Procedencia.</p>
+        <div class="monthly-indicator-grid" id="monthlyIndicatorGrid"></div>
+      </section>
+
+      <div class="monthly-data-note">
+        Indicadores complementarios del tablero
+        <small>Esta sección conserva los valores de referencia existentes. No corresponde al corte mensual mostrado arriba.</small>
       </div>
 
       <!-- =======================================
@@ -1979,11 +2016,127 @@
       }
 
       function cerrarSesion() {
-        localStorage.clear();
+        // La sesión institucional no debe borrar la sesión Supabase independiente.
+        ["usuario", "rol", "loginTime"].forEach((key) => localStorage.removeItem(key));
         window.location.href = "index.html";
       }
 
       verificarAutenticacion();
     </script>
+
+    <script type="module">
+      import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+
+      const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
+      const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
+      const AUTHORIZED_USER_ID = "64e0ea67-03ac-43f0-889c-418d1236c96d";
+      const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          storageKey: "hrpv-indicadores-auth-v1",
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: false
+        }
+      });
+
+      const periodLabel = (year, month) => new Date(year, month - 1, 1)
+        .toLocaleDateString("es-MX", { month: "long", year: "numeric" });
+      const formatValue = (value) => {
+        if (value === null || value === undefined || value === "") return "N/D";
+        const number = Number(value);
+        return Number.isFinite(number)
+          ? number.toLocaleString("es-MX", { maximumFractionDigits: 6 })
+          : String(value);
+      };
+
+      function setMonthlyState(state, label, message) {
+        const stateEl = document.getElementById("monthlyDataState");
+        const messageEl = document.getElementById("monthlyDataMessage");
+        stateEl.dataset.state = state;
+        stateEl.textContent = label;
+        messageEl.textContent = message;
+      }
+
+      function renderMonthlyRecords(records) {
+        const grid = document.getElementById("monthlyIndicatorGrid");
+        const fragment = document.createDocumentFragment();
+        records.forEach((record) => {
+          const card = document.createElement("article");
+          card.className = "monthly-indicator-card";
+          const heading = document.createElement("div");
+          const category = document.createElement("div");
+          category.className = "monthly-indicator-category";
+          category.textContent = record.categoria || "Sin categoría";
+          const title = document.createElement("h3");
+          title.textContent = record.indicador_nombre || record.indicador_id;
+          heading.append(category, title);
+          const value = document.createElement("strong");
+          value.className = "monthly-indicator-value";
+          value.textContent = formatValue(record.valor);
+          const review = document.createElement("small");
+          review.className = "monthly-indicator-review";
+          review.textContent = record.verificado ? "Revisión confirmada" : "Pendiente de revisión";
+          card.append(heading, value, review);
+          fragment.append(card);
+        });
+        grid.replaceChildren(fragment);
+      }
+
+      async function loadLastClosedMonth() {
+        const periodEl = document.getElementById("monthlyDataPeriod");
+        try {
+          const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError) throw sessionError;
+          const session = sessionData?.session;
+
+          if (!session || session.user?.id !== AUTHORIZED_USER_ID) {
+            setMonthlyState("error", "Sesión requerida", "Para consultar las cifras protegidas, inicia sesión en Procedencia de cifras. La sesión institucional de esta página permanece independiente.");
+            const link = document.createElement("a");
+            link.href = "../trazabilidad-hrpv/login-indicadores.html";
+            link.textContent = "Abrir Procedencia de cifras";
+            document.getElementById("monthlyDataMessage").append(" ", link, ".");
+            periodEl.textContent = "El periodo se mostrará después de validar la sesión autorizada.";
+            return;
+          }
+
+          const { data: periods, error: periodError } = await supabase
+            .from("cierres_mensuales_hrpv")
+            .select("anio, mes, cerrado")
+            .eq("cerrado", true)
+            .order("anio", { ascending: false })
+            .order("mes", { ascending: false })
+            .limit(1);
+          if (periodError) throw periodError;
+          const period = periods?.[0];
+          if (!period) {
+            periodEl.textContent = "Sin periodos cerrados";
+            setMonthlyState("connected", "Conectado", "Todavía no existe un mes cerrado para mostrar.");
+            return;
+          }
+
+          const { data: records, error: recordsError } = await supabase
+            .from("procedencia_cifras_hrpv")
+            .select("indicador_id, indicador_nombre, categoria, valor, verificado")
+            .eq("anio", period.anio)
+            .eq("mes", period.mes)
+            .order("categoria", { ascending: true })
+            .order("indicador_nombre", { ascending: true });
+          if (recordsError) throw recordsError;
+
+          periodEl.textContent = periodLabel(period.anio, period.mes);
+          renderMonthlyRecords(records || []);
+          const withValue = (records || []).filter((record) => record.valor !== null && record.valor !== "").length;
+          const reviewed = (records || []).filter((record) => record.verificado).length;
+          setMonthlyState("connected", "Conectado", (records?.length || 0) + " variables del último periodo cerrado; " + withValue + " con valor y " + reviewed + " con revisión confirmada.");
+        } catch (error) {
+          console.error("No se pudieron cargar las cifras del último mes cerrado:", error);
+          setMonthlyState("error", "No disponible", "No fue posible consultar el último mes cerrado. No se modificó ningún dato. Revisa la sesión o la conexión e inténtalo de nuevo.");
+          periodEl.textContent = "No se pudo verificar el periodo.";
+        }
+      }
+
+      loadLastClosedMonth();
+    </script>
+
   </body>
 </html>
