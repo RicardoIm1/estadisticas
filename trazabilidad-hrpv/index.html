@@ -355,6 +355,24 @@ dialog#detailModal{width:min(700px,calc(100% - 20px));height:min(680px,88vh);max
  .sidebar-content .stat{padding:9px}
  .sidefoot{margin-top:18px;padding-top:10px}
 }
+/* Refinamiento visual 2026-10-30: controles compactos en el área principal. */
+.content>.toolbar{display:grid;grid-template-columns:minmax(145px,.8fr) minmax(95px,.55fr) minmax(210px,1.6fr) auto;gap:9px;align-items:end;padding:9px 11px;margin:0 0 9px;border-radius:10px;background:#fff}
+.content>.toolbar .field{min-width:0}
+.content>.toolbar .field label{font-size:10px;margin-bottom:3px}
+.content>.toolbar input,.content>.toolbar select{padding:7px 9px;font-size:12px}
+.content>.toolbar .btn{padding:8px 11px;white-space:nowrap}
+.content>.period-closure{margin:0 0 10px;padding:8px 11px;gap:10px;border-radius:9px}
+.content>.period-closure strong{font-size:11px;margin-bottom:1px}
+.content>.period-closure span{font-size:10px;line-height:1.35}
+.content>.period-closure .btn{padding:7px 9px;font-size:10px}
+.content>.period-history{margin:0 0 12px}
+.connection-led{display:inline-block;width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#9aa7b3;box-shadow:0 0 0 3px #e8edf2;margin-left:4px;vertical-align:middle}
+.connection-led[data-state="connected"]{background:#2b9a62;box-shadow:0 0 0 3px #d9f0e3}
+.connection-led[data-state="error"]{background:#bd4141;box-shadow:0 0 0 3px #f7dddd}
+.connection-led[data-state="connecting"]{background:#d49a32;box-shadow:0 0 0 3px #f8ebcf}
+.app aside .module-nav{margin:0 0 18px}
+@media(max-width:760px){.content>.toolbar{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.content>.toolbar .searchfield{grid-column:1/-1}.content>.toolbar #collapseAll{grid-column:1/-1;width:100%}}
+@media(max-width:700px){.content>.period-closure{align-items:stretch;flex-direction:column}.content>.period-closure-actions{flex-direction:row}.content>.period-closure .btn{width:auto;flex:1}}
 </style>
 </head>
 <body>
@@ -368,16 +386,8 @@ dialog#detailModal{width:min(700px,calc(100% - 20px));height:min(680px,88vh);max
 </nav>
 <div class="sidebarDate"><span>Fecha actual</span><strong id="currentDate">Fecha local</strong></div>
 <div class="sidebar-content">
-<div class="head"><div class="eyebrow">Control de procedencia · HRPV</div><h1>¿Qué cifras faltan por documentar?</h1><p>La lista muestra el nombre exacto de cada indicador pendiente, su periodo y qué falta resolver. Al completar una ficha, deja de aparecer en pendientes y permanece disponible en el historial de resueltos.</p></div>
 <div class="notice" id="connectionNotice"><strong>Procedencia de cifras</strong>Conectando con el almacenamiento seguro del módulo…</div>
 <div class="deadline" id="deadlineBox"><div class="deadline-icon">◷</div><div class="deadline-copy"><strong id="deadlineTitle">Fecha límite mensual</strong><span id="deadlineText">Calculando periodo de entrega…</span></div><span class="deadline-state" id="deadlineState">Fecha límite</span></div>
-<div class="toolbar">
-<div class="field"><label for="month">Periodo · mes</label><select id="month"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div>
-<div class="field"><label for="year">Año</label><input id="year" type="number" min="2000" max="2100" step="1" value="2026"></div>
-<div class="field searchfield"><label for="search">Buscar indicador</label><input id="search" type="search" placeholder="Escribe el nombre o parte del nombre…" aria-label="Buscar indicador"></div>
-<button class="btn" id="collapseAll" type="button">Cerrar categorías</button>
-</div>
-<section class="period-closure" id="periodClosureBanner" data-state="unknown" role="status" aria-live="polite"><div><strong id="periodClosureTitle">Verificando estado del periodo…</strong><span id="periodClosureText">No guardes cambios hasta comprobar el estado.</span></div><div class="period-closure-actions"><button class="btn" id="periodClosureAction" type="button" disabled>Consultando…</button><button class="btn" id="periodHistoryToggle" type="button">Ver historial</button></div></section><section id="periodHistoryPanel" class="panel period-history" hidden><div class="panel-head"><h2>Historial del periodo</h2><p>Registro de cierres, reaperturas y cambios en las cifras mensuales.</p></div><div id="periodHistoryContent" class="console-empty">Selecciona “Ver historial” para consultar la bitácora.</div></section>
 <div class="stats">
 <div class="stat"><span>Pendientes</span><strong id="pendingCount">0</strong><span>Valor, fuente o revisión faltante</span></div>
 <div class="stat"><span>En revisión</span><strong id="reviewCount">0</strong><span>Falta confirmar la verificación</span></div>
@@ -396,8 +406,15 @@ dialog#detailModal{width:min(700px,calc(100% - 20px));height:min(680px,88vh);max
 <button class="viewbtn" data-view="review" type="button">En revisión</button>
 <button class="viewbtn" data-view="resolved" type="button">Resueltos</button>
 <button class="viewbtn active" data-view="all" type="button">Todos</button>
-<span class="period-chip" aria-live="polite" title="Periodo de los indicadores mostrados"><span class="period-dot" aria-hidden="true"></span>Periodo cargado: <strong id="loadedPeriod">—</strong></span>
+<span class="period-chip" aria-live="polite" title="Periodo de los indicadores mostrados"><span class="period-dot" aria-hidden="true"></span>Periodo cargado: <strong id="loadedPeriod">—</strong><span class="connection-led" id="connectionLed" data-state="connecting" role="img" aria-label="Conectando con Supabase" title="Conectando con Supabase"></span></span>
 </div>
+<div class="toolbar">
+<div class="field"><label for="month">Periodo · mes</label><select id="month"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div>
+<div class="field"><label for="year">Año</label><input id="year" type="number" min="2000" max="2100" step="1" value="2026"></div>
+<div class="field searchfield"><label for="search">Buscar indicador</label><input id="search" type="search" placeholder="Escribe el nombre o parte del nombre…" aria-label="Buscar indicador"></div>
+<button class="btn" id="collapseAll" type="button">Cerrar categorías</button>
+</div>
+<section class="period-closure" id="periodClosureBanner" data-state="unknown" role="status" aria-live="polite"><div><strong id="periodClosureTitle">Verificando estado del periodo…</strong><span id="periodClosureText">No guardes cambios hasta comprobar el estado.</span></div><div class="period-closure-actions"><button class="btn" id="periodClosureAction" type="button" disabled>Consultando…</button><button class="btn" id="periodHistoryToggle" type="button">Ver historial</button></div></section><section id="periodHistoryPanel" class="panel period-history" hidden><div class="panel-head"><h2>Historial del periodo</h2><p>Registro de cierres, reaperturas y cambios en las cifras mensuales.</p></div><div id="periodHistoryContent" class="console-empty">Selecciona “Ver historial” para consultar la bitácora.</div></section>
 <div class="listhead"><div><h2 id="listTitle">Indicadores pendientes</h2><p id="listSubtitle">Se muestra el indicador concreto y los datos que faltan.</p></div><div class="list-actions"><span class="tag" id="resultCount">0 indicadores</span><button class="btn primary" id="generateReport" type="button">Generar informe</button></div></div>
 <div id="categoriesList"></div>
 <section id="reportPanel" class="report-panel" hidden aria-live="polite">
@@ -539,19 +556,19 @@ function rowToRecord(row){return {id:row.id,key:recordKey({id:row.indicador_id},
 function recordToRow(r,userId){return {anio:Number(r.year),mes:Number(r.month),indicador_id:r.indicator,indicador_nombre:r.label,categoria:r.category,valor:r.value===""||r.value===null?null:Number(r.value),fuente:r.source||"",nota:r.note||"",verificado:Boolean(r.verified),historial:Array.isArray(r.history)?r.history:[],usuario_id:userId,actualizado_en:r.updatedAt||new Date().toISOString()}}
 async function initializeSupabaseRecords(){
  const notice=$("connectionNotice"),client=window.__hrpvSupabase,userId=window.__hrpvUserId;
- if(!client||userId!=="64e0ea67-03ac-43f0-889c-418d1236c96d"){notice.innerHTML="<strong>Acceso no disponible</strong>No se pudo validar la cuenta autorizada. Cierra sesión y vuelve a entrar.";throw new Error("No hay sesión autorizada para la tabla de procedencia.");}
+ if(!client||userId!=="64e0ea67-03ac-43f0-889c-418d1236c96d"){const led=$("connectionLed");if(led){led.dataset.state="error";led.title="Conexión no disponible";led.setAttribute("aria-label","Conexión no disponible");}notice.innerHTML="<strong>Acceso no disponible</strong>No se pudo validar la cuenta autorizada. Cierra sesión y vuelve a entrar.";throw new Error("No hay sesión autorizada para la tabla de procedencia.");}
  const localRecords=readRecords();
  if(localStorage.getItem(MIGRATION_FLAG)!=="1"&&localRecords.length){
    const payload=localRecords.map(r=>recordToRow(r,userId));
    const {error:migrationError}=await client.from("procedencia_cifras_hrpv").upsert(payload,{onConflict:"anio,mes,indicador_id"});
-   if(migrationError){notice.innerHTML="<strong>No se pudieron migrar las fichas locales</strong>"+esc(migrationError.message)+" No se borraron los datos del navegador.";throw migrationError;}
+   if(migrationError){const led=$("connectionLed");if(led){led.dataset.state="error";led.title="Error al migrar fichas";led.setAttribute("aria-label","Error al migrar fichas");}notice.innerHTML="<strong>No se pudieron migrar las fichas locales</strong>"+esc(migrationError.message)+" No se borraron los datos del navegador.";throw migrationError;}
    localStorage.setItem(MIGRATION_FLAG,"1");
  }
  const {data,error}=await client.from("procedencia_cifras_hrpv").select("*").eq("usuario_id",userId).order("anio",{ascending:false}).order("mes",{ascending:false});
- if(error){notice.innerHTML="<strong>Error de conexión</strong>"+esc(error.message)+" No guardes cambios hasta restablecer el acceso.";throw error;}
+ if(error){const led=$("connectionLed");if(led){led.dataset.state="error";led.title="Error de conexión con Supabase";led.setAttribute("aria-label","Error de conexión con Supabase");}notice.innerHTML="<strong>Error de conexión</strong>"+esc(error.message)+" No guardes cambios hasta restablecer el acceso.";throw error;}
  records=(data||[]).map(rowToRecord);
  persist();dbReady=true;
- notice.innerHTML="<strong>Conectado a Supabase</strong>Las fichas se guardan en una tabla aislada del módulo. La fuente se registra como referencia declarada, no se verifica automáticamente el archivo.";
+ notice.hidden=true;const led=$("connectionLed");if(led){led.dataset.state="connected";led.title="Conectado a Supabase";led.setAttribute("aria-label","Conectado a Supabase");}
 }
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function currentPeriod(){return {month:Number($("month").value),year:Number($("year").value)}}
