@@ -82,7 +82,14 @@
     @media(max-width:950px){.app{grid-template-columns:250px minmax(0,1fr)}.content{padding:18px}.layout{grid-template-columns:1fr}.filters{grid-template-columns:140px 1fr}.status{grid-column:1/-1;max-width:none}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
     @media(max-width:650px){.app{display:block}aside{padding:12px 15px;min-height:0}.brand{margin:0}.sidebarDate,.sidecopy,.sidefoot{display:none}.app aside .module-nav{display:flex;flex-wrap:wrap;margin:12px 0 0}.app aside .module-nav a{flex:1;min-width:130px}.top{padding:10px 14px}.content{padding:18px 12px}.content>header{display:block}.top-actions{margin-top:14px}.filters{grid-template-columns:1fr}.kpis{gap:9px}.kpi{padding:13px}.kpi-value{font-size:22px}.comparison{padding:12px;gap:8px}.chart-wrap{padding:8px 3px;min-height:260px}}
     @media print{body{background:#fff}.app{display:block}.app aside,.top-actions,.filters button{display:none!important}.top{display:none}.content{max-width:none;padding:0}.filters{padding:8px;background:#fff}.panel,.kpi{box-shadow:none;break-inside:avoid}.layout{grid-template-columns:1.5fr 1fr}.footnote{color:#555}}
-  </style>
+  /* Alineación del panel lateral con Procedencia de cifras. */
+.app{grid-template-columns:minmax(320px,390px) minmax(0,1fr)}
+.app aside{padding:20px 18px}
+.app aside .brand{margin-bottom:18px}
+.app aside .module-nav{display:grid;gap:5px;margin:0 0 18px;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+.app aside .sidebarDate{padding:11px 3px;margin-bottom:16px}
+.app aside .sidecopy{padding:4px 3px}
+</style>
 </head>
 <body>
 <div class="app" id="app">
@@ -332,6 +339,23 @@
       if(!session){setStatus("Sesión no disponible");showNotice("Inicia sesión en el módulo de indicadores para consultar la procedencia.");location.replace("./login-indicadores.html");return;}
       if(session.user.id!=="64e0ea67-03ac-43f0-889c-418d1236c96d"){
         await db.auth.signOut({scope:"local"});setStatus("Cuenta sin autorización");showNotice("Esta vista está restringida a la cuenta autorizada.");location.replace("./login-indicadores.html");return;
+      }
+      const userArea=document.querySelector(".user");
+      if(userArea&&!document.getElementById("logoutIndicators")){
+        const label=userArea.querySelector("span");
+        if(label)label.textContent=session.user.email||"Sesión de indicadores";
+        const avatar=userArea.querySelector(".avatar");
+        if(avatar)avatar.textContent="HR";
+        const logout=document.createElement("button");
+        logout.id="logoutIndicators";logout.type="button";logout.textContent="Cerrar sesión";
+        logout.style.cssText="border:1px solid #d5dfe7;background:white;color:#425767;border-radius:8px;padding:7px 10px;font:600 11px inherit;cursor:pointer";
+        userArea.append(logout);
+        logout.addEventListener("click",async()=>{
+          logout.disabled=true;
+          const {error:signOutError}=await db.auth.signOut({scope:"local"});
+          if(signOutError){logout.disabled=false;alert("No se pudo cerrar la sesión. Intenta de nuevo.");return;}
+          location.replace("./login-indicadores.html");
+        });
       }
       const {data,error}=await db.from("procedencia_cifras_hrpv").select("anio,mes,indicador_id,valor,usuario_id").eq("usuario_id",session.user.id).order("anio",{ascending:true}).order("mes",{ascending:true});
       if(error)throw error;
