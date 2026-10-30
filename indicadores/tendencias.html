@@ -170,7 +170,7 @@
       </table>
     </div>
   </section>
-  <p class="footnote">Nota metodológica: el tablero calcula los cocientes a partir de los campos almacenados y las fórmulas definidas en variables.html. Un mes sin fila se considera sin registro. Si el denominador es cero, el resultado se presenta como no calculable, no como cero. Las variaciones son descriptivas y no implican por sí solas una valoración clínica o administrativa.</p>
+  <p class="footnote">Nota metodológica: los valores proceden de Procedencia de cifras y no se recapturan ni modifican desde este módulo. Los promedios diarios y la ocupación utilizan los días calendario reales de cada mes, incluidos los años bisiestos. Los campos sin valor permanecen como no disponibles y no se sustituyen por cero. El estado de cierre se consulta en la bitácora de cierres; si no puede verificarse, se indica expresamente. Las variaciones son descriptivas y no implican por sí solas una valoración clínica o administrativa.</p>
 </div>
 
 <script>
@@ -178,12 +178,15 @@
   "use strict";
   const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const AUTH_STORAGE_KEY = "hrpv-indicadores-auth-v1";
+  const AUTHORIZED_USER = "64e0ea67-03ac-43f0-889c-418d1236c96d";
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {auth:{storageKey:AUTH_STORAGE_KEY,persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
   const $ = id => document.getElementById(id);
   const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  const n = (r,k) => Number(r && r[k] != null ? r[k] : 0);
-  const sum = (...keys) => r => keys.reduce((t,k)=>t+n(r,k),0);
+  const n = (r,k) => { if(!r || r[k]===null || r[k]===undefined || r[k]==="") return null; const value=Number(r[k]); return Number.isFinite(value)?value:null; };
+  const sum = (...keys) => r => { const values=keys.map(k=>n(r,k)); return values.some(v=>v===null)?null:values.reduce((t,v)=>t+v,0); };
   const field = key => r => n(r,key);
+  const daysInMonth = r => r ? new Date(Number(r.anio),Number(r.mes),0).getDate() : null;
   const defs = [
     {group:"1. Recursos humanos",name:"Razón de médicos por consultorio",formula:"Médicos CE / Número de consultorios",num:field("medicos_ce"),den:field("consultorios")},
     {group:"1. Recursos humanos",name:"Razón de enfermeras por médico",formula:"Enfermeras CE / Médicos CE",num:field("enf_ce"),den:field("medicos_ce")},
@@ -191,21 +194,21 @@
     {group:"1. Recursos humanos",name:"Razón de enfermeras por cama censable",formula:"Enfermeras Hospital / Camas censables",num:field("enf_hosp"),den:field("camas_censables")},
     {group:"1. Recursos humanos",name:"% de médicos en actividades administrativas",formula:"(Médicos Admin / Total médicos) × 100",num:field("medicos_admin"),den:field("total_medicos"),factor:100},
     {group:"1. Recursos humanos",name:"% de enfermeras en actividades administrativas",formula:"(Enfermeras Admin / Total enfermeras) × 100",num:field("enf_admin"),den:field("total_enfermeras"),factor:100},
-    {group:"2. Productividad",name:"Promedio diario de consultas",formula:"Consultas totales / 252",num:field("consultas_totales"),den:()=>252},
-    {group:"2. Productividad",name:"Promedio diario de consultas por consultorio",formula:"Consultas totales / Consultorios / 252",num:field("consultas_totales"),den:r=>n(r,"consultorios")*252},
-    {group:"2. Productividad",name:"Consultas diarias por médico",formula:"Consultas externas / Médicos CE / 252",num:field("consultas_externas"),den:r=>n(r,"medicos_ce")*252},
-    {group:"2. Productividad",name:"Consultas por médico especialista",formula:"Consultas especialidad / (Especialistas + Residentes) / 252",num:field("consultas_especialidad"),den:r=>(n(r,"total_especialistas")+n(r,"total_residentes"))*252},
-    {group:"2. Productividad",name:"Consultas por odontólogo",formula:"Consultas odonto / Total odontólogos / 252",num:field("consultas_odonto"),den:r=>n(r,"total_odontologos")*252},
-    {group:"2. Productividad",name:"Promedio diario de intervenciones quirúrgicas por quirófano",formula:"Intervenciones / Quirófanos / 365",num:field("interv_quirurgicas"),den:r=>n(r,"quirofanos")*365},
+    {group:"2. Productividad",name:"Promedio diario de consultas",formula:"Consultas totales / días calendario del mes",num:field("consultas_totales"),den:daysInMonth},
+    {group:"2. Productividad",name:"Promedio diario de consultas por consultorio",formula:"Consultas totales / (Consultorios × días calendario del mes)",num:field("consultas_totales"),den:r=>{const v=n(r,"consultorios");return v===null?null:v*daysInMonth(r);}},
+    {group:"2. Productividad",name:"Consultas diarias por médico",formula:"Consultas externas / (Médicos CE × días calendario del mes)",num:field("consultas_externas"),den:r=>{const v=n(r,"medicos_ce");return v===null?null:v*daysInMonth(r);}},
+    {group:"2. Productividad",name:"Consultas por médico especialista",formula:"Consultas especialidad / ((Especialistas + Residentes) × días calendario del mes)",num:field("consultas_especialidad"),den:r=>{const a=n(r,"total_especialistas"),b=n(r,"total_residentes");return a===null||b===null?null:(a+b)*daysInMonth(r);}},
+    {group:"2. Productividad",name:"Consultas por odontólogo",formula:"Consultas odonto / (Total odontólogos × días calendario del mes)",num:field("consultas_odonto"),den:r=>{const v=n(r,"total_odontologos");return v===null?null:v*daysInMonth(r);}},
+    {group:"2. Productividad",name:"Promedio diario de intervenciones quirúrgicas por quirófano",formula:"Intervenciones / (Quirófanos × días calendario del mes)",num:field("interv_quirurgicas"),den:r=>{const v=n(r,"quirofanos");return v===null?null:v*daysInMonth(r);}},
     {group:"2. Productividad",name:"% de cirugías suspendidas",formula:"(Cirugías suspendidas / Cirugías programadas) × 100",num:field("cirugias_suspendidas"),den:field("cirugias_programadas"),factor:100},
     {group:"2. Productividad",name:"% de cirugías ambulatorias",formula:"(Cirugías ambulatorias / Intervenciones realizadas) × 100",num:field("cirugias_ambulatorias"),den:field("interv_realizadas"),factor:100},
-    {group:"3. Proceso",name:"Promedio diario de egresos",formula:"Egresos totales / 365",num:field("egresos_totales"),den:()=>365},
-    {group:"3. Proceso",name:"Promedio diario de urgencias",formula:"Urgencias totales / 365",num:field("urgencias_totales"),den:()=>365},
-    {group:"3. Proceso",name:"Promedio diario de urgencias pediátricas",formula:"Urgencias pediátricas / 365",num:field("urgencias_pediatricas"),den:()=>365},
-    {group:"3. Proceso",name:"Promedio diario de urgencias adulto",formula:"Urgencias adulto / 365",num:field("urgencias_adulto"),den:()=>365},
+    {group:"3. Proceso",name:"Promedio diario de egresos",formula:"Egresos totales / días calendario del mes",num:field("egresos_totales"),den:daysInMonth},
+    {group:"3. Proceso",name:"Promedio diario de urgencias",formula:"Urgencias totales / días calendario del mes",num:field("urgencias_totales"),den:daysInMonth},
+    {group:"3. Proceso",name:"Promedio diario de urgencias pediátricas",formula:"Urgencias pediátricas / días calendario del mes",num:field("urgencias_pediatricas"),den:daysInMonth},
+    {group:"3. Proceso",name:"Promedio diario de urgencias adulto",formula:"Urgencias adulto / días calendario del mes",num:field("urgencias_adulto"),den:daysInMonth},
     {group:"3. Proceso",name:"Intervalo de sustitución",formula:"(Días cama - Días paciente) / Egresos totales",num:r=>n(r,"dias_cama")-n(r,"dias_paciente"),den:field("egresos_totales")},
     {group:"3. Proceso",name:"% de egreso hospitalario de corta estancia",formula:"(Egresos corta estancia / Egresos totales) × 100",num:field("egresos_corta_estancia"),den:field("egresos_totales"),factor:100},
-    {group:"3. Proceso",name:"% de ocupación hospitalaria",formula:"(Días paciente / (Camas × 365)) × 100",num:field("dias_paciente"),den:r=>n(r,"camas_censables")*365,factor:100},
+    {group:"3. Proceso",name:"% de ocupación hospitalaria",formula:"(Días paciente / (Camas censables × días calendario del mes)) × 100",num:field("dias_paciente"),den:r=>{const v=n(r,"camas_censables");return v===null?null:v*daysInMonth(r);},factor:100},
     {group:"3. Proceso",name:"Promedio de días de estancia",formula:"Días paciente / Egresos totales",num:field("dias_paciente"),den:field("egresos_totales")},
     {group:"3. Proceso",name:"Índice de rotación",formula:"Egresos totales / Camas censables",num:field("egresos_totales"),den:field("camas_censables")},
     {group:"3. Proceso",name:"Motivo de egreso hospitalario (%)",formula:"(Causas de egreso / Egresos totales) × 100",num:field("causas_egreso"),den:field("egresos_totales"),factor:100},
@@ -241,8 +244,9 @@
 
   let rows = [];
   let byMonth = new Map();
+  const closureByMonth = new Map();
   const fmt = (v, decimals=4) => v == null || !Number.isFinite(v) ? "No calculable" : Number(v).toLocaleString("es-MX",{minimumFractionDigits:0,maximumFractionDigits:decimals});
-  const resultFor = (d,r) => { if(!r) return null; const den=d.den(r); if(!Number.isFinite(den)||den===0) return null; const num=d.num(r); const value=(num/den)*(d.factor||1); return Number.isFinite(value)?value:null; };
+  const resultFor = (d,r) => { if(!r) return null; const den=d.den(r),num=d.num(r); if(num===null||den===null||!Number.isFinite(den)||den===0) return null; const value=(num/den)*(d.factor||1); return Number.isFinite(value)?value:null; };
   const valuesFor = (d,r) => r ? {num:d.num(r),den:d.den(r),value:resultFor(d,r)} : {num:null,den:null,value:null};
   const selectedDef = () => defs.find(d=>d.id===$("indicatorFilter").value)||defs[0];
   const selectedYear = () => Number($("yearFilter").value);
@@ -321,7 +325,8 @@
       const prev=data[i-1],delta=d.value!==null&&prev&&prev.value!==null?d.value-prev.value:null;
       const pct=delta!==null&&prev.value!==0?delta/Math.abs(prev.value)*100:null;
       const tr=document.createElement("tr");
-      const vals=[meses[d.month-1],d.record?fmt(d.num):"—",d.record?fmt(d.den):"—",fmt(d.value),delta===null?"—":(delta>0?"+":"")+fmt(delta),pct===null?"—":(pct>0?"+":"")+fmt(pct,2)+"%",d.record?"Registrado":"Sin registro"];
+      const closure=d.record?(d.record.cerrado===true?" · Cerrado":d.record.cerrado===false?" · Abierto":" · Cierre no verificado"):"";
+      const vals=[meses[d.month-1],d.record?fmt(d.num):"—",d.record?fmt(d.den):"—",fmt(d.value),delta===null?"—":(delta>0?"+":"")+fmt(delta),pct===null?"—":(pct>0?"+":"")+fmt(pct,2)+"%",d.record?"Guardado"+closure:"Sin registro"];
       vals.forEach((v,j)=>{const td=document.createElement("td");td.textContent=v;if((j===1||j===2||j===3)&&!d.record)td.className="missing";if(j===6){td.innerHTML="";const pill=document.createElement("span");pill.className="pill"+(d.record?" ok":"");pill.textContent=v;td.appendChild(pill);}tr.appendChild(td);});
       body.appendChild(tr);
     });
@@ -329,17 +334,37 @@
   async function cargarDatos(){
     $("app").classList.add("loading");$("refreshBtn").disabled=true;setStatus("Consultando registros mensuales…");hideNotice();
     try{
-      const {data,error}=await db.from("indicadores_mensuales").select("*").order("anio",{ascending:true}).order("mes",{ascending:true});
+      const {data:sessionData,error:sessionError}=await db.auth.getSession();
+      if(sessionError)throw sessionError;
+      const session=sessionData.session;
+      if(!session){location.replace("../trazabilidad-hrpv/login-indicadores.html");return;}
+      if(session.user.id!==AUTHORIZED_USER){await db.auth.signOut({scope:"local"});location.replace("../trazabilidad-hrpv/login-indicadores.html");return;}
+      const {data,error}=await db.from("procedencia_cifras_hrpv").select("anio,mes,indicador_id,valor,usuario_id").eq("usuario_id",session.user.id).order("anio",{ascending:true}).order("mes",{ascending:true});
       if(error)throw error;
-      rows=data||[];byMonth=new Map();
-      rows.forEach(r=>byMonth.set(Number(r.anio)+"-"+Number(r.mes),r));
+      rows=data||[];byMonth=new Map();closureByMonth.clear();
+      rows.forEach(item=>{
+        const key=Number(item.anio)+"-"+Number(item.mes);
+        if(!byMonth.has(key))byMonth.set(key,{anio:Number(item.anio),mes:Number(item.mes),_count:0});
+        const period=byMonth.get(key);
+        period[item.indicador_id]=item.valor===null||item.valor===""?null:Number(item.valor);
+        period._count++;
+      });
+      await Promise.all([...byMonth.entries()].map(async([key,period])=>{
+        try{
+          const {data:closure,error:closureError}=await db.rpc("consultar_estado_cierre_mensual_hrpv",{p_anio:period.anio,p_mes:period.mes});
+          if(closureError)throw closureError;
+          const state=Array.isArray(closure)?closure[0]:closure;
+          closureByMonth.set(key,state&&typeof state.cerrado==="boolean"?state.cerrado:null);
+        }catch(e){closureByMonth.set(key,null);console.warn("No fue posible verificar el cierre de "+key,e);}
+      }));
+      byMonth.forEach((period,key)=>period.cerrado=closureByMonth.get(key));
       renderYearOptions();render();
-      setStatus(rows.length+" registro(s) mensual(es) recuperado(s)");
-      if(!rows.length)showNotice("La consulta fue correcta, pero no existen registros en indicadores_mensuales para mostrar.");
+      setStatus(rows.length+" ficha(s) de procedencia recuperada(s) en "+byMonth.size+" periodo(s)");
+      if(!rows.length)showNotice("La consulta fue correcta, pero no existen fichas de procedencia para esta cuenta.");
     }catch(err){
       console.error("Error al consultar indicadores:",err);
       setStatus("No fue posible cargar los datos");
-      showNotice("Error al consultar Supabase: "+(err.message||"Error desconocido")+". Verifica la conexión y las políticas de acceso de la tabla indicadores_mensuales.");
+      showNotice("Error al consultar Procedencia de cifras: "+(err.message||"Error desconocido")+". Verifica la sesión y los permisos de lectura.");
       $("monthRows").innerHTML='<tr><td colspan="7" class="empty">No se pudo consultar la información.</td></tr>';
     }finally{$("app").classList.remove("loading");$("refreshBtn").disabled=false;}
   }
