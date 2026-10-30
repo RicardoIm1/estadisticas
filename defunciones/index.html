@@ -389,9 +389,7 @@
               </tr>
             </tbody>
           </table>
-          <footer>
-            <p id="footerText">Hecho con ❤️ por <a href="https://elbarrio.me/jr/" id="footerLink" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: none;">Ricardo</a> · <span id="footerYear"></span></p>
-          </footer>
+
         </div>
 
         <!-- Modal para confirmar eliminación -->
@@ -416,6 +414,7 @@
           </div>
         </div>
       </div>
+      <div id="footer"></div>
     </div>
     <!-- end .glass -->
 
@@ -452,9 +451,21 @@
     <iframe id="form-iframe" name="form-iframe"></iframe>
 
     <script>
-      // Footer dinámico
-      const footerYear = document.getElementById("footerYear");
-      if (footerYear) footerYear.textContent = new Date().getFullYear();
+      // Cargar el footer compartido para mantener el diseño común del hospital.
+      fetch("/comun/footer.html")
+        .then((response) => {
+          if (!response.ok) throw new Error("No se pudo cargar el footer compartido.");
+          return response.text();
+        })
+        .then((html) => {
+          const footerContainer = document.getElementById("footer");
+          if (!footerContainer) return;
+          footerContainer.innerHTML = html;
+
+          const footerYear = footerContainer.querySelector("#footerYear");
+          if (footerYear) footerYear.textContent = new Date().getFullYear();
+        })
+        .catch((error) => console.error("Error cargando el footer:", error));
 
       // ========== FUNCIÓN PARA FORMATEAR FECHAS ==========
       function formatearFecha(fechaString) {
