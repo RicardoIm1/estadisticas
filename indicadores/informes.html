@@ -21,6 +21,10 @@ textarea{width:100%;min-height:180px;resize:vertical;border:1px solid #d8e1e8;bo
 @media(max-width:900px){.app{grid-template-columns:180px minmax(0,1fr)}.content{padding:20px 16px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:650px){.app{display:block}aside{padding:12px 15px}.brand{margin:0}.navtitle,.sidefoot{display:none}.module-nav{display:flex;overflow:auto;margin-top:12px}.module-nav a{white-space:nowrap;padding:8px}.top{padding:10px 14px}.content{padding:17px 12px}.head h1{font-size:23px}.toolbar .field{flex:1;min-width:calc(50% - 8px)}.stats{gap:7px}.stat{padding:11px}.stat strong{font-size:21px}.panel{padding:13px}.method-list{grid-template-columns:1fr}}
 @media print{body{background:#fff;font-size:10pt}.app{display:block}aside,.top,.toolbar,.noprint,.notice{display:none!important}.content{max-width:none;padding:0}.panel,.chapter{break-inside:avoid;border:0;padding:8px 0;margin:0 0 12px}.chapter summary{background:#eaf0f5!important;print-color-adjust:exact}.chapter:not([open]) .table-wrap{display:block}textarea{border:0;min-height:0;white-space:pre-wrap}.stats{grid-template-columns:repeat(4,1fr)}table{min-width:0;font-size:8pt}th{print-color-adjust:exact}.footer{display:block}}
+
+/* Pie institucional compartido */
+.hrpv-shared-footer{margin:24px 24px 18px;padding:12px 0;border-top:1px solid #dce4eb;color:#7b8792;font-size:11px;text-align:center}
+.hrpv-shared-footer p{margin:0}
 </style>
 </head>
 <body>
@@ -225,6 +229,24 @@ $("reviewBtn").addEventListener("click",()=>{reviewed=true;setReviewState();});
 $("printBtn").addEventListener("click",()=>window.print());
 $("logoutBtn").addEventListener("click",async()=>{const b=$("logoutBtn");b.disabled=true;const {error}=await db.auth.signOut({scope:"local"});if(error){b.disabled=false;showNotice("No se pudo cerrar la sesión: "+error.message,true);return;}location.replace("../login-indicadores.html");});
 loadData();
+</script>
+
+<script>
+(async function cargarFooterCompartido(){
+  try{
+    const response=await fetch("../comun/footer.html",{cache:"no-cache"});
+    if(!response.ok)throw new Error("HTTP "+response.status);
+    const html=await response.text();
+    const template=document.createElement("template");
+    template.innerHTML=html;
+    const footer=template.content.querySelector("footer");
+    const main=document.querySelector("main");
+    if(footer&&main){
+      footer.classList.add("hrpv-shared-footer");
+      main.appendChild(footer);
+    }
+  }catch(error){console.warn("No fue posible cargar el pie institucional compartido:",error);}
+})();
 </script>
 </body>
 </html>
