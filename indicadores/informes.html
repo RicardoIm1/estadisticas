@@ -160,39 +160,50 @@ function renderChapters(p,prev,yr){
   const tech=subset.filter(f=>f.editorial==="Técnico");
   const renderRows=arr=>arr.map(f=>{
    const m=comparisonFor(f,p,prev),y=comparisonFor(f,p,yr);
-   const state=m.a?(m.a.verificado?"Revisado":"En revisión"):"Sin ficha";
+   const state=!m.a?"Sin ficha":m.av===null?"Ficha sin valor":m.a.verificado===true?"Revisado":"Pendiente de revisión";
    return "<tr><td class='name'>"+esc(f.label)+"<small>"+esc(f.id)+" · "+esc(f.editorial)+"</small></td><td class='num'>"+fmt(m.av)+"</td><td class='num'>"+fmt(m.bv)+"</td><td class='num'>"+deltaText(m)+"</td><td class='num'>"+pctText(m)+"</td><td class='num'>"+fmt(y.bv)+"</td><td class='num'>"+deltaText(y)+"</td><td class='num'>"+pctText(y)+"</td><td>"+esc(state)+"</td></tr>";
   }).join("");
   return "<details class='chapter' open><summary><span>"+esc(ch)+"</span><span class='pill'>"+rows.length+" principales / complementarios · "+tech.length+" técnicos</span></summary><div class='table-wrap'><table><thead><tr><th>Indicador</th><th>Actual</th><th>Mes anterior</th><th>Diferencia</th><th>Variación</th><th>Año anterior</th><th>Diferencia</th><th>Variación</th><th>Estado</th></tr></thead><tbody>"+renderRows(rows)+(tech.length?"<tr><td colspan='9' class='muted'><strong>Variables técnicas:</strong> "+tech.map(f=>esc(f.label)+" ("+fmt(numeric(getRecord(p.year,p.month,f.id)))+")").join(" · ")+"</td></tr>":"")+"</tbody></table></div></details>";
  }).join("");
 }
 function buildFindings(p,prev,yr){
- const candidates=[];
+ const relative=[],absolute=[];
  fields.filter(f=>f.editorial==="Principal").forEach(f=>{
   const m=comparisonFor(f,p,prev),y=comparisonFor(f,p,yr);
-  if(m.delta!==null)candidates.push({f,ref:"mes anterior",...m});
-  if(y.delta!==null)candidates.push({f,ref:"mismo mes del año anterior",...y});
+  if(m.delta!==null)(m.pct===null?absolute:relative).push({f,ref:"mes anterior",...m});
+  if(y.delta!==null)(y.pct===null?absolute:relative).push({f,ref:"mismo mes del año anterior",...y});
  });
- candidates.sort((a,b)=>Math.abs(b.pct??b.delta)-Math.abs(a.pct??a.delta));
- return candidates.slice(0,8);
+ relative.sort((a,b)=>Math.abs(b.pct)-Math.abs(a.pct));
+ absolute.sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
+ return {relative:relative.slice(0,8),absolute:absolute.slice(0,8)};
 }
+
 function narrativeDraft(p,prev,yr){
  const q=qualityFor(p),findings=buildFindings(p,prev,yr);
- let text="Durante "+periodLabel(p)+", el registro de procedencia contiene valores numéricos para "+q.available+" de "+q.total+" variables del catálogo. "+q.verified+" cuentan con confirmación de revisión y "+q.sourced+" tienen una fuente declarada. La consistencia entre variables no fue evaluada automáticamente.\n\n";
- if(!findings.length)text+="No fue posible construir comparaciones para los indicadores principales debido a la ausencia de valores numéricos en uno o ambos periodos de referencia.";
+ let text="Durante "+periodLabel(p)+", el registro de procedencia contiene valores numéricos para "+q.available+" de "+q.total+" variables del catálogo. "+q.verified+" cuentan con confirmación de revisión y "+q.sourced+" tienen una fuente declarada. La consistencia entre variables no fue evaluada automáticamente.\\n\\n";
+ if(!findings.relative.length&&!findings.absolute.length)text+="No fue posible construir comparaciones para los indicadores principales debido a la ausencia de valores numéricos en uno o ambos periodos de referencia.";
  else{
-  text+="En las comparaciones disponibles se observaron los siguientes cambios descriptivos:\n";
-  findings.forEach(x=>{const direction=x.delta>0?"incremento":x.delta<0?"disminución":"sin cambio";text+="• "+x.f.label+": "+direction+" de "+fmt(Math.abs(x.delta))+" ("+pctText(x)+") frente a "+x.ref+".\n";});
+  if(findings.relative.length){
+   text+="Variaciones relativas calculables (ordenadas por magnitud porcentual, sin interpretar su importancia clínica):\\n";
+   findings.relative.forEach(x=>{const direction=x.delta>0?"incremento":x.delta<0?"disminución":"sin cambio";text+="• "+x.f.label+": "+direction+" de "+fmt(Math.abs(x.delta))+" ("+pctText(x)+") frente a "+x.ref+".\\n";});
+  }
+  if(findings.absolute.length){
+   text+="\\nDiferencias absolutas (referencia igual a cero; no se calcula variación porcentual):\\n";
+   findings.absolute.forEach(x=>{const direction=x.delta>0?"incremento":x.delta<0?"disminución":"sin cambio";text+="• "+x.f.label+": "+direction+" de "+fmt(Math.abs(x.delta))+" frente a "+x.ref+".\\n";});
+  }
  }
- text+="\nEstos resultados describen diferencias entre periodos. No identifican causas ni permiten atribuir los cambios a intervenciones específicas. Las variables sin dato de referencia no se utilizaron para calcular variaciones.";
+ text+="\\nEstos resultados describen diferencias entre periodos. Las variaciones relativas y absolutas se presentan por separado porque no son magnitudes intercambiables. No identifican causas ni permiten atribuir los cambios a intervenciones específicas. Las variables sin dato de referencia no se utilizaron para calcular variaciones.";
  return text;
 }
+
 function renderFindings(p,prev,yr){
- const list=buildFindings(p,prev,yr);
- $("findingCount").textContent=list.length+" hallazgos comparables";
- if(!list.length){$("executiveFindings").textContent="No hay comparaciones suficientes para elaborar hallazgos de indicadores principales.";return;}
- $("executiveFindings").innerHTML="<div class='table-wrap'><table><thead><tr><th>Indicador</th><th>Referencia</th><th>Valor actual</th><th>Valor referencia</th><th>Diferencia</th><th>Variación</th></tr></thead><tbody>"+list.map(x=>"<tr><td class='name'>"+esc(x.f.label)+"</td><td>"+esc(x.ref==="mes anterior"?periodLabel(prev):periodLabel(yr))+"</td><td class='num'>"+fmt(x.av)+"</td><td class='num'>"+fmt(x.bv)+"</td><td class='num'>"+deltaText(x)+"</td><td class='num'>"+pctText(x)+"</td></tr>").join("")+"</tbody></table></div>";
+ const groups=buildFindings(p,prev,yr),all=[...groups.relative,...groups.absolute];
+ $("findingCount").textContent=all.length+" hallazgos comparables";
+ if(!all.length){$("executiveFindings").textContent="No hay comparaciones suficientes para elaborar hallazgos de indicadores principales.";return;}
+ const table=(items,showPct)=>"<div class='table-wrap'><table><thead><tr><th>Indicador</th><th>Referencia</th><th>Valor actual</th><th>Valor referencia</th><th>Diferencia</th>"+(showPct?"<th>Variación relativa</th>":"")+"</tr></thead><tbody>"+items.map(x=>"<tr><td class='name'>"+esc(x.f.label)+"</td><td>"+esc(x.ref==="mes anterior"?periodLabel(prev):periodLabel(yr))+"</td><td class='num'>"+fmt(x.av)+"</td><td class='num'>"+fmt(x.bv)+"</td><td class='num'>"+deltaText(x)+"</td>"+(showPct?"<td class='num'>"+pctText(x)+"</td>":"")+"</tr>").join("")+"</tbody></table></div>";
+ $("executiveFindings").innerHTML=(groups.relative.length?"<h3>Variaciones relativas calculables</h3><p class='muted'>Ordenadas por magnitud porcentual. La magnitud del cambio no determina por sí sola su importancia clínica.</p>"+table(groups.relative,true):"")+(groups.absolute.length?"<h3>Diferencias absolutas con referencia igual a cero</h3><p class='muted'>Se muestran por separado porque no es posible calcular una variación porcentual.</p>"+table(groups.absolute,false):"");
 }
+
 function renderAnnex(p,prev,yr){
  $("annexRows").innerHTML=fields.map(f=>{
   const m=comparisonFor(f,p,prev),y=comparisonFor(f,p,yr);
@@ -207,13 +218,14 @@ function render(){
  $("narrativeText").value=narrativeDraft(p,prev,yr);reviewed=false;setReviewState();
 }
 function setReviewState(){ $("narrativeState").textContent=reviewed?"Revisada en esta sesión":"Pendiente de revisión";$("narrativeState").className="pill "+(reviewed?"ok":"warn");$("reviewNote").textContent=reviewed?"Revisión humana marcada. No equivale a emisión ni queda persistida.":"La revisión se mantiene en esta sesión; todavía no se guarda como versión emitida."; }
+function invalidateReview(){if(reviewed){reviewed=false;setReviewState();}}
 async function loadData(){
  $("refreshBtn").disabled=true;hideNotice();document.body.classList.add("loading");
  try{
   const {data:sData,error:sError}=await db.auth.getSession();if(sError)throw sError;
   session=sData.session;
-  if(!session){location.replace("../login-indicadores.html");return;}
-  if(session.user.id!==AUTHORIZED_USER){await db.auth.signOut({scope:"local"});location.replace("../login-indicadores.html");return;}
+  if(!session){location.replace("../trazabilidad-hrpv/login-indicadores.html");return;}
+  if(session.user.id!==AUTHORIZED_USER){await db.auth.signOut({scope:"local"});location.replace("../trazabilidad-hrpv/login-indicadores.html");return;}
   $("userEmail").textContent=session.user.email||"Sesión autorizada";
   const {data,error}=await db.from("procedencia_cifras_hrpv").select("anio,mes,indicador_id,indicador_nombre,categoria,valor,fuente,nota,verificado,actualizado_en,usuario_id").eq("usuario_id",session.user.id).order("anio",{ascending:true}).order("mes",{ascending:true});
   if(error)throw error;
@@ -226,10 +238,11 @@ async function loadData(){
 }
 $("refreshBtn").addEventListener("click",loadData);
 $("periodSelect").addEventListener("change",render);
-$("regenerateBtn").addEventListener("click",()=>{const p=currentPeriod();render();$("narrativeText").value=narrativeDraft(p,shiftPeriod(p.year,p.month,-1),{year:p.year-1,month:p.month});});
+$("regenerateBtn").addEventListener("click",()=>{const p=currentPeriod();render();$("narrativeText").value=narrativeDraft(p,shiftPeriod(p.year,p.month,-1),{year:p.year-1,month:p.month});invalidateReview();});
 $("reviewBtn").addEventListener("click",()=>{reviewed=true;setReviewState();});
+$("narrativeText").addEventListener("input",invalidateReview);
 $("printBtn").addEventListener("click",()=>window.print());
-$("logoutBtn").addEventListener("click",async()=>{const b=$("logoutBtn");b.disabled=true;const {error}=await db.auth.signOut({scope:"local"});if(error){b.disabled=false;showNotice("No se pudo cerrar la sesión: "+error.message,true);return;}location.replace("../login-indicadores.html");});
+$("logoutBtn").addEventListener("click",async()=>{const b=$("logoutBtn");b.disabled=true;const {error}=await db.auth.signOut({scope:"local"});if(error){b.disabled=false;showNotice("No se pudo cerrar la sesión: "+error.message,true);return;}location.replace("../trazabilidad-hrpv/login-indicadores.html");});
 loadData();
 </script>
 
