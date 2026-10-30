@@ -269,6 +269,10 @@ main>.top #logoutIndicators:hover{
   main>.top #logoutIndicators{padding:6px 8px!important;font-size:10px!important}
 }
 
+
+/* Pie institucional compartido */
+.hrpv-shared-footer{margin:24px 24px 18px;padding:12px 0;border-top:1px solid #dce4eb;color:#7b8792;font-size:11px;text-align:center}
+.hrpv-shared-footer p{margin:0}
 </style>
 </head>
 <body>
@@ -563,6 +567,24 @@ main>.top #logoutIndicators:hover{
   renderIndicatorOptions();
   if (compendiumLink) { const syncLink=()=>{const y=$("yearFilter")?.value || today.getFullYear();compendiumLink.href="compendio-captura.html?mes="+(today.getMonth()+1)+"&anio="+encodeURIComponent(y);}; syncLink(); $("yearFilter")?.addEventListener("change",syncLink); compendiumLink.addEventListener("click",syncLink); }
   cargarDatos();
+})();
+</script>
+
+<script>
+(async function cargarFooterCompartido(){
+  try{
+    const response=await fetch("../comun/footer.html",{cache:"no-cache"});
+    if(!response.ok)throw new Error("HTTP "+response.status);
+    const html=await response.text();
+    const template=document.createElement("template");
+    template.innerHTML=html;
+    const footer=template.content.querySelector("footer");
+    const main=document.querySelector("main");
+    if(footer&&main){
+      footer.classList.add("hrpv-shared-footer");
+      main.appendChild(footer);
+    }
+  }catch(error){console.warn("No fue posible cargar el pie institucional compartido:",error);}
 })();
 </script>
 </body>
