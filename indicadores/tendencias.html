@@ -3,14 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0a2a44">
+  <meta name="theme-color" content="#2c3e50">
+  <link rel="icon" type="image/x-icon" href="../img/favicon.ico">
   <title>Tendencias | Indicadores Hospitalarios HRPV</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root{--navy:#0a2a44;--blue:#1a73e8;--ink:#1b2d3e;--muted:#64758a;--line:#dfe7f0;--soft:#f4f7fb;--white:#fff;--green:#16845b;--red:#c44747;--amber:#a96708}
+    :root{--navy:#2c3e50;--blue:#3498db;--ink:#293845;--muted:#718092;--line:#e0e7ed;--soft:#f3f6f9;--white:#fff;--green:#26734d;--red:#a63e3e;--amber:#946200}
+    .app{min-height:100vh;display:grid;grid-template-columns:minmax(320px,390px) minmax(0,1fr)}
+    aside{background:var(--navy);color:#edf3f7;padding:20px 18px;min-height:100vh;overflow-y:auto}
+    .brand{display:flex;align-items:center;gap:11px;margin-bottom:18px}.mark{width:46px;height:46px;object-fit:contain;display:block;flex-shrink:0;background:transparent;border:0;border-radius:0;padding:0}
+    .brand strong{display:block;font-size:13px;color:#edf3f7}.brand small{font-size:11px;color:#a8bbc9}
+    .sidebarDate{border-top:1px solid #405464;border-bottom:1px solid #405464;padding:11px 3px;margin-bottom:16px}.sidebarDate span{display:block;color:#9eb1bf;font-size:10px;text-transform:uppercase;letter-spacing:1px}.sidebarDate strong{display:block;color:#f4f7fa;font-size:12px;font-weight:650;margin-top:3px;text-transform:capitalize}
+    .sidecopy{padding:4px 3px;color:#c2d0da;font-size:11px;line-height:1.55}.sidecopy h2{font-size:19px;line-height:1.2;color:#fff;margin:8px 0}.sidecopy .eyebrow{color:#7ec4f2;font-size:9px}
+    .sidefoot{margin-top:30px;border-top:1px solid #405464;padding:14px 5px;color:#9eb1bf;font-size:10px}
+    main{min-width:0}.top{min-height:63px;background:white;border-bottom:1px solid var(--line);padding:12px 29px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:12px;margin:0}
+    .user{display:flex;align-items:center;gap:9px}.avatar{background:#e5eef5;color:var(--navy);border-radius:50%;width:30px;height:30px;display:grid;place-items:center;font-weight:700;flex-shrink:0}.content{max-width:1240px;margin:auto;padding:28px}
+    .app aside .module-nav{display:grid;gap:5px;margin:0 0 18px;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+    .app aside .module-nav a{display:block;padding:10px 11px;border-radius:8px;color:#c7d5df;text-decoration:none;font-size:12px;font-weight:500}
+    .app aside .module-nav a:hover{background:#354c5e;color:#fff}.app aside .module-nav a[aria-current="page"]{background:#3b5366;color:#fff;font-weight:700}
+    .app .shell{max-width:none;padding:0}
     *{box-sizing:border-box}
     body{margin:0;background:#f0f4f8;color:var(--ink);font:14px/1.5 "Segoe UI",Tahoma,Arial,sans-serif}
-    .shell{max-width:1440px;margin:auto;padding:28px}
+
+    .shell{max-width:none;margin:0;padding:0}
     header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:24px}
     .eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.8px;color:var(--blue);font-weight:800}
     h1{margin:4px 0 5px;color:var(--navy);font-size:clamp(25px,3vw,36px);letter-spacing:-.7px}
@@ -65,13 +80,220 @@
     .empty{padding:38px 20px;text-align:center;color:var(--muted)}
     .footnote{margin:16px 2px 0;color:#728196;font-size:11px}
     .loading{opacity:.6;pointer-events:none}
-    @media(max-width:950px){.shell{padding:18px}.layout{grid-template-columns:1fr}.filters{grid-template-columns:140px 1fr}.status{grid-column:1/-1;max-width:none}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
-    @media(max-width:560px){.shell{padding:12px}header{display:block}.top-actions{margin-top:14px}.filters{grid-template-columns:1fr}.kpis{gap:9px}.kpi{padding:13px}.kpi-value{font-size:22px}.comparison{padding:12px;gap:8px}.chart-wrap{padding:8px 3px;min-height:260px}}
-    @media print{body{background:#fff}.shell{max-width:none;padding:0}.top-actions,.filters button{display:none}.filters{padding:8px;background:#fff}.panel,.kpi{box-shadow:none;break-inside:avoid}.layout{grid-template-columns:1.5fr 1fr}.footnote{color:#555}}
-  </style>
+    @media(max-width:950px){.app{grid-template-columns:250px minmax(0,1fr)}.content{padding:18px}.layout{grid-template-columns:1fr}.filters{grid-template-columns:140px 1fr}.status{grid-column:1/-1;max-width:none}.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:650px){.app{display:block}aside{padding:12px 15px;min-height:0}.brand{margin:0}.sidebarDate,.sidecopy,.sidefoot{display:none}.app aside .module-nav{display:flex;flex-wrap:wrap;margin:12px 0 0}.app aside .module-nav a{flex:1;min-width:130px}.top{padding:10px 14px}.content{padding:18px 12px}.content>header{display:block}.top-actions{margin-top:14px}.filters{grid-template-columns:1fr}.kpis{gap:9px}.kpi{padding:13px}.kpi-value{font-size:22px}.comparison{padding:12px;gap:8px}.chart-wrap{padding:8px 3px;min-height:260px}}
+    @media print{body{background:#fff}.app{display:block}.app aside,.top-actions,.filters button{display:none!important}.top{display:none}.content{max-width:none;padding:0}.filters{padding:8px;background:#fff}.panel,.kpi{box-shadow:none;break-inside:avoid}.layout{grid-template-columns:1.5fr 1fr}.footnote{color:#555}}
+  /* Alineación del panel lateral con Procedencia de cifras. */
+.app{grid-template-columns:minmax(320px,390px) minmax(0,1fr)}
+.app aside{padding:20px 18px}
+.app aside .brand{margin-bottom:18px}
+.app aside .module-nav{display:grid;gap:5px;margin:0 0 18px;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+.app aside .sidebarDate{padding:11px 3px;margin-bottom:16px}
+.app aside .sidecopy{padding:4px 3px}
+/* Sistema de escala compartido · Procedencia / Tendencias · 2026-10-30 */
+:root{--hrpv-sidebar:clamp(280px,23vw,360px);--hrpv-content-pad:26px}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.5}
+.app{grid-template-columns:var(--hrpv-sidebar) minmax(0,1fr)}
+.app>aside{padding:20px 18px}
+.app>aside .brand{margin-bottom:18px}
+main{min-width:0}
+main>.top{min-height:63px;padding:12px 29px;font-size:12px}
+main>.content{width:100%;max-width:none;margin:0;padding:var(--hrpv-content-pad)}
+.content>header:not(.top){margin-bottom:18px;gap:16px}
+.content>header:not(.top) h1{font-size:27px;line-height:1.25;letter-spacing:-.6px}
+.content>header:not(.top) .subtitle{font-size:13px;line-height:1.5}
+.content .filters{gap:10px;padding:11px 12px;margin-bottom:14px;border-radius:12px}
+.content .filters label{font-size:11px;margin-bottom:5px}
+.content .filters select{padding:9px 10px;border-radius:8px;font-size:13px}
+.content .kpis{gap:10px;margin-bottom:14px}
+.content .kpi{padding:14px 16px;border-radius:12px}
+.content .kpi-label,.content .kpi-note{font-size:11px}
+.content .kpi-value{font-size:25px;line-height:1.25}
+.content .panel{border-radius:12px;box-shadow:0 2px 10px #18334b08}
+.content .panel-head{padding:14px 16px 11px}
+.content .panel-head h2{font-size:16px}
+.content .panel-head p{font-size:11px}
+@media(max-width:1100px){
+ :root{--hrpv-sidebar:280px;--hrpv-content-pad:20px}
+ main>.top{padding:12px 18px}
+}
+@media(max-width:900px){
+ :root{--hrpv-sidebar:240px;--hrpv-content-pad:18px}
+}
+@media(max-width:760px){
+ :root{--hrpv-content-pad:18px 12px}
+ .app{display:block}
+ .app>aside{min-height:0;max-height:none;padding:12px 15px}
+ .app>aside .brand{margin:0}
+ main>.top{padding:10px 14px}
+ main>.content{padding:var(--hrpv-content-pad)}
+ .content>header:not(.top){display:block}
+ .content>header:not(.top) h1{font-size:23px}
+ .content .filters{grid-template-columns:1fr;gap:10px}
+ .content .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .content .kpi{padding:13px}
+ .content .kpi-value{font-size:22px}
+}
+
+/* Mismo punto de quiebre intermedio en ambos módulos. */
+@media(max-width:950px){:root{--hrpv-sidebar:260px}}
+/* Escala maestra final · marco visual común de HRPV · 2026-10-30 */
+:root{--hrpv-sidebar:clamp(280px,23vw,360px);--hrpv-content-pad:26px}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.5}
+.app{grid-template-columns:var(--hrpv-sidebar) minmax(0,1fr)}
+.app>aside{padding:20px 18px}
+.app>aside .brand{margin-bottom:18px}
+.app aside .module-nav{display:grid;gap:5px;margin:0 0 18px;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+.app aside .module-nav a{font-size:12px;padding:10px 11px}
+.app aside .sidebarDate{padding:11px 3px;margin-bottom:16px}
+main{min-width:0}
+main>.top{min-height:63px;padding:12px 29px;font-size:12px}
+main>.content{width:100%;max-width:none;margin:0;padding:var(--hrpv-content-pad)}
+.content>header:not(.top){margin-bottom:18px;gap:16px}
+.content>header:not(.top) h1{font-size:27px;line-height:1.25;letter-spacing:-.6px}
+.content>header:not(.top) .subtitle{font-size:13px;line-height:1.5}
+.content .filters{gap:10px;padding:11px 12px;margin-bottom:14px;border-radius:12px}
+.content .filters label{font-size:11px;margin-bottom:5px}
+.content .filters select{padding:9px 10px;border-radius:8px;font-size:13px}
+.content .kpis{gap:10px;margin-bottom:14px}
+.content .kpi{padding:14px 16px;border-radius:12px}
+.content .kpi-label,.content .kpi-note{font-size:11px}
+.content .kpi-value{font-size:25px;line-height:1.25}
+.content .panel{border-radius:12px;box-shadow:0 2px 10px #18334b08}
+.content .panel-head{padding:14px 16px 11px}
+.content .panel-head h2{font-size:16px}
+.content .panel-head p{font-size:11px}
+@media(max-width:1100px){
+ :root{--hrpv-sidebar:280px;--hrpv-content-pad:20px}
+ main>.top{padding:12px 18px}
+}
+@media(max-width:950px){:root{--hrpv-sidebar:260px}}
+@media(max-width:760px){
+ :root{--hrpv-content-pad:18px 12px}
+ .app{display:block}
+ .app>aside{min-height:0;max-height:none;padding:12px 15px}
+ .app>aside .brand{margin:0}
+ main>.top{padding:10px 14px}
+ main>.content{padding:var(--hrpv-content-pad)}
+ .content>header:not(.top){display:block}
+ .content>header:not(.top) h1{font-size:23px}
+ .content .filters{grid-template-columns:1fr;gap:10px}
+ .content .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .content .kpi{padding:13px}
+ .content .kpi-value{font-size:22px}
+}
+
+/* Header institucional unificado · HRPV · 2026-10-30 */
+main>.top{
+  box-sizing:border-box;
+  width:100%;
+  min-height:64px;
+  padding:12px 26px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  color:var(--muted);
+  font:500 12px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+main>.top>div:first-child{
+  flex:1 1 auto;
+  min-width:0;
+  color:#718092;
+  white-space:normal;
+}
+main>.top>div:first-child strong{
+  color:#2c3e50;
+  font-weight:750;
+}
+main>.top .user{
+  display:flex;
+  flex:0 1 auto;
+  min-width:0;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+}
+main>.top .user>span{
+  display:block;
+  min-width:0;
+  max-width:clamp(120px,22vw,260px);
+  overflow:hidden;
+  color:#718092!important;
+  font:500 11px/1.35 Inter,system-ui,-apple-system,"Segoe UI",sans-serif!important;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+main>.top .avatar{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  display:grid;
+  place-items:center;
+  border:1px solid #dce6ed;
+  border-radius:50%;
+  background:#eaf1f6;
+  color:#2c3e50;
+  font-size:10px;
+  font-weight:800;
+}
+main>.top #logoutIndicators{
+  flex:0 0 auto;
+  margin-left:2px;
+  padding:7px 11px!important;
+  border:1px solid #d5dfe7!important;
+  border-radius:8px!important;
+  background:#fff!important;
+  color:#425767!important;
+  font:650 11px/1.2 Inter,system-ui,-apple-system,"Segoe UI",sans-serif!important;
+  white-space:nowrap;
+  transition:background .15s ease,border-color .15s ease;
+}
+main>.top #logoutIndicators:hover{
+  border-color:#b9cbd8!important;
+  background:#f5f8fa!important;
+}
+@media(max-width:760px){
+  main>.top{min-height:60px;padding:10px 16px;gap:12px}
+  main>.top .user{gap:8px}
+  main>.top .user>span{max-width:clamp(90px,25vw,180px)}
+}
+@media(max-width:480px){
+  main>.top{align-items:flex-start;gap:8px;padding:10px 12px}
+  main>.top>div:first-child{padding-top:5px;font-size:11px}
+  main>.top .user{gap:6px}
+  main>.top .user>span{max-width:104px;font-size:10px!important}
+  main>.top .avatar{width:27px;height:27px;flex-basis:27px}
+  main>.top #logoutIndicators{padding:6px 8px!important;font-size:10px!important}
+}
+
+
+/* Pie institucional compartido */
+.hrpv-shared-footer{display:block;width:auto;box-sizing:border-box;margin:24px 29px 18px;padding:12px 0;border-top:1px solid #dce4eb;color:#7b8792;font-size:11px;line-height:1.5;text-align:center;clear:both}
+.hrpv-shared-footer p{margin:0}
+.hrpv-shared-footer a{color:inherit;text-decoration:none}
+.hrpv-shared-footer a:hover{text-decoration:underline}
+</style>
 </head>
 <body>
-<div class="shell" id="app">
+<div class="app" id="app">
+  <aside>
+    <div class="brand"><img class="mark" src="../img/logo-hrpv.png" alt="Logotipo del Hospital Regional de Puerto Vallarta"><div><strong>HRPV · Estadísticas</strong><small>Tendencias de indicadores</small></div></div>
+    <nav class="module-nav" aria-label="Navegación de indicadores">
+      <a href="../trazabilidad-hrpv/">Procedencia de cifras</a>
+      <a href="tendencias.html" aria-current="page">Tendencias</a>
+      <a href="informes.html">Informes institucionales</a>
+      <a id="printCompendiumLink" href="compendio-captura.html">Informe para imprimir</a>
+    </nav>
+    <div class="sidebarDate"><span>Fecha actual</span><strong id="currentDate">Fecha local</strong></div>
+    <div class="sidecopy"><div class="eyebrow">Análisis mensual · HRPV</div><h2>Seguimiento de indicadores</h2><p>Consulta la evolución mensual, compara periodos y revisa los numeradores y denominadores que originan cada resultado.</p></div>
+    <div class="sidefoot">Módulo de tendencias<br>Lectura de datos mensuales · HRPV</div>
+  </aside>
+  <main>
+    <header class="top"><div>Estadísticas y Archivo Clínico &nbsp;/&nbsp; <strong style="color:#2c3e50">Tendencias de indicadores</strong></div><div class="user"><span style="font-size:10px;color:#718092">HRPV · Análisis mensual</span><div class="avatar">HR</div></div></header>
+    <div class="content">
   <header>
     <div>
       <div class="eyebrow">HRPV · Estadísticas y Archivo Clínico</div>
@@ -79,7 +301,6 @@
       <p class="subtitle">Evolución mensual, comparación entre periodos y trazabilidad de numeradores y denominadores.</p>
     </div>
     <div class="top-actions">
-      <a class="button secondary" href="variables.html">← Captura de datos</a>
       <button type="button" class="secondary" onclick="window.print()">Imprimir / PDF</button>
       <button type="button" id="refreshBtn" onclick="cargarDatos()">Actualizar datos</button>
     </div>
@@ -133,7 +354,10 @@
       </table>
     </div>
   </section>
-  <p class="footnote">Nota metodológica: el tablero calcula los cocientes a partir de los campos almacenados y las fórmulas definidas en variables.html. Un mes sin fila se considera sin registro. Si el denominador es cero, el resultado se presenta como no calculable, no como cero. Las variaciones son descriptivas y no implican por sí solas una valoración clínica o administrativa.</p>
+  <p class="footnote">Nota metodológica: el tablero calcula los cocientes a partir de los campos almacenados y las fórmulas configuradas para cada indicador. Un mes sin fila se considera sin registro. Si el denominador es cero, el resultado se presenta como no calculable, no como cero. Las variaciones son descriptivas y no implican por sí solas una valoración clínica o administrativa.</p>
+</div>
+    </div>
+  </main>
 </div>
 
 <script>
@@ -141,10 +365,13 @@
   "use strict";
   const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { storageKey: "hrpv-indicadores-auth-v1", persistSession: true, autoRefreshToken: true, detectSessionInUrl: false } });
   const $ = id => document.getElementById(id);
+  const today = new Date();
+  if ($("currentDate")) $("currentDate").textContent = new Intl.DateTimeFormat("es-MX",{day:"numeric",month:"long",year:"numeric"}).format(today);
+  const compendiumLink = $("printCompendiumLink");
   const meses = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
-  const n = (r,k) => Number(r && r[k] != null ? r[k] : 0);
+  const n = (r,k) => { const value = r ? r[k] : null; return value === null || value === undefined || value === "" ? NaN : Number(value); };
   const sum = (...keys) => r => keys.reduce((t,k)=>t+n(r,k),0);
   const field = key => r => n(r,key);
   const defs = [
@@ -257,7 +484,7 @@
     $("detailDen").textContent=focus?fmt(focus.den):"—";
     $("detailFactor").textContent=d.factor===100?"× 100 (porcentaje)":"× 1";
     $("detailPeriod").textContent=focus?meses[focus.month-1]+" "+year:"Sin periodo calculable";
-    $("detailState").innerHTML=focus?'<span class="pill ok">Calculable</span>':'<span class="pill">Sin denominador válido</span>';
+    $("detailState").innerHTML=focus?'<span class="pill ok">Calculable</span>':'<span class="pill">No calculable</span>';
     drawChart(data);
     renderTable(data);
   }
@@ -284,32 +511,83 @@
       const prev=data[i-1],delta=d.value!==null&&prev&&prev.value!==null?d.value-prev.value:null;
       const pct=delta!==null&&prev.value!==0?delta/Math.abs(prev.value)*100:null;
       const tr=document.createElement("tr");
-      const vals=[meses[d.month-1],d.record?fmt(d.num):"—",d.record?fmt(d.den):"—",fmt(d.value),delta===null?"—":(delta>0?"+":"")+fmt(delta),pct===null?"—":(pct>0?"+":"")+fmt(pct,2)+"%",d.record?"Registrado":"Sin registro"];
-      vals.forEach((v,j)=>{const td=document.createElement("td");td.textContent=v;if((j===1||j===2||j===3)&&!d.record)td.className="missing";if(j===6){td.innerHTML="";const pill=document.createElement("span");pill.className="pill"+(d.record?" ok":"");pill.textContent=v;td.appendChild(pill);}tr.appendChild(td);});
+      const state=d.value!==null?"Calculable":d.record?"Incompleto":"Sin registro";
+      const vals=[meses[d.month-1],d.record?fmt(d.num):"—",d.record?fmt(d.den):"—",fmt(d.value),delta===null?"—":(delta>0?"+":"")+fmt(delta),pct===null?"—":(pct>0?"+":"")+fmt(pct,2)+"%",state];
+      vals.forEach((v,j)=>{const td=document.createElement("td");td.textContent=v;if((j===1||j===2||j===3)&&!d.record)td.className="missing";if(j===6){td.innerHTML="";const pill=document.createElement("span");pill.className="pill"+(d.value!==null?" ok":"");pill.textContent=v;td.appendChild(pill);}tr.appendChild(td);});
       body.appendChild(tr);
     });
   }
   async function cargarDatos(){
-    $("app").classList.add("loading");$("refreshBtn").disabled=true;setStatus("Consultando registros mensuales…");hideNotice();
+    $("app").classList.add("loading");$("refreshBtn").disabled=true;setStatus("Validando sesión y consultando procedencia…");hideNotice();
     try{
-      const {data,error}=await db.from("indicadores_mensuales").select("*").order("anio",{ascending:true}).order("mes",{ascending:true});
+      const {data:sessionData,error:sessionError}=await db.auth.getSession();
+      if(sessionError)throw sessionError;
+      const session=sessionData?.session;
+      if(!session){setStatus("Sesión no disponible");showNotice("Inicia sesión en el módulo de indicadores para consultar la procedencia.");location.replace("./login-indicadores.html");return;}
+      if(session.user.id!=="64e0ea67-03ac-43f0-889c-418d1236c96d"){
+        await db.auth.signOut({scope:"local"});setStatus("Cuenta sin autorización");showNotice("Esta vista está restringida a la cuenta autorizada.");location.replace("./login-indicadores.html");return;
+      }
+      const userArea=document.querySelector(".user");
+      if(userArea&&!document.getElementById("logoutIndicators")){
+        const label=userArea.querySelector("span");
+        if(label)label.textContent=session.user.email||"Sesión de indicadores";
+        const avatar=userArea.querySelector(".avatar");
+        if(avatar)avatar.textContent="HR";
+        const logout=document.createElement("button");
+        logout.id="logoutIndicators";logout.type="button";logout.textContent="Cerrar sesión";
+        logout.style.cssText="border:1px solid #d5dfe7;background:white;color:#425767;border-radius:8px;padding:7px 10px;font:600 11px inherit;cursor:pointer";
+        userArea.append(logout);
+        logout.addEventListener("click",async()=>{
+          logout.disabled=true;
+          const {error:signOutError}=await db.auth.signOut({scope:"local"});
+          if(signOutError){logout.disabled=false;alert("No se pudo cerrar la sesión. Intenta de nuevo.");return;}
+          location.replace("./login-indicadores.html");
+        });
+      }
+      const {data,error}=await db.from("procedencia_cifras_hrpv").select("anio,mes,indicador_id,valor,usuario_id").eq("usuario_id",session.user.id).order("anio",{ascending:true}).order("mes",{ascending:true});
       if(error)throw error;
-      rows=data||[];byMonth=new Map();
-      rows.forEach(r=>byMonth.set(Number(r.anio)+"-"+Number(r.mes),r));
+      const periods=new Map();
+      (data||[]).forEach(item=>{
+        const year=Number(item.anio),month=Number(item.mes),key=year+"-"+month;
+        if(!periods.has(key))periods.set(key,{anio:year,mes:month});
+        periods.get(key)[item.indicador_id]=item.valor===null||item.valor===undefined||item.valor===""?null:Number(item.valor);
+      });
+      rows=[...periods.values()].sort((a,b)=>a.anio-b.anio||a.mes-b.mes);
+      byMonth=new Map();rows.forEach(r=>byMonth.set(Number(r.anio)+"-"+Number(r.mes),r));
       renderYearOptions();render();
-      setStatus(rows.length+" registro(s) mensual(es) recuperado(s)");
-      if(!rows.length)showNotice("La consulta fue correcta, pero no existen registros en indicadores_mensuales para mostrar.");
+      setStatus((data||[]).length+" ficha(s) de procedencia · "+rows.length+" periodo(s) con registros");
+      if(!rows.length)showNotice("La consulta fue correcta, pero no hay fichas guardadas en procedencia_cifras_hrpv para esta cuenta.");
     }catch(err){
-      console.error("Error al consultar indicadores:",err);
+      console.error("Error al consultar procedencia:",err);
       setStatus("No fue posible cargar los datos");
-      showNotice("Error al consultar Supabase: "+(err.message||"Error desconocido")+". Verifica la conexión y las políticas de acceso de la tabla indicadores_mensuales.");
+      showNotice("Error al consultar Supabase: "+(err.message||"Error desconocido")+". Verifica la sesión y las políticas de acceso de procedencia_cifras_hrpv.");
       $("monthRows").innerHTML='<tr><td colspan="7" class="empty">No se pudo consultar la información.</td></tr>';
     }finally{$("app").classList.remove("loading");$("refreshBtn").disabled=false;}
   }
   $("indicatorFilter").addEventListener("change",render);
   $("yearFilter").addEventListener("change",render);
   renderIndicatorOptions();
+  if (compendiumLink) { const syncLink=()=>{const y=$("yearFilter")?.value || today.getFullYear();compendiumLink.href="compendio-captura.html?mes="+(today.getMonth()+1)+"&anio="+encodeURIComponent(y);}; syncLink(); $("yearFilter")?.addEventListener("change",syncLink); compendiumLink.addEventListener("click",syncLink); }
   cargarDatos();
+})();
+</script>
+
+<script>
+(async function cargarFooterCompartido(){
+  try{
+    const response=await fetch("/comun/footer.html",{cache:"no-cache"});
+    if(!response.ok)throw new Error("HTTP "+response.status);
+    const html=await response.text();
+    const template=document.createElement("template");
+    template.innerHTML=html;
+    const footer=template.content.querySelector("footer");
+    const main=document.querySelector("main");
+    if(!footer||!main)throw new Error("No se encontró el elemento footer o main");
+    footer.classList.add("hrpv-shared-footer");
+    const year=footer.querySelector("#footerYear");
+    if(year)year.textContent=String(new Date().getFullYear());
+    main.appendChild(footer);
+  }catch(error){console.warn("No fue posible cargar el pie institucional compartido:",error);}
 })();
 </script>
 </body>

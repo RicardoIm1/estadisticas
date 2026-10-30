@@ -1,0 +1,1759 @@
+<!doctype html>
+<html lang="es">
+<head>
+<link rel="icon" type="image/x-icon" href="../img/favicon.ico">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#2c3e50">
+<title>Procedencia de cifras · HRPV</title>
+<style>
+.source-picker{display:grid;gap:4px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#f8fafc}.source-picker input[type=file]{width:100%;max-width:100%;font-size:12px}.source-file-status{font-size:11px;color:var(--muted);overflow-wrap:anywhere}.source-file-status[data-selected=true]{color:var(--green);font-weight:600}.modalgrid .field:has(#detailFile){grid-area:source}.modalgrid .field:has(#detailNote){grid-area:note}.modalgrid .field:has(#detailVerified){grid-area:verified}
+:root{--navy:#2c3e50;--blue:#3498db;--bg:#f3f6f9;--line:#e0e7ed;--muted:#718092;--ink:#293845;--green:#26734d;--amber:#946200;--red:#a63e3e}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select,textarea{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #a9d4f5;outline-offset:2px}
+.app{min-height:100vh;display:grid;grid-template-columns:215px minmax(0,1fr)}aside{background:var(--navy);color:#edf3f7;padding:23px 16px}.brand{display:flex;align-items:center;gap:11px;margin-bottom:34px}.mark{width:46px;height:46px;object-fit:contain;display:block;flex-shrink:0;background:transparent;border:0;border-radius:0;padding:0}.brand strong{display:block;font-size:13px}.brand small{font-size:11px;color:#a8bbc9}.navtitle{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:#94aabc;margin:0 8px 9px}.nav{padding:10px 11px;border-radius:8px;color:#c7d5df;margin:3px 0;font-size:12px}aside .module-nav{display:grid;gap:5px;margin:-18px 0 25px}
+aside .module-nav a{display:block;padding:10px 11px;border-radius:8px;color:#c7d5df;text-decoration:none;font-size:12px}
+aside .module-nav a:hover{background:#354c5e;color:#fff}
+aside .module-nav a[aria-current="page"]{background:#3b5366;color:#fff;font-weight:700}
+.nav.active{background:#3b5366;color:white}.sidefoot{margin-top:42px;border-top:1px solid #405464;padding:14px 5px;color:#9eb1bf;font-size:10px}
+/* Modal compacto: prioriza el formulario y reduce el desplazamiento vertical. */
+dialog{width:min(620px,calc(100% - 24px));max-height:90vh}
+.modalhead{padding:12px 16px 10px;gap:10px}
+.modalhead h2{font-size:16px;margin:2px 0}
+.modalhead p{font-size:10px;line-height:1.35}
+.modalbody{padding:12px 16px;max-height:calc(90vh - 118px)}
+.modalgrid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"value source" "note note" "verified verified";gap:9px}
+.modalgrid .field{gap:4px}
+.modalgrid .field label{font-size:10px}
+.modalgrid .field:has(#detailValue){min-height:0;padding:10px;border-radius:9px}
+.modalgrid .field:has(#detailValue) label{font-size:11px}
+.modalgrid #detailValue{font-size:clamp(23px,3vw,30px);padding:8px 7px;border-radius:7px}
+.modalgrid input:not([type="checkbox"]),.modalgrid select,.modalgrid textarea{padding:8px;border-radius:7px;font-size:12px}
+.modalgrid .checkrow{padding:9px;gap:8px}
+.modalgrid .checkrow label{font-size:11px}
+.modalgrid .checkrow small{font-size:9px;line-height:1.35}
+.completion-checklist{margin-top:10px;padding:8px 10px;border-radius:8px}
+.checklist-title{font-size:10px;margin-bottom:4px}
+.checklist-item{grid-template-columns:20px minmax(0,1fr) auto;gap:7px;padding:5px 0}
+.checklist-item strong{font-size:11px}
+.checklist-item small{font-size:9px;margin-top:1px}
+.checklist-item .check-icon{width:18px;height:18px}
+.hint{font-size:9px;margin-top:5px}
+.history{margin-top:10px}
+.history summary{padding:9px 11px;font-size:11px}
+.modalfoot{padding:9px 16px}
+@media(max-width:900px){.modalgrid{grid-template-areas:"value source" "note note" "verified verified"}}
+@media(max-width:650px){dialog{max-height:92vh}.modalbody{max-height:calc(92vh - 110px);padding:10px 12px}.modalhead{padding:10px 12px}.modalgrid{grid-template-columns:1fr;grid-template-areas:"value" "source" "note" "verified"}.modalgrid .field:has(#detailValue){min-height:0}.modalgrid #detailValue{font-size:26px}.modalfoot{padding:9px 12px}}
+
+main{min-width:0}.top{min-height:63px;background:white;border-bottom:1px solid var(--line);padding:12px 29px;display:flex;align-items:center;justify-content:space-between;gap:12px;color:var(--muted);font-size:12px}.user{display:flex;align-items:center;gap:9px}.avatar{background:#e5eef5;color:var(--navy);border-radius:50%;width:30px;height:30px;display:grid;place-items:center;font-weight:700;flex-shrink:0}.content{max-width:1240px;margin:auto;padding:28px}.head{margin-bottom:18px}.eyebrow{font-size:10px;font-weight:800;letter-spacing:1.5px;text-transform:uppercase;color:var(--blue)}h1{font-size:27px;letter-spacing:-.7px;color:var(--navy);margin:5px 0}.head p{margin:0;color:var(--muted);max-width:760px}
+.notice{background:#edf5fb;border:1px solid #d4e6f5;color:#36556e;padding:12px 14px;border-radius:10px;margin-bottom:18px;font-size:12px}.notice strong{display:block;margin-bottom:2px}.deadline{background:white;border:1px solid var(--line);border-left:4px solid var(--blue);border-radius:10px;padding:13px 15px;margin-bottom:18px;display:flex;align-items:center;gap:12px}.deadline.overdue{border-left-color:var(--red)}.deadline.today{border-left-color:var(--amber)}.deadline-icon{width:34px;height:34px;display:grid;place-items:center;background:#edf5fb;border-radius:9px;color:var(--navy);font-size:17px;flex-shrink:0}.deadline.overdue .deadline-icon{background:#fff0ef;color:var(--red)}.deadline.today .deadline-icon{background:#fff5df;color:var(--amber)}.deadline-copy{flex:1;min-width:0}.deadline-copy strong{display:block;color:var(--navy);font-size:12px}.deadline-copy span{display:block;color:var(--muted);font-size:11px;margin-top:2px}.deadline-state{font-size:10px;font-weight:750;border-radius:20px;padding:5px 9px;background:#edf5fb;color:#36556e;white-space:nowrap}.deadline.overdue .deadline-state{background:#fff0ef;color:var(--red)}.deadline.today .deadline-state{background:#fff5df;color:var(--amber)}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:end;background:white;border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:15px}.field{display:flex;flex-direction:column;gap:5px;min-width:0}.field label{font-size:11px;font-weight:700;color:#526474}.toolbar .field{min-width:145px}.toolbar .searchfield{flex:1;min-width:220px}input,select,textarea{width:100%;min-width:0;border:1px solid #d8e1e8;border-radius:8px;padding:10px;color:var(--ink);background:#fff;outline:none}textarea{resize:vertical}.btn{border:1px solid #d5dfe7;background:white;color:#425767;border-radius:8px;padding:9px 12px;font-weight:650;font-size:12px}.btn.primary{background:var(--navy);border-color:var(--navy);color:white}.btn:disabled{opacity:.4;cursor:not-allowed}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:15px}.stat{background:white;border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}.stat span{display:block;color:var(--muted);font-size:11px}.stat strong{display:block;font-size:25px;line-height:1.3;color:var(--navy);margin-top:4px}.stat.resolved strong{color:var(--green)}.progress{height:7px;background:#e8edf2;border-radius:99px;overflow:hidden;margin-top:8px}.progress span{display:block;height:100%;background:var(--green);width:0;transition:width .2s}
+.views{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 13px}.period-chip{display:inline-flex;align-items:center;gap:7px;margin-left:auto;padding:8px 12px;border:1px solid #cbd9e4;border-radius:20px;background:#edf4f8;color:#24394b;font-size:12px;font-weight:750;white-space:nowrap}.period-chip .period-dot{width:7px;height:7px;flex:0 0 7px;border-radius:50%;background:#2b7a2b;box-shadow:0 0 0 3px #d8eddd}.period-chip strong{font-weight:800;text-transform:capitalize}@media(max-width:650px){.period-chip{order:-1;margin-left:0;width:100%;justify-content:center}.views{align-items:stretch}.viewbtn{flex:1;padding:8px 9px}}.viewbtn{border:1px solid #d8e1e8;background:#fff;color:#536474;border-radius:20px;padding:8px 13px;font-size:12px;font-weight:650}.viewbtn.active{background:var(--navy);border-color:var(--navy);color:#fff}.listhead{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:8px 0 12px}.listhead h2{font-size:16px;color:var(--navy);margin:0}.listhead p{font-size:11px;color:var(--muted);margin:3px 0 0}.tag{font-size:10px;padding:4px 8px;border-radius:20px;background:#edf2f6;color:#526474;white-space:nowrap}
+.category{background:#fff;border:1px solid #d6e0e8;border-radius:10px;margin-bottom:15px;overflow:hidden}.cat-toggle{display:flex;align-items:center;gap:12px;width:100%;padding:13px 15px;border:0;background:#eaf0f5;text-align:left;color:var(--ink)}.catname{font-weight:800;color:var(--navy);flex:1}.catmeta{color:#526474;font-size:11px}.catbody{display:none;border-top:1px solid #cbd6df}.category.open .catbody{display:block}.item{display:grid;grid-template-columns:54px minmax(180px,2fr) minmax(120px,1fr) minmax(145px,1.2fr) minmax(100px,.8fr) 86px;gap:12px;align-items:center;padding:12px 14px;border-bottom:1px solid #e1e8ee;background:#fff}.item:last-child{border-bottom:0}.itemname{font-weight:650;font-size:12px;color:#304555}.itemmeta{font-size:10px;color:#718092;margin-top:4px;overflow-wrap:anywhere}.itemvalue{font-size:15px;font-weight:850;color:#168447;margin:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.itemseq{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:26px;border-radius:6px;background:#e6edf3;color:#435b6e;font-size:11px;font-weight:800;margin:0}.itemactions{display:flex;justify-content:flex-end;align-items:center;gap:7px}.itemcolumnhead{display:none}.itemdate{font:10px/1.4 ui-monospace,SFMono-Regular,Consolas,monospace;color:#596b7b;overflow-wrap:anywhere}.item-empty{color:#9aa7b3;font-size:11px;font-style:italic}.status{justify-content:center}.mini{white-space:nowrap}.modalgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"value source" "value note" "value verified";gap:14px}.modalgrid .field:has(#detailValue){grid-area:value;background:#eef8f0;border:1px solid #c6e7cf;border-radius:12px;padding:16px;display:flex;flex-direction:column;justify-content:center;min-height:210px}.modalgrid .field:has(#detailValue) label{font-size:13px;font-weight:800;color:#176b35}.modalgrid #detailValue{font-size:clamp(30px,4vw,44px);font-weight:850;line-height:1.2;color:#168447;text-align:center;border:1px solid #a7d9b5;background:#fff;padding:16px 10px;border-radius:10px;font-variant-numeric:tabular-nums}.modalgrid .field:has(#detailSource){grid-area:source}.modalgrid .field:has(#detailNote){grid-area:note}.modalgrid .field:has(#detailVerified){grid-area:verified}.modalgrid .field.full{grid-column:auto}.modalgrid .checkrow{height:100%;align-items:center}.modalgrid .checkrow label{color:#304555}
+.cat-toggle{display:flex;align-items:center;gap:12px;width:100%;padding:14px 16px;border:0;background:white;text-align:left;color:var(--ink)}.cat-toggle:hover{background:#f9fbfd}.catname{font-weight:750;color:var(--navy);flex:1}.catmeta{color:var(--muted);font-size:11px}.catchev{color:#7c8b99;transition:transform .15s}.category.open .catchev{transform:rotate(90deg)}.catbody{display:none;border-top:1px solid var(--line)}.category.open .catbody{display:block}.item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:13px 16px;border-bottom:1px solid #edf1f4}.item:last-child{border-bottom:0}.itemname{font-weight:700;font-size:12px;color:#304555}.itemmeta{font-size:10px;color:var(--muted);margin-top:4px;overflow-wrap:anywhere}.missing{color:var(--amber)}.status{display:inline-flex;align-items:center;gap:5px;border-radius:99px;background:#fff3d9;color:#875900;padding:4px 8px;font-size:10px;font-weight:700;white-space:nowrap}.status.pending{background:#fff3d9;color:#875900}.status.review{background:#eaf3fb;color:#2c628c}.status.done{background:#e7f4ec;color:var(--green)}.status.saved{background:#d9f2df;color:#176b35;border:1px solid #a8d9b5}.itemvalue{font-size:12px;font-weight:750;color:#176b35;margin-top:6px;overflow-wrap:anywhere}.itemseq{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;border-radius:6px;background:#edf2f6;color:#506576;font-size:10px;margin-right:5px}.itemactions{display:flex;align-items:center;gap:7px}.mini{border:1px solid var(--line);background:#fff;color:#425767;border-radius:7px;padding:7px 10px;font-size:11px;font-weight:700}.empty{background:white;border:1px dashed #ccd7e0;border-radius:12px;text-align:center;padding:36px 20px;color:var(--muted);font-size:12px}.foot{font-size:10px;color:#8794a0;text-align:center;margin:17px 0}
+dialog{width:min(680px,calc(100% - 28px));max-height:min(88vh,850px);padding:0;border:0;border-radius:15px;box-shadow:0 24px 80px #182a3c40;color:var(--ink)}dialog::backdrop{background:rgba(23,37,52,.62)}.modalhead{padding:20px 22px 15px;border-bottom:1px solid var(--line);display:flex;align-items:flex-start;gap:15px}.modalhead>div:first-child{flex:1;min-width:0}.modalhead h2{font-size:19px;color:var(--navy);margin:4px 0}.modalhead p{font-size:11px;color:var(--muted);margin:0}.xbtn{border:0;background:#eef2f6;border-radius:50%;width:32px;height:32px;font-size:20px;color:#526474}.modalbody{padding:20px 22px;overflow:auto}.modalgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.modalgrid .full{grid-column:1/-1}.hint{font-size:10px;color:var(--muted);margin-top:8px}
+.completion-checklist{margin-top:16px;padding:13px 14px;border:1px solid var(--line);border-radius:10px;background:#f8fafc}
+.checklist-title{font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#526474;margin-bottom:7px}
+.checklist-item{display:grid;grid-template-columns:22px minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 0;border-top:1px solid #e6edf2;color:#526474}
+.checklist-item:first-of-type{border-top:0}
+.checklist-item strong{display:block;font-size:12px;color:#405565}
+.checklist-item small{display:block;font-size:10px;color:#7b8a97;margin-top:2px}
+.checklist-item .check-icon{width:20px;height:20px;border:1px solid #cbd5de;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;background:white;color:#8a99a5}
+.checklist-item .check-state{font-size:10px;font-weight:750;color:#8a99a5}
+.checklist-item.complete .check-icon{background:#dff3e5;border-color:#9bd5ad;color:#16713a}
+.checklist-item.complete .check-state{color:#16713a}
+.checklist-item.complete strong{color:#176b35}
+.cat-toggle{background-size:100% 100%;transition:background-image .2s ease}
+/* Realce temporal de la categoría que está avanzando */
+.cat-toggle{position:relative;isolation:isolate;overflow:hidden}
+.cat-toggle::after{content:"";position:absolute;z-index:1;top:0;bottom:0;left:calc(var(--fill-pct,0%) - .5px);width:1px;background:#65b982;opacity:0;pointer-events:none;box-shadow:none;transition:left 2600ms cubic-bezier(.22,.61,.36,1),opacity .18s ease}
+.cat-toggle.is-filling{outline:1px solid #a8d9b5;outline-offset:-1px;box-shadow:none}
+.cat-toggle.is-filling::after{opacity:1}
+.cat-toggle.is-filled::after{left:calc(var(--fill-pct,0%) - .5px);opacity:1}
+.cat-toggle>*{position:relative;z-index:2}
+@media(prefers-reduced-motion:reduce){.cat-toggle::after{transition:none}.cat-toggle.is-filling{box-shadow:none}}
+.checkrow{display:flex;align-items:flex-start;gap:10px;padding:12px;background:#f5f8fa;border:1px solid var(--line);border-radius:9px}.checkrow input{width:16px;height:16px;margin-top:2px;flex-shrink:0}.checkrow label{font-size:12px;color:#304555;font-weight:700}.checkrow small{display:block;color:var(--muted);font-size:10px;font-weight:400;margin-top:3px}.history{border:1px solid #263e52;border-radius:9px;margin-top:16px;overflow:hidden;background:#101d2a}.history summary{cursor:pointer;padding:12px 14px;font-size:12px;font-weight:750;color:#dbeafe;background:#1b2d3d;border-bottom:1px solid #30485b}.historycontent{padding:0;font-size:11px;color:#cbd5e1;overflow-x:auto}.historyrow{border-top:1px solid #263e52;padding:9px 12px;color:#d6e4ef}.itemvalue{font-size:25px;line-height:1.25;font-weight:850;letter-spacing:-.5px;color:#168447;margin-top:8px;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}.console-wrap{width:100%;overflow-x:auto}.console-table{width:100%;border-collapse:collapse;min-width:680px;font:11px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;color:#d8e5ee}.console-table th{position:sticky;top:0;text-align:left;background:#24394b;color:#7dd3fc;text-transform:uppercase;letter-spacing:.055em;font-size:9px;padding:10px 11px;border-bottom:1px solid #3b566a;white-space:nowrap}.console-table td{padding:10px 11px;border-bottom:1px solid #263e52;vertical-align:top;overflow-wrap:anywhere;max-width:260px}.console-table tbody tr:nth-child(even){background:#152636}.console-table tbody tr:hover{background:#203749}.console-date{color:#a5b4fc;white-space:nowrap}.console-event{color:#fbbf24;font-weight:800}.console-actor{color:#67e8f9}.console-old{color:#fda4af}.console-new{color:#86efac;font-weight:800}.console-source{color:#c4b5fd}.console-note{color:#cbd5e1}.console-ok{color:#86efac}.console-pending{color:#fcd34d}.console-empty{padding:14px;color:#93a4b5;font:11px ui-monospace,SFMono-Regular,Consolas,monospace}.modalfoot{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:14px 22px;border-top:1px solid var(--line);background:#fbfcfd}.modalfoot .right{display:flex;gap:8px}
+.toast{display:none;position:fixed;right:18px;bottom:18px;background:var(--navy);color:white;padding:12px 15px;border-radius:9px;max-width:350px;font-size:12px;z-index:5}.toast.show{display:block}
+@media(max-width:900px){.app{grid-template-columns:175px minmax(0,1fr)}.content{padding:22px 18px}.top{padding:12px 18px}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:900px){.item{grid-template-columns:38px minmax(160px,1.6fr) minmax(100px,1fr) minmax(130px,1.1fr) minmax(90px,.8fr) 78px;gap:8px;padding:10px}.itemvalue{font-size:13px}.itemdate{font-size:9px}.modalgrid #detailValue{font-size:32px}}@media(max-width:650px){.app{display:block}aside{padding:12px 15px}.brand{margin:0}.navtitle,.nav,.sidefoot{display:none}.top{padding:10px 14px}.content{padding:18px 12px}.head h1{font-size:23px}.toolbar{padding:11px}.toolbar .field,.toolbar .searchfield{flex:1;min-width:calc(50% - 8px)}.stats{gap:7px}.stat{padding:11px}.stat strong{font-size:22px}.item{grid-template-columns:1fr;gap:9px}.itemactions{justify-content:space-between}.modalgrid{grid-template-columns:1fr}.modalgrid .full{grid-column:auto}.modalhead,.modalbody{padding-left:16px;padding-right:16px}.modalfoot{padding:12px 16px;align-items:stretch}.modalfoot .right{flex:1}.modalfoot .right .btn{flex:1}.top>div:first-child{max-width:70%}}
+
+/* Panel lateral integrado */
+.app{grid-template-columns:minmax(320px,390px) minmax(0,1fr)}
+aside{padding:20px 18px;min-height:100vh;overflow-y:auto}
+.brand{margin-bottom:18px}
+.sidebarDate{border-top:1px solid #405464;border-bottom:1px solid #405464;padding:11px 3px;margin-bottom:16px}
+.sidebarDate span{display:block;color:#9eb1bf;font-size:10px;text-transform:uppercase;letter-spacing:1px}
+.sidebarDate strong{display:block;color:#f4f7fa;font-size:12px;font-weight:650;margin-top:3px;text-transform:capitalize}
+.sidebar-content .head{margin-bottom:13px}
+.sidebar-content .eyebrow{color:#7ec4f2;font-size:9px}
+.sidebar-content h1{font-size:22px;line-height:1.18;letter-spacing:-.4px;color:#fff;margin:6px 0 8px}
+.sidebar-content .head p{color:#c2d0da;font-size:11px;line-height:1.5}
+.sidebar-content .notice{font-size:10px;padding:10px 11px;margin-bottom:12px;background:#3a5265;border-color:#526b7e;color:#e2edf4}
+.sidebar-content .notice strong{color:#fff}
+.sidebar-content .deadline{padding:10px;margin-bottom:12px;gap:8px;border-radius:9px}
+.sidebar-content .deadline-copy strong{font-size:11px}
+.sidebar-content .deadline-copy span{font-size:10px;line-height:1.4}
+.sidebar-content .deadline-state{font-size:9px;padding:4px 7px}
+.sidebar-content .deadline-icon{width:29px;height:29px;font-size:15px}
+.sidebar-content .toolbar{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:9px;padding:11px;margin-bottom:12px}
+.sidebar-content .toolbar .field{min-width:0;width:100%}
+.sidebar-content .toolbar .searchfield{grid-column:1/-1;min-width:0}
+.sidebar-content .toolbar .btn{grid-column:1/-1;width:100%}
+.sidebar-content input,.sidebar-content select{padding:8px;font-size:12px}
+.sidebar-content .field label{font-size:10px;color:#d2dee6}
+.sidebar-content .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.sidebar-content .stat{padding:10px;border-color:#506474;background:#354c5e}
+.sidebar-content .stat span{font-size:10px;color:#c0ced8}
+.sidebar-content .stat strong{font-size:22px;color:#fff}
+.sidebar-content .stat.resolved strong{color:#8dd7aa}
+.sidebar-content .progress{height:5px;background:#536778}
+.sidefoot{margin-top:18px;padding-top:12px}
+.indicator-table{width:100%;border-collapse:collapse;table-layout:fixed;background:#fff}.indicator-table th{padding:11px 10px;background:#24394b;color:#d8e8f3;text-align:left;text-transform:uppercase;letter-spacing:.04em;font-size:9px;white-space:nowrap}.indicator-table th:nth-child(1){width:54px}.indicator-table th:nth-child(2){width:27%}.indicator-table th:nth-child(3){width:16%}.indicator-table th:nth-child(4){width:23%}.indicator-table th:nth-child(5){width:14%}.indicator-table th:nth-child(6){width:80px}.indicator-table td{padding:10px;border-bottom:1px solid #e1e8ee;vertical-align:middle;overflow-wrap:anywhere}.indicator-table tbody tr:nth-child(even){background:#f6f9fb}.indicator-table tbody tr:hover{background:#edf5fb}.indicator-table .itemvalue{font-size:15px}.indicator-table .itemname{font-size:12px}.indicator-table .itemmeta{font-size:10px}.indicator-table .seq-cell{text-align:center}.indicator-table .action-cell{text-align:right}
+@media(max-width:900px){.indicator-table{min-width:730px}.console-wrap{overflow-x:auto}.modalgrid{grid-template-areas:"value source" "value note" "value verified"}}
+@media(max-width:650px){.modalgrid{grid-template-columns:1fr;grid-template-areas:"value" "source" "note" "verified"}.modalgrid .field:has(#detailValue){min-height:150px}.modalgrid #detailValue{font-size:34px}.indicator-table{min-width:730px}}
+main{min-width:0}
+.content{padding:26px}
+@media(max-width:1050px){.app{grid-template-columns:minmax(300px,350px) minmax(0,1fr)}.content{padding:20px 16px}}
+@media(max-width:760px){.app{display:block}aside{min-height:0;max-height:none;padding:14px}.sidebar-content .head h1{font-size:21px}.sidebar-content .stats{grid-template-columns:repeat(2,minmax(0,1fr))}.sidebarDate{margin-bottom:12px}.sidefoot{margin-top:12px}.content{padding:18px 12px}}
+
+
+
+/* La interfaz se muestra directamente; la autorización de sesión sigue activa. */
+
+
+/* Ajuste visual: tablas tipo consola claras y filas tabulares alineadas */
+.console-table{
+ width:100%;border-collapse:collapse;min-width:850px;
+ font:11px/1.5 ui-monospace,SFMono-Regular,Consolas,monospace;
+ color:#334155;background:#fff
+}
+.console-table th{
+ position:sticky;top:0;text-align:left;background:#eaf0f5;color:#35566f;
+ text-transform:uppercase;letter-spacing:.045em;font-size:9px;
+ padding:10px 11px;border-bottom:1px solid #cbd8e2;white-space:nowrap
+}
+.console-table td{padding:10px 11px;border-bottom:1px solid #e1e8ee;vertical-align:top;overflow-wrap:anywhere;max-width:260px}
+.console-table tbody tr:nth-child(even){background:#f7f9fb}
+.console-table tbody tr:hover{background:#edf5fb}
+.console-date{color:#526d87;white-space:nowrap}
+.console-event{color:#946200;font-weight:800}
+.console-actor{color:#087e8b}
+.console-old{color:#b54757}
+.console-new{color:#176b35;font-weight:800}
+.console-source{color:#6650a4}
+.console-note{color:#526474}
+.console-ok{color:#176b35}
+.console-pending{color:#946200}
+.console-empty{padding:14px;color:#718092;font:11px ui-monospace,SFMono-Regular,Consolas,monospace;background:#f8fafc}
+
+/* La fila de una tabla HTML debe conservar display:table-row.
+   La regla genérica .item usaba display:grid y desalineaba celdas y encabezados. */
+.indicator-table{
+ width:100%;min-width:850px;table-layout:fixed;border-collapse:collapse;
+ background:#fff;color:#293845;font-size:12px
+}
+.indicator-table th{background:#eaf0f5;color:#35566f;border-bottom:1px solid #cbd8e2;text-align:left;text-transform:uppercase;letter-spacing:.04em;font-size:9px;padding:11px 10px;white-space:nowrap}
+.indicator-table th:nth-child(1){width:5%}
+.indicator-table th:nth-child(2){width:31%}
+.indicator-table th:nth-child(3){width:15%}
+.indicator-table th:nth-child(4){width:22%}
+.indicator-table th:nth-child(5){width:15%}
+.indicator-table th:nth-child(6){width:12%}
+.indicator-table tr.item{display:table-row;grid-template-columns:none;gap:0;padding:0}
+.indicator-table td{display:table-cell;padding:11px 10px;border-bottom:1px solid #e1e8ee;vertical-align:middle;overflow-wrap:anywhere;max-width:none}
+.indicator-table tbody tr:nth-child(even){background:#f7f9fb}
+.indicator-table tbody tr:hover{background:#edf5fb}
+.indicator-table .itemseq{margin:0;min-width:26px;height:26px;background:#e7eef4;color:#435b6e}
+.indicator-table .itemname{font-size:12px;line-height:1.4;color:#304555}
+.indicator-table .itemmeta{font-size:10px;color:#718092}
+.indicator-table .itemvalue{display:inline-block;font-size:14px;line-height:1.35;font-weight:800;color:#176b35;margin:0;letter-spacing:0}
+.indicator-table .itemdate{display:block;font-size:10px;line-height:1.45;color:#526474;overflow-wrap:anywhere;white-space:normal}
+.indicator-table .status{white-space:normal}
+.indicator-table .seq-cell{text-align:center}
+.indicator-table .action-cell{text-align:right}
+@media(max-width:900px){.indicator-table{min-width:850px}.console-table{min-width:850px}}
+
+
+/* Informe hospitalario integrado al módulo de procedencia de cifras */
+.list-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.report-panel{margin-top:20px}
+.report-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 15px;margin-bottom:12px;background:#fff;border:1px solid var(--line);border-radius:10px}
+.report-toolbar strong{display:block;color:var(--navy);font-size:13px}
+.report-toolbar span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+.report-buttons{display:flex;gap:7px;flex-wrap:wrap}
+.report-container{padding:22px;background:#fff;border:1px solid #dde3ed;border-radius:12px;overflow-x:auto}
+.report-header{text-align:center;margin-bottom:20px;border-bottom:3px solid #0a2a44;padding-bottom:15px}
+.report-header h1{font-size:20px;line-height:1.3;color:#0a2a44;margin:0 0 10px;letter-spacing:.2px}
+.report-meta{display:flex;justify-content:center;gap:10px;font-size:11px;color:#555;flex-wrap:wrap}
+.report-meta div{background:#f5f7fa;padding:5px 10px;border-radius:4px}
+.report-container .section-title{color:#0a2a44;font-size:14px;margin:22px 0 10px;padding:8px 12px;background:#e8edf4;border-left:4px solid #1a73e8;border-radius:4px}
+.report-table{width:100%;min-width:760px;border-collapse:collapse;font-size:11px;margin-bottom:16px;color:#253748}
+.report-table th{background:#0a2a44;color:#fff;padding:8px 9px;text-align:left;font-weight:650}
+.report-table td{padding:7px 9px;border-bottom:1px solid #e2eaf3;vertical-align:top}
+.report-table tr:nth-child(even){background:#f8faff}
+.report-table tr:hover{background:#edf3fa}
+.report-table .col-num{text-align:center;width:36px;color:#6b7d93}
+.report-table .col-indicador{min-width:185px}
+.report-table .col-formula{min-width:180px;font-size:10px;color:#555;font-style:italic}
+.report-table .col-numerador,.report-table .col-denominador,.report-table .col-resultado{text-align:center;min-width:72px;font-variant-numeric:tabular-nums}
+.report-table .col-resultado{font-weight:800;color:#0a2a44}
+.report-table .col-resultado.highlight{color:#1a73e8}
+.report-table .col-resultado.warning{color:#b54747}
+.report-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:18px 0;padding:13px;background:#e8edf4;border-radius:9px}
+.report-summary .summary-item{text-align:center}
+.report-summary .summary-item .label{font-size:10px;color:#6b7d93}
+.report-summary .summary-item .value{font-size:19px;font-weight:800;color:#0a2a44;margin-top:3px}
+.report-warning{padding:10px 12px;border:1px solid #f0d7a0;background:#fff8e8;color:#775619;border-radius:7px;font-size:11px;margin:12px 0}
+.report-footer{margin-top:20px;border-top:1px solid #d0dbe8;padding-top:10px;font-size:9px;color:#687887;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.report-provenance .report-table{min-width:800px}
+.report-provenance .report-table td:nth-child(1){width:30px;text-align:center}
+.report-provenance .source-cell{overflow-wrap:anywhere}
+.report-empty{padding:20px;border:1px dashed #cbd8e2;background:#f8fafc;color:#718092;border-radius:8px}
+@media(max-width:760px){.report-container{padding:12px}.report-toolbar{align-items:flex-start}.report-buttons{width:100%}.report-buttons .btn{flex:1}.report-header h1{font-size:17px}}
+@media print{
+ body{background:#fff!important}
+ .app,dialog,.report-toolbar,.report-panel .no-print,.foot{display:none!important}
+ #reportPanel{display:block!important;border:0;margin:0;padding:0}
+ #reportOutput{display:block!important;border:0;padding:0;margin:0;overflow:visible}
+ .report-header{margin-bottom:12px}
+ .report-header h1{font-size:16pt}
+ .report-meta{font-size:8pt}
+ .section-title{font-size:10pt!important;margin:12px 0 7px!important;break-after:avoid}
+ .report-table{min-width:0!important;width:100%;font-size:7.5pt;break-inside:auto}
+ .report-table th{background:#0a2a44!important;color:white!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;padding:4px}
+ .report-table td{padding:3px 4px}
+ .report-table tr{break-inside:avoid}
+ .report-table thead{display:table-header-group}
+ .report-footer{font-size:7pt}
+ @page{size:letter landscape;margin:1.2cm}
+}
+
+.period-closure{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:12px 0 16px;padding:13px 15px;border:1px solid var(--line);border-left:5px solid var(--green);border-radius:10px;background:#f7fafc}.period-closure[data-state="closed"]{border-color:#e6b7b7;border-left-color:var(--red);background:#fff5f5}.period-closure[data-state="error"]{border-left-color:var(--red);background:#fff5f5}.period-closure strong{display:block;margin-bottom:3px}.period-closure span{display:block;color:var(--muted);font-size:12px}.period-closure-actions{display:flex;gap:8px;flex-shrink:0}.period-closure .btn{flex-shrink:0}.period-closure[data-state="closed"] #periodClosureAction{background:var(--red);color:#fff;border-color:var(--red)}.period-closure .btn:disabled{opacity:.55;cursor:not-allowed}.period-history{margin:0 0 18px}.period-history[hidden]{display:none}.period-history-list{display:grid;gap:9px;padding:12px}.period-history-item{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff}.period-history-item strong{display:block}.period-history-item small{display:block;color:var(--muted);margin:3px 0}.period-history-item p{margin:5px 0 0;overflow-wrap:anywhere;font-size:12px}@media(max-width:700px){.period-closure{align-items:stretch;flex-direction:column}.period-closure-actions{flex-direction:column}.period-closure .btn{width:100%}}
+
+/* Ajuste adicional: formulario compacto y navegación estable entre indicadores. */
+dialog#detailModal{width:min(700px,calc(100% - 20px));height:min(680px,88vh);max-height:96vh;overflow:hidden}
+#detailForm{height:100%;margin:0;display:flex;flex-direction:column}
+#detailModal .modalhead,#detailModal .modalfoot{flex-shrink:0}
+#detailModal .modalbody{flex:1;min-height:0}
+
+#detailModal .modalhead{padding:10px 15px 9px;gap:10px;align-items:center}
+#detailModal .modalhead h2{font-size:16px;line-height:1.25;margin:2px 0}
+#detailModal .modalhead p{font-size:10px;line-height:1.3}
+#detailModal .modalhead .eyebrow{font-size:9px;letter-spacing:1px}
+#detailModal .xbtn{width:27px;height:27px;flex:0 0 27px}
+#detailModal .modalbody{padding:12px 15px;max-height:none;overflow-y:auto}
+#detailModal .modalgrid{gap:9px 10px}
+#detailModal .modalgrid .field{gap:4px}
+#detailModal .modalgrid .field:has(#detailValue){min-height:0;padding:10px;border-radius:9px}
+#detailModal .modalgrid .field:has(#detailValue) label{font-size:10px}
+#detailModal .modalgrid #detailValue{font-size:27px;line-height:1.15;padding:8px;border-radius:7px}
+#detailModal .modalgrid .field label{font-size:10px;line-height:1.3}
+#detailModal .modalgrid input:not([type="checkbox"]),#detailModal .modalgrid select,#detailModal .modalgrid textarea{padding:7px 8px;font-size:12px;min-height:34px}
+#detailModal .source-picker{padding:8px 10px;gap:3px}
+#detailModal .source-picker input[type="file"]{font-size:11px}
+#detailModal .source-file-status{font-size:9px;line-height:1.2}
+#detailModal .modalgrid .checkrow{padding:8px 10px;gap:8px}
+#detailModal .modalgrid .checkrow input{width:14px;height:14px;margin-top:0}
+#detailModal .modalgrid .checkrow label{font-size:11px;line-height:1.3}
+#detailModal .completion-checklist{margin-top:9px;padding:8px 10px}
+#detailModal .checklist-title{font-size:10px;margin-bottom:4px}
+#detailModal .checklist-item{grid-template-columns:16px minmax(0,1fr);gap:6px;padding:5px 0}
+#detailModal .checklist-item .check-icon{width:17px;height:17px;font-size:11px}
+#detailModal .checklist-item strong{font-size:11px;line-height:1.25}
+#detailModal .checklist-item small{display:none}
+#detailModal .checklist-item .check-state{display:none}
+#detailModal .hint{font-size:10px;line-height:1.3;margin-top:6px}
+#detailModal .history{margin-top:7px}
+#detailModal .history summary{padding:8px 10px;font-size:11px}
+#detailModal .modalfoot{padding:8px 15px;gap:8px}
+#detailModal .modalfoot .btn{padding:8px 10px;font-size:11px}
+@media(min-width:651px){
+ #detailModal .completion-checklist{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:10px;align-items:start}
+ #detailModal .checklist-title{grid-column:1/-1}
+ #detailModal .checklist-item{grid-template-columns:15px minmax(0,1fr)}
+}
+@media(max-width:650px){
+ dialog#detailModal{height:92vh;max-height:96vh;width:calc(100% - 12px)}
+ #detailModal .modalbody{padding:9px 11px}
+ #detailModal .modalgrid{gap:8px}
+ #detailModal .modalgrid .field:has(#detailValue){padding:6px}
+ #detailModal .modalgrid #detailValue{font-size:23px}
+ #detailModal .completion-checklist{padding:7px 9px}
+ #detailModal .modalfoot{padding:6px 8px}
+}
+
+
+/* Feedback discreto al completar una categoría */
+.category{transition:border-color .18s ease,background .18s ease}
+.category.just-completed{border-color:#9ccdae}
+.category.just-completed .cat-toggle{background-color:#edf7f0!important}
+.category-feedback{padding:9px 15px;background:#f0f8f2;border-top:1px solid #d6eadc;color:#27633d;font-size:11px;font-weight:650}
+@media(prefers-reduced-motion:reduce){.category{transition:none}}
+
+/* Escritorio amplio: aprovecha monitores de 27 pulgadas sin estirar en exceso el contenido */
+@media (min-width:1500px){
+ .app{grid-template-columns:clamp(320px,22vw,390px) minmax(0,1fr)}
+ aside{padding:30px clamp(22px,1.65vw,32px)}
+ .brand{gap:13px;margin-bottom:38px}
+ .mark{width:43px;height:43px;font-size:17px}
+ .brand strong{font-size:14px}
+ .brand small{font-size:12px}
+ aside .module-nav a{padding:12px 13px;font-size:13px}
+ .sidebarDate{margin-bottom:17px}
+ .sidebar-content .head{margin-bottom:17px}
+ .sidebar-content .head h1{font-size:clamp(23px,1.55vw,29px);line-height:1.2}
+ .sidebar-content .head p{font-size:12px;line-height:1.65}
+ .sidebar-content .notice{font-size:11px;padding:13px 14px;margin-bottom:15px}
+ .sidebar-content .deadline{padding:13px;margin-bottom:15px}
+ .sidebar-content .deadline-copy strong{font-size:12px}
+ .sidebar-content .deadline-copy span{font-size:11px}
+ .sidebar-content .toolbar{gap:11px;padding:14px;margin-bottom:15px}
+ .sidebar-content .field label{font-size:11px}
+ .sidebar-content input,.sidebar-content select{padding:10px;font-size:13px}
+ .sidebar-content .stats{gap:10px;margin-bottom:10px}
+ .sidebar-content .stat{padding:13px}
+ .sidebar-content .stat span{font-size:11px;line-height:1.4}
+ .sidebar-content .stat strong{font-size:clamp(23px,1.7vw,29px)}
+ .sidefoot{font-size:11px}
+ .top{min-height:72px;padding:16px clamp(30px,2.3vw,46px);font-size:13px}
+ .content{max-width:none;width:100%;padding:clamp(28px,2.2vw,46px);margin:0}
+ .views{gap:9px;margin-bottom:22px}
+ .viewbtn{padding:10px 15px;font-size:12px}
+ .listhead{margin-bottom:19px;gap:20px}
+ .listhead h2{font-size:clamp(21px,1.45vw,27px)}
+ .listhead p{font-size:13px;line-height:1.6}
+ .tag,.period-chip{font-size:11px}
+ .cat-toggle{padding:17px 19px}
+ .catname{font-size:14px}
+ .catmeta{font-size:11px}
+ .indicator-table{font-size:13px}
+ .indicator-table th{font-size:10px;padding:14px 13px}
+ .indicator-table td{padding:14px 13px}
+ .indicator-table .itemname{font-size:13px}
+ .indicator-table .itemmeta{font-size:11px}
+ .indicator-table .itemvalue{font-size:16px}
+ .indicator-table .itemdate{font-size:11px}
+ .indicator-table .status{font-size:10px}
+ .indicator-table .mini{padding:8px 12px;font-size:11px}
+ .foot{font-size:11px;margin-top:24px}
+}
+@media (min-width:1900px){
+ .app{grid-template-columns:390px minmax(0,1fr)}
+ .content{padding:46px clamp(42px,3vw,72px)}
+ .indicator-table th{padding:15px 16px}
+ .indicator-table td{padding:16px}
+}
+@media (min-width:1500px) and (max-height:950px){
+ aside{padding-top:22px;padding-bottom:18px}
+ .brand{margin-bottom:25px}
+ aside .module-nav{margin-bottom:17px}
+ .sidebar-content .head{margin-bottom:12px}
+ .sidebar-content .notice{padding:10px 12px;margin-bottom:10px}
+ .sidebar-content .deadline{padding:10px;margin-bottom:10px}
+ .sidebar-content .toolbar{padding:10px;gap:8px;margin-bottom:10px}
+ .sidebar-content .stats{gap:7px}
+ .sidebar-content .stat{padding:9px}
+ .sidefoot{margin-top:18px;padding-top:10px}
+}
+/* Refinamiento visual 2026-10-30: controles compactos en el área principal. */
+.content>.toolbar{display:grid;grid-template-columns:minmax(145px,.8fr) minmax(95px,.55fr) minmax(210px,1.6fr) auto;gap:9px;align-items:end;padding:9px 11px;margin:0 0 9px;border-radius:10px;background:#fff}
+.content>.toolbar .field{min-width:0}
+.content>.toolbar .field label{font-size:10px;margin-bottom:3px}
+.content>.toolbar input,.content>.toolbar select{padding:7px 9px;font-size:12px}
+.content>.toolbar .btn{padding:8px 11px;white-space:nowrap}
+.content>.period-closure{margin:0 0 10px;padding:8px 11px;gap:10px;border-radius:9px}
+.content>.period-closure strong{font-size:11px;margin-bottom:1px}
+.content>.period-closure span{font-size:10px;line-height:1.35}
+.content>.period-closure .btn{padding:7px 9px;font-size:10px}
+.content>.period-history{margin:0 0 12px}
+.connection-led{display:inline-block;width:8px;height:8px;flex:0 0 8px;border-radius:50%;background:#9aa7b3;box-shadow:0 0 0 3px #e8edf2;margin-left:4px;vertical-align:middle}
+.connection-led[data-state="connected"]{background:#2b9a62;box-shadow:0 0 0 3px #d9f0e3}
+.connection-led[data-state="error"]{background:#bd4141;box-shadow:0 0 0 3px #f7dddd}
+.connection-led[data-state="connecting"]{background:#d49a32;box-shadow:0 0 0 3px #f8ebcf}
+.app aside .module-nav{margin:0 0 18px}
+@media(max-width:760px){.content>.toolbar{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.content>.toolbar .searchfield{grid-column:1/-1}.content>.toolbar #collapseAll{grid-column:1/-1;width:100%}}
+@media(max-width:700px){.content>.period-closure{align-items:stretch;flex-direction:column}.content>.period-closure-actions{flex-direction:row}.content>.period-closure .btn{width:auto;flex:1}}
+/* Sistema de escala compartido · Procedencia / Tendencias · 2026-10-30 */
+:root{--hrpv-sidebar:clamp(280px,23vw,360px);--hrpv-content-pad:26px}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.5}
+.app{grid-template-columns:var(--hrpv-sidebar) minmax(0,1fr)}
+.app>aside{padding:20px 18px}
+.app>aside .brand{margin-bottom:18px}
+main{min-width:0}
+main>.top{min-height:63px;padding:12px 29px;font-size:12px}
+main>.content{width:100%;max-width:none;margin:0;padding:var(--hrpv-content-pad)}
+.content>header:not(.top){margin-bottom:18px;gap:16px}
+.content>header:not(.top) h1{font-size:27px;line-height:1.25;letter-spacing:-.6px}
+.content>header:not(.top) .subtitle{font-size:13px;line-height:1.5}
+.content .filters{gap:10px;padding:11px 12px;margin-bottom:14px;border-radius:12px}
+.content .filters label{font-size:11px;margin-bottom:5px}
+.content .filters select{padding:9px 10px;border-radius:8px;font-size:13px}
+.content .kpis{gap:10px;margin-bottom:14px}
+.content .kpi{padding:14px 16px;border-radius:12px}
+.content .kpi-label,.content .kpi-note{font-size:11px}
+.content .kpi-value{font-size:25px;line-height:1.25}
+.content .panel{border-radius:12px;box-shadow:0 2px 10px #18334b08}
+.content .panel-head{padding:14px 16px 11px}
+.content .panel-head h2{font-size:16px}
+.content .panel-head p{font-size:11px}
+@media(max-width:1100px){
+ :root{--hrpv-sidebar:280px;--hrpv-content-pad:20px}
+ main>.top{padding:12px 18px}
+}
+@media(max-width:900px){
+ :root{--hrpv-sidebar:240px;--hrpv-content-pad:18px}
+}
+@media(max-width:760px){
+ :root{--hrpv-content-pad:18px 12px}
+ .app{display:block}
+ .app>aside{min-height:0;max-height:none;padding:12px 15px}
+ .app>aside .brand{margin:0}
+ main>.top{padding:10px 14px}
+ main>.content{padding:var(--hrpv-content-pad)}
+ .content>header:not(.top){display:block}
+ .content>header:not(.top) h1{font-size:23px}
+ .content .filters{grid-template-columns:1fr;gap:10px}
+ .content .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .content .kpi{padding:13px}
+ .content .kpi-value{font-size:22px}
+}
+
+/* Mismo punto de quiebre intermedio en ambos módulos. */
+@media(max-width:950px){:root{--hrpv-sidebar:260px}}
+/* Escala maestra final · marco visual común de HRPV · 2026-10-30 */
+:root{--hrpv-sidebar:clamp(280px,23vw,360px);--hrpv-content-pad:26px}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px;line-height:1.5}
+.app{grid-template-columns:var(--hrpv-sidebar) minmax(0,1fr)}
+.app>aside{padding:20px 18px}
+.app>aside .brand{margin-bottom:18px}
+.app aside .module-nav{display:grid;gap:5px;margin:0 0 18px;padding:0;background:transparent;border:0;border-radius:0;box-shadow:none}
+.app aside .module-nav a{font-size:12px;padding:10px 11px}
+.app aside .sidebarDate{padding:11px 3px;margin-bottom:16px}
+main{min-width:0}
+main>.top{min-height:63px;padding:12px 29px;font-size:12px}
+main>.content{width:100%;max-width:none;margin:0;padding:var(--hrpv-content-pad)}
+.content>header:not(.top){margin-bottom:18px;gap:16px}
+.content>header:not(.top) h1{font-size:27px;line-height:1.25;letter-spacing:-.6px}
+.content>header:not(.top) .subtitle{font-size:13px;line-height:1.5}
+.content .filters{gap:10px;padding:11px 12px;margin-bottom:14px;border-radius:12px}
+.content .filters label{font-size:11px;margin-bottom:5px}
+.content .filters select{padding:9px 10px;border-radius:8px;font-size:13px}
+.content .kpis{gap:10px;margin-bottom:14px}
+.content .kpi{padding:14px 16px;border-radius:12px}
+.content .kpi-label,.content .kpi-note{font-size:11px}
+.content .kpi-value{font-size:25px;line-height:1.25}
+.content .panel{border-radius:12px;box-shadow:0 2px 10px #18334b08}
+.content .panel-head{padding:14px 16px 11px}
+.content .panel-head h2{font-size:16px}
+.content .panel-head p{font-size:11px}
+@media(max-width:1100px){
+ :root{--hrpv-sidebar:280px;--hrpv-content-pad:20px}
+ main>.top{padding:12px 18px}
+}
+@media(max-width:950px){:root{--hrpv-sidebar:260px}}
+@media(max-width:760px){
+ :root{--hrpv-content-pad:18px 12px}
+ .app{display:block}
+ .app>aside{min-height:0;max-height:none;padding:12px 15px}
+ .app>aside .brand{margin:0}
+ main>.top{padding:10px 14px}
+ main>.content{padding:var(--hrpv-content-pad)}
+ .content>header:not(.top){display:block}
+ .content>header:not(.top) h1{font-size:23px}
+ .content .filters{grid-template-columns:1fr;gap:10px}
+ .content .kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ .content .kpi{padding:13px}
+ .content .kpi-value{font-size:22px}
+}
+/* Header institucional unificado · HRPV · 2026-10-30 */
+main>.top{
+  box-sizing:border-box;
+  width:100%;
+  min-height:64px;
+  padding:12px 26px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  color:var(--muted);
+  font:500 12px/1.4 Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+main>.top>div:first-child{
+  flex:1 1 auto;
+  min-width:0;
+  color:#718092;
+  white-space:normal;
+}
+main>.top>div:first-child strong{
+  color:#2c3e50;
+  font-weight:750;
+}
+main>.top .user{
+  display:flex;
+  flex:0 1 auto;
+  min-width:0;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+}
+main>.top .user>span{
+  display:block;
+  min-width:0;
+  max-width:clamp(120px,22vw,260px);
+  overflow:hidden;
+  color:#718092!important;
+  font:500 11px/1.35 Inter,system-ui,-apple-system,"Segoe UI",sans-serif!important;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+main>.top .avatar{
+  width:30px;
+  height:30px;
+  flex:0 0 30px;
+  display:grid;
+  place-items:center;
+  border:1px solid #dce6ed;
+  border-radius:50%;
+  background:#eaf1f6;
+  color:#2c3e50;
+  font-size:10px;
+  font-weight:800;
+}
+main>.top #logoutIndicators{
+  flex:0 0 auto;
+  margin-left:2px;
+  padding:7px 11px!important;
+  border:1px solid #d5dfe7!important;
+  border-radius:8px!important;
+  background:#fff!important;
+  color:#425767!important;
+  font:650 11px/1.2 Inter,system-ui,-apple-system,"Segoe UI",sans-serif!important;
+  white-space:nowrap;
+  transition:background .15s ease,border-color .15s ease;
+}
+main>.top #logoutIndicators:hover{
+  border-color:#b9cbd8!important;
+  background:#f5f8fa!important;
+}
+@media(max-width:760px){
+  main>.top{min-height:60px;padding:10px 16px;gap:12px}
+  main>.top .user{gap:8px}
+  main>.top .user>span{max-width:clamp(90px,25vw,180px)}
+}
+@media(max-width:480px){
+  main>.top{align-items:flex-start;gap:8px;padding:10px 12px}
+  main>.top>div:first-child{padding-top:5px;font-size:11px}
+  main>.top .user{gap:6px}
+  main>.top .user>span{max-width:104px;font-size:10px!important}
+  main>.top .avatar{width:27px;height:27px;flex-basis:27px}
+  main>.top #logoutIndicators{padding:6px 8px!important;font-size:10px!important}
+}
+
+/* Pie institucional compartido */
+.hrpv-shared-footer{display:block;width:auto;box-sizing:border-box;margin:24px 29px 18px;padding:12px 0;border-top:1px solid #dce4eb;color:#7b8792;font-size:11px;line-height:1.5;text-align:center;clear:both}
+.hrpv-shared-footer p{margin:0}
+.hrpv-shared-footer a{color:inherit;text-decoration:none}
+.hrpv-shared-footer a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="app">
+<aside>
+<div class="brand"><img class="mark" src="../img/logo-hrpv.png" alt="Logotipo del Hospital Regional de Puerto Vallarta"><div><strong>HRPV · Estadísticas</strong><small>Procedencia de cifras</small></div></div>
+<nav class="module-nav" aria-label="Navegación de indicadores">
+<a href="./" aria-current="page">Procedencia de cifras</a>
+<a href="../indicadores/tendencias.html">Tendencias</a>
+<a href="../indicadores/informes.html">Informes institucionales</a>
+<a id="printCompendiumLink" href="../indicadores/compendio-captura.html">Informe para imprimir</a>
+</nav>
+<div class="sidebarDate"><span>Fecha actual</span><strong id="currentDate">Fecha local</strong></div>
+<div class="sidebar-content">
+<div class="notice" id="connectionNotice"><strong>Procedencia de cifras</strong>Conectando con el almacenamiento seguro del módulo…</div>
+<div class="deadline" id="deadlineBox"><div class="deadline-icon">◷</div><div class="deadline-copy"><strong id="deadlineTitle">Fecha límite mensual</strong><span id="deadlineText">Calculando periodo de entrega…</span></div><span class="deadline-state" id="deadlineState">Fecha límite</span></div>
+<div class="stats">
+<div class="stat"><span>Pendientes</span><strong id="pendingCount">0</strong><span>Valor, fuente o revisión faltante</span></div>
+<div class="stat"><span>En revisión</span><strong id="reviewCount">0</strong><span>Falta confirmar la verificación</span></div>
+<div class="stat resolved"><span>Resueltos</span><strong id="resolvedCount">0</strong><span>Completos y confirmados</span></div>
+<div class="stat"><span>Avance del periodo</span><strong id="progressLabel">0%</strong><div class="progress"><span id="progressBar"></span></div></div>
+</div>
+</div>
+<div class="sidefoot">Módulo aislado · Supabase<br>Sin conexión con indicadores institucionales</div>
+</aside>
+<main>
+<header class="top"><div>Estadísticas y Archivo Clínico &nbsp;/&nbsp; <strong style="color:#2c3e50">Procedencia de cifras</strong></div><div class="user"><span style="font-size:10px;color:#718092">HRPV · Control de trazabilidad</span><div class="avatar">HR</div></div></header>
+<div class="content">
+
+<div class="views" role="group" aria-label="Filtrar indicadores">
+<button class="viewbtn" data-view="pending" type="button">Pendientes</button>
+<button class="viewbtn" data-view="review" type="button">En revisión</button>
+<button class="viewbtn" data-view="resolved" type="button">Resueltos</button>
+<button class="viewbtn active" data-view="all" type="button">Todos</button>
+<span class="period-chip" aria-live="polite" title="Periodo de los indicadores mostrados"><span class="period-dot" aria-hidden="true"></span>Periodo cargado: <strong id="loadedPeriod">—</strong><span class="connection-led" id="connectionLed" data-state="connecting" role="img" aria-label="Conectando con Supabase" title="Conectando con Supabase"></span></span>
+</div>
+<div class="toolbar">
+<div class="field"><label for="month">Periodo · mes</label><select id="month"><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></div>
+<div class="field"><label for="year">Año</label><input id="year" type="number" min="2000" max="2100" step="1" value="2026"></div>
+<div class="field searchfield"><label for="search">Buscar indicador</label><input id="search" type="search" placeholder="Escribe el nombre o parte del nombre…" aria-label="Buscar indicador"></div>
+<button class="btn" id="collapseAll" type="button">Cerrar categorías</button>
+</div>
+<section class="period-closure" id="periodClosureBanner" data-state="unknown" role="status" aria-live="polite"><div><strong id="periodClosureTitle">Verificando estado del periodo…</strong><span id="periodClosureText">No guardes cambios hasta comprobar el estado.</span></div><div class="period-closure-actions"><button class="btn" id="periodClosureAction" type="button" disabled>Consultando…</button><button class="btn" id="periodHistoryToggle" type="button">Ver historial</button></div></section><section id="periodHistoryPanel" class="panel period-history" hidden><div class="panel-head"><h2>Historial del periodo</h2><p>Registro de cierres, reaperturas y cambios en las cifras mensuales.</p></div><div id="periodHistoryContent" class="console-empty">Selecciona “Ver historial” para consultar la bitácora.</div></section>
+<div class="listhead"><div><h2 id="listTitle">Indicadores pendientes</h2><p id="listSubtitle">Se muestra el indicador concreto y los datos que faltan.</p></div><div class="list-actions"><span class="tag" id="resultCount">0 indicadores</span><button class="btn primary" id="generateReport" type="button">Generar informe</button></div></div>
+<div id="categoriesList"></div>
+<section id="reportPanel" class="report-panel" hidden aria-live="polite">
+  <div class="report-toolbar no-print">
+    <div><strong>Informe de indicadores hospitalarios</strong><span>Basado en los registros guardados para el periodo seleccionado.</span></div>
+    <div class="report-buttons">
+      <button class="btn primary" id="printReport" type="button">Imprimir / PDF</button>
+      <button class="btn" id="wordReport" type="button">Exportar Word</button>
+      <button class="btn" id="csvReport" type="button">Exportar Excel (CSV)</button>
+      <button class="btn" id="hideReport" type="button">Ocultar</button>
+    </div>
+  </div>
+  <div id="reportOutput" class="report-container"></div>
+</section>
+<div class="foot">Catálogo y agrupación integrados en este módulo. La procedencia documental se verifica por separado para cada cifra.</div>
+</div>
+</main>
+</div>
+<dialog id="detailModal" aria-labelledby="modalTitle">
+<form id="detailForm">
+<div class="modalhead"><div><div class="eyebrow" id="modalCategory">Indicador</div><h2 id="modalTitle">Detalle del indicador</h2><p id="modalPeriod"></p><p id="modalSequence" class="itemmeta">Indicador 1 de 1</p></div><span id="modalStatus" class="status">Pendiente</span><button class="xbtn" id="closeModal" type="button" aria-label="Cerrar">×</button></div>
+<div class="modalbody">
+<div class="modalgrid">
+<div class="field"><label for="detailValue">Valor del indicador</label><input id="detailValue" type="number" step="any"></div>
+<div class="field full"><label for="detailFile">Archivo de procedencia</label><div class="source-picker"><input id="detailFile" type="file" accept=".xlsx,.xls,.csv,.pdf,.doc,.docx,.odt,.ods,.txt,.jpg,.jpeg,.png"><div id="detailFileStatus" class="source-file-status" aria-live="polite">Ningún archivo seleccionado.</div></div><input id="detailSource" type="hidden"></div>
+<div class="field full"><label for="detailNote">Nota de localización (opcional)</label><input id="detailNote" type="text" placeholder="Ej. Hoja Resumen, celda F27"></div>
+<div class="field full"><div class="checkrow"><input id="detailVerified" type="checkbox"><div><label for="detailVerified">Confirmo que contrasté la cifra con el archivo indicado.</label></div></div></div>
+</div>
+<div class="completion-checklist" id="completionChecklist" aria-live="polite">
+<div class="checklist-title">Checklist de completitud</div>
+<div class="checklist-item" id="checkValue"><span class="check-icon">○</span><span><strong>Valor capturado</strong><small>La cifra del indicador está registrada.</small></span><span class="check-state">Pendiente</span></div>
+<div class="checklist-item" id="checkSource"><span class="check-icon">○</span><span><strong>Fuente identificada</strong><small>Se indicó el archivo o referencia de procedencia.</small></span><span class="check-state">Pendiente</span></div>
+<div class="checklist-item" id="checkVerified"><span class="check-icon">○</span><span><strong>Revisión confirmada</strong><small>Confirmaste que contrastaste la cifra con la fuente.</small></span><span class="check-state">Pendiente</span></div>
+</div>
+<div class="hint" id="missingHint">Se indicará aquí qué falta para resolver el indicador.</div>
+<details class="history" id="historyBox"><summary>Historial de cambios de este indicador</summary><div class="historycontent" id="historyContent">Todavía no hay cambios guardados.</div></details>
+<details class="history" id="auditBox"><summary>Bitácora de base de datos (auditoría)</summary><div class="historycontent" id="auditContent">Cargando bitácora…</div></details>
+</div>
+<div class="modalfoot"><button type="button" class="btn" id="previousBtn">← Anterior</button><div class="right"><button type="button" class="btn" id="nextBtn">Siguiente →</button><button type="submit" class="btn primary">Guardar ficha</button></div></div>
+</form>
+</dialog>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module">
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+const SUPABASE_URL = "https://njtlruvhcatklccdxpla.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5qdGxydXZoY2F0a2xjY2R4cGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzMzIwOTIsImV4cCI6MjEwMDkwODA5Mn0.MzVwk4OWvahcUfP1KF_kHbLlIXWIbZ-wljce1i2Q1sc";
+const AUTH_STORAGE_KEY = "hrpv-indicadores-auth-v1";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { storageKey: AUTH_STORAGE_KEY, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false }
+});
+window.__hrpvAuthReady = new Promise(resolve => { window.__hrpvAuthResolve = resolve; });
+try {
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data.session) {
+    location.replace("./login-indicadores.html");
+  } else {
+    if (data.session.user.id !== "64e0ea67-03ac-43f0-889c-418d1236c96d") {
+      await supabase.auth.signOut({ scope: "local" });
+      location.replace("./login-indicadores.html");
+      throw new Error("Cuenta sin autorización para este módulo.");
+    }
+    window.__hrpvSupabase = supabase;
+    window.__hrpvUserId = data.session.user.id;
+
+    const userArea = document.querySelector(".user");
+    if (userArea && !document.getElementById("logoutIndicators")) {
+      const label = userArea.querySelector("span");
+      if (label) label.textContent = data.session.user.email || "Sesión de indicadores";
+      const avatar = userArea.querySelector(".avatar");
+      if (avatar) avatar.textContent = "HR";
+      const logout = document.createElement("button");
+      logout.id = "logoutIndicators";
+      logout.type = "button";
+      logout.textContent = "Cerrar sesión";
+      logout.style.cssText = "border:1px solid #d5dfe7;background:white;color:#425767;border-radius:8px;padding:7px 10px;font:600 11px inherit;cursor:pointer";
+      userArea.append(logout);
+      logout.addEventListener("click", async () => {
+        logout.disabled = true;
+        const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
+        if (signOutError) {
+          logout.disabled = false;
+          alert("No se pudo cerrar la sesión. Intenta de nuevo.");
+          return;
+        }
+        location.replace("./login-indicadores.html");
+      });
+    }
+  }
+} catch {
+  location.replace("./login-indicadores.html");
+} finally {
+  window.__hrpvAuthResolve?.();
+}
+</script>
+
+<script type="module">
+const categories = [
+{name:"👤 Personal",fields:[
+{id:"medicos_ce",label:"Médicos en contacto (consulta externa)"},{id:"medicos_hosp",label:"Médicos en contacto (hospital)"},{id:"enf_ce",label:"Enfermeras en contacto (consulta externa)"},{id:"enf_hosp",label:"Enfermeras en contacto (hospital)"},{id:"medicos_admin",label:"Médicos en labores administrativas"},{id:"enf_admin",label:"Enfermeras en labores administrativas"},{id:"total_medicos",label:"Total de médicos en el hospital",calculated:true},{id:"total_enfermeras",label:"Total de enfermeras en el hospital",calculated:true},{id:"total_odontologos",label:"Total de odontólogos"},{id:"total_especialistas",label:"Total de especialistas"},{id:"total_residentes",label:"Total de residentes"}]},
+{name:"🏢 Infraestructura",fields:[{id:"consultorios",label:"Número de consultorios"},{id:"camas_censables",label:"Número de camas censables"},{id:"quirofanos",label:"Número de quirófanos en el hospital"}]},
+{name:"🩺 Consultas",fields:[{id:"consultas_totales",label:"Consultas otorgadas totales"},{id:"consultas_externas",label:"Consultas externas"},{id:"consultas_especialidad",label:"Consultas por especialidad"},{id:"consultas_odonto",label:"Consultas de odontólogos"},{id:"consultas_prenatal",label:"Consulta externa prenatal"},{id:"prenatal_primera_vez",label:"Consultas prenatales de primera vez"},{id:"embarazadas_1er_trim",label:"Embarazadas captadas por 1ª vez en 1er trimestre"},{id:"consultas_embarazo",label:"Total de consultas por embarazo"}]},
+{name:"🏥 Egresos y hospitalización",fields:[{id:"egresos_totales",label:"Total de egresos hospitalarios en el mes"},{id:"egresos_corta_estancia",label:"Egresos de corta estancia"},{id:"dias_cama",label:"Días cama"},{id:"dias_paciente",label:"Días paciente"},{id:"dias_estancia_total",label:"Total días de estancia en el hospital"},{id:"causas_egreso",label:"Número de causas motivo de egreso"}]},
+{name:"🚑 Urgencias",fields:[{id:"urgencias_totales",label:"Total de urgencias en el mes",calculated:true},{id:"urgencias_pediatricas",label:"Urgencias pediátricas en el mes"},{id:"urgencias_adulto",label:"Urgencias adulto en el mes"}]},
+{name:"🔪 Cirugías y partos",fields:[{id:"interv_quirurgicas",label:"Número de intervenciones quirúrgicas"},{id:"cirugias_suspendidas",label:"Cirugías suspendidas"},{id:"cirugias_programadas",label:"Cirugías programadas"},{id:"cirugias_ambulatorias",label:"Intervenciones quirúrgicas ambulatorias"},{id:"interv_realizadas",label:"Total de intervenciones quirúrgicas realizadas"},{id:"partos_cesarea",label:"Partos por cesárea"},{id:"partos_atendidos",label:"Total de partos atendidos"},{id:"partos_espontaneos",label:"Partos únicos espontáneos"},{id:"partos_asistidos",label:"Partos con fórceps/ventosa/otros asistidos"},{id:"mujeres_complicaciones",label:"Mujeres con alguna complicación señalada"},{id:"partos_trauma",label:"Partos atendidos con trauma obstétrico"}]},
+{name:"👶 Nacimientos",fields:[{id:"nacidos_vivos",label:"Total de nacidos vivos"},{id:"nacidos_p10",label:"Nacidos vivos con peso < percentil 10"},{id:"nacidos_p90",label:"Nacidos vivos con peso > percentil 90"},{id:"nacidos_menos_2500",label:"Nacidos vivos con peso < 2500 g"}]},
+{name:"🧪 Laboratorio",fields:[{id:"lab_ce",label:"Exámenes de laboratorio en consulta externa"},{id:"lab_hosp",label:"Exámenes de laboratorio en hospitalización"},{id:"lab_urgencias",label:"Exámenes de laboratorio en urgencias"},{id:"lab_total",label:"Total de exámenes de laboratorio",calculated:true}]},
+{name:"📷 Radiología",fields:[{id:"rx_ce",label:"Estudios de radiología en consulta externa"},{id:"rx_hosp",label:"Estudios de radiología en hospitalización"},{id:"rx_urgencias",label:"Estudios de radiología en urgencias"},{id:"rx_total",label:"Total de estudios de radiología",calculated:true}]},
+{name:"🦠 Infecciones (IAAS)",fields:[{id:"iaas_cirugia",label:"Infección nosocomial en cirugía"},{id:"iaas_pediatria",label:"Infección nosocomial en pediatría"},{id:"iaas_ucin",label:"Infección nosocomial en UCIN"},{id:"iaas_gineco",label:"Infección nosocomial en ginecobstetricia"},{id:"iaas_ucia",label:"Infección nosocomial en UCIA"},{id:"infeccion_sitio_quir",label:"Total infecciones en sitio quirúrgico"},{id:"bacteriemias_cateter",label:"Bacteriemias asociadas a catéter venoso central"},{id:"dias_cateter",label:"Días catéter central"},{id:"neumonias_ventilador",label:"Neumonías asociadas a ventilador"},{id:"dias_ventilador",label:"Días ventilador"},{id:"infecciones_sonda",label:"Infecciones asociadas a sonda vesical"},{id:"dias_sonda",label:"Días sonda vesical"}]},
+{name:"⏳ Otros",fields:[{id:"intervalo_sustitucion",label:"Intervalo de sustitución",calculated:true}]}
+];
+const $=id=>document.getElementById(id);
+const STORE="hrpv-procedencia-v2";
+const sourceFileInput=document.getElementById("detailFile");
+sourceFileInput.addEventListener("change",()=>{const file=sourceFileInput.files?.[0],status=document.getElementById("detailFileStatus"),field=document.getElementById("detailSource");if(!file){status.textContent=field.value?"Referencia guardada: "+field.value+".":"Ningún archivo seleccionado.";status.dataset.selected=field.value?"true":"false";return;}field.value=file.name;status.textContent="Seleccionado: "+file.name;status.dataset.selected="true";});
+const MIGRATION_FLAG="hrpv-procedencia-migrated-v1";
+let records=[],viewMode="all",activeKey=null,activeIndex=0,dbReady=false,periodClosure=null,periodClosureReady=false;
+const today=new Date();
+const expectedPeriod=new Date(today.getFullYear(),today.getMonth()-1,1);
+$("month").value=String(expectedPeriod.getMonth()+1);
+$("year").value=String(expectedPeriod.getFullYear());
+function formatLongDate(date){return date.toLocaleDateString("es-MX",{weekday:"long",day:"numeric",month:"long",year:"numeric"});}
+function updateDateAndDeadline(){
+ const now=new Date();
+ $("currentDate").textContent=formatLongDate(now);
+ const due=new Date(now.getFullYear(),now.getMonth(),25);
+ const expected=new Date(now.getFullYear(),now.getMonth()-1,1);
+ const box=$("deadlineBox");box.classList.remove("overdue","today");
+ $("deadlineTitle").textContent="Entrega mensual: "+expected.toLocaleDateString("es-MX",{month:"long",year:"numeric"});
+ if(now.getDate()>25){const days=Math.floor((new Date(now.getFullYear(),now.getMonth(),now.getDate())-due)/86400000);box.classList.add("overdue");$("deadlineState").textContent="Vencida";$("deadlineText").textContent="La fecha límite fue el 25 de "+now.toLocaleDateString("es-MX",{month:"long"})+". Han pasado "+days+" día"+(days===1?"":"s")+". Corresponde entregar los datos del mes anterior.";}
+ else if(now.getDate()===25){box.classList.add("today");$("deadlineState").textContent="Vence hoy";$("deadlineText").textContent="Hoy, 25 de "+now.toLocaleDateString("es-MX",{month:"long"})+", vence la entrega de los datos de "+expected.toLocaleDateString("es-MX",{month:"long",year:"numeric"})+".";}
+ else {$("deadlineState").textContent="En plazo";const days=25-now.getDate();$("deadlineText").textContent="Los datos de "+expected.toLocaleDateString("es-MX",{month:"long",year:"numeric"})+" deben estar listos el día 25 de este mes. Faltan "+days+" día"+(days===1?"":"s")+" para la fecha límite.";}
+}
+updateDateAndDeadline();
+const allFields=categories.flatMap((cat,ci)=>cat.fields.map(field=>({...field,category:cat.name,categoryIndex:ci})));
+function readRecords(){try{const data=JSON.parse(localStorage.getItem(STORE)||"[]");return Array.isArray(data)?data:[]}catch{return []}}
+function persist(){localStorage.setItem(STORE,JSON.stringify(records))}
+function rowToRecord(row){return {id:row.id,key:recordKey({id:row.indicador_id},{year:row.anio,month:row.mes}),year:row.anio,month:row.mes,indicator:row.indicador_id,label:row.indicador_nombre,category:row.categoria,value:row.valor===null?"":String(row.valor),source:row.fuente||"",note:row.nota||"",verified:Boolean(row.verificado),updatedAt:row.actualizado_en,history:Array.isArray(row.historial)?row.historial:[]}}
+function recordToRow(r,userId){return {anio:Number(r.year),mes:Number(r.month),indicador_id:r.indicator,indicador_nombre:r.label,categoria:r.category,valor:r.value===""||r.value===null?null:Number(r.value),fuente:r.source||"",nota:r.note||"",verificado:Boolean(r.verified),historial:Array.isArray(r.history)?r.history:[],usuario_id:userId,actualizado_en:r.updatedAt||new Date().toISOString()}}
+async function initializeSupabaseRecords(){
+ const notice=$("connectionNotice"),client=window.__hrpvSupabase,userId=window.__hrpvUserId;
+ if(!client||userId!=="64e0ea67-03ac-43f0-889c-418d1236c96d"){const led=$("connectionLed");if(led){led.dataset.state="error";led.title="Conexión no disponible";led.setAttribute("aria-label","Conexión no disponible");}notice.innerHTML="<strong>Acceso no disponible</strong>No se pudo validar la cuenta autorizada. Cierra sesión y vuelve a entrar.";throw new Error("No hay sesión autorizada para la tabla de procedencia.");}
+ const localRecords=readRecords();
+ if(localStorage.getItem(MIGRATION_FLAG)!=="1"&&localRecords.length){
+   const payload=localRecords.map(r=>recordToRow(r,userId));
+   const {error:migrationError}=await client.from("procedencia_cifras_hrpv").upsert(payload,{onConflict:"anio,mes,indicador_id"});
+   if(migrationError){const led=$("connectionLed");if(led){led.dataset.state="error";led.title="Error al migrar fichas";led.setAttribute("aria-label","Error al migrar fichas");}notice.innerHTML="<strong>No se pudieron migrar las fichas locales</strong>"+esc(migrationError.message)+" No se borraron los datos del navegador.";throw migrationError;}
+   localStorage.setItem(MIGRATION_FLAG,"1");
+ }
+ const {data,error}=await client.from("procedencia_cifras_hrpv").select("*").eq("usuario_id",userId).order("anio",{ascending:false}).order("mes",{ascending:false});
+ if(error){const led=$("connectionLed");if(led){led.dataset.state="error";led.title="Error de conexión con Supabase";led.setAttribute("aria-label","Error de conexión con Supabase");}notice.innerHTML="<strong>Error de conexión</strong>"+esc(error.message)+" No guardes cambios hasta restablecer el acceso.";throw error;}
+ records=(data||[]).map(rowToRecord);
+ persist();dbReady=true;
+ notice.hidden=true;const led=$("connectionLed");if(led){led.dataset.state="connected";led.title="Conectado a Supabase";led.setAttribute("aria-label","Conectado a Supabase");}
+}
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function currentPeriod(){return {month:Number($("month").value),year:Number($("year").value)}}
+async function refreshPeriodClosure(){
+ periodClosureReady=false;renderPeriodClosure();const p=currentPeriod();
+ try{const {data,error}=await window.__hrpvSupabase.rpc("consultar_estado_cierre_mensual_hrpv",{p_anio:p.year,p_mes:p.month});if(error)throw error;periodClosure=data||{anio:p.year,mes:p.month,cerrado:false};periodClosureReady=true;}
+ catch(err){periodClosure=null;console.error("No se pudo consultar el cierre mensual:",err);}
+ renderPeriodClosure();return periodClosureReady?{ok:true,cerrado:Boolean(periodClosure?.cerrado)}:{ok:false,cerrado:false};
+}
+function renderPeriodClosure(){
+ const banner=$("periodClosureBanner"),title=$("periodClosureTitle"),text=$("periodClosureText"),button=$("periodClosureAction");if(!banner||!title||!text||!button)return;
+ const p=currentPeriod(),closed=Boolean(periodClosure?.cerrado),allowed=window.__hrpvUserId==="64e0ea67-03ac-43f0-889c-418d1236c96d";
+ banner.dataset.state=periodClosureReady?(closed?"closed":"open"):"error";title.textContent=!periodClosureReady?"No se pudo verificar el cierre":(closed?"Periodo cerrado: ":"Periodo abierto: ")+periodLabel(p);
+ text.textContent=!periodClosureReady?"No guardes cambios hasta recuperar la conexión con el control de cierres.":(closed?"Las cifras están protegidas. Para corregirlas, reabre el periodo e indica el motivo.":"Puedes documentar la procedencia. Cierra el mes cuando las cifras estén conciliadas.");if(!allowed)text.textContent+=" Se requiere la cuenta HRPV autorizada para administrar cierres.";
+ button.textContent=closed?"Reabrir mes":"Cerrar mes";button.disabled=!periodClosureReady||!allowed;
+}
+async function managePeriodClosure(){
+ const status=await refreshPeriodClosure();if(!status.ok){toast("No se pudo verificar el cierre. No se modificó nada.");return;}const p=currentPeriod(),label=periodLabel(p);let reason=null;
+ if(status.cerrado){reason=window.prompt("Motivo obligatorio para reabrir "+label+". La reapertura quedará registrada en la bitácora:");if(reason===null)return;reason=reason.trim();if(!reason){toast("Escribe un motivo para reabrir el periodo.");return;}}
+ else{const ok=window.confirm("¿Cerrar "+label+"? Las fichas de procedencia y las cifras mensuales quedarán protegidas contra modificaciones. Para corregirlas después será obligatorio reabrir el mes con motivo.");if(!ok)return;}
+ const button=$("periodClosureAction");button.disabled=true;
+ try{const {error}=await window.__hrpvSupabase.rpc("cambiar_cierre_mensual_hrpv",{p_anio:p.year,p_mes:p.month,p_cerrar:!status.cerrado,p_motivo:reason});if(error)throw error;await refreshPeriodClosure();toast(status.cerrado?"Periodo reabierto. El motivo quedó registrado.":"Periodo cerrado y protegido.");}
+ catch(err){console.error("Error administrando cierre:",err);toast("No se cambió el cierre: "+(err?.message||"error de conexión"));await refreshPeriodClosure();}
+}
+async function loadPeriodClosureHistory(){
+ const panel=$("periodHistoryPanel"),box=$("periodHistoryContent"),p=currentPeriod();panel.hidden=false;box.textContent="Consultando bitácora…";
+ try{
+  const {data,error}=await window.__hrpvSupabase.from("cierres_mensuales_hrpv_audit").select("evento,actor_uid,ocurrido_en,motivo,antes,despues").eq("anio",p.year).eq("mes",p.month).order("ocurrido_en",{ascending:false}).limit(50);
+  if(error)throw error;
+  if(!data?.length){box.textContent="No hay eventos registrados para "+periodLabel(p)+".";return;}
+  const list=document.createElement("div");list.className="period-history-list";
+  const labels={cierre:"Cierre mensual",reapertura:"Reapertura del periodo",insercion_datos:"Registro inicial de cifras",modificacion_datos:"Modificación de cifras",eliminacion_datos:"Eliminación de cifras"};
+  data.forEach(ev=>{
+   const item=document.createElement("article");item.className="period-history-item";
+   const title=document.createElement("strong");title.textContent=labels[ev.evento]||ev.evento;item.append(title);
+   const meta=document.createElement("small");meta.textContent=new Date(ev.ocurrido_en).toLocaleString("es-MX")+" · "+(ev.actor_uid||"Sin sesión autenticada");item.append(meta);
+   if(ev.motivo){const reason=document.createElement("p");reason.textContent="Motivo: "+ev.motivo;item.append(reason);}
+   if(ev.evento==="modificacion_datos"){
+    const before=ev.antes||{},after=ev.despues||{},changed=Object.keys(after).filter(k=>!["id","fecha_registro","usuario_registro"].includes(k)&&JSON.stringify(before[k])!==JSON.stringify(after[k])).map(k=>k+": "+String(before[k]??"vacío")+" → "+String(after[k]??"vacío")).slice(0,10);
+    if(changed.length){const diff=document.createElement("p");diff.textContent=changed.join(" · ")+(Object.keys(after).filter(k=>JSON.stringify(before[k])!==JSON.stringify(after[k])).length>10?" · …":"");item.append(diff);}
+   }else if(ev.evento==="insercion_datos"){const note=document.createElement("p");note.textContent="Se guardó el registro mensual.";item.append(note);}
+   else if(ev.evento==="eliminacion_datos"){const note=document.createElement("p");note.textContent="Se eliminó el registro mensual.";item.append(note);}
+   list.append(item);
+  });
+  box.replaceChildren(list);
+ }catch(err){box.textContent="No se pudo leer la bitácora: "+(err?.message||"error de conexión");}
+}
+async function ensurePeriodOpen(action){const status=await refreshPeriodClosure();if(!status.ok){toast("Acción bloqueada: no se pudo verificar el cierre mensual.");return false;}if(status.cerrado){toast("Periodo cerrado. Reabre "+periodLabel(currentPeriod())+" con motivo antes de "+action+".");return false;}return true;}
+
+function periodLabel(p){return new Date(p.year,p.month-1,1).toLocaleDateString("es-MX",{month:"long",year:"numeric"})}
+function recordKey(field,p){return p.year+"-"+String(p.month).padStart(2,"0")+"::"+field.id}
+function getRecord(field,p=currentPeriod()){return records.find(r=>r.key===recordKey(field,p))||null}
+function missingParts(r){if(!r)return ["valor","archivo de procedencia","confirmación de revisión"];const miss=[];if(r.value===""||r.value===null||r.value===undefined)miss.push("valor");if(!r.source||!r.source.trim())miss.push("archivo de procedencia");if(!r.verified)miss.push("confirmación de revisión");return miss}
+function statusOf(r){const missing=missingParts(r);if(missing.length===0)return "resolved";if(missing.includes("valor")||missing.includes("archivo de procedencia"))return "pending";return "review"}
+function fieldFor(id){return allFields.find(f=>f.id===id)}
+function derivedDefinition(field){
+ const formulas={
+  total_medicos:{factors:["medicos_ce","medicos_hosp","medicos_admin"],calculate:v=>v.reduce((sum,n)=>sum+n,0)},
+  total_enfermeras:{factors:["enf_ce","enf_hosp","enf_admin"],calculate:v=>v.reduce((sum,n)=>sum+n,0)},
+  urgencias_totales:{factors:["urgencias_pediatricas","urgencias_adulto"],calculate:v=>v.reduce((sum,n)=>sum+n,0)},
+  lab_total:{factors:["lab_ce","lab_hosp","lab_urgencias"],calculate:v=>v.reduce((sum,n)=>sum+n,0)},
+  rx_total:{factors:["rx_ce","rx_hosp","rx_urgencias"],calculate:v=>v.reduce((sum,n)=>sum+n,0)},
+  intervalo_sustitucion:{factors:["dias_cama","dias_paciente","egresos_totales"],calculate:v=>v[2]>0?Number(((v[0]-v[1])/v[2]).toFixed(4)):null}
+ };
+ return formulas[field.id]||null;
+}
+function calculateDerivedValue(field,p,byKey){
+ const definition=derivedDefinition(field);if(!definition)return null;
+ const values=definition.factors.map(id=>byKey.get(recordKey({id},p)));
+ if(values.some(r=>!r||r.value===""||r.value===null||r.value===undefined||!Number.isFinite(Number(r.value))))return null;
+ const result=definition.calculate(values.map(r=>Number(r.value)));
+ return result!==null&&Number.isFinite(result)?result:null;
+}
+function currentItems(){
+ const p=currentPeriod(),byKey=new Map(records.map(record=>[record.key,record]));
+ return allFields.map(field=>{
+  const key=recordKey(field,p),savedRecord=byKey.get(key)||null;
+  const definition=field.calculated?derivedDefinition(field):null;
+  const calculatedValue=field.calculated?calculateDerivedValue(field,p,byKey):null;
+  const isCalculated=Boolean(field.calculated);
+  const factorRecords=definition?definition.factors.map(id=>byKey.get(recordKey({id},p))||null):[];
+  const factorsComplete=Boolean(definition)&&calculatedValue!==null&&factorRecords.every(r=>missingParts(r).length===0);
+  const factorMissing=definition?factorRecords.flatMap((r,i)=>missingParts(r).map(part=>fieldFor(definition.factors[i]).label+": "+part)):[];
+  const record=isCalculated?{...(savedRecord||{}),key,year:p.year,month:p.month,indicator:field.id,label:field.label,category:field.category,value:calculatedValue===null?"":String(calculatedValue),source:"",verified:false,updatedAt:null}:savedRecord;
+  const missing=isCalculated?(factorsComplete?[]:(factorMissing.length?factorMissing:["factores completos y denominador válido"])):missingParts(record);
+  const status=isCalculated?(factorsComplete?"resolved":(factorMissing.some(part=>part.endsWith(": valor")||part.endsWith(": archivo de procedencia")||part==="factores completos y denominador válido")?"pending":"review")):(missing.length===0?"resolved":(missing.includes("valor")||missing.includes("archivo de procedencia")?"pending":"review"));
+  return {field,record,status,missing,key,calculatedValue:isCalculated?calculatedValue:null};
+ });
+}
+function visibleItems(items){const q=$("search").value.trim().toLocaleLowerCase("es-MX");return items.filter(item=>{const text=(item.field.label+" "+item.field.id+" "+item.field.category+" "+(item.record?.source||"")+" "+(item.record?.note||"")).toLocaleLowerCase("es-MX");if(q&&!text.includes(q))return false;if(viewMode==="all")return true;return item.status===viewMode})}
+function toast(message){$("toast").textContent=message;$("toast").classList.add("show");window.clearTimeout(toast.timer);toast.timer=window.setTimeout(()=>$("toast").classList.remove("show"),2800)}
+function render(){
+ if(window.__hrpvCategoryFillTimers){window.__hrpvCategoryFillTimers.forEach(id=>window.clearTimeout(id));}
+ window.__hrpvCategoryFillTimers=[];
+ const items=currentItems(),pending=items.filter(x=>x.status==="pending").length,review=items.filter(x=>x.status==="review").length,resolved=items.filter(x=>x.status==="resolved").length;
+ $("pendingCount").textContent=pending;$("reviewCount").textContent=review;$("resolvedCount").textContent=resolved;
+ const pct=items.length?Math.round(resolved/items.length*100):0;$("progressLabel").textContent=pct+"%";$("progressBar").style.width=pct+"%";
+ const titles={pending:"Indicadores pendientes",review:"Indicadores en revisión",resolved:"Indicadores resueltos",all:"Todos los indicadores"};
+ const subs={pending:"Cada fila indica el indicador, el valor, la fecha del último cambio y su estatus.",review:"Tienen algún dato guardado, pero aún no cumplen todos los requisitos.",resolved:"Conservan su valor, fuente, confirmación e historial de cambios.",all:"Catálogo completo para consultar o corregir cualquier indicador."};
+ $("listTitle").textContent=titles[viewMode];$("listSubtitle").textContent=subs[viewMode];$("loadedPeriod").textContent=periodLabel(currentPeriod());
+ document.querySelectorAll("[data-view]").forEach(b=>b.classList.toggle("active",b.dataset.view===viewMode));
+ const shown=visibleItems(items);$("resultCount").textContent=shown.length+" indicador"+(shown.length===1?"":"es");
+ let categoryAnimationIndex=0;
+  const openCategories=new Set([...document.querySelectorAll("#categoriesList .category.open")].map(section=>section.dataset.category));
+ const container=$("categoriesList");container.replaceChildren();
+ if(!shown.length){const empty=document.createElement("div");empty.className="empty";empty.textContent=$("search").value.trim()?"No hay indicadores que coincidan con la búsqueda en esta vista.":viewMode==="pending"?"No quedan indicadores pendientes para este periodo.":viewMode==="review"?"No hay indicadores en revisión para este periodo.":viewMode==="resolved"?"Todavía no hay indicadores resueltos para este periodo.":"No hay indicadores que mostrar.";container.append(empty);$("collapseAll").disabled=true;return}
+ $("collapseAll").disabled=false;
+ categories.forEach((cat,ci)=>{
+  const catItems=shown.filter(x=>x.field.categoryIndex===ci);if(!catItems.length)return;
+  const section=document.createElement("section");section.className="category"+(openCategories.has(String(ci))?" open":"");section.dataset.category=String(ci);
+  const allCategoryItems=items.filter(x=>x.field.categoryIndex===ci),categoryResolved=allCategoryItems.filter(x=>x.status==="resolved").length;
+  // Avance gradual: cada indicador aporta hasta tres requisitos (valor, fuente y revisión).
+  const categoryRequirements=allCategoryItems.reduce((sum,x)=>sum+(x.field.calculated?(x.status==="resolved"?3:0):(x.record&&x.record.value!==""&&x.record.value!==null&&x.record.value!==undefined?1:0)+(x.record&&x.record.source&&x.record.source.trim()?1:0)+(x.record&&x.record.verified?1:0)),0);
+  const categoryRequirementTotal=allCategoryItems.length*3;
+  const categoryPct=categoryRequirementTotal?Math.round(categoryRequirements/categoryRequirementTotal*100):0;
+  const unresolved=catItems.filter(x=>x.status!=="resolved").length;
+  const toggle=document.createElement("button");toggle.type="button";toggle.className="cat-toggle";toggle.setAttribute("aria-expanded",String(openCategories.has(String(ci))));
+  toggle.style.backgroundColor="#eaf0f5";
+  toggle.style.backgroundImage="linear-gradient(90deg, #dff3e5 0%, #dff3e5 100%)";
+  toggle.style.backgroundRepeat="no-repeat";
+  toggle.style.backgroundPosition="left center";
+  toggle.style.backgroundSize="0% 100%";
+  toggle.style.setProperty("--fill-pct","0%");
+  toggle.style.transition="background-size 2600ms cubic-bezier(.22,.61,.36,1)";
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+   toggle.style.backgroundSize=categoryPct+"% 100%";
+   toggle.style.setProperty("--fill-pct",categoryPct+"%");
+   toggle.classList.add("is-filled");
+  }else{
+   const fillOrder=categoryAnimationIndex++;
+   const fillTimer=window.setTimeout(()=>{
+    if(!toggle.isConnected)return;
+    toggle.classList.add("is-filling");
+    toggle.style.backgroundSize=categoryPct+"% 100%";
+    toggle.style.setProperty("--fill-pct",categoryPct+"%");
+    const glowTimer=window.setTimeout(()=>{toggle.classList.remove("is-filling");toggle.classList.add("is-filled")},2750);
+    window.__hrpvCategoryFillTimers.push(glowTimer);
+   },fillOrder*2700);
+   window.__hrpvCategoryFillTimers.push(fillTimer);
+  }
+  toggle.setAttribute("aria-label",cat.name+". "+categoryPct+"% de requisitos completados. "+categoryResolved+" de "+allCategoryItems.length+" indicadores resueltos.");
+  toggle.title=categoryPct+"% de requisitos completados · "+categoryResolved+" de "+allCategoryItems.length+" indicadores resueltos";
+  toggle.innerHTML='<span class="catchev">›</span><span class="catname">'+esc(cat.name)+'</span><span class="catmeta">'+categoryPct+'% de requisitos · '+categoryResolved+'/'+allCategoryItems.length+' resueltos · '+catItems.length+' mostrado'+(catItems.length===1?"":"s")+'</span>';
+  const body=document.createElement("div");body.className="catbody";
+  const tableWrap=document.createElement("div");tableWrap.className="console-wrap";tableWrap.style.background="#fff";
+  const table=document.createElement("table");table.className="indicator-table";
+  table.innerHTML='<thead><tr><th>N.º</th><th>Indicador</th><th>Valor registrado</th><th>Último cambio</th><th>Estatus</th><th>Acción</th></tr></thead><tbody></tbody>';
+  const tbody=table.querySelector("tbody");
+  catItems.forEach(item=>{
+   const row=document.createElement("tr");row.className="item";
+   const missing=item.missing,hasValue=Boolean(item.record&&item.record.value!==""&&item.record.value!==null&&item.record.value!==undefined);
+   const statusText=item.status==="resolved"?"Resuelto":item.status==="review"?"En revisión":"Pendiente";
+   const statusClass=item.status==="resolved"?"done":item.status==="review"?"review":"pending";
+   const sequence=allFields.findIndex(f=>f.id===item.field.id)+1;
+   const date=item.field.calculated?"Cálculo automático":item.record?.updatedAt?new Date(item.record.updatedAt).toLocaleString("es-MX"):"Sin cambios guardados";
+   row.innerHTML='<td class="seq-cell"><span class="itemseq">'+sequence+'</span></td><td class="name-cell"><div class="itemname">'+esc(item.field.label)+'</div><div class="itemmeta">'+esc(item.field.id)+(item.field.calculated?' · Calculado automáticamente':'')+'</div></td><td class="value-cell">'+(hasValue?'<span class="itemvalue">'+esc(item.record.value)+'</span>':'<span class="item-empty">Sin valor</span>')+'</td><td class="date-cell"><span class="itemdate">'+esc(date)+'</span></td><td class="status-cell"><span class="status '+statusClass+'">'+statusText+'</span></td><td class="action-cell">'+(item.field.calculated?'<span class="itemmeta">Automático</span>':'<button type="button" class="mini" data-open="'+esc(item.field.id)+'">Editar</button>')+'</td>';
+   const openButton=row.querySelector("[data-open]");if(openButton)openButton.addEventListener("click",()=>openModal(item.field.id));tbody.append(row);
+  });
+  tableWrap.append(table);body.append(tableWrap);
+  toggle.addEventListener("click",()=>{const open=section.classList.toggle("open");toggle.setAttribute("aria-expanded",String(open))});
+  section.append(toggle,body);container.append(section);
+ });
+}
+
+function getReportValue(id){
+ const p=currentPeriod(),record=getRecord({id},p);
+ if(!record||record.value===""||record.value===null||record.value===undefined)return NaN;
+ const value=Number(record.value);
+ return Number.isFinite(value)?value:NaN;
+}
+function generarTablaIndicadores() {
+        const v = getReportValue;
+        const period = currentPeriod();
+        // Días naturales del mes seleccionado; Date calcula correctamente febrero en años bisiestos.
+        const daysInPeriod = new Date(period.year, period.month, 0).getDate();
+
+        // Calcular totales
+        const totalMedicos =
+          v("medicos_ce") + v("medicos_hosp") + v("medicos_admin");
+        const totalEnfermeras = v("enf_ce") + v("enf_hosp") + v("enf_admin");
+
+        // 1. Recursos Humanos
+        const rhIndicadores = [
+          {
+            no: 1,
+            indicador: "Razón de médicos por consultorio",
+            formula: "Médicos CE / Número de consultorios",
+            num: v("medicos_ce"),
+            den: v("consultorios"),
+            result: v("consultorios") ? v("medicos_ce") / v("consultorios") : 0,
+          },
+          {
+            no: 2,
+            indicador: "Razón de enfermeras por médico",
+            formula: "Enfermeras CE / Médicos CE",
+            num: v("enf_ce"),
+            den: v("medicos_ce"),
+            result: v("medicos_ce") ? v("enf_ce") / v("medicos_ce") : 0,
+          },
+          {
+            no: 3,
+            indicador: "Razón de médicos por cama censable",
+            formula: "Médicos Hospital / Camas censables",
+            num: v("medicos_hosp"),
+            den: v("camas_censables"),
+            result: v("camas_censables")
+              ? v("medicos_hosp") / v("camas_censables")
+              : 0,
+          },
+          {
+            no: 4,
+            indicador: "Razón de enfermeras por cama censable",
+            formula: "Enfermeras Hospital / Camas censables",
+            num: v("enf_hosp"),
+            den: v("camas_censables"),
+            result: v("camas_censables")
+              ? v("enf_hosp") / v("camas_censables")
+              : 0,
+          },
+          {
+            no: 5,
+            indicador: "% de médicos en actividades administrativas",
+            formula: "(Médicos Admin / Total médicos) × 100",
+            num: v("medicos_admin"),
+            den: totalMedicos,
+            result: totalMedicos
+              ? (v("medicos_admin") / totalMedicos) * 100
+              : 0,
+          },
+          {
+            no: 6,
+            indicador: "% de enfermeras en actividades administrativas",
+            formula: "(Enfermeras Admin / Total enfermeras) × 100",
+            num: v("enf_admin"),
+            den: totalEnfermeras,
+            result: totalEnfermeras
+              ? (v("enf_admin") / totalEnfermeras) * 100
+              : 0,
+          },
+        ];
+
+        // 2. Productividad
+        const prodIndicadores = [
+          {
+            no: 7,
+            indicador: "Promedio diario de consultas",
+            formula: "Consultas totales / días del mes",
+            num: v("consultas_totales"),
+            den: daysInPeriod,
+            result: v("consultas_totales") / daysInPeriod,
+          },
+          {
+            no: 8,
+            indicador: "Promedio diario de consultas por consultorio",
+            formula: "Consultas totales / Consultorios / días del mes",
+            num: v("consultas_totales"),
+            den: v("consultorios") * daysInPeriod,
+            result: v("consultorios")
+              ? v("consultas_totales") / v("consultorios") / daysInPeriod
+              : 0,
+          },
+          {
+            no: 9,
+            indicador: "Consultas diarias por médico",
+            formula: "Consultas externas / Médicos CE / días del mes",
+            num: v("consultas_externas"),
+            den: v("medicos_ce") * daysInPeriod,
+            result: v("medicos_ce")
+              ? v("consultas_externas") / v("medicos_ce") / daysInPeriod
+              : 0,
+          },
+          {
+            no: 10,
+            indicador: "Consultas por médico especialista",
+            formula:
+              "Consultas especialidad / (Especialistas+Residentes) / días del mes",
+            num: v("consultas_especialidad"),
+            den: (v("total_especialistas") + v("total_residentes")) * daysInPeriod,
+            result:
+              v("total_especialistas") + v("total_residentes")
+                ? v("consultas_especialidad") /
+                  (v("total_especialistas") + v("total_residentes")) /
+                  daysInPeriod
+                : 0,
+          },
+          {
+            no: 11,
+            indicador: "Consultas por odontólogo",
+            formula: "Consultas odonto / Total odontólogos / días del mes",
+            num: v("consultas_odonto"),
+            den: v("total_odontologos") * daysInPeriod,
+            result: v("total_odontologos")
+              ? v("consultas_odonto") / v("total_odontologos") / daysInPeriod
+              : 0,
+          },
+          {
+            no: 12,
+            indicador:
+              "Promedio diario de intervenciones quirúrgicas por quirófano",
+            formula: "Intervenciones / Quirófanos / días del mes",
+            num: v("interv_quirurgicas"),
+            den: v("quirofanos") * daysInPeriod,
+            result: v("quirofanos")
+              ? v("interv_quirurgicas") / v("quirofanos") / daysInPeriod
+              : 0,
+          },
+          {
+            no: 13,
+            indicador: "% de cirugías suspendidas",
+            formula: "(Cirugías suspendidas / Cirugías programadas) × 100",
+            num: v("cirugias_suspendidas"),
+            den: v("cirugias_programadas"),
+            result: v("cirugias_programadas")
+              ? (v("cirugias_suspendidas") / v("cirugias_programadas")) * 100
+              : 0,
+          },
+          {
+            no: 14,
+            indicador: "% de cirugías ambulatorias",
+            formula:
+              "(Cirugías ambulatorias / Intervenciones realizadas) × 100",
+            num: v("cirugias_ambulatorias"),
+            den: v("interv_realizadas"),
+            result: v("interv_realizadas")
+              ? (v("cirugias_ambulatorias") / v("interv_realizadas")) * 100
+              : 0,
+          },
+        ];
+
+        // 3. Proceso
+        const procIndicadores = [
+          {
+            no: 15,
+            indicador: "Promedio diario de egresos",
+            formula: "Egresos totales / días del mes",
+            num: v("egresos_totales"),
+            den: daysInPeriod,
+            result: v("egresos_totales") / daysInPeriod,
+          },
+          {
+            no: 16,
+            indicador: "Promedio diario de urgencias",
+            formula: "Urgencias totales / días del mes",
+            num: v("urgencias_totales"),
+            den: daysInPeriod,
+            result: v("urgencias_totales") / daysInPeriod,
+          },
+          {
+            no: 17,
+            indicador: "Promedio diario de urgencias pediátricas",
+            formula: "Urgencias pediátricas / días del mes",
+            num: v("urgencias_pediatricas"),
+            den: daysInPeriod,
+            result: v("urgencias_pediatricas") / daysInPeriod,
+          },
+          {
+            no: 18,
+            indicador: "Promedio diario de urgencias adulto",
+            formula: "Urgencias adulto / días del mes",
+            num: v("urgencias_adulto"),
+            den: daysInPeriod,
+            result: v("urgencias_adulto") / daysInPeriod,
+          },
+          {
+            no: 19,
+            indicador: "Intervalo de sustitución",
+            formula: "(Días cama - Días paciente) / Egresos totales",
+            num: v("dias_cama") - v("dias_paciente"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("dias_cama") - v("dias_paciente")) / v("egresos_totales")
+              : 0,
+          },
+          {
+            no: 20,
+            indicador: "% de egreso hospitalario de corta estancia",
+            formula: "(Egresos corta estancia / Egresos totales) × 100",
+            num: v("egresos_corta_estancia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("egresos_corta_estancia") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 21,
+            indicador: "% de ocupación hospitalaria",
+            formula: "(Días paciente / (Camas × días del mes)) × 100",
+            num: v("dias_paciente"),
+            den: v("camas_censables") * daysInPeriod,
+            result: v("camas_censables")
+              ? (v("dias_paciente") / (v("camas_censables") * daysInPeriod)) * 100
+              : 0,
+          },
+          {
+            no: 22,
+            indicador: "Promedio de días de estancia",
+            formula: "Días paciente / Egresos totales",
+            num: v("dias_paciente"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? v("dias_paciente") / v("egresos_totales")
+              : 0,
+          },
+          {
+            no: 23,
+            indicador: "Índice de rotación",
+            formula: "Egresos totales / Camas censables",
+            num: v("egresos_totales"),
+            den: v("camas_censables"),
+            result: v("camas_censables")
+              ? v("egresos_totales") / v("camas_censables")
+              : 0,
+          },
+          {
+            no: 24,
+            indicador: "Motivo de egreso hospitalario (%)",
+            formula: "(Causas de egreso / Egresos totales) × 100",
+            num: v("causas_egreso"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("causas_egreso") / v("egresos_totales")) * 100
+              : 0,
+          },
+        ];
+
+        // 4. Seguridad del Paciente
+        const segIndicadores = [
+          {
+            no: 25,
+            indicador: "% de Infecciones Nosocomiales",
+            formula: "(Infecciones / Egresos totales) × 100",
+            num:
+              v("iaas_cirugia") +
+              v("iaas_pediatria") +
+              v("iaas_ucin") +
+              v("iaas_gineco") +
+              v("iaas_ucia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? ((v("iaas_cirugia") +
+                  v("iaas_pediatria") +
+                  v("iaas_ucin") +
+                  v("iaas_gineco") +
+                  v("iaas_ucia")) /
+                  v("egresos_totales")) *
+                100
+              : 0,
+          },
+          {
+            no: 26,
+            indicador: "% de Infección Nosocomial en Cirugía",
+            formula: "(Infecciones Cirugía / Egresos totales) × 100",
+            num: v("iaas_cirugia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_cirugia") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 27,
+            indicador: "% de Infección Nosocomial en Pediatría",
+            formula: "(Infecciones Pediatría / Egresos totales) × 100",
+            num: v("iaas_pediatria"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_pediatria") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 28,
+            indicador: "% de Infección Nosocomial en UCIN",
+            formula: "(Infecciones UCIN / Egresos totales) × 100",
+            num: v("iaas_ucin"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_ucin") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 29,
+            indicador: "% de Infección Nosocomial en Ginecobstetricia",
+            formula: "(Infecciones Gineco / Egresos totales) × 100",
+            num: v("iaas_gineco"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_gineco") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 30,
+            indicador: "% de Infección Nosocomial en UCIA",
+            formula: "(Infecciones UCIA / Egresos totales) × 100",
+            num: v("iaas_ucia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? (v("iaas_ucia") / v("egresos_totales")) * 100
+              : 0,
+          },
+          {
+            no: 31,
+            indicador:
+              "% de Infecciones Asociadas a la Atención en Salud (IAAS)",
+            formula: "(Total IAAS / Egresos totales) × 100",
+            num:
+              v("iaas_cirugia") +
+              v("iaas_pediatria") +
+              v("iaas_ucin") +
+              v("iaas_gineco") +
+              v("iaas_ucia"),
+            den: v("egresos_totales"),
+            result: v("egresos_totales")
+              ? ((v("iaas_cirugia") +
+                  v("iaas_pediatria") +
+                  v("iaas_ucin") +
+                  v("iaas_gineco") +
+                  v("iaas_ucia")) /
+                  v("egresos_totales")) *
+                100
+              : 0,
+          },
+          {
+            no: 32,
+            indicador: "Tasa de Infección en sitio quirúrgico",
+            formula: "Infecciones sitio quirúrgico / Intervenciones realizadas",
+            num: v("infeccion_sitio_quir"),
+            den: v("interv_realizadas"),
+            result: v("interv_realizadas")
+              ? v("infeccion_sitio_quir") / v("interv_realizadas")
+              : 0,
+          },
+          {
+            no: 33,
+            indicador: "Tasa de Bacteriemia asociada a Catéter Venoso Central",
+            formula: "Bacteriemias / Días catéter central",
+            num: v("bacteriemias_cateter"),
+            den: v("dias_cateter"),
+            result: v("dias_cateter")
+              ? v("bacteriemias_cateter") / v("dias_cateter")
+              : 0,
+          },
+          {
+            no: 34,
+            indicador: "Tasa de Neumonías Asociadas a Ventilador",
+            formula: "Neumonías / Días ventilador",
+            num: v("neumonias_ventilador"),
+            den: v("dias_ventilador"),
+            result: v("dias_ventilador")
+              ? v("neumonias_ventilador") / v("dias_ventilador")
+              : 0,
+          },
+          {
+            no: 35,
+            indicador:
+              "Tasa de Infección de Vías Urinarias asociada a sonda vesical",
+            formula: "Infecciones sonda / Días sonda",
+            num: v("infecciones_sonda"),
+            den: v("dias_sonda"),
+            result: v("dias_sonda")
+              ? v("infecciones_sonda") / v("dias_sonda")
+              : 0,
+          },
+        ];
+
+        // 5. Salud Reproductiva y Materno Infantil
+        const srmiIndicadores = [
+          {
+            no: 36,
+            indicador: "Promedio de consultas prenatales",
+            formula: "Consultas prenatales / Prenatales primera vez",
+            num: v("consultas_prenatal"),
+            den: v("prenatal_primera_vez"),
+            result: v("prenatal_primera_vez")
+              ? v("consultas_prenatal") / v("prenatal_primera_vez")
+              : 0,
+          },
+          {
+            no: 37,
+            indicador: "% de embarazadas captadas en el primer trimestre",
+            formula: "(Captadas 1er trim / Total consultas embarazo) × 100",
+            num: v("embarazadas_1er_trim"),
+            den: v("consultas_embarazo"),
+            result: v("consultas_embarazo")
+              ? (v("embarazadas_1er_trim") / v("consultas_embarazo")) * 100
+              : 0,
+          },
+          {
+            no: 38,
+            indicador: "% de partos por cesárea",
+            formula: "(Cesáreas / Partos atendidos) × 100",
+            num: v("partos_cesarea"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_cesarea") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 39,
+            indicador: "% de partos eutócicos",
+            formula: "(Partos espontáneos / Partos atendidos) × 100",
+            num: v("partos_espontaneos"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_espontaneos") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 40,
+            indicador: "% de partos distócicos",
+            formula: "(Partos asistidos / Partos atendidos) × 100",
+            num: v("partos_asistidos"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_asistidos") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 41,
+            indicador: "Razón de morbilidad materna severa",
+            formula: "(Mujeres con complicaciones / Nacidos vivos) × 100",
+            num: v("mujeres_complicaciones"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("mujeres_complicaciones") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+          {
+            no: 42,
+            indicador: "% de trauma obstétrico",
+            formula: "(Trauma obstétrico / Partos atendidos) × 100",
+            num: v("partos_trauma"),
+            den: v("partos_atendidos"),
+            result: v("partos_atendidos")
+              ? (v("partos_trauma") / v("partos_atendidos")) * 100
+              : 0,
+          },
+          {
+            no: 43,
+            indicador: "% de nacidos vivos pequeños para la edad gestacional",
+            formula: "(Peso < percentil 10 / Nacidos vivos) × 100",
+            num: v("nacidos_p10"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("nacidos_p10") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+          {
+            no: 44,
+            indicador: "% de nacidos vivos grandes para la edad gestacional",
+            formula: "(Peso > percentil 90 / Nacidos vivos) × 100",
+            num: v("nacidos_p90"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("nacidos_p90") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+          {
+            no: 45,
+            indicador: "% de nacidos vivos con bajo peso",
+            formula: "(Peso < 2500g / Nacidos vivos) × 100",
+            num: v("nacidos_menos_2500"),
+            den: v("nacidos_vivos"),
+            result: v("nacidos_vivos")
+              ? (v("nacidos_menos_2500") / v("nacidos_vivos")) * 100
+              : 0,
+          },
+        ];
+
+        // 6. Auxiliares de Diagnóstico y Tratamiento
+        const adtIndicadores = [
+          {
+            no: 46,
+            indicador: "% de exámenes de laboratorio en consulta externa",
+            formula: "(Lab CE / Lab total) × 100",
+            num: v("lab_ce"),
+            den: v("lab_total"),
+            result: v("lab_total") ? (v("lab_ce") / v("lab_total")) * 100 : 0,
+          },
+          {
+            no: 47,
+            indicador: "% de exámenes de laboratorio en hospitalización",
+            formula: "(Lab Hospitalización / Lab total) × 100",
+            num: v("lab_hosp"),
+            den: v("lab_total"),
+            result: v("lab_total") ? (v("lab_hosp") / v("lab_total")) * 100 : 0,
+          },
+          {
+            no: 48,
+            indicador: "% de exámenes de laboratorio en urgencias",
+            formula: "(Lab Urgencias / Lab total) × 100",
+            num: v("lab_urgencias"),
+            den: v("lab_total"),
+            result: v("lab_total")
+              ? (v("lab_urgencias") / v("lab_total")) * 100
+              : 0,
+          },
+          {
+            no: 49,
+            indicador: "% de estudios de radiología en consulta externa",
+            formula: "(Rx CE / Rx total) × 100",
+            num: v("rx_ce"),
+            den: v("rx_total"),
+            result: v("rx_total") ? (v("rx_ce") / v("rx_total")) * 100 : 0,
+          },
+          {
+            no: 50,
+            indicador: "% de estudios de radiología en hospitalización",
+            formula: "(Rx Hospitalización / Rx total) × 100",
+            num: v("rx_hosp"),
+            den: v("rx_total"),
+            result: v("rx_total") ? (v("rx_hosp") / v("rx_total")) * 100 : 0,
+          },
+          {
+            no: 51,
+            indicador: "% de estudios de radiología en urgencias",
+            formula: "(Rx Urgencias / Rx total) × 100",
+            num: v("rx_urgencias"),
+            den: v("rx_total"),
+            result: v("rx_total")
+              ? (v("rx_urgencias") / v("rx_total")) * 100
+              : 0,
+          },
+        ];
+
+        const secciones = [
+          { titulo: "1. Recursos Humanos", data: rhIndicadores },
+          { titulo: "2. Productividad", data: prodIndicadores },
+          {
+            titulo: "3. Proceso (Egresos, Urgencias, Ocupación)",
+            data: procIndicadores,
+          },
+          { titulo: "4. Seguridad del Paciente", data: segIndicadores },
+          {
+            titulo: "5. Salud Reproductiva y Materno Infantil",
+            data: srmiIndicadores,
+          },
+          {
+            titulo: "6. Auxiliares de Diagnóstico y Tratamiento",
+            data: adtIndicadores,
+          },
+        ];
+
+        let html = "";
+
+        secciones.forEach((seccion) => {
+          html += `<h3 class="section-title">${seccion.titulo}</h3>`;
+          html += `
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th class="col-num">No</th>
+              <th class="col-indicador">Indicador</th>
+              <th class="col-formula">Fórmula</th>
+              <th class="col-numerador">Numerador</th>
+              <th class="col-denominador">Denominador</th>
+              <th class="col-resultado">Resultado</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+
+          seccion.data.forEach((item) => {
+            const resultado =
+              Number.isFinite(item.num) && Number.isFinite(item.den) && Number.isFinite(item.result)
+                ? item.result.toFixed(4)
+                : "N/D";
+            const numDisplay = Number.isFinite(item.num) ? item.num.toFixed(0) : "N/D";
+            const denDisplay = Number.isFinite(item.den) ? item.den.toFixed(0) : "N/D";
+
+            html += `
+          <tr>
+            <td class="col-num">${item.no}</td>
+            <td class="col-indicador">${item.indicador}</td>
+            <td class="col-formula">${item.formula}</td>
+            <td class="col-numerador">${numDisplay}</td>
+            <td class="col-denominador">${denDisplay}</td>
+            <td class="col-resultado">${resultado}</td>
+          </tr>
+        `;
+          });
+
+          html += `
+          </tbody>
+        </table>
+      `;
+        });
+
+        return html;
+      }
+
+      // ============================================================
+      // IMPRIMIR INFORME
+      // ============================================================
+function generarTablaProcedencia(){
+ const p=currentPeriod();
+ const items=allFields.map((field,index)=>{
+  const record=getRecord(field,p),missing=missingParts(record),status=statusOf(record);
+  return {field,index,record,missing,status};
+ });
+ let html='<section class="report-provenance"><h3 class="section-title">7. Trazabilidad y procedencia de las cifras</h3><p style="font-size:10px;color:#526474;margin:0 0 10px">Detalle de los valores guardados, su fuente declarada, fecha de actualización y estado de revisión. La fuente registrada no implica validación automática del documento.</p><table class="report-table"><thead><tr><th>No.</th><th>Indicador / variable</th><th>Valor guardado</th><th>Fuente declarada</th><th>Última actualización</th><th>Estado</th><th>Pendiente por resolver</th></tr></thead><tbody>';
+ items.forEach(({field,index,record,missing,status})=>{
+  const value=record&&record.value!==""&&record.value!==null&&record.value!==undefined?String(record.value):"N/D";
+  const date=record?.updatedAt?new Date(record.updatedAt).toLocaleString("es-MX"):"Sin cambios guardados";
+  const state=status==="resolved"?"Resuelto":status==="review"?"En revisión":"Pendiente";
+  html+='<tr><td class="col-num">'+(index+1)+'</td><td>'+esc(field.label)+'<br><small style="color:#718092">'+esc(field.id)+'</small></td><td class="col-resultado">'+esc(value)+'</td><td class="source-cell">'+esc(record?.source||"No registrada")+'</td><td>'+esc(date)+'</td><td>'+esc(state)+'</td><td>'+esc(missing.length?missing.join(", "):"Ninguno")+'</td></tr>';
+ });
+ html+='</tbody></table></section>';
+ return html;
+}
+function generarInforme(){
+ const period=periodLabel(currentPeriod());
+ const reportInputs=["medicos_ce","medicos_hosp","medicos_admin","enf_ce","enf_hosp","enf_admin","consultorios","camas_censables","consultas_totales","consultas_externas","consultas_especialidad","total_especialistas","total_residentes","consultas_odonto","total_odontologos","interv_quirurgicas","quirofanos","cirugias_suspendidas","cirugias_programadas","cirugias_ambulatorias","interv_realizadas","egresos_totales","urgencias_totales","urgencias_pediatricas","urgencias_adulto","dias_cama","dias_paciente","egresos_corta_estancia","causas_egreso","iaas_cirugia","iaas_pediatria","iaas_ucin","iaas_gineco","iaas_ucia","infeccion_sitio_quir","bacteriemias_cateter","dias_cateter","neumonias_ventilador","dias_ventilador","infecciones_sonda","dias_sonda","consultas_prenatal","prenatal_primera_vez","embarazadas_1er_trim","consultas_embarazo","partos_cesarea","partos_atendidos","partos_espontaneos","partos_asistidos","mujeres_complicaciones","nacidos_vivos","partos_trauma","nacidos_p10","nacidos_p90","nacidos_menos_2500","lab_ce","lab_total","lab_hosp","lab_urgencias","rx_ce","rx_total","rx_hosp","rx_urgencias"];
+ const present=reportInputs.filter(id=>Number.isFinite(getReportValue(id))).length;
+ if(!present){toast("No hay valores guardados para "+period+". No se generó el informe.");return;}
+ const missing=reportInputs.length-present;
+ const now=new Date();
+ const resolved=currentItems().filter(x=>x.status==="resolved").length;
+ const total=currentItems().length;
+ const report=$("reportOutput");
+ report.innerHTML='<div id="reportPrint"><div class="report-header"><h1>INFORME DE INDICADORES HOSPITALARIOS</h1><div class="report-meta"><div><strong>Periodo:</strong> '+esc(period)+'</div><div><strong>Generado:</strong> '+esc(now.toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"}))+'</div><div><strong>Hora:</strong> '+esc(now.toLocaleTimeString("es-MX",{hour:"2-digit",minute:"2-digit"}))+'</div></div></div><div class="report-summary"><div class="summary-item"><div class="label">Variables con valor</div><div class="value">'+present+' / '+reportInputs.length+'</div></div><div class="summary-item"><div class="label">Indicadores resueltos</div><div class="value">'+resolved+' / '+total+'</div></div><div class="summary-item"><div class="label">Avance de trazabilidad</div><div class="value">'+(total?Math.round(resolved/total*100):0)+'%</div></div></div>'+(missing?'<div class="report-warning">ATENCIÓN: '+missing+' de las variables requeridas para los cálculos no tienen un valor numérico guardado en este periodo. Se muestran como “N/D” cuando afectan el cálculo; no se deben interpretar como cero.</div>':'')+generarTablaIndicadores()+generarTablaProcedencia()+'<div class="report-footer"><span>HRPV · Estadísticas y Archivo Clínico</span><span>Documento generado desde Procedencia de cifras</span></div></div>';
+ $("reportPanel").hidden=false;
+ $("reportPanel").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function printGeneratedReport(){
+ const content=$("reportPrint");if(!content){toast("Genera primero el informe.");return;}
+ const win=window.open("","_blank","width=1200,height=850");
+ if(!win){toast("Permite las ventanas emergentes para imprimir el informe.");return;}
+ const css=[...document.querySelectorAll("style")].map(x=>x.textContent).join("\n");
+ win.document.open();
+ win.document.write('<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Informe de Indicadores</title><style>'+css+'body{background:#fff!important;color:#1a2a3a;font-family:Arial,sans-serif;padding:18px}.report-container{border:0;padding:0}.report-table{min-width:0!important;width:100%;font-size:8pt}.report-table th{background:#0a2a44!important;color:#fff!important;print-color-adjust:exact;-webkit-print-color-adjust:exact}@page{size:letter landscape;margin:1.2cm}@media print{body{padding:0}.report-table{break-inside:auto}.report-table tr{break-inside:avoid}.report-table thead{display:table-header-group}}</style></head><body>'+content.outerHTML+'</body></html>');
+ win.document.close();win.focus();setTimeout(()=>win.print(),300);
+}
+function exportGeneratedWord(){
+ const content=$("reportPrint");if(!content){toast("Genera primero el informe.");return;}
+ const p=currentPeriod();
+ const html='<!doctype html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Informe de Indicadores</title><style>body{font-family:Calibri,Arial,sans-serif;font-size:9pt;color:#1a2a3a}h1{text-align:center;color:#0a2a44;font-size:18pt}.report-meta{text-align:center;margin-bottom:16px}.section-title{background:#e8edf4;color:#0a2a44;padding:6px;border-left:4px solid #1a73e8}table{width:100%;border-collapse:collapse;font-size:8pt;margin-bottom:12px}th{background:#0a2a44;color:white;padding:5px;border:1px solid #0a2a44}td{padding:4px;border:1px solid #cbd5df}.report-summary{background:#e8edf4;padding:8px}.report-footer{margin-top:15px;color:#687887}</style></head><body>'+content.outerHTML+'</body></html>';
+ const blob=new Blob([html],{type:"application/msword;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+ link.href=url;link.download="Informe_Indicadores_"+p.year+"_"+String(p.month).padStart(2,"0")+".doc";link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+function exportGeneratedCSV(){
+ const content=$("reportPrint");if(!content){toast("Genera primero el informe.");return;}
+ const tables=[...content.querySelectorAll("table")];
+ const csvCell=value=>'"'+String(value??"").replace(/"/g,'""')+'"';
+ const lines=[];
+ tables.forEach((table,idx)=>{
+  if(idx)lines.push("");
+  const section=table.previousElementSibling?.textContent?.trim();
+  if(section)lines.push(csvCell(section));
+  table.querySelectorAll("tr").forEach(row=>lines.push([...row.querySelectorAll("th,td")].map(cell=>csvCell(cell.innerText.trim())).join(",")));
+ });
+ const p=currentPeriod(),blob=new Blob(["\uFEFF"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");
+ link.href=url;link.download="Informe_Indicadores_"+p.year+"_"+String(p.month).padStart(2,"0")+".csv";link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+}
+
+async function loadAuditHistory(record,field,p){
+ const box=$("auditContent");box.replaceChildren();
+ if(!record?.id){box.innerHTML='<div class="console-empty">[INFO] La ficha aún no tiene un registro guardado en la base de datos.</div>';return;}
+ box.innerHTML='<div class="console-empty">[QUERY] Consultando eventos registrados por el servidor…</div>';
+ try{
+  const {data,error}=await window.__hrpvSupabase.from("procedencia_cifras_hrpv_audit").select("evento,actor_uid,ocurrido_en,antes,despues").eq("registro_id",record.id).order("ocurrido_en",{ascending:false}).limit(30);
+  if(error)throw error;
+  box.replaceChildren();
+  if(!data?.length){box.innerHTML='<div class="console-empty">[INFO] No hay eventos de auditoría para esta ficha desde que se instaló la bitácora.</div>';return;}
+  const wrap=document.createElement("div");wrap.className="console-wrap";
+  const table=document.createElement("table");table.className="console-table";
+  table.innerHTML='<thead><tr><th>Fecha / hora</th><th>Evento</th><th>Actor UID</th><th>Valor anterior</th><th>Valor nuevo</th><th>Fuente anterior → nueva</th><th>Revisión anterior → nueva</th><th>Nota anterior → nueva</th></tr></thead><tbody></tbody>';
+  const tbody=table.querySelector("tbody");
+  data.forEach(event=>{
+   const before=event.antes||{},after=event.despues||{};
+   const oldVal=before.valor===null||before.valor===undefined?"vacío":String(before.valor);
+   const newVal=after.valor===null||after.valor===undefined?"vacío":String(after.valor);
+   const tr=document.createElement("tr");
+   const cells=[
+    {value:new Date(event.ocurrido_en).toLocaleString("es-MX"),cls:"console-date"},
+    {value:event.evento||"N/D",cls:"console-event"},
+    {value:event.actor_uid||"No disponible",cls:"console-actor"},
+    {value:oldVal,cls:"console-old"},
+    {value:newVal,cls:"console-new"},
+    {value:(before.fuente||"vacía")+" → "+(after.fuente||"vacía"),cls:"console-source"},
+    {value:(before.verificado?"Confirmada":"Pendiente")+" → "+(after.verificado?"Confirmada":"Pendiente"),cls:after.verificado?"console-ok":"console-pending"},
+    {value:(before.nota||"vacía")+" → "+(after.nota||"vacía"),cls:"console-note"}
+   ];
+   cells.forEach(cell=>{const td=document.createElement("td");td.className=cell.cls;td.textContent=cell.value;tr.append(td)});
+   tbody.append(tr);
+  });
+  wrap.append(table);box.append(wrap);
+ }catch(err){box.innerHTML='<div class="console-empty">[ERROR] No se pudo consultar la bitácora: '+esc(err?.message||"error de conexión")+'</div>';}
+}
+function openModal(fieldId){
+ const field=fieldFor(fieldId);if(!field)return;const p=currentPeriod();const key=recordKey(field,p);const record=records.find(r=>r.key===key)||null;
+ activeKey=key;activeIndex=allFields.findIndex(f=>f.id===fieldId);
+ $("modalCategory").textContent=field.category;$("modalTitle").textContent=field.label;$("modalPeriod").textContent=periodLabel(p)+" · "+field.id;$("modalSequence").textContent="Indicador "+(activeIndex+1)+" de "+allFields.length+" · Zona "+(field.categoryIndex+1);
+ $("detailValue").value=record?.value??"";$("detailSource").value=record?.source??"";$("detailFile").value="";$("detailFileStatus").textContent=record?.source?"Referencia guardada: "+record.source+". Para cambiarla, selecciona otro archivo.":"Ningún archivo seleccionado.";$("detailFileStatus").dataset.selected=record?.source?"true":"false";$("detailNote").value=record?.note??"";$("detailVerified").checked=Boolean(record?.verified);
+ $("historyContent").replaceChildren();
+  const history=record?.history||[];
+  if(!history.length){$("historyContent").innerHTML='<div class="console-empty">[INFO] Todavía no hay cambios guardados para este indicador y periodo.</div>'}
+  else{
+   const wrap=document.createElement("div");wrap.className="console-wrap";
+   const table=document.createElement("table");table.className="console-table";
+   table.innerHTML='<thead><tr><th>Fecha / hora</th><th>Movimiento registrado</th></tr></thead><tbody></tbody>';
+   const tbody=table.querySelector("tbody");
+   history.slice().reverse().forEach(h=>{
+    const tr=document.createElement("tr"),date=document.createElement("td"),summary=document.createElement("td");
+    date.className="console-date";date.textContent=h.at?new Date(h.at).toLocaleString("es-MX"):"Fecha no disponible";
+    summary.className="console-new";summary.textContent=h.summary||"Cambio sin descripción";
+    tr.append(date,summary);tbody.append(tr);
+   });
+   wrap.append(table);$("historyContent").append(wrap);
+  }
+  updateModalStatus();$("previousBtn").disabled=activeIndex<=0;$("nextBtn").disabled=activeIndex>=allFields.length-1;
+ if(!$("detailModal").open)$("detailModal").showModal();
+ loadAuditHistory(record,field,p);
+}
+function updateModalStatus(){
+ const draft={value:$("detailValue").value,source:$("detailSource").value,note:$("detailNote").value,verified:$("detailVerified").checked};
+ const checks=[
+  {id:"checkValue",complete:draft.value!==""&&draft.value!==null&&draft.value!==undefined},
+  {id:"checkSource",complete:Boolean(draft.source.trim())},
+  {id:"checkVerified",complete:draft.verified}
+ ];
+ checks.forEach(check=>{
+  const row=$(check.id);row.classList.toggle("complete",check.complete);
+  row.querySelector(".check-icon").textContent=check.complete?"✓":"○";
+  row.querySelector(".check-state").textContent=check.complete?"Completo":"Pendiente";
+ });
+ const missing=missingParts(draft);const status=missing.length===0?"resolved":(missing.includes("valor")||missing.includes("archivo de procedencia")?"pending":"review");
+ $("modalStatus").className="status "+(status==="resolved"?"done":status==="review"?"review":"pending");$("modalStatus").textContent=status==="resolved"?"Resuelto":status==="review"?"En revisión":"Pendiente";
+ $("missingHint").textContent=status==="resolved"?"Completo: valor, fuente declarada y confirmación de revisión registrados.":("Para resolverlo falta: "+missing.join(", ")+".");
+}
+async function saveModal(e){
+ if(e)e.preventDefault();if(!activeKey)return;
+ if(!dbReady){toast("La conexión segura no está lista. No se guardó la ficha.");return;}
+ if(!(await ensurePeriodOpen("guardar esta ficha")))return;
+ const field=allFields[activeIndex],p=currentPeriod(),old=records.find(r=>r.key===activeKey);
+ const value=$("detailValue").value.trim(),source=$("detailSource").value.trim(),note=$("detailNote").value.trim(),verified=$("detailVerified").checked;
+ const snapshot={value,source,note,verified,at:new Date().toISOString()};
+ const changed=!old||old.value!==value||old.source!==source||old.note!==note||Boolean(old.verified)!==verified;
+ const history=(old?.history||[]).slice();
+ if(changed)history.push({at:snapshot.at,summary:(old?"Actualización":"Registro inicial")+" · valor "+(old?.value??"vacío")+" → "+(value===""?"vacío":value)+" · fuente "+(source?"registrada":"vacía")+(verified?" · revisión confirmada":"")});
+ const next={key:activeKey,year:p.year,month:p.month,indicator:field.id,label:field.label,category:field.category,value,source,note,verified,updatedAt:changed?snapshot.at:(old?.updatedAt||snapshot.at),history};
+ try{
+  const {data:saved,error}=await window.__hrpvSupabase.from("procedencia_cifras_hrpv").upsert(recordToRow(next,window.__hrpvUserId),{onConflict:"anio,mes,indicador_id"}).select("id").single();
+  if(error)throw error;
+  next.id=saved.id;
+  if(old)records=records.map(r=>r.key===activeKey?next:r);else records.push(next);
+  persist();render();updateModalStatus();const categoryItems=currentItems().filter(x=>x.field.categoryIndex===field.categoryIndex);const categoryComplete=categoryItems.length>0&&categoryItems.every(x=>x.status==="resolved");toast(categoryComplete?"Categoría completa. Todos sus indicadores están resueltos.":statusOf(next)==="resolved"?"Indicador resuelto y guardado. Buen avance.":"Ficha guardada. Pendiente: "+missingParts(next).join(", ")+".");$("detailModal").close();
+ }catch(err){toast("No se guardó en Supabase: "+(err?.message||"error de conexión"));}
+}
+const initialDate=new Date(),defaultPeriod=new Date(initialDate.getFullYear(),initialDate.getMonth()-1,1);$("month").value=String(defaultPeriod.getMonth()+1);$("year").value=String(defaultPeriod.getFullYear());
+$("detailForm").addEventListener("submit",saveModal);
+["detailValue","detailSource","detailNote","detailVerified"].forEach(id=>$(id).addEventListener("input",updateModalStatus));
+$("detailVerified").addEventListener("change",updateModalStatus);
+$("closeModal").addEventListener("click",()=>$("detailModal").close());
+$("previousBtn").addEventListener("click",()=>{if(activeIndex>0)openModal(allFields[activeIndex-1].id)});
+$("nextBtn").addEventListener("click",()=>{if(activeIndex<allFields.length-1)openModal(allFields[activeIndex+1].id)});
+document.querySelectorAll("[data-view]").forEach(b=>b.addEventListener("click",()=>{viewMode=b.dataset.view;render()}));
+
+function syncCompendiumLink(){const link=$("printCompendiumLink");if(link)link.href="../indicadores/compendio-captura.html?mes="+encodeURIComponent($("month").value)+"&anio="+encodeURIComponent($("year").value)}
+ $("month").addEventListener("change",()=>{syncCompendiumLink();render();refreshPeriodClosure()});$("year").addEventListener("change",()=>{syncCompendiumLink();render();refreshPeriodClosure()});$("periodClosureAction").addEventListener("click",managePeriodClosure);$("periodHistoryToggle").addEventListener("click",()=>{const panel=$("periodHistoryPanel");if(panel.hidden)loadPeriodClosureHistory();else panel.hidden=true;});$("search").addEventListener("input",render);
+
+$("generateReport").addEventListener("click",generarInforme);
+$("printReport").addEventListener("click",printGeneratedReport);
+$("wordReport").addEventListener("click",exportGeneratedWord);
+$("csvReport").addEventListener("click",exportGeneratedCSV);
+$("hideReport").addEventListener("click",()=>{$("reportPanel").hidden=true});
+
+$("collapseAll").addEventListener("click",()=>{const sections=[...document.querySelectorAll(".category")],allOpen=sections.length>0&&sections.every(s=>s.classList.contains("open"));sections.forEach(s=>{s.classList.toggle("open",!allOpen);s.querySelector(".cat-toggle").setAttribute("aria-expanded",String(!allOpen))});$("collapseAll").textContent=allOpen?"Abrir categorías":"Cerrar categorías"});
+$("detailModal").addEventListener("click",e=>{if(e.target===$("detailModal"))$("detailModal").close()});
+await window.__hrpvAuthReady;
+syncCompendiumLink();
+try{
+ await initializeSupabaseRecords();
+
+ await refreshPeriodClosure();
+ render();
+
+}
+catch(err){
+ dbReady=false;
+ render();
+
+ console.error("Procedencia HRPV:",err);
+}
+
+</script>
+<script>
+(async function cargarFooterCompartido(){
+  try{
+    const response=await fetch("/comun/footer.html",{cache:"no-cache"});
+    if(!response.ok)throw new Error("HTTP "+response.status);
+    const html=await response.text();
+    const template=document.createElement("template");
+    template.innerHTML=html;
+    const footer=template.content.querySelector("footer");
+    const main=document.querySelector("main");
+    if(!footer||!main)throw new Error("No se encontró el elemento footer o main");
+    footer.classList.add("hrpv-shared-footer");
+    const year=footer.querySelector("#footerYear");
+    if(year)year.textContent=String(new Date().getFullYear());
+    main.appendChild(footer);
+  }catch(error){console.warn("No fue posible cargar el pie institucional compartido:",error);}
+})();
+</script>
+</body>
+</html>
