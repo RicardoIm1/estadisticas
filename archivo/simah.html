@@ -219,6 +219,32 @@
         cursor: pointer;
       }
 
+      .card-footer {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        margin-top: 8px;
+        padding-top: 7px;
+        border-top: 1px solid rgba(255, 255, 255, 0.07);
+        color: rgba(255, 255, 255, 0.38);
+        font-size: 10px;
+        line-height: 1.2;
+        letter-spacing: 0.25px;
+        font-variant-numeric: tabular-nums;
+        user-select: text;
+      }
+
+      .card-footer .record-id-label {
+        opacity: 0.7;
+        margin-right: 5px;
+        font-weight: 400;
+      }
+
+      .card-footer,
+      .card-footer * {
+        font-weight: 400 !important;
+      }
+
       .card:hover {
         transform: translateY(-3px);
         background: rgba(255, 255, 255, 0.12);
@@ -257,7 +283,7 @@
       }
 
       /* ===== ESTADOS ===== */
-      .estado-defuncion {
+      .estado-difunto {
         color: #ff4444 !important;
         font-weight: bold !important;
       }
@@ -265,11 +291,11 @@
         color: #00ff89 !important;
         font-weight: bold !important;
       }
-      .estado-inactivo {
+      .estado-pasivo {
         color: #ff9900 !important;
         font-weight: bold !important;
       }
-      .estado-alta {
+      .estado-depurado {
         color: #4a9eff !important;
         font-weight: bold !important;
       }
@@ -396,13 +422,13 @@
       .stat-mini.activo .number {
         color: #00ff89;
       }
-      .stat-mini.inactivo .number {
+      .stat-mini.pasivo .number {
         color: #ff9900;
       }
-      .stat-mini.defuncion .number {
+      .stat-mini.difunto .number {
         color: #ff4444;
       }
-      .stat-mini.alta .number {
+      .stat-mini.depurado .number {
         color: #4a9eff;
       }
 
@@ -1007,17 +1033,17 @@
             <span class="number" id="activoCount">0</span>
             <span class="label">Act</span>
           </div>
-          <div class="stat-mini inactivo">
-            <span class="number" id="inactivoCount">0</span>
-            <span class="label">Ina</span>
+          <div class="stat-mini pasivo">
+            <span class="number" id="pasivoCount">0</span>
+            <span class="label">Pas</span>
           </div>
-          <div class="stat-mini defuncion">
-            <span class="number" id="defuncionCount">0</span>
-            <span class="label">Def</span>
+          <div class="stat-mini difunto">
+            <span class="number" id="difuntoCount">0</span>
+            <span class="label">Dif</span>
           </div>
-          <div class="stat-mini alta">
-            <span class="number" id="altaCount">0</span>
-            <span class="label">Alta</span>
+          <div class="stat-mini depurado">
+            <span class="number" id="depuradoCount">0</span>
+            <span class="label">Dep</span>
           </div>
         </div>
 
@@ -1104,9 +1130,9 @@
                 <label>Estado</label>
                 <select id="estado">
                   <option value="Activo">Activo</option>
-                  <option value="Inactivo">Inactivo</option>
-                  <option value="Defunción">Defunción</option>
-                  <option value="Alta">Alta</option>
+                  <option value="Pasivo">Pasivo</option>
+                  <option value="Difunto">Difunto</option>
+                  <option value="Depurado">Depurado</option>
                 </select>
               </div>
             </div>
@@ -1429,27 +1455,26 @@
             .select("*", { count: "exact", head: true })
             .ilike("estado", "Activo");
 
-          const { count: inactivos } = await sb
+          const { count: pasivos } = await sb
             .from("expedientes")
             .select("*", { count: "exact", head: true })
-            .ilike("estado", "Inactivo");
+            .in("estado", ["Pasivo", "Inactivo"]);
 
-          const { count: defunciones } = await sb
+          const { count: difuntos } = await sb
             .from("expedientes")
             .select("*", { count: "exact", head: true })
-            .ilike("estado", "Defunción");
+            .in("estado", ["Difunto", "Defunción", "Defuncion"]);
 
-          const { count: altas } = await sb
+          const { count: depurados } = await sb
             .from("expedientes")
             .select("*", { count: "exact", head: true })
-            .ilike("estado", "Alta");
+            .ilike("estado", "Depurado");
 
           document.getElementById("totalCount").textContent = total || 0;
           document.getElementById("activoCount").textContent = activos || 0;
-          document.getElementById("inactivoCount").textContent = inactivos || 0;
-          document.getElementById("defuncionCount").textContent =
-            defunciones || 0;
-          document.getElementById("altaCount").textContent = altas || 0;
+          document.getElementById("pasivoCount").textContent = pasivos || 0;
+          document.getElementById("difuntoCount").textContent = difuntos || 0;
+          document.getElementById("depuradoCount").textContent = depurados || 0;
         } catch (error) {
           console.error("Error en estadísticas:", error);
         }
@@ -1620,14 +1645,14 @@
         // Llenar el modal de confirmación con los datos
         const estado = registro.estado || "";
         let estadoClass = "";
-        if (estado === "Defunción" || estado === "DEFUNCION")
-          estadoClass = "estado-defuncion";
-        else if (estado === "Activo" || estado === "ACTIVO")
+        if (["Difunto", "Defunción", "Defuncion"].includes(estado))
+          estadoClass = "estado-difunto";
+        else if (["Activo", "ACTIVO"].includes(estado))
           estadoClass = "estado-activo";
-        else if (estado === "Inactivo" || estado === "INACTIVO")
-          estadoClass = "estado-inactivo";
-        else if (estado === "Alta" || estado === "ALTA")
-          estadoClass = "estado-alta";
+        else if (["Pasivo", "Inactivo", "INACTIVO"].includes(estado))
+          estadoClass = "estado-pasivo";
+        else if (estado === "Depurado")
+          estadoClass = "estado-depurado";
 
         const confirmData = document.getElementById("confirmData");
         confirmData.innerHTML = `
@@ -1718,14 +1743,14 @@
         rows.forEach((r) => {
           const estado = r.estado || "";
           let estadoClass = "";
-          if (estado === "Defunción" || estado === "DEFUNCION")
-            estadoClass = "estado-defuncion";
-          else if (estado === "Activo" || estado === "ACTIVO")
+          if (["Difunto", "Defunción", "Defuncion"].includes(estado))
+            estadoClass = "estado-difunto";
+          else if (["Activo", "ACTIVO"].includes(estado))
             estadoClass = "estado-activo";
-          else if (estado === "Inactivo" || estado === "INACTIVO")
-            estadoClass = "estado-inactivo";
-          else if (estado === "Alta" || estado === "ALTA")
-            estadoClass = "estado-alta";
+          else if (["Pasivo", "Inactivo", "INACTIVO"].includes(estado))
+            estadoClass = "estado-pasivo";
+          else if (estado === "Depurado")
+            estadoClass = "estado-depurado";
 
           cont.innerHTML += `
           <div class="card">
@@ -1744,6 +1769,9 @@
                         style="flex-shrink:0; padding:4px 10px; font-size:12px; background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.5); border:1px solid rgba(255,255,255,0.1); border-radius:6px; cursor:pointer; transition:all 0.2s ease;">
                 <i class="fas fa-trash-alt"></i>
               </button>
+            </div>
+            <div class="card-footer" title="Identificador del registro en la base de datos">
+              <span><span class="record-id-label">ID</span>${r.id}</span>
             </div>
           </div>
         `;
