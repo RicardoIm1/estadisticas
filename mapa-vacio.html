@@ -1,81 +1,263 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mapa</title>
+  <meta name="description" content="Mapa de navegación del portal de Estadísticas y Archivo Clínico del HRPV.">
+  <title>Mapa funcional | Estadísticas y Archivo Clínico HRPV</title>
   <link rel="shortcut icon" href="/img/favicon.ico" type="image/x-icon">
   <link rel="icon" href="/img/favicon.ico" type="image/x-icon">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   <link href="/main_css/estilos.css" rel="stylesheet">
+  <style>
+:root{--map-accent:#7dacbf;--map-line:rgba(255,255,255,.14);--map-muted:rgba(255,255,255,.68)}
+.glass#dashboard{min-height:0;height:80vh}#header,#footer{flex:0 0 auto;min-height:0}
+#mapa-sitio{color:inherit;width:100%;flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:0 .65rem 0 0;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.32) transparent;overscroll-behavior:contain}
+#mapa-sitio::-webkit-scrollbar{width:7px}#mapa-sitio::-webkit-scrollbar-track{background:transparent}#mapa-sitio::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:10px}#mapa-sitio::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.45)}
+.mapa-intro{display:flex;justify-content:space-between;align-items:flex-end;gap:1rem;flex-wrap:wrap;padding:1rem 0 1.25rem;border-bottom:1px solid var(--map-line)}
+.mapa-kicker{color:var(--map-accent);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;margin:0 0 .35rem}
+.mapa-intro h1{font-size:clamp(1.45rem,3vw,2rem);line-height:1.15;margin:0;font-weight:650}.mapa-intro p{color:var(--map-muted);max-width:680px;margin:.55rem 0 0;line-height:1.55;font-size:.92rem}
+.mapa-tools{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap;width:min(100%,430px)}.mapa-search{flex:1 1 220px;min-width:0;position:relative}
+.mapa-search i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--map-muted)}
+.mapa-search input{width:100%;box-sizing:border-box;padding:.75rem .85rem .75rem 2.35rem;border:1px solid var(--map-line);border-radius:12px;background:rgba(255,255,255,.055);color:inherit;outline:none;font:inherit}
+.mapa-search input:focus{border-color:rgba(125,172,191,.7);box-shadow:0 0 0 3px rgba(125,172,191,.1)}.mapa-count{color:var(--map-muted);font-size:.82rem;white-space:nowrap}
+/* Accesos principales: tres piezas de proporción deliberadamente desigual. */
+.mapa-principal{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:clamp(64px,6vw,82px);grid-auto-flow:row;gap:10px;margin:1.25rem 0 1.8rem}
+.mapa-home{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:flex-start;min-width:0;min-height:0;padding:1rem 1.1rem;overflow:hidden;border:0;border-radius:0;color:#fff;text-decoration:none;transition:filter .18s ease,transform .18s ease}
+.mapa-home:nth-child(1){grid-column:span 3;grid-row:span 2;background:#1769aa}.mapa-home:nth-child(2){grid-column:span 3;grid-row:span 1;background:#008272}.mapa-home:nth-child(3){grid-column:span 3;grid-row:span 1;background:#744da9}
+.mapa-home .ico{position:absolute;top:12px;right:14px;width:auto;height:auto;display:block;flex:0 0 auto;border-radius:0;background:transparent;color:rgba(255,255,255,.25);font-size:clamp(2.6rem,4vw,4rem);line-height:1}
+.mapa-home>span:last-child{position:relative;z-index:1;max-width:100%}.mapa-home strong{display:block;color:#fff;font-size:clamp(1rem,1.15vw,1.2rem);font-weight:700;line-height:1.3}
+.mapa-home small{display:block;margin-top:.3rem;color:rgba(255,255,255,.88);font-size:clamp(.82rem,.9vw,.95rem);line-height:1.4}
+.mapa-home:hover,.mapa-link:hover{transform:translateY(-2px);filter:brightness(1.12);z-index:2}
+/* Cada sección forma un mosaico propio. Las piezas pequeñas completan los huecos de las grandes. */
+.mapa-section{margin:1.55rem 0 1.9rem;scroll-margin-top:1rem}.mapa-section-head{display:flex;justify-content:space-between;align-items:center;gap:.8rem;padding-bottom:.7rem;border-bottom:1px solid var(--map-line);margin-bottom:.9rem}
+.mapa-section-head h2{margin:0;font-size:1.08rem;font-weight:650}.mapa-section-head h2 i{margin-right:.35rem;color:var(--map-accent)}.mapa-section-head span{color:var(--map-muted);font-size:.78rem}
+.mapa-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:clamp(62px,5.2vw,76px);grid-auto-flow:dense;align-items:stretch;gap:10px}
+.mapa-link,.mapa-grid>.mapa-link:nth-child(n){position:relative;display:flex;grid-column:span 3;grid-row:span 2;gap:.8rem;align-items:flex-start;min-width:0;min-height:0;padding:1.05rem 1.1rem;border:0;border-radius:0;background:#315b78;color:#fff;text-decoration:none;overflow:hidden;transition:filter .18s ease,transform .18s ease}
+.mapa-grid>.mapa-link:nth-child(6n+1){grid-column:span 6;grid-row:span 2;background:#1769aa}
+.mapa-grid>.mapa-link:nth-child(6n+2),.mapa-grid>.mapa-link:nth-child(6n+3),.mapa-grid>.mapa-link:nth-child(6n+4),.mapa-grid>.mapa-link:nth-child(6n+5){grid-column:span 3;grid-row:span 1}
+.mapa-grid>.mapa-link:nth-child(6n+2){background:#008272}.mapa-grid>.mapa-link:nth-child(6n+3){background:#744da9}.mapa-grid>.mapa-link:nth-child(6n+4){background:#b45c28}.mapa-grid>.mapa-link:nth-child(6n+5){background:#287b78}
+.mapa-grid>.mapa-link:nth-child(6n){grid-column:span 6;grid-row:span 2;background:#405b87}
+.mapa-link[hidden],.mapa-section[hidden]{display:none!important}.mapa-link>span{flex:1 1 auto;min-width:0}
+.mapa-link .link-ico{color:rgba(255,255,255,.95);width:24px;text-align:center;padding-top:.12rem;flex:0 0 24px;font-size:1.08rem}
+.mapa-link strong{display:block;color:#fff;font-size:clamp(1rem,1.05vw,1.2rem);font-weight:700;line-height:1.35}
+.mapa-link small{display:block;color:rgba(255,255,255,.86);font-size:clamp(.82rem,.9vw,1rem);line-height:1.45;margin-top:.35rem;overflow-wrap:anywhere}
+.mapa-link .fa-arrow-up-right-from-square{font-size:.68rem;opacity:.58;margin-left:auto;padding-top:.2rem;color:#fff}
+.mapa-empty{display:none;text-align:center;padding:2rem 1rem;color:var(--map-muted);border:1px dashed var(--map-line);border-radius:12px}
+.mapa-note{margin:1.3rem 0 .4rem;padding:.85rem 1rem;border-left:3px solid var(--map-accent);background:rgba(125,172,191,.07);border-radius:0 10px 10px 0;color:var(--map-muted);font-size:.82rem;line-height:1.55}
+/* Header: marca, buscador y usuario. */
+#header .header{display:grid;grid-template-columns:minmax(120px,1fr) minmax(260px,430px) minmax(120px,1fr);align-items:center;gap:1rem}
+#header .header>.logo{grid-column:1;justify-self:start;min-width:0}#header .header>.mapa-tools{grid-column:2;justify-self:center;width:100%;max-width:430px;min-width:0;flex-wrap:nowrap}
+#header .header>.mapa-user-slot{grid-column:3;justify-self:end;min-width:0}#header .header .usuario{justify-content:flex-end;white-space:nowrap}
+/* Tableta: ocho columnas con piezas grandes y pequeñas en una composición encajada. */
+@media(min-width:651px) and (max-width:1050px){
+ .mapa-principal{grid-template-columns:repeat(8,minmax(0,1fr));grid-auto-rows:68px}.mapa-home:nth-child(1){grid-column:span 4;grid-row:span 2}.mapa-home:nth-child(2){grid-column:span 4;grid-row:span 1}.mapa-home:nth-child(3){grid-column:span 4;grid-row:span 1}
+ .mapa-grid{grid-template-columns:repeat(8,minmax(0,1fr));grid-auto-rows:64px;gap:9px}.mapa-grid>.mapa-link:nth-child(n){grid-column:span 4;grid-row:span 2}
+ .mapa-grid>.mapa-link:nth-child(6n+1),.mapa-grid>.mapa-link:nth-child(6n){grid-column:span 4;grid-row:span 2}
+ .mapa-grid>.mapa-link:nth-child(6n+2),.mapa-grid>.mapa-link:nth-child(6n+3),.mapa-grid>.mapa-link:nth-child(6n+4),.mapa-grid>.mapa-link:nth-child(6n+5){grid-column:span 4;grid-row:span 1}
+}
+@media(max-width:760px){#header .header{grid-template-columns:minmax(0,1fr) auto;row-gap:.7rem}#header .header>.logo{grid-column:1;grid-row:1}#header .header>.mapa-user-slot{grid-column:2;grid-row:1}#header .header>.mapa-tools{grid-column:1/-1;grid-row:2;justify-self:stretch;max-width:none}}
+/* Móvil: conserva el lenguaje de mosaico en una escala compacta. */
+@media(max-width:650px){
+ .glass#dashboard{height:92vh;max-height:96vh}#mapa-sitio{padding:0 .7rem 1rem}.mapa-intro{padding-top:1rem}.mapa-intro h1{font-size:1.8rem}.mapa-intro p{font-size:.9rem}
+ .mapa-tools{width:min(100%,470px)}.mapa-search input{font-size:.96rem;min-height:46px;padding-top:.8rem;padding-bottom:.8rem}.mapa-count{font-size:.84rem}
+ .mapa-principal{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:64px;gap:8px}.mapa-home:nth-child(1){grid-column:span 2;grid-row:span 2}.mapa-home:nth-child(2){grid-column:span 2;grid-row:span 1}.mapa-home:nth-child(3){grid-column:span 2;grid-row:span 2}
+ .mapa-home{padding:.9rem}.mapa-home .ico{font-size:2.8rem;top:8px;right:10px}.mapa-home strong{font-size:.96rem}.mapa-home small{font-size:.78rem}
+ .mapa-section{margin:1.6rem 0 1.9rem}.mapa-section-head{align-items:flex-start;flex-direction:column;gap:.3rem}.mapa-section-head h2{font-size:1.15rem}.mapa-section-head span{font-size:.8rem}
+ .mapa-grid{grid-template-columns:repeat(4,minmax(0,1fr));grid-auto-rows:64px;gap:8px}.mapa-grid>.mapa-link:nth-child(n){grid-column:span 2;grid-row:span 2;padding:.9rem;gap:.6rem}
+ .mapa-grid>.mapa-link:nth-child(6n+2),.mapa-grid>.mapa-link:nth-child(6n+3),.mapa-grid>.mapa-link:nth-child(6n+4),.mapa-grid>.mapa-link:nth-child(6n+5){grid-column:span 2;grid-row:span 1}
+ .mapa-grid>.mapa-link:nth-child(6n+1),.mapa-grid>.mapa-link:nth-child(6n){grid-column:span 4;grid-row:span 2}
+ .mapa-link strong{font-size:.98rem}.mapa-link small{font-size:.8rem;line-height:1.4}.mapa-link .link-ico{width:20px;flex-basis:20px;font-size:.95rem}
+ .mapa-empty{font-size:.95rem;padding:2rem 1rem}.mapa-note{font-size:.82rem;line-height:1.6;padding:1rem}
+}
+@media(prefers-reduced-motion:reduce){.mapa-link,.mapa-home{transition:none}}
+
+/* Mapa funcional: filtros multidimensionales y etiquetas de clasificación */
+.mapa-intro{align-items:flex-start}
+.mapa-intro h1{margin:0}
+.mapa-intro p{max-width:760px}
+.mapa-section-head{align-items:flex-start}
+.mapa-section-head>div{min-width:0}
+.mapa-section-head p{margin:.35rem 0 0;color:var(--map-muted);font-size:.84rem;line-height:1.45}
+.mapa-filtros{display:flex;gap:.5rem;flex-wrap:wrap;margin:1rem 0 .25rem}
+.mapa-filtro{border:1px solid var(--map-line);background:rgba(255,255,255,.055);color:inherit;border-radius:999px;padding:.48rem .8rem;font:inherit;font-size:.8rem;cursor:pointer}
+.mapa-filtro[aria-pressed="true"]{background:rgba(125,172,191,.22);border-color:var(--map-accent);color:#fff}
+.mapa-meta{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.55rem}
+.mapa-meta span{display:inline-block;padding:.17rem .42rem;border:1px solid rgba(255,255,255,.23);background:rgba(0,0,0,.12);border-radius:3px;color:rgba(255,255,255,.9);font-size:.68rem;line-height:1.3}
+.mapa-section-head h2{font-size:1.12rem}
+.mapa-link{flex-direction:row;flex-wrap:wrap}
+.mapa-link>span{flex:1 1 calc(100% - 40px)}
+.mapa-link .mapa-meta{flex-basis:100%;margin-left:32px}
+.mapa-link[hidden],.mapa-section[hidden]{display:none!important}
+.mapa-dimensiones{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.7rem;margin:1rem 0;padding:1rem;border:1px solid var(--map-line);background:rgba(255,255,255,.035)}
+.mapa-dimensiones strong{display:block;font-size:.86rem;color:#fff}
+.mapa-dimensiones small{display:block;color:var(--map-muted);font-size:.76rem;line-height:1.4;margin-top:.2rem}
+@media(max-width:650px){.mapa-dimensiones{grid-template-columns:1fr}.mapa-link .mapa-meta{margin-left:0}.mapa-section-head{flex-direction:row;align-items:flex-start}}
+</style>
 </head>
-
 <body>
-  <div class="glass" id="dashboard">
-    <h5>Mapa</h5>
-    <div id="header"></div>
-    <div class="grid">
-      <!-- AQUI
-      VA
-      EL
-  Mapa -->
-    </div>
-    <div id="footer"></div>
-  </div>
-
-  <script>
-    google.script.run.withSuccessHandler(eventos => {
-      const cont = document.getElementById('calendario');
-
-      eventos.forEach(e => {
-        const div = document.createElement('div');
-        div.className = 'evento';
-        div.innerHTML = `
-      <strong>${e.titulo}</strong><br>
-      🕒 ${e.inicio}<br>
-      📍 ${e.lugar || '—'}
-    `;
-        cont.appendChild(div);
-      });
-    }).obtenerCalendarioOutlook();
-  </script>
-
-  <div id="calendario"></div>
-
-  <script>
-    fetch('/comun/header.html')
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById('header').innerHTML = html;
-
-        // Cargar sesión.js después de insertar el HTML
-        const s = document.createElement('script');
-        s.src = '/comun/sesion_bk.js';
-
-        s.onload = () => {
-          console.log("🔥 sesion_bk.js cargado. Verificando sesión...");
-          verificarAutenticacion();
-        };
-
-        document.body.appendChild(s);
-      });
-
-    fetch('/comun/footer.html')
-      .then(r => r.text())
-      .then(html => {
-        document.getElementById('footer').innerHTML = html;
-
-        // Ya existe footerText
-        const footer = document.getElementById('footerText');
-        if (footer) {
-          footer.innerHTML = `Hecho con ❤️ por Ricardo · ${new Date().getFullYear()}`;
-        }
-      });
-  </script>
-  <script src="/comun/estadoSistema.js"></script>
-  <script src="/comun/sesion_bk.js"></script>
+<div class="glass" id="dashboard">
+<h5 class="mapa-page-title">Mapa funcional</h5>
+<div id="header"></div>
+<div class="mapa-tools" id="mapaTools">
+<label class="mapa-search"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i><input id="mapaFiltro" type="search" placeholder="Buscar actividad, pantalla, contenido o área…" aria-label="Buscar en el mapa funcional" autocomplete="off"></label>
+<span class="mapa-count" id="mapaConteo" aria-live="polite"></span>
+</div>
+<main id="mapa-sitio">
+<section class="mapa-intro"><div><p class="mapa-kicker">Estadísticas y Archivo Clínico · HRPV</p><h1>Mapa funcional de la plataforma</h1><p>Accede a las herramientas según el trabajo que atienden. Las pantallas se agrupan por actividad y se etiquetan por tipo de contenido y ámbito relacionado. Las áreas participantes se irán precisando con la operación real.</p></div></section>
+<div class="mapa-dimensiones" aria-label="Criterios de organización">
+<div><strong>1. Actividad</strong><small>Qué labor institucional se realiza.</small></div>
+<div><strong>2. Contenido</strong><small>Qué información, documento o herramienta se administra.</small></div>
+<div><strong>3. Ámbito relacionado</strong><small>Qué área o conjunto de áreas interviene. No implica responsabilidad exclusiva.</small></div>
+</div>
+<nav class="mapa-filtros" aria-label="Filtrar por actividad">
+<button class="mapa-filtro" type="button" data-filter="all" aria-pressed="true">Todas las actividades</button>
+<button class="mapa-filtro" type="button" data-filter="estadistica" aria-pressed="false">Estadística, análisis y evaluación</button><button class="mapa-filtro" type="button" data-filter="archivo" aria-pressed="false">Archivo clínico y gestión de expedientes</button><button class="mapa-filtro" type="button" data-filter="calidad" aria-pressed="false">Validación, capacitación y mejora</button><button class="mapa-filtro" type="button" data-filter="administracion" aria-pressed="false">Gestión administrativa y coordinación</button><button class="mapa-filtro" type="button" data-filter="operacion" aria-pressed="false">Herramientas y operación institucional</button><button class="mapa-filtro" type="button" data-filter="acceso" aria-pressed="false">Acceso y recursos técnicos</button>
+</nav>
+<section class="mapa-section" data-section data-activity="estadistica">
+ <div class="mapa-section-head"><div><h2><i class="fa-solid fa-chart-line"></i> Estadística, análisis y evaluación</h2><p>Producción, validación, interpretación y difusión de información hospitalaria.</p></div><span>28 accesos</span></div>
+ <div class="mapa-grid"><a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/indicadores/" data-search="indicadores dashboard tablero"><i class="link-ico fa-solid fa-gauge-high"></i><span><strong>Panel de indicadores</strong><small>/indicadores/</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/indicadores/tendencias.html" data-search="tendencias evolución comparativos"><i class="link-ico fa-solid fa-chart-line"></i><span><strong>Tendencias</strong><small>Comparación y evolución mensual</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/indicadores/informes.html" data-search="informes reportes análisis"><i class="link-ico fa-solid fa-file-chart-column"></i><span><strong>Informes</strong><small>Informes analíticos e impresión</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/indicadores/compendio-captura.html" data-search="compendio captura"><i class="link-ico fa-solid fa-book-medical"></i><span><strong>Compendio de captura</strong><small>Referencia de captura de indicadores</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/indicadores/inf25.html" data-search="informe 2025 histórico"><i class="link-ico fa-solid fa-file-lines"></i><span><strong>Informe 2025</strong><small>indicadores/inf25.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/indicadores/pp_ind.html" data-search="indicadores presentación"><i class="link-ico fa-solid fa-chart-pie"></i><span><strong>Presentación de indicadores</strong><small>indicadores/pp_ind.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/defunciones/" data-search="defunciones inicio"><i class="link-ico fa-solid fa-heart-crack"></i><span><strong>Inicio de defunciones</strong><small>defunciones/index.html</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/defunciones/principales1.html" data-search="principales diagnósticos"><i class="link-ico fa-solid fa-ranking-star"></i><span><strong>Diagnósticos principales</strong><small>principales1.html</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/defunciones/infdef.html" data-search="informe defunciones"><i class="link-ico fa-solid fa-file-lines"></i><span><strong>Informe de defunciones</strong><small>infdef.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/graficas/" data-search="gráficas inicio"><i class="link-ico fa-solid fa-chart-area"></i><span><strong>Inicio de gráficas</strong><small>graficas/index.html</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/graficas/consulta.html" data-search="consulta"><i class="link-ico fa-solid fa-magnifying-glass-chart"></i><span><strong>Consulta</strong><small>consulta.html</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/graficas/egresos.html" data-search="egresos"><i class="link-ico fa-solid fa-chart-column"></i><span><strong>Egresos</strong><small>egresos.html</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/graficas/egre_2.html" data-search="egresos versión 2"><i class="link-ico fa-solid fa-chart-simple"></i><span><strong>Egresos, análisis 2</strong><small>egre_2.html</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/graficas/egresos/" data-search="egresos detalle"><i class="link-ico fa-solid fa-chart-line"></i><span><strong>Sección de egresos</strong><small>graficas/egresos/index.html</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/graficas/egresos/nov25.html" data-search="egresos noviembre 2025"><i class="link-ico fa-solid fa-calendar"></i><span><strong>Egresos, noviembre 2025</strong><small>egresos/nov25.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/graficas/2docuatrim/" data-search="segundo cuatrimestre"><i class="link-ico fa-solid fa-calendar-days"></i><span><strong>Segundo cuatrimestre</strong><small>2docuatrim/index.html</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/graficas/princ_diag.html" data-search="diagnósticos principales"><i class="link-ico fa-solid fa-stethoscope"></i><span><strong>Principales diagnósticos</strong><small>princ_diag.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Estadísticas · áreas clínicas" href="/graficas/sit.html" data-search="situación"><i class="link-ico fa-solid fa-chart-pie"></i><span><strong>Situación</strong><small>sit.html</small><small class="mapa-meta"><span>Herramienta</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/graficas/situacional.html" data-search="situacional"><i class="link-ico fa-solid fa-chart-pie"></i><span><strong>Análisis situacional</strong><small>situacional.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/graficas/tasas_mort_inf.html" data-search="tasas mortalidad infantil"><i class="link-ico fa-solid fa-baby"></i><span><strong>Tasas de mortalidad infantil</strong><small>tasas_mort_inf.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/graficas/lesiones/nov25.html" data-search="lesiones noviembre 2025"><i class="link-ico fa-solid fa-bandage"></i><span><strong>Lesiones, noviembre 2025</strong><small>lesiones/nov25.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/graficas/urgencias/nov25.html" data-search="urgencias noviembre 2025"><i class="link-ico fa-solid fa-truck-medical"></i><span><strong>Urgencias, noviembre 2025</strong><small>urgencias/nov25.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Estadísticas · áreas clínicas" href="/censo/" data-search="censo inicio"><i class="link-ico fa-solid fa-hospital-user"></i><span><strong>Censo</strong><small>censo/index.html</small><small class="mapa-meta"><span>Registro / control</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Estadísticas · áreas clínicas" href="/censo/censopp.html" data-search="censo presentación"><i class="link-ico fa-solid fa-bed-pulse"></i><span><strong>Presentación de censo</strong><small>censopp.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Estadísticas · áreas clínicas" href="/censo/censopdfs.html" data-search="censo documentos pdf"><i class="link-ico fa-solid fa-file-pdf"></i><span><strong>Documentos del censo</strong><small>censopdfs.html</small><small class="mapa-meta"><span>Registro / control</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Estadísticas · áreas clínicas" href="/censo/total-censo.html" data-search="total censo"><i class="link-ico fa-solid fa-hospital"></i><span><strong>Total de censo</strong><small>total-censo.html</small><small class="mapa-meta"><span>Registro / control</span><span>Estadísticas · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Soporte técnico" data-area="Soporte de plataforma" href="/trazabilidad-hrpv/login-indicadores.html" data-search="login indicadores autenticación"><i class="link-ico fa-solid fa-shield-halved"></i><span><strong>Acceso a indicadores</strong><small>trazabilidad-hrpv/login-indicadores.html</small><small class="mapa-meta"><span>Soporte técnico</span><span>Soporte de plataforma</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Soporte técnico" data-area="Soporte de plataforma" href="/indicadores/variables.html" data-search="variables indicadores histórico"><i class="link-ico fa-solid fa-table"></i><span><strong>Variables de indicadores</strong><small>indicadores/variables.html · página heredada</small><small class="mapa-meta"><span>Soporte técnico</span><span>Soporte de plataforma</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
+ </section>
+<section class="mapa-section" data-section data-activity="archivo">
+ <div class="mapa-section-head"><div><h2><i class="fa-solid fa-folder-open"></i> Archivo clínico y gestión de expedientes</h2><p>Integración, localización, control, conservación y depuración documental.</p></div><span>13 accesos</span></div>
+ <div class="mapa-grid"><a class="mapa-link" data-type="Herramienta" data-area="Archivo Clínico · áreas clínicas" href="/archivo/" data-search="archivo clínico inicio"><i class="link-ico fa-solid fa-folder-tree"></i><span><strong>Inicio de Archivo Clínico</strong><small>archivo/index.html</small><small class="mapa-meta"><span>Herramienta</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Archivo Clínico · áreas clínicas" href="/archivo/h_faltantespp.html" data-search="expedientes faltantes presentación"><i class="link-ico fa-solid fa-folder-minus"></i><span><strong>Expedientes faltantes</strong><small>h_faltantespp.html</small><small class="mapa-meta"><span>Registro / control</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Archivo Clínico · áreas clínicas" href="/archivo/h_faltantes.html" data-search="expedientes faltantes"><i class="link-ico fa-solid fa-file-circle-exclamation"></i><span><strong>Control de faltantes</strong><small>h_faltantes.html</small><small class="mapa-meta"><span>Registro / control</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Archivo Clínico · áreas clínicas" href="/archivo/infexp.html" data-search="informe expedientes"><i class="link-ico fa-solid fa-file-medical"></i><span><strong>Informe de expedientes</strong><small>infexp.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Archivo Clínico · áreas clínicas" href="/archivo/auditoria.html" data-search="auditoría archivo"><i class="link-ico fa-solid fa-clipboard-check"></i><span><strong>Auditoría</strong><small>auditoria.html</small><small class="mapa-meta"><span>Herramienta</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Documento / guía" data-area="Archivo Clínico · áreas clínicas" href="/archivo/manual.html" data-search="manual archivo"><i class="link-ico fa-solid fa-book"></i><span><strong>Manual</strong><small>manual.html</small><small class="mapa-meta"><span>Documento / guía</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Documento / guía" data-area="Archivo Clínico · áreas clínicas" href="/archivo/instruc_depurar.html" data-search="instructivo depuración"><i class="link-ico fa-solid fa-broom"></i><span><strong>Instructivo de depuración</strong><small>instruc_depurar.html</small><small class="mapa-meta"><span>Documento / guía</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Archivo Clínico · áreas clínicas" href="/archivo/diagrama-ac.html" data-search="diagrama archivo clínico"><i class="link-ico fa-solid fa-diagram-project"></i><span><strong>Diagrama de Archivo Clínico</strong><small>diagrama-ac.html</small><small class="mapa-meta"><span>Herramienta</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Archivo Clínico · áreas clínicas" href="/archivo/orden.html" data-search="orden archivo"><i class="link-ico fa-solid fa-list-ol"></i><span><strong>Orden</strong><small>orden.html</small><small class="mapa-meta"><span>Herramienta</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Archivo Clínico · áreas clínicas" href="/archivo/orden_exp.html" data-search="orden expedientes"><i class="link-ico fa-solid fa-list-check"></i><span><strong>Orden de expedientes</strong><small>orden_exp.html</small><small class="mapa-meta"><span>Herramienta</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Archivo Clínico · áreas clínicas" href="/archivo/simah.html" data-search="simah"><i class="link-ico fa-solid fa-database"></i><span><strong>SIMAH</strong><small>simah.html</small><small class="mapa-meta"><span>Registro / control</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Soporte técnico" data-area="Archivo Clínico · áreas clínicas" href="/archivo/migrar-faltantes.html" data-search="migración faltantes"><i class="link-ico fa-solid fa-right-left"></i><span><strong>Migración de faltantes</strong><small>migrar-faltantes.html</small><small class="mapa-meta"><span>Soporte técnico</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Soporte técnico" data-area="Archivo Clínico · áreas clínicas" href="/archivo/migrar2.html" data-search="migración"><i class="link-ico fa-solid fa-arrows-rotate"></i><span><strong>Migración, versión 2</strong><small>migrar2.html</small><small class="mapa-meta"><span>Soporte técnico</span><span>Archivo Clínico · áreas clínicas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
+ </section>
+<section class="mapa-section" data-section data-activity="calidad">
+ <div class="mapa-section-head"><div><h2><i class="fa-solid fa-clipboard-check"></i> Validación, capacitación y mejora</h2><p>Procedimientos, revisión de registros, correcciones y aprendizaje operativo.</p></div><span>16 accesos</span></div>
+ <div class="mapa-grid"><a class="mapa-link" data-type="Herramienta" data-area="Área generadora · Estadísticas" href="/capacitacion/" data-search="capacitación inicio"><i class="link-ico fa-solid fa-chalkboard-user"></i><span><strong>Inicio de capacitación</strong><small>capacitacion/index.html</small><small class="mapa-meta"><span>Herramienta</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Documento / guía" data-area="Área generadora · Estadísticas" href="/capacitacion/procedimiento.html" data-search="procedimiento"><i class="link-ico fa-solid fa-list-check"></i><span><strong>Procedimiento</strong><small>procedimiento.html</small><small class="mapa-meta"><span>Documento / guía</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Área generadora · Estadísticas" href="/capacitacion/instrurg.html" data-search="instructivo urgencias"><i class="link-ico fa-solid fa-kit-medical"></i><span><strong>Instructivo de urgencias</strong><small>instrurg.html</small><small class="mapa-meta"><span>Herramienta</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Área generadora · Estadísticas" href="/capacitacion/validacion_egresos.html" data-search="validación egresos"><i class="link-ico fa-solid fa-check-double"></i><span><strong>Validación de egresos</strong><small>validacion_egresos.html</small><small class="mapa-meta"><span>Herramienta</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Área generadora · Estadísticas" href="/capacitacion/validacion_urgencias.html" data-search="validación urgencias"><i class="link-ico fa-solid fa-truck-medical"></i><span><strong>Validación de urgencias</strong><small>validacion_urgencias.html</small><small class="mapa-meta"><span>Herramienta</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Área generadora · Estadísticas" href="/capacitacion/validacion_lesiones.html" data-search="validación lesiones"><i class="link-ico fa-solid fa-bandage"></i><span><strong>Validación de lesiones</strong><small>validacion_lesiones.html</small><small class="mapa-meta"><span>Herramienta</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Área generadora · Estadísticas" href="/capacitacion/ur_cali_nocali.html" data-search="urgencias calificados no calificados"><i class="link-ico fa-solid fa-scale-balanced"></i><span><strong>Urgencias calificadas y no calificadas</strong><small>ur_cali_nocali.html</small><small class="mapa-meta"><span>Herramienta</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Documento / guía" data-area="Área generadora · Estadísticas" href="/capacitacion/cemece.html" data-search="CEMECE"><i class="link-ico fa-solid fa-book-medical"></i><span><strong>CEMECE</strong><small>cemece.html</small><small class="mapa-meta"><span>Documento / guía</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Documento / guía" data-area="Área generadora · Estadísticas" href="/capacitacion/sis-ss-17p.html" data-search="SIS SS 17P"><i class="link-ico fa-solid fa-file-circle-check"></i><span><strong>SIS-SS-17P</strong><small>sis-ss-17p.html</small><small class="mapa-meta"><span>Documento / guía</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Documento / guía" data-area="Área generadora · Estadísticas" href="/capacitacion/punto1.html" data-search="punto 1"><i class="link-ico fa-solid fa-circle-info"></i><span><strong>Punto 1</strong><small>punto1.html</small><small class="mapa-meta"><span>Documento / guía</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Documento / guía" data-area="Área generadora · Estadísticas" href="/capacitacion/punto1-b.html" data-search="punto 1 b"><i class="link-ico fa-solid fa-circle-info"></i><span><strong>Punto 1, versión B</strong><small>punto1-b.html</small><small class="mapa-meta"><span>Documento / guía</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Documento / guía" data-area="Área generadora · Estadísticas" href="/capacitacion/canva.html" data-search="canva material"><i class="link-ico fa-solid fa-photo-film"></i><span><strong>Material Canva</strong><small>canva.html</small><small class="mapa-meta"><span>Documento / guía</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Gestión transversal" href="/comites/" data-search="comités inicio"><i class="link-ico fa-solid fa-people-group"></i><span><strong>Inicio de comités</strong><small>comites/index.html</small><small class="mapa-meta"><span>Herramienta</span><span>Gestión transversal</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Gestión transversal" href="/comites/cocasep.html" data-search="COCASEP"><i class="link-ico fa-solid fa-users-gear"></i><span><strong>COCASEP</strong><small>comites/cocasep.html</small><small class="mapa-meta"><span>Herramienta</span><span>Gestión transversal</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Área generadora · Estadísticas" href="/correcciones/urgencias.html" data-search="correcciones urgencias"><i class="link-ico fa-solid fa-truck-medical"></i><span><strong>Correcciones de urgencias</strong><small>correcciones/urgencias.html</small><small class="mapa-meta"><span>Registro / control</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Área generadora · Estadísticas" href="/correcciones/egresos.html" data-search="correcciones egresos"><i class="link-ico fa-solid fa-file-pen"></i><span><strong>Correcciones de egresos</strong><small>correcciones/egresos.html</small><small class="mapa-meta"><span>Registro / control</span><span>Área generadora · Estadísticas</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
+ </section>
+<section class="mapa-section" data-section data-activity="administracion">
+ <div class="mapa-section-head"><div><h2><i class="fa-solid fa-file-signature"></i> Gestión administrativa y coordinación</h2><p>Correspondencia, agenda institucional, enseñanza y seguimiento de actividades.</p></div><span>6 accesos</span></div>
+ <div class="mapa-grid"><a class="mapa-link" data-type="Herramienta" data-area="Gestión transversal" href="/ensenanza/" data-search="enseñanza"><i class="link-ico fa-solid fa-user-graduate"></i><span><strong>Enseñanza</strong><small>ensenanza/index.html</small><small class="mapa-meta"><span>Herramienta</span><span>Gestión transversal</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Gestión transversal" href="/ensenanza/registro.html" data-search="registro enseñanza"><i class="link-ico fa-solid fa-address-card"></i><span><strong>Registro de enseñanza</strong><small>ensenanza/registro.html</small><small class="mapa-meta"><span>Registro / control</span><span>Gestión transversal</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Gestión transversal" href="/oficios/" data-search="oficios"><i class="link-ico fa-solid fa-file-signature"></i><span><strong>Oficios</strong><small>oficios/index.html</small><small class="mapa-meta"><span>Registro / control</span><span>Gestión transversal</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Agenda / seguimiento" data-area="Gestión transversal" href="/gantt/" data-search="gantt"><i class="link-ico fa-solid fa-bars-progress"></i><span><strong>Gantt</strong><small>gantt/index.html</small><small class="mapa-meta"><span>Agenda / seguimiento</span><span>Gestión transversal</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Agenda / seguimiento" data-area="Gestión transversal" href="/calendario.html" data-search="calendario"><i class="link-ico fa-solid fa-calendar-days"></i><span><strong>Calendario</strong><small>calendario.html</small><small class="mapa-meta"><span>Agenda / seguimiento</span><span>Gestión transversal</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Agenda / seguimiento" data-area="Gestión transversal" href="/mensual.html" data-search="mensual"><i class="link-ico fa-solid fa-calendar-check"></i><span><strong>Mensual</strong><small>mensual.html</small><small class="mapa-meta"><span>Agenda / seguimiento</span><span>Gestión transversal</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
+ </section>
+<section class="mapa-section" data-section data-activity="operacion">
+ <div class="mapa-section-head"><div><h2><i class="fa-solid fa-screwdriver-wrench"></i> Herramientas y operación institucional</h2><p>Sistemas de apoyo, consultas y herramientas de trabajo de distintas áreas.</p></div><span>14 accesos</span></div>
+ <div class="mapa-grid"><a class="mapa-link" data-type="Registro / control" data-area="Participación por confirmar" href="/medicos/" data-search="médicos"><i class="link-ico fa-solid fa-user-doctor"></i><span><strong>Médicos</strong><small>medicos/index.html</small><small class="mapa-meta"><span>Registro / control</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Participación por confirmar" href="/seguridad/" data-search="seguridad"><i class="link-ico fa-solid fa-shield-halved"></i><span><strong>Seguridad</strong><small>seguridad/index.html</small><small class="mapa-meta"><span>Registro / control</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Participación por confirmar" href="/seguridad/pasos.html" data-search="pasos seguridad"><i class="link-ico fa-solid fa-list-ol"></i><span><strong>Pasos de seguridad</strong><small>seguridad/pasos.html</small><small class="mapa-meta"><span>Registro / control</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Participación por confirmar" href="/control/" data-search="control panel"><i class="link-ico fa-solid fa-sliders"></i><span><strong>Panel de control</strong><small>control/index.html</small><small class="mapa-meta"><span>Registro / control</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Participación por confirmar" href="/control/planilla.html" data-search="planilla control"><i class="link-ico fa-solid fa-table-list"></i><span><strong>Planilla</strong><small>control/planilla.html</small><small class="mapa-meta"><span>Registro / control</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Informe / análisis" data-area="Participación por confirmar" href="/control/reporte.html" data-search="reporte control"><i class="link-ico fa-solid fa-file-invoice"></i><span><strong>Reporte de control</strong><small>control/reporte.html</small><small class="mapa-meta"><span>Informe / análisis</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Participación por confirmar" href="/control/medicuchos.html" data-search="medicuchos control"><i class="link-ico fa-solid fa-user-doctor"></i><span><strong>Control médico</strong><small>control/medicuchos.html</small><small class="mapa-meta"><span>Registro / control</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Participación por confirmar" href="/caja/" data-search="caja"><i class="link-ico fa-solid fa-cash-register"></i><span><strong>Caja</strong><small>caja/index.html</small><small class="mapa-meta"><span>Registro / control</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Participación por confirmar" href="/est/" data-search="est"><i class="link-ico fa-solid fa-table-cells"></i><span><strong>EST</strong><small>est/index.html</small><small class="mapa-meta"><span>Herramienta</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Herramienta" data-area="Participación por confirmar" href="/sinerhias.html" data-search="SINERHIAS"><i class="link-ico fa-solid fa-arrow-up-right-from-square"></i><span><strong>SINERHIAS</strong><small>sinerhias.html</small><small class="mapa-meta"><span>Herramienta</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Documento / guía" data-area="Participación por confirmar" href="/guias.html" data-search="guías"><i class="link-ico fa-solid fa-book-open"></i><span><strong>Guías</strong><small>guias.html</small><small class="mapa-meta"><span>Documento / guía</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Soporte técnico" data-area="Soporte de plataforma" href="/caja/base.html" data-search="base caja auxiliar"><i class="link-ico fa-solid fa-code"></i><span><strong>Base de caja</strong><small>caja/base.html</small><small class="mapa-meta"><span>Soporte técnico</span><span>Soporte de plataforma</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Registro / control" data-area="Participación por confirmar" href="/caja/index_.html" data-search="caja alterna"><i class="link-ico fa-solid fa-code-branch"></i><span><strong>Caja, versión alterna</strong><small>caja/index_.html</small><small class="mapa-meta"><span>Registro / control</span><span>Participación por confirmar</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Soporte técnico" data-area="Soporte de plataforma" href="/control/base.html" data-search="base control"><i class="link-ico fa-solid fa-code"></i><span><strong>Base de control</strong><small>control/base.html</small><small class="mapa-meta"><span>Soporte técnico</span><span>Soporte de plataforma</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
+ </section>
+<section class="mapa-section" data-section data-activity="acceso">
+ <div class="mapa-section-head"><div><h2><i class="fa-solid fa-shield-halved"></i> Acceso y recursos técnicos</h2><p>Autenticación y páginas auxiliares o heredadas del repositorio.</p></div><span>2 accesos</span></div>
+ <div class="mapa-grid"><a class="mapa-link" data-type="Soporte técnico" data-area="Soporte de plataforma" href="/login.html" data-search="login inicio sesión"><i class="link-ico fa-solid fa-lock"></i><span><strong>Inicio de sesión</strong><small>login.html</small><small class="mapa-meta"><span>Soporte técnico</span><span>Soporte de plataforma</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a>
+<a class="mapa-link" data-type="Soporte técnico" data-area="Soporte de plataforma" href="/base%20copy.html" data-search="base copy auxiliar"><i class="link-ico fa-solid fa-code"></i><span><strong>Base, copia</strong><small>base copy.html</small><small class="mapa-meta"><span>Soporte técnico</span><span>Soporte de plataforma</span></small></span><i class="fa-solid fa-arrow-up-right-from-square"></i></a></div>
+ </section>
+<div class="mapa-empty" id="mapaVacio">No se encontraron accesos que coincidan con la búsqueda y el filtro.</div>
+<p class="mapa-note">Clasificación inicial elaborada a partir de las rutas y nombres existentes en el repositorio. Las etiquetas de ámbito son orientativas; deberán validarse con los departamentos involucrados antes de convertirlas en asignaciones formales.</p>
+</main>
+<div id="footer"></div>
+</div>
+<script>
+(function(){
+ const filtro=document.getElementById('mapaFiltro');
+ const enlaces=[...document.querySelectorAll('.mapa-link')];
+ const secciones=[...document.querySelectorAll('[data-section]')];
+ const botones=[...document.querySelectorAll('.mapa-filtro')];
+ const conteo=document.getElementById('mapaConteo');
+ const vacio=document.getElementById('mapaVacio');
+ let actividad='all';
+ const norm=s=>(s||'').toLocaleLowerCase('es').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+ function filtrar(){
+  const q=norm(filtro.value.trim());let n=0;
+  enlaces.forEach(a=>{
+   const okActividad=actividad==='all'||a.closest('[data-activity]')?.dataset.activity===actividad;
+   const texto=norm(a.innerText+' '+a.dataset.type+' '+a.dataset.area+' '+a.getAttribute('href'));
+   const visible=okActividad&&(!q||texto.includes(q));a.hidden=!visible;if(visible)n++;
+  });
+  secciones.forEach(s=>s.hidden=!s.querySelector('.mapa-link:not([hidden])'));
+  vacio.style.display=n?'none':'block';
+  conteo.textContent=q||actividad!=='all'?n+' resultado'+(n===1?'':'s'):(n+' accesos');
+ }
+ botones.forEach(b=>b.addEventListener('click',()=>{
+  actividad=b.dataset.filter;
+  botones.forEach(x=>x.setAttribute('aria-pressed',String(x===b)));
+  filtrar();
+ }));
+ filtro.addEventListener('input',filtrar);filtrar();
+})();
+fetch('/comun/header.html').then(r=>{if(!r.ok)throw Error('No se pudo cargar el encabezado');return r.text()}).then(html=>{
+ const host=document.getElementById('header');host.innerHTML=html;
+ const header=host.querySelector('.header'),tools=document.getElementById('mapaTools');
+ if(!header)return;
+ const user=header.querySelector('.usuario'),slot=user?.parentElement;
+ if(slot)slot.classList.add('mapa-user-slot');
+ if(tools&&slot)header.insertBefore(tools,slot);else if(tools)header.appendChild(tools);
+ const s=document.createElement('script');s.src='/comun/sesion_bk.js';s.onload=()=>{if(typeof verificarAutenticacion==='function')verificarAutenticacion()};document.body.appendChild(s);
+}).catch(console.error);
+fetch('/comun/footer.html').then(r=>{if(!r.ok)throw Error('No se pudo cargar el pie');return r.text()}).then(html=>{
+ const host=document.getElementById('footer');host.innerHTML=html;
+ const y=host.querySelector('#footerYear');if(y)y.textContent=new Date().getFullYear();
+}).catch(console.error);
+</script>
+<script src="/comun/estadoSistema.js"></script>
 </body>
-
 </html>
