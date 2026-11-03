@@ -83,21 +83,33 @@
       .cal-side{padding:.85rem}
     }
 
-    /* Aislar el tablero del sistema .grid global del portal */
-    .glass>.calendario-contenido{
-      display:block!important;flex:1 1 auto!important;min-height:0!important;
-      width:100%!important;max-width:1320px!important;margin:.65rem auto!important;
-      padding:clamp(.6rem,1.5vw,1.25rem)!important;overflow-y:auto!important;overflow-x:hidden!important;
-      border-radius:12px!important;
-    }
-    .cal-status span{color:inherit!important}
-    .cal-fuente{color:#64798a!important}
-    .cal-intro p{color:#536779!important}
-    .cal-resumen,.cal-layout{width:100%;min-width:0}
-    .cal-layout{display:grid!important;grid-template-columns:minmax(0,1.8fr) minmax(285px,.82fr)!important}
-    .cal-stat{align-self:stretch;min-width:0}
-    @media(max-width:900px){.cal-layout{grid-template-columns:minmax(0,1fr)!important}}
-    @media(max-width:768px){.glass{height:92vh!important;width:95%!important}.glass>.calendario-contenido{margin:.4rem auto!important}}
+
+    .calendario-contenido{width:100%!important;max-width:1500px!important;margin:.45rem auto!important;padding:.35rem!important;min-height:0!important;flex:1 1 auto!important;overflow:auto!important}
+    .glass>.calendario-contenido{display:block!important;width:100%!important}
+    .cal-layout{display:grid!important;grid-template-columns:minmax(0,1fr) 330px!important;gap:1rem!important;align-items:stretch!important;width:100%;min-height:0}
+    .cal-month-panel{min-width:0;display:flex;flex-direction:column}
+    .cal-side{padding:1rem;min-width:0;display:flex;flex-direction:column;gap:.8rem;max-height:100%;overflow-y:auto}
+    .cal-intro{display:block;margin:0;padding:0 0 .8rem;border-bottom:1px solid #e2e9ee}
+    .cal-intro p{font-size:.78rem;line-height:1.55;margin-top:.4rem}
+    .cal-side-heading{margin:0;color:#2c3e50;font-size:1rem;font-weight:750}
+    .cal-fuente{display:inline-block;margin-top:.55rem;font-size:.7rem}
+    .cal-resumen{grid-template-columns:repeat(3,minmax(0,1fr));gap:.4rem;margin:0}
+    .cal-stat{padding:.65rem .5rem;min-height:68px;border-radius:9px}
+    .cal-stat span{font-size:.58rem;letter-spacing:.02em}
+    .cal-stat strong{font-size:1.45rem;margin-top:.25rem}
+    .cal-status{font-size:.69rem;margin:0;line-height:1.45}
+    .cal-side-head{padding:0 0 .65rem}
+    .cal-side h3{font-size:.92rem}
+    .cal-side-date{font-size:.72rem}
+    .cal-event-list{margin-top:0}
+    .cal-event{padding:.7rem}
+    .cal-footer-note{margin:0;padding-top:.65rem;border-top:1px solid #e2e9ee;font-size:.68rem}
+    .cal-toolbar{padding:.9rem 1rem}
+    #calendarGrid.cal-grid{flex:1 1 auto;grid-auto-rows:minmax(105px,1fr)}
+    #calendarGrid .cal-day{min-height:105px!important}
+    @media(max-width:1050px){.cal-layout{grid-template-columns:minmax(0,1fr) 300px!important}}
+    @media(max-width:850px){.cal-layout{grid-template-columns:minmax(0,1fr)!important}.cal-side{max-height:none;overflow:visible}.cal-month-panel{min-height:650px}}
+    @media(max-width:560px){.calendario-contenido{padding:.2rem!important}.cal-month-panel{min-height:550px}.cal-side{padding:.8rem}.cal-stat{min-height:60px}.cal-stat strong{font-size:1.25rem}}
 
     @media(prefers-reduced-motion:reduce){.cal-btn,.cal-event{transition:none}}
   </style>
@@ -107,21 +119,8 @@
     <h5>Calendario institucional</h5>
     <div id="header"></div>
     <main class="calendario-contenido">
-      <div class="cal-intro">
-        <p>Agenda mensual de actividades, reuniones y compromisos del Departamento de Estadísticas y Archivo Clínico. Outlook es la fuente de información y administración.</p>
-        <span class="cal-fuente"><i class="fa-brands fa-microsoft"></i> Sincronizado desde Outlook</span>
-      </div>
-
-      <div class="cal-resumen" aria-label="Resumen mensual">
-        <div class="cal-stat"><span>COMPROMISOS DEL MES</span><strong id="statMonth">—</strong></div>
-        <div class="cal-stat"><span>PRÓXIMOS</span><strong id="statUpcoming">—</strong></div>
-        <div class="cal-stat"><span>HOY</span><strong id="statToday">—</strong></div>
-      </div>
-
-      <div id="calendarStatus" class="cal-status"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Consultando calendario de Outlook…</span></div>
-
-      <section class="cal-layout" aria-label="Tablero mensual">
-        <div class="cal-panel">
+      <section class="cal-layout" aria-label="Calendario mensual y panel de agenda">
+        <div class="cal-panel cal-month-panel">
           <div class="cal-toolbar">
             <h2 class="cal-month" id="monthLabel">—</h2>
             <div class="cal-controls">
@@ -138,14 +137,25 @@
           <div class="cal-legend"><span><i class="cal-dot"></i> Compromiso con horario</span><span><i class="cal-dot gray"></i> Evento de día completo</span></div>
         </div>
 
-        <aside class="cal-panel cal-side">
+        <aside class="cal-panel cal-side" aria-label="Panel lateral de información y agenda">
+          <div class="cal-intro">
+            <div><h3 class="cal-side-heading">Calendario institucional</h3>
+            <p>Agenda de actividades, reuniones y compromisos del Departamento de Estadísticas y Archivo Clínico.</p></div>
+            <span class="cal-fuente"><i class="fa-brands fa-microsoft"></i> Outlook</span>
+          </div>
+          <div class="cal-resumen" aria-label="Resumen mensual">
+            <div class="cal-stat"><span>DEL MES</span><strong id="statMonth">—</strong></div>
+            <div class="cal-stat"><span>PRÓXIMOS</span><strong id="statUpcoming">—</strong></div>
+            <div class="cal-stat"><span>HOY</span><strong id="statToday">—</strong></div>
+          </div>
+          <div id="calendarStatus" class="cal-status"><i class="fa-solid fa-circle-notch fa-spin"></i><span>Consultando Outlook…</span></div>
           <div class="cal-side-head">
             <div><h3 id="sideTitle">Agenda del día</h3><p class="cal-side-date" id="sideDate">Selecciona una fecha</p></div>
             <i class="fa-regular fa-calendar-check" style="color:#7dacbf;font-size:1.25rem"></i>
           </div>
           <div class="cal-event-list" id="dayEvents"><div class="cal-empty">Selecciona un día del calendario para consultar sus compromisos.</div></div>
           <div class="cal-detail" id="eventDetail" hidden></div>
-          <p class="cal-footer-note">Para crear, modificar o cancelar compromisos, utiliza Outlook. Esta vista es de consulta y se actualiza desde el calendario publicado.</p>
+          <p class="cal-footer-note">Outlook es la fuente de información y administración. Para crear, modificar o cancelar compromisos, utiliza Outlook. Esta vista es de consulta y se actualiza desde el calendario publicado.</p>
         </aside>
       </section>
     </main>
