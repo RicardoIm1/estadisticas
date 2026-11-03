@@ -1471,9 +1471,8 @@
           const cambios = datosActualizados.length !== datosCompletos.length ||
             datosActualizados.some((registro) => {
               const anterior = anteriores.get(String(registro.id));
-              return !anterior ||
-                anterior.estado !== registro.estado ||
-                anterior.updated_at !== registro.updated_at;
+              // Comparar el registro completo, incluso si updated_at no se actualiza.
+              return !anterior || JSON.stringify(anterior) !== JSON.stringify(registro);
             });
 
           if (cambios) {
@@ -1505,7 +1504,7 @@
       function normalizarEstado(estado) {
         return String(estado || "")
           .normalize("NFD")
-          .replace(/[\\u0300-\\u036f]/g, "")
+          .replace(/[\u0300-\u036f]/g, "")
           .trim()
           .toLocaleLowerCase("es");
       }
