@@ -66,33 +66,8 @@
     @media(max-width:560px){
       .glass#dashboard { height:92vh; max-height:96vh; }
       .mapa-grid,.mapa-principal{grid-template-columns:1fr;}
-      .mapa-intro{align-items:stretch}
-      .mapa-tools{width:100%}
-      .mapa-section-head{align-items:flex-end}
-    }
-    @media(prefers-reduced-motion:reduce){.mapa-link,.mapa-home{transition:none}.mapa-link:hover,.mapa-home:hover{transform:none}}
-
-
-    /* === ENCABEZADO DEL MAPA === */
-    .mapa-page-title{margin:0 0 .45rem;padding:0 .15rem;color:#85acbd;font-size:1rem;font-weight:650;letter-spacing:.045em;text-transform:uppercase}
-    #header .mapa-intro{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;padding:.85rem 0 1rem;margin-top:.6rem;border-top:1px solid var(--map-line);border-bottom:1px solid var(--map-line)}
-    #header .mapa-intro>div:first-child{flex:1 1 320px;min-width:0}
-    #header .mapa-intro p{margin:0;max-width:680px;font-size:.92rem;line-height:1.55;color:rgba(255,255,255,.76)}
-    #header .mapa-tools{flex:0 1 470px}
-    @media(max-width:650px){
-      .mapa-page-title{font-size:.9rem;margin-bottom:.35rem}
-      #header .mapa-intro{align-items:stretch;padding:.7rem 0 .85rem}
-      #header .mapa-tools{width:100%;flex-basis:100%}
-    }
-
-    /* === REDISEÑO DE TILES · MAPA DEL SITIO === */
-    #mapa-sitio{padding:0 clamp(.8rem,1.6vw,1.5rem) 1.2rem;scrollbar-gutter:stable}
-    .mapa-intro{padding:1.35rem 0 1.5rem;gap:1.25rem}
-    .mapa-kicker{font-size:.82rem;letter-spacing:.16em;font-weight:650}
-    .mapa-intro h1{font-size:clamp(1.9rem,3.2vw,2.65rem);letter-spacing:-.035em}
-    .mapa-intro p{font-size:1rem;line-height:1.65;color:rgba(255,255,255,.76)}
-    .mapa-tools{width:min(100%,470px)}
-    .mapa-search input{font-size:.96rem;min-height:46px;padding-top:.8rem;padding-bottom:.8rem}
+      .mapa-tools{width:min(100%,470px)}
+.mapa-search input{font-size:.96rem;min-height:46px;padding-top:.8rem;padding-bottom:.8rem}
     .mapa-count{font-size:.84rem}
     .mapa-principal{grid-template-columns:repeat(12,minmax(0,1fr));grid-auto-rows:minmax(116px,auto);gap:12px;margin:1.35rem 0 2rem}
     .mapa-home{grid-column:span 4;min-height:116px;padding:1.15rem 1.25rem;border-radius:16px;gap:1rem;background:rgba(70,130,180,.22);border-color:rgba(125,172,191,.28)}
@@ -198,6 +173,13 @@
   <div class="glass" id="dashboard">
     <h5 class="mapa-page-title">Mapa del sitio</h5>
     <div id="header"></div>
+    <div class="mapa-tools" id="mapaTools">
+      <label class="mapa-search">
+        <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+        <input id="mapaFiltro" type="search" placeholder="Buscar módulo o página…" aria-label="Buscar en el mapa del sitio" autocomplete="off">
+      </label>
+      <span class="mapa-count" id="mapaConteo" aria-live="polite"></span>
+    </div>
     <main id="mapa-sitio">
       <section class="mapa-principal" aria-label="Accesos principales">
         <a class="mapa-home" href="/" data-search="inicio portal principal"><span class="ico"><i class="fa-solid fa-house"></i></span><span><strong>Inicio del portal</strong><small>Regresar al tablero principal</small></span></a>
@@ -371,29 +353,60 @@
       filtrar();
     })();
 
-    // Carga de componentes comunes. sesion_bk.js se incorpora una sola vez.
+    // Carga de componentes comunes. El buscador se inserta dentro del header real.
     fetch('/comun/header.html')
-      .then(r => { if (!r.ok) throw new Error('No se pudo cargar el encabezado'); return r.text(); })
+      .then(r => { if (!r.ok) throw new Error('No se pudo cargar /comun/header.html'); return r.text(); })
       .then(html => {
-        const header = document.getElementById('header');
-        header.innerHTML = html;
-        const tools = document.querySelector('.mapa-tools');
+        const host = document.getElementById('header');
+        host.innerHTML = html;
+        const header = host.querySelector('.header');
+        const tools = document.getElementById('mapaTools');
+        if (!header) throw new Error('/comun/header.html no contiene .header');
         if (tools) header.appendChild(tools);
+
+        const filtro = document.getElementById('mapaFiltro');
+        const enlaces = [...document.querySelectorAll('.mapa-link, .mapa-home')];
+        const secciones = [...document.querySelectorAll('[data-section]')];
+        const conteo = document.getElementById('mapaConteo');
+        const vacio = document.getElementById('mapaVacio');
+        function normalizar(valor) {
+          return (valor || '').toLocaleLowerCase('es').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+        }
+        function filtrar() {
+          const q = normalizar(filtro.value.trim());
+          let visibles = 0;
+          enlaces.forEach(enlace => {
+            const texto = normalizar(enlace.innerText + ' ' + enlace.dataset.search + ' ' + enlace.getAttribute('href'));
+            const mostrar = !q || texto.includes(q);
+            enlace.hidden = !mostrar;
+            if (mostrar) visibles++;
+          });
+          secciones.forEach(seccion => {
+            seccion.hidden = !seccion.querySelector('.mapa-link:not([hidden])');
+          });
+          vacio.style.display = visibles ? 'none' : 'block';
+          conteo.textContent = q ? `${visibles} resultado${visibles === 1 ? '' : 's'}` : `${enlaces.length} accesos`;
+        }
+        filtro.addEventListener('input', filtrar);
+        filtrar();
+
         const script = document.createElement('script');
         script.src = '/comun/sesion_bk.js';
         script.onload = () => {
           if (typeof verificarAutenticacion === 'function') verificarAutenticacion();
         };
-        script.onerror = () => console.warn('No se pudo cargar sesion_bk.js');
+        script.onerror = () => console.warn('No se pudo cargar /comun/sesion_bk.js');
         document.body.appendChild(script);
       })
       .catch(error => console.error(error));
 
+    // Pie común del portal.
     fetch('/comun/footer.html')
-      .then(r => { if (!r.ok) throw new Error('No se pudo cargar el pie'); return r.text(); })
+      .then(r => { if (!r.ok) throw new Error('No se pudo cargar /comun/footer.html'); return r.text(); })
       .then(html => {
-        document.getElementById('footer').innerHTML = html;
-        const year = document.getElementById('footerYear');
+        const footerHost = document.getElementById('footer');
+        footerHost.innerHTML = html;
+        const year = footerHost.querySelector('#footerYear');
         if (year) year.textContent = new Date().getFullYear();
       })
       .catch(error => console.error(error));
