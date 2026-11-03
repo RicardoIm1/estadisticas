@@ -1725,6 +1725,17 @@ syncCompendiumLink();
 try{
  await initializeSupabaseRecords();
 
+ // Al iniciar, mostrar el periodo más reciente que realmente tiene fichas.
+ // Evita abrir por defecto un mes aún vacío (por ejemplo, octubre de 2026).
+ const latestSavedPeriod = records
+   .filter(record => Number.isInteger(Number(record.year)) && Number.isInteger(Number(record.month)))
+   .sort((a, b) => Number(b.year) - Number(a.year) || Number(b.month) - Number(a.month))[0];
+ if (latestSavedPeriod) {
+   $("month").value = String(latestSavedPeriod.month);
+   $("year").value = String(latestSavedPeriod.year);
+ }
+ syncCompendiumLink();
+
  await refreshPeriodClosure();
  render();
 
