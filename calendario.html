@@ -26,6 +26,21 @@
     .cal-toolbar{display:flex;justify-content:space-between;align-items:center;gap:.75rem;padding:1rem 1.1rem;border-bottom:1px solid #e1e8ed;background:#fff}
     .cal-month{margin:0;color:var(--cal-ink);font-size:1.2rem;font-weight:750;text-transform:capitalize}
     .cal-controls{display:flex;align-items:center;gap:.4rem}
+    .cal-view-toggle{display:flex;gap:3px;padding:3px;border:1px solid #d5e0e7;border-radius:9px;background:#f4f7f9}
+    .cal-view-toggle .cal-btn{min-height:30px;padding:.3rem .65rem;border:0;background:transparent}
+    .cal-view-toggle .cal-btn.active{color:#fff;background:#344f63;box-shadow:0 1px 3px rgba(31,45,61,.15)}
+    .cal-day-view{flex:1 1 auto;min-height:0;overflow:auto;padding:1rem 1.1rem;background:#fbfcfd}
+    .cal-day-view[hidden]{display:none!important}
+    .cal-day-view-head{display:flex;justify-content:space-between;align-items:center;gap:.75rem;margin-bottom:1rem}
+    .cal-day-view-head h3{margin:0;color:var(--cal-ink);font-size:1rem;text-transform:capitalize}
+    .cal-day-view-list{display:flex;flex-direction:column;gap:.65rem;max-width:900px}
+    .cal-day-item{display:grid;grid-template-columns:94px minmax(0,1fr);gap:.9rem;width:100%;padding:.9rem 1rem;border:1px solid #dce5eb;border-radius:10px;background:#fff;text-align:left;cursor:pointer;transition:border-color .15s,background .15s}
+    .cal-day-item:hover,.cal-day-item.active{border-color:#83aebe;background:#f2f7f9}
+    .cal-day-item time{color:#6b8798;font-size:.78rem;font-weight:750;padding-top:.1rem}
+    .cal-day-item strong{display:block;color:#34495e;font-size:.88rem;line-height:1.4}
+    .cal-day-item small{display:block;margin-top:.3rem;color:#718096;font-size:.75rem;line-height:1.45}
+    .cal-day-item p{margin:.45rem 0 0;color:#687b8b;font-size:.76rem;line-height:1.5}
+    .cal-day-item.all-day{border-left:3px solid #aeb8c2}.cal-day-item.timed{border-left:3px solid #7dacbf}
     .cal-btn{display:inline-flex;align-items:center;justify-content:center;gap:.45rem;min-height:36px;padding:.45rem .72rem;border:1px solid #d5e0e7;border-radius:8px;color:#34495e;background:#fff;font:inherit;font-size:.8rem;font-weight:650;cursor:pointer;transition:background .15s,border-color .15s}
     .cal-btn:hover{background:#edf4f7;border-color:#b9cbd5}
     .cal-btn.icon{width:36px;padding:0}
@@ -169,6 +184,10 @@
           <div class="cal-toolbar">
             <h2 class="cal-month" id="monthLabel">—</h2>
             <div class="cal-controls">
+              <div class="cal-view-toggle" role="group" aria-label="Cambiar vista">
+                <button class="cal-btn active" id="monthViewBtn" type="button" aria-pressed="true">Mes</button>
+                <button class="cal-btn" id="dayViewBtn" type="button" aria-pressed="false">Día</button>
+              </div>
               <button class="cal-btn" id="todayBtn" type="button">Hoy</button>
               <button class="cal-btn icon" id="prevBtn" type="button" aria-label="Mes anterior"><i class="fa-solid fa-chevron-left"></i></button>
               <button class="cal-btn icon" id="nextBtn" type="button" aria-label="Mes siguiente"><i class="fa-solid fa-chevron-right"></i></button>
@@ -179,7 +198,11 @@
             <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span><span>Sáb</span><span>Dom</span>
           </div>
           <div class="cal-grid" id="calendarGrid" role="grid" aria-label="Días del mes"></div>
-          <div class="cal-legend"><span><i class="cal-dot"></i> Compromiso con horario</span><span><i class="cal-dot gray"></i> Evento de día completo</span></div>
+          <section class="cal-day-view" id="dayView" aria-label="Agenda diaria" hidden>
+            <div class="cal-day-view-head"><h3 id="dayViewTitle">Agenda del día</h3><span class="cal-fuente" id="dayViewCount">0 compromisos</span></div>
+            <div class="cal-day-view-list" id="dayViewList"></div>
+          </section>
+          <div class="cal-legend" id="calendarLegend"><span><i class="cal-dot"></i> Compromiso con horario</span><span><i class="cal-dot gray"></i> Evento de día completo</span></div>
         </div>
 
         <aside class="cal-panel cal-side" aria-label="Panel lateral de información y agenda">
@@ -208,7 +231,7 @@
   </div>
 
   <script>
-    const state = { events: [], month: new Date(new Date().getFullYear(), new Date().getMonth(), 1), selected: new Date(), activeId: null, loading: false };
+    const state = { events: [], month: new Date(new Date().getFullYear(), new Date().getMonth(), 1), selected: new Date(), activeId: null, loading: false, view: 'month' };
     const $ = id => document.getElementById(id);
     const pad = n => String(n).padStart(2, '0');
     const key = d => d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate());
@@ -247,7 +270,16 @@
       $('statToday').textContent=today.length;
     }
     function renderCalendar(){
-      $('monthLabel').textContent=monthName.format(state.month);
+      const isDay=state.view==='day';
+      $('calendarGrid').hidden=isDay;
+      $('dayView').hidden=!isDay;
+      $('calendarLegend').hidden=isDay;
+      $('monthViewBtn').classList.toggle('active',!isDay);
+      $('dayViewBtn').classList.toggle('active',isDay);
+      $('monthViewBtn').setAttribute('aria-pressed',String(!isDay));
+      $('dayViewBtn').setAttribute('aria-pressed',String(isDay));
+      $('monthLabel').textContent=isDay?fullDate.format(state.selected):monthName.format(state.month);
+      if(isDay){renderDailyAgenda();renderStats();renderDay();return;}
       const first=new Date(state.month.getFullYear(),state.month.getMonth(),1);
       const offset=(first.getDay()+6)%7;
       const start=new Date(first.getFullYear(),first.getMonth(),1-offset);
@@ -288,6 +320,21 @@
       });
       renderStats();
       renderDay();
+    }
+    function renderDailyAgenda(){
+      const day=state.selected;
+      const list=state.events.filter(e=>occursOn(e,day)).sort((a,b)=>dateOf(a.start)-dateOf(b.start));
+      $('dayViewTitle').textContent=fullDate.format(day);
+      $('dayViewCount').textContent=list.length+' '+(list.length===1?'compromiso':'compromisos');
+      $('dayViewList').innerHTML=list.length?list.map(e=>{
+        const description=e.description?'<p>'+safe(e.description)+'</p>':'';
+        return '<button type="button" class="cal-day-item '+(e.allDay?'all-day':'timed')+' '+(state.activeId===e.id?'active':'')+'" data-daily-event="'+safe(e.id)+'"><time>'+(e.allDay?'Todo el día':safe(eventTime(e)))+'</time><span><strong>'+safe(e.title)+'</strong><small>'+(e.location?safe(e.location)+' · ':'')+ (e.allDay?'Evento de día completo':'Compromiso con horario')+'</small>'+description+'</span></button>';
+      }).join(''):'<div class="cal-empty">No hay compromisos registrados para esta fecha.</div>';
+      $('dayViewList').querySelectorAll('[data-daily-event]').forEach(btn=>btn.addEventListener('click',()=>{
+        state.activeId=btn.dataset.dailyEvent;
+        renderDay();renderDailyAgenda();
+        requestAnimationFrame(()=>{const detail=$('eventDetail');if(!detail.hidden)detail.scrollIntoView({block:'nearest',behavior:'smooth'});});
+      }));
     }
     function renderDay(){
       const day=state.selected;
@@ -331,8 +378,10 @@
         $('statMonth').textContent='—';$('statUpcoming').textContent='—';$('statToday').textContent='—';
       }finally{state.loading=false;$('refreshBtn').disabled=false;}
     }
-    $('prevBtn').addEventListener('click',()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);state.selected=new Date(state.month.getFullYear(),state.month.getMonth(),1);state.activeId=null;renderAll();});
-    $('nextBtn').addEventListener('click',()=>{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);state.selected=new Date(state.month.getFullYear(),state.month.getMonth(),1);state.activeId=null;renderAll();});
+    $('prevBtn').addEventListener('click',()=>{if(state.view==='day'){state.selected=new Date(state.selected.getFullYear(),state.selected.getMonth(),state.selected.getDate()-1);state.month=new Date(state.selected.getFullYear(),state.selected.getMonth(),1);}else{state.month=new Date(state.month.getFullYear(),state.month.getMonth()-1,1);state.selected=new Date(state.month.getFullYear(),state.month.getMonth(),1);}state.activeId=null;renderAll();});
+    $('nextBtn').addEventListener('click',()=>{if(state.view==='day'){state.selected=new Date(state.selected.getFullYear(),state.selected.getMonth(),state.selected.getDate()+1);state.month=new Date(state.selected.getFullYear(),state.selected.getMonth(),1);}else{state.month=new Date(state.month.getFullYear(),state.month.getMonth()+1,1);state.selected=new Date(state.month.getFullYear(),state.month.getMonth(),1);}state.activeId=null;renderAll();});
+    $('monthViewBtn').addEventListener('click',()=>{state.view='month';state.month=new Date(state.selected.getFullYear(),state.selected.getMonth(),1);renderAll();});
+    $('dayViewBtn').addEventListener('click',()=>{state.view='day';state.month=new Date(state.selected.getFullYear(),state.selected.getMonth(),1);renderAll();});
     $('todayBtn').addEventListener('click',()=>{const d=new Date();state.month=new Date(d.getFullYear(),d.getMonth(),1);state.selected=d;state.activeId=null;renderAll();});
     $('refreshBtn').addEventListener('click',loadEvents);
 
