@@ -2,6 +2,7 @@ const ical = require("node-ical");
 
 const TIME_ZONE_FALLBACK = "America/Mexico_City";
 const MAX_ICS_BYTES = 5 * 1024 * 1024;
+const DAY_MS = 86400000;
 
 function send(res, status, body) {
   res.status(status).setHeader("Content-Type", "application/json; charset=utf-8");
@@ -39,13 +40,16 @@ function normalizeEvent(event, occurrence) {
   const timeZone = start.tz || event.start?.tz || TIME_ZONE_FALLBACK;
   const allDay = Boolean(start.dateOnly || occurrence?.isFullDay || event.start?.dateOnly);
   const uid = cleanText(event.uid) || cleanText(event.summary) + "-" + start.getTime();
+  const startKey = dateKey(start, timeZone, allDay);
+  const endKey = end instanceof Date ? dateKey(end, timeZone, allDay) : startKey;
+
   return {
     id: uid + "-" + start.getTime(),
     uid,
     title: cleanText(occurrence?.summary || event.summary) || "Compromiso sin título",
-    start: start.toISOString(),
-    end: end instanceof Date && !Number.isNaN(end.getTime()) ? end.toISOString() : start.toISOString(),
-    dateKey: dateKey(start, timeZone, allDay),
+    start: allDay ? startKey + "T12:00:00" : start.toISOString(),
+    end: allDay ? (endKey || startKey) + "T12:00:00" : end instanceof Date && !Number.isNaN(end.getTime()) ? end.toISOString() : start.toISOString(),
+    dateKey: startKey,
     timeZone,
     allDay,
     location: cleanText(occurrence?.location || event.location),
@@ -79,13 +83,17 @@ module.exports = async function handler(req, res) {
   }
 
   const now = new Date();
-  const localParts = new Intl.DateTimeFormat("en", {
-    timeZone: TIME_ZONE_FALLBACK, year: "numeric", month: "2-digit"
-  }).formatToParts(now);
-  const year = requested ? requested.year : Number(localParts.find((p) => p.type === "year").value);
-  const month = requested ? requested.month : Number(localParts.find((p) => p.type === "month").value);
-  const from = new Date(Date.UTC(year, month - 1, 1) - 3 * 86400000);
-  const to = new Date(Date.UTC(year, month, 1) + 3 * 86400000);
+  let from;
+  let to;
+  let responseMonth = null;
+  if (requested) {
+    from = new Date(Date.UTC(requested.year, requested.month - 1, 1) - 3 * DAY_MS);
+    to = new Date(Date.UTC(requested.year, requested.month, 1) + 3 * DAY_MS);
+    responseMonth = requested.year + "-" + String(requested.month).padStart(2, "0");
+  } else {
+    from = new Date(now.getTime() - 400 * DAY_MS);
+    to = new Date(now.getTime() + 800 * DAY_MS);
+  }
 
   try {
     const response = await fetch(url.toString(), {
@@ -124,10 +132,11 @@ module.exports = async function handler(req, res) {
         events.push(normalized);
       }
     }
+
     const unique = Array.from(new Map(events.map((event) => [event.id, event])).values());
     unique.sort((a, b) => a.start.localeCompare(b.start));
     return send(res, 200, {
-      month: year + "-" + String(month).padStart(2, "0"),
+      month: responseMonth,
       timeZone: TIME_ZONE_FALLBACK,
       count: unique.length,
       events: unique,
