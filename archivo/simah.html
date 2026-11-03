@@ -234,15 +234,37 @@
         user-select: text;
       }
 
-      .card-footer .record-id-label {
-        opacity: 0.7;
-        margin-right: 5px;
-        font-weight: 400;
+      .card-footer {
+        display: flex !important;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 5px;
+        width: 100%;
+        box-sizing: border-box;
+        min-height: 22px;
+        position: relative;
+        z-index: 1;
       }
 
-      .card-footer,
-      .card-footer * {
+      .card-footer .record-id-label,
+      .card-footer .record-id-value {
+        display: inline !important;
+        margin: 0 !important;
+        padding: 0;
+        color: rgba(255, 255, 255, 0.42) !important;
+        font-size: 10px !important;
+        line-height: 1.2 !important;
         font-weight: 400 !important;
+        text-shadow: none !important;
+      }
+
+      .card-footer .record-id-label {
+        opacity: 0.75;
+      }
+
+      .card-footer .record-id-value {
+        user-select: text;
+        overflow-wrap: anywhere;
       }
 
       .card:hover {
@@ -1352,10 +1374,10 @@
             setGlassState("success");
 
             console.log(
-              `✅ Cargados ${datosCompletos.length} registros desde CACHE`,
+              `📦 ${datosCompletos.length} registros mostrados desde CACHE; se validarán contra Supabase`,
             );
-            verificarActualizacionesEnBackground();
-            return;
+            // La caché es provisional: continuar y consultar siempre la fuente oficial.
+
           }
         }
 
@@ -1422,62 +1444,103 @@
         }
       }
 
-      // 🔄 VERIFICAR ACTUALIZACIONES EN BACKGROUND
+      // 🔄 SINCRONIZAR REGISTROS COMPLETOS EN SEGUNDO PLANO
       async function verificarActualizacionesEnBackground() {
         try {
-          const { count, error } = await sb
-            .from("expedientes")
-            .select("*", { count: "exact", head: true });
+          let datosActualizados = [];
+          let pagina = 0;
+          const tamanoLote = 1000;
+          let hayMas = true;
 
-          if (error) throw error;
+          while (hayMas) {
+            const desde = pagina * tamanoLote;
+            const hasta = desde + tamanoLote - 1;
+            const { data, error } = await sb
+              .from("expedientes")
+              .select("*")
+              .order("created_at", { ascending: false })
+              .range(desde, hasta);
 
-          if (count > datosCompletos.length) {
-            const diff = count - datosCompletos.length;
-            mostrarToast(
-              `📊 ${diff} registro(s) nuevo(s) disponible(s). Haz clic en "Recargar" para actualizar.`,
-              "info",
+            if (error) throw error;
+            datosActualizados = datosActualizados.concat(data || []);
+            hayMas = !!data && data.length === tamanoLote;
+            pagina++;
+          }
+
+          const anteriores = new Map(datosCompletos.map((r) => [String(r.id), r]));
+          const cambios = datosActualizados.length !== datosCompletos.length ||
+            datosActualizados.some((registro) => {
+              const anterior = anteriores.get(String(registro.id));
+              return !anterior ||
+                anterior.estado !== registro.estado ||
+                anterior.updated_at !== registro.updated_at;
+            });
+
+          if (cambios) {
+            datosCompletos = datosActualizados;
+            guardarCache(datosCompletos);
+
+            const texto = document.getElementById("busqueda")?.value.trim().toLocaleLowerCase("es") || "";
+            datosFiltrados = texto
+              ? datosCompletos.filter((r) =>
+                  [r.nombre_paciente, r.expediente, r.servicio, r.estado, r.sexo, r.fecha_registro, r.tel_part]
+                    .some((valor) => String(valor || "").toLocaleLowerCase("es").includes(texto))
+                )
+              : [...datosCompletos];
+
+            paginaActual = Math.min(
+              paginaActual,
+              Math.max(1, Math.ceil(datosFiltrados.length / registrosPorPagina))
             );
+            mostrarPagina();
+            actualizarEstadisticas();
+            console.log("Expedientes sincronizados con Supabase:", datosCompletos.length);
           }
         } catch (error) {
-          console.error("Error verificando actualizaciones:", error);
+          console.error("Error sincronizando expedientes:", error);
         }
       }
 
-      // 📊 ESTADÍSTICAS
-      async function actualizarEstadisticas() {
-        try {
-          const { count: total } = await sb
-            .from("expedientes")
-            .select("*", { count: "exact", head: true });
+      // Normaliza acentos, espacios y mayúsculas antes de clasificar estados.
+      function normalizarEstado(estado) {
+        return String(estado || "")
+          .normalize("NFD")
+          .replace(/[\\u0300-\\u036f]/g, "")
+          .trim()
+          .toLocaleLowerCase("es");
+      }
 
-          const { count: activos } = await sb
-            .from("expedientes")
-            .select("*", { count: "exact", head: true })
-            .ilike("estado", "Activo");
+      function clasificarEstado(estado) {
+        const valor = normalizarEstado(estado);
+        if (["difunto", "defuncion"].includes(valor)) return "difunto";
+        if (valor === "activo") return "activo";
+        if (["pasivo", "inactivo"].includes(valor)) return "pasivo";
+        if (valor === "depurado") return "depurado";
+        return "otro";
+      }
 
-          const { count: pasivos } = await sb
-            .from("expedientes")
-            .select("*", { count: "exact", head: true })
-            .in("estado", ["Pasivo", "Inactivo"]);
+      // 📊 Estadísticas calculadas sobre el mismo conjunto que alimenta las tarjetas.
+      function actualizarEstadisticas() {
+        const conteos = {
+          total: datosCompletos.length,
+          activo: 0,
+          pasivo: 0,
+          difunto: 0,
+          depurado: 0,
+        };
 
-          const { count: difuntos } = await sb
-            .from("expedientes")
-            .select("*", { count: "exact", head: true })
-            .in("estado", ["Difunto", "Defunción", "Defuncion"]);
+        datosCompletos.forEach((registro) => {
+          const categoria = clasificarEstado(registro.estado);
+          if (Object.prototype.hasOwnProperty.call(conteos, categoria)) {
+            conteos[categoria]++;
+          }
+        });
 
-          const { count: depurados } = await sb
-            .from("expedientes")
-            .select("*", { count: "exact", head: true })
-            .ilike("estado", "Depurado");
-
-          document.getElementById("totalCount").textContent = total || 0;
-          document.getElementById("activoCount").textContent = activos || 0;
-          document.getElementById("pasivoCount").textContent = pasivos || 0;
-          document.getElementById("difuntoCount").textContent = difuntos || 0;
-          document.getElementById("depuradoCount").textContent = depurados || 0;
-        } catch (error) {
-          console.error("Error en estadísticas:", error);
-        }
+        document.getElementById("totalCount").textContent = conteos.total;
+        document.getElementById("activoCount").textContent = conteos.activo;
+        document.getElementById("pasivoCount").textContent = conteos.pasivo;
+        document.getElementById("difuntoCount").textContent = conteos.difunto;
+        document.getElementById("depuradoCount").textContent = conteos.depurado;
       }
 
       // 🔍 BÚSQUEDA
@@ -1643,16 +1706,9 @@
         registroAEliminar = registro;
 
         // Llenar el modal de confirmación con los datos
-        const estado = registro.estado || "";
-        let estadoClass = "";
-        if (["Difunto", "Defunción", "Defuncion"].includes(estado))
-          estadoClass = "estado-difunto";
-        else if (["Activo", "ACTIVO"].includes(estado))
-          estadoClass = "estado-activo";
-        else if (["Pasivo", "Inactivo", "INACTIVO"].includes(estado))
-          estadoClass = "estado-pasivo";
-        else if (estado === "Depurado")
-          estadoClass = "estado-depurado";
+        const estado = String(registro.estado || "").trim();
+        const categoriaEstado = clasificarEstado(estado);
+        const estadoClass = categoriaEstado === "otro" ? "" : `estado-${categoriaEstado}`;
 
         const confirmData = document.getElementById("confirmData");
         confirmData.innerHTML = `
@@ -1741,16 +1797,9 @@
         }
 
         rows.forEach((r) => {
-          const estado = r.estado || "";
-          let estadoClass = "";
-          if (["Difunto", "Defunción", "Defuncion"].includes(estado))
-            estadoClass = "estado-difunto";
-          else if (["Activo", "ACTIVO"].includes(estado))
-            estadoClass = "estado-activo";
-          else if (["Pasivo", "Inactivo", "INACTIVO"].includes(estado))
-            estadoClass = "estado-pasivo";
-          else if (estado === "Depurado")
-            estadoClass = "estado-depurado";
+          const estado = String(r.estado || "").trim();
+          const categoriaEstado = clasificarEstado(estado);
+          const estadoClass = categoriaEstado === "otro" ? "" : `estado-${categoriaEstado}`;
 
           cont.innerHTML += `
           <div class="card">
@@ -1771,7 +1820,8 @@
               </button>
             </div>
             <div class="card-footer" title="Identificador del registro en la base de datos">
-              <span><span class="record-id-label">ID</span>${r.id}</span>
+              <span class="record-id-label">ID</span>
+              <span class="record-id-value">${r.id ?? "Sin ID"}</span>
             </div>
           </div>
         `;
