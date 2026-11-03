@@ -13,54 +13,127 @@
   <link href="/main_css/estilos.css" rel="stylesheet">
 
   <style>
-    .calendario-intro {
-      margin: 1rem 0 1.25rem;
-      color: #526477;
-      line-height: 1.55;
+    .calendario-contenido {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: clamp(.5rem, 2vw, 1.25rem) 0 1.5rem;
     }
 
-    .calendario-toolbar {
-      display: flex;
+    .calendario-intro {
+      max-width: 700px;
+      margin: .25rem 0 1.5rem;
+      color: #526477;
+      line-height: 1.65;
+    }
+
+    .calendario-panel {
+      position: relative;
+      display: grid;
+      grid-template-columns: minmax(180px, .75fr) minmax(0, 1.6fr);
+      gap: clamp(1.25rem, 3vw, 2.5rem);
       align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: .75rem;
-      margin: 1rem 0;
+      padding: clamp(1.35rem, 4vw, 2.5rem);
+      overflow: hidden;
+      border: 1px solid rgba(44, 62, 80, .13);
+      border-radius: 18px;
+      background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(238,244,248,.94));
+      box-shadow: 0 12px 34px rgba(31, 45, 61, .08);
+    }
+
+    .calendario-panel::after {
+      content: "";
+      position: absolute;
+      width: 260px;
+      height: 260px;
+      right: -115px;
+      top: -135px;
+      border-radius: 50%;
+      background: rgba(125, 172, 191, .12);
+      pointer-events: none;
+    }
+
+    .calendario-simbolo {
+      display: grid;
+      place-items: center;
+      width: min(100%, 210px);
+      aspect-ratio: 1;
+      margin: auto;
+      border-radius: 24px;
+      color: #fff;
+      background: linear-gradient(145deg, #34495e, #52748a);
+      box-shadow: 0 14px 28px rgba(44, 62, 80, .2);
+    }
+
+    .calendario-simbolo i {
+      font-size: clamp(3.5rem, 8vw, 5.5rem);
+    }
+
+    .calendario-detalle {
+      position: relative;
+      z-index: 1;
+    }
+
+    .calendario-etiqueta {
+      display: inline-flex;
+      align-items: center;
+      gap: .45rem;
+      margin-bottom: .75rem;
+      color: #52748a;
+      font-size: .76rem;
+      font-weight: 700;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .calendario-titulo {
+      margin: 0 0 .65rem;
+      color: #2c3e50;
+      font-size: clamp(1.35rem, 3vw, 1.9rem);
+      line-height: 1.2;
+    }
+
+    .calendario-descripcion {
+      max-width: 590px;
+      margin: 0;
+      color: #5d6d7e;
+      line-height: 1.65;
     }
 
     .calendario-acciones {
       display: flex;
       flex-wrap: wrap;
-      gap: .65rem;
+      gap: .7rem;
+      margin-top: 1.5rem;
     }
 
     .calendario-accion {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: .5rem;
-      min-height: 40px;
-      padding: .65rem 1rem;
-      border: 1px solid rgba(44, 62, 80, .16);
+      gap: .55rem;
+      min-height: 44px;
+      padding: .7rem 1.05rem;
+      border: 1px solid rgba(44, 62, 80, .18);
       border-radius: 10px;
       color: #2c3e50;
-      background: rgba(255, 255, 255, .78);
+      background: rgba(255, 255, 255, .85);
       text-decoration: none;
       font: inherit;
       font-size: .9rem;
-      font-weight: 600;
-      transition: background .2s ease, transform .2s ease;
+      font-weight: 650;
+      transition: transform .18s ease, background .18s ease, box-shadow .18s ease;
     }
 
     .calendario-accion:hover {
+      transform: translateY(-2px);
       background: #fff;
-      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(31, 45, 61, .1);
     }
 
     .calendario-accion--principal {
       color: #fff;
-      background: #2c3e50;
       border-color: #2c3e50;
+      background: #2c3e50;
     }
 
     .calendario-accion--principal:hover {
@@ -68,47 +141,50 @@
       background: #34495e;
     }
 
-    .calendario-marco {
-      width: 100%;
-      min-height: 680px;
-      overflow: hidden;
-      border: 1px solid rgba(44, 62, 80, .14);
-      border-radius: 14px;
-      background: #fff;
-      box-shadow: 0 8px 28px rgba(31, 45, 61, .08);
+    .calendario-pie {
+      display: flex;
+      align-items: flex-start;
+      gap: .7rem;
+      max-width: 760px;
+      margin: 1.1rem auto 0;
+      padding: .9rem 1rem;
+      border-left: 3px solid #7dacbf;
+      color: #68798a;
+      background: rgba(255, 255, 255, .48);
+      font-size: .84rem;
+      line-height: 1.55;
     }
 
-    .calendario-marco iframe {
-      display: block;
-      width: 100%;
-      height: 760px;
-      border: 0;
-      background: #fff;
+    .calendario-pie i {
+      margin-top: .15rem;
+      color: #52748a;
     }
 
-    .calendario-nota {
-      margin: .85rem 0 0;
-      color: #718096;
-      font-size: .82rem;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 640px) {
-      .calendario-marco {
-        min-height: 620px;
-        border-radius: 10px;
+    @media (max-width: 680px) {
+      .calendario-panel {
+        grid-template-columns: 1fr;
+        text-align: center;
       }
 
-      .calendario-marco iframe {
-        height: 680px;
+      .calendario-simbolo {
+        width: 116px;
+        border-radius: 20px;
+      }
+
+      .calendario-simbolo i {
+        font-size: 3rem;
       }
 
       .calendario-acciones {
-        width: 100%;
+        flex-direction: column;
       }
 
       .calendario-accion {
-        flex: 1 1 100%;
+        width: 100%;
+      }
+
+      .calendario-pie {
+        text-align: left;
       }
     }
   </style>
@@ -119,42 +195,60 @@
     <h5>Calendario institucional</h5>
     <div id="header"></div>
 
-    <main class="grid">
+    <main class="grid calendario-contenido">
       <p class="calendario-intro">
-        Consulta las actividades y fechas programadas de Estadísticas y Archivo Clínico.
-        La administración de eventos se realiza directamente desde Outlook.
+        Consulta las actividades, reuniones y fechas programadas por el Departamento
+        de Estadísticas y Archivo Clínico. El calendario se gestiona directamente en Outlook.
       </p>
 
-      <div class="calendario-toolbar">
-        <div class="calendario-acciones">
-          <a class="calendario-accion calendario-accion--principal"
-            href="https://outlook.live.com/calendar/view/month" target="_blank" rel="noopener noreferrer">
-            <i class="fa-solid fa-calendar-plus" aria-hidden="true"></i>
-            Administrar en Outlook
-          </a>
-          <a class="calendario-accion"
-            href="https://outlook.live.com/owa/calendar/00000000-0000-0000-0000-000000000000/7e160782-e6ee-4da9-8eec-d85946cda0f1/cid-477F161056610D69/index.html"
-            target="_blank" rel="noopener noreferrer">
-            <i class="fa-solid fa-up-right-from-square" aria-hidden="true"></i>
-            Abrir calendario en otra pestaña
-          </a>
+      <section class="calendario-panel" aria-labelledby="calendario-titulo">
+        <div class="calendario-simbolo" aria-hidden="true">
+          <i class="fa-regular fa-calendar-days"></i>
         </div>
-      </div>
 
-      <section class="calendario-marco" aria-label="Calendario público de Outlook">
-        <iframe
-          src="https://outlook.live.com/owa/calendar/00000000-0000-0000-0000-000000000000/7e160782-e6ee-4da9-8eec-d85946cda0f1/cid-477F161056610D69/index.html"
-          title="Calendario de Estadísticas y Archivo Clínico HRPV"
-          loading="lazy"
-          referrerpolicy="no-referrer">
-        </iframe>
+        <div class="calendario-detalle">
+          <div class="calendario-etiqueta">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+            Calendario disponible
+          </div>
+
+          <h2 class="calendario-titulo" id="calendario-titulo">
+            HRPV | Estadísticas y Archivo Clínico
+          </h2>
+
+          <p class="calendario-descripcion">
+            Accede a la agenda institucional para consultar los eventos publicados.
+            Para mantener la información actualizada, la creación y administración
+            de actividades se realiza desde la cuenta de Outlook responsable del calendario.
+          </p>
+
+          <div class="calendario-acciones">
+            <a class="calendario-accion calendario-accion--principal"
+              href="https://outlook.live.com/owa/calendar/00000000-0000-0000-0000-000000000000/7e160782-e6ee-4da9-8eec-d85946cda0f1/cid-477F161056610D69/index.html"
+              target="_blank" rel="noopener noreferrer">
+              <i class="fa-regular fa-calendar" aria-hidden="true"></i>
+              Ver calendario
+              <i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i>
+            </a>
+
+            <a class="calendario-accion"
+              href="https://outlook.live.com/calendar/view/month"
+              target="_blank" rel="noopener noreferrer">
+              <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+              Administrar en Outlook
+            </a>
+          </div>
+        </div>
       </section>
 
-      <p class="calendario-nota">
-        Este calendario es de consulta. Para crear, modificar o eliminar eventos, utiliza
-        «Administrar en Outlook». La disponibilidad de la vista incrustada depende de las
-        restricciones de visualización que aplique Microsoft.
-      </p>
+      <div class="calendario-pie">
+        <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+        <span>
+          La consulta pública abre el calendario en Outlook. La administración requiere
+          iniciar sesión con la cuenta propietaria. Los cambios realizados allí se reflejan
+          en la agenda publicada.
+        </span>
+      </div>
     </main>
 
     <div id="footer"></div>
