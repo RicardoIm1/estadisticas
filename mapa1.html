@@ -144,7 +144,7 @@
       min-width:0;
       flex-wrap:nowrap;
     }
-    #header .header > div:has(> .usuario){
+    #header .header > .mapa-user-slot{
       grid-column:3;
       justify-self:end;
       min-width:0;
@@ -156,7 +156,7 @@
         row-gap:.7rem;
       }
       #header .header > .logo{grid-column:1;grid-row:1}
-      #header .header > div:has(> .usuario){grid-column:2;grid-row:1}
+      #header .header > .mapa-user-slot{grid-column:2;grid-row:1}
       #header .header > .mapa-tools{
         grid-column:1 / -1;
         grid-row:2;
@@ -398,7 +398,12 @@
         const header = host.querySelector('.header');
         const tools = document.getElementById('mapaTools');
         if (!header) throw new Error('/comun/header.html no contiene .header');
-        if (tools) header.appendChild(tools);
+        const user = header.querySelector('.usuario');
+        const userSlot = user ? user.parentElement : null;
+        if (userSlot) userSlot.classList.add('mapa-user-slot');
+        // Orden DOM de respaldo: logo, búsqueda y usuario.
+        if (tools && userSlot) header.insertBefore(tools, userSlot);
+        else if (tools) header.appendChild(tools);
 
         const filtro = document.getElementById('mapaFiltro');
         const enlaces = [...document.querySelectorAll('.mapa-link, .mapa-home')];
