@@ -1,184 +1,142 @@
-// Vercel Serverless Function: consulta de calendario Outlook mediante ICS.
-// La URL del feed se configura en Vercel como OUTLOOK_ICS_URL.
-const DAY = 86400000;
+const ical = require("node-ical");
 
-function unfoldICS(text) {
-  return text.replace(/\r?\n[ \t]/g, "");
+const TIME_ZONE_FALLBACK = "America/Mexico_City";
+const MAX_ICS_BYTES = 5 * 1024 * 1024;
+
+function send(res, status, body) {
+  res.status(status).setHeader("Content-Type", "application/json; charset=utf-8");
+  res.setHeader("Cache-Control", "private, max-age=120, stale-while-revalidate=300");
+  res.send(JSON.stringify(body));
 }
 
-function unescapeICS(value = "") {
-  return value
-    .replace(/\\n/gi, "\n")
-    .replace(/\\,/g, ",")
-    .replace(/\\;/g, ";")
-    .replace(/\\\\/g, "\\");
+function parseMonth(value) {
+  if (!/^\d{4}-\d{2}$/.test(value || "")) return null;
+  const parts = value.split("-").map(Number);
+  if (parts[1] < 1 || parts[1] > 12 || parts[0] < 2000 || parts[0] > 2100) return null;
+  return { year: parts[0], month: parts[1] };
 }
 
-function parseDate(value, params = "") {
-  const raw = String(value || "").trim();
-  const allDay = /VALUE=DATE/i.test(params) || /^\d{8}$/.test(raw);
-  if (allDay) {
-    const m = raw.match(/^(\d{4})(\d{2})(\d{2})/);
-    if (!m) return null;
-    return { value: m[1] + "-" + m[2] + "-" + m[3], allDay: true };
-  }
-  const utc = /Z$/i.test(raw);
-  const m = raw.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})?(Z)?$/i);
-  if (!m) return null;
-  if (utc) {
-    const d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)));
-    return { value: d.toISOString(), allDay: false };
-  }
+function dateKey(date, timeZone, allDay) {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return null;
+  if (allDay && date.dateOnly) return date.toISOString().slice(0, 10);
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timeZone || TIME_ZONE_FALLBACK,
+    year: "numeric", month: "2-digit", day: "2-digit"
+  }).formatToParts(date);
+  const part = (type) => parts.find((item) => item.type === type)?.value;
+  return part("year") + "-" + part("month") + "-" + part("day");
+}
+
+function cleanText(value) {
+  if (value === undefined || value === null) return "";
+  return typeof value === "string" ? value.trim() : String(value).trim();
+}
+
+function normalizeEvent(event, occurrence) {
+  const start = occurrence?.start || event.start;
+  const end = occurrence?.end || event.end || start;
+  if (!(start instanceof Date) || Number.isNaN(start.getTime())) return null;
+  const timeZone = start.tz || event.start?.tz || TIME_ZONE_FALLBACK;
+  const allDay = Boolean(start.dateOnly || occurrence?.isFullDay || event.start?.dateOnly);
+  const uid = cleanText(event.uid) || cleanText(event.summary) + "-" + start.getTime();
   return {
-    value: m[1] + "-" + m[2] + "-" + m[3] + "T" + m[4] + ":" + m[5] + ":" + (m[6] || "00"),
-    allDay: false
+    id: uid + "-" + start.getTime(),
+    uid,
+    title: cleanText(occurrence?.summary || event.summary) || "Compromiso sin título",
+    start: start.toISOString(),
+    end: end instanceof Date && !Number.isNaN(end.getTime()) ? end.toISOString() : start.toISOString(),
+    dateKey: dateKey(start, timeZone, allDay),
+    timeZone,
+    allDay,
+    location: cleanText(occurrence?.location || event.location),
+    description: cleanText(occurrence?.description || event.description),
+    status: cleanText(occurrence?.status || event.status).toUpperCase()
   };
 }
 
-function parseProperties(block) {
-  const result = {};
-  for (const line of block.split(/\r?\n/)) {
-    const colon = line.indexOf(":");
-    if (colon < 0) continue;
-    const left = line.slice(0, colon);
-    const value = line.slice(colon + 1);
-    const parts = left.split(";");
-    const key = parts.shift().toUpperCase();
-    const params = parts.join(";");
-    if (!result[key]) result[key] = [];
-    result[key].push({ value, params });
-  }
-  return result;
-}
-
-function first(props, key) {
-  return props[key] && props[key][0] ? props[key][0] : { value: "", params: "" };
-}
-
-function addDays(date, n) {
-  const d = new Date(date.getTime());
-  d.setUTCDate(d.getUTCDate() + n);
-  return d;
-}
-
-function localStamp(d) {
-  const p = n => String(n).padStart(2, "0");
-  return d.getUTCFullYear() + "-" + p(d.getUTCMonth() + 1) + "-" + p(d.getUTCDate()) +
-    "T" + p(d.getUTCHours()) + ":" + p(d.getUTCMinutes()) + ":" + p(d.getUTCSeconds());
-}
-
-function parseRule(raw) {
-  const out = {};
-  for (const item of String(raw || "").split(";")) {
-    const i = item.indexOf("=");
-    if (i > 0) out[item.slice(0, i).toUpperCase()] = item.slice(i + 1);
-  }
-  return out;
-}
-
-function expandSimpleRule(event, ruleRaw, maxDate) {
-  const rule = parseRule(ruleRaw);
-  const freq = rule.FREQ;
-  if (!freq || !["DAILY", "WEEKLY", "MONTHLY", "YEARLY"].includes(freq)) return [event];
-  const interval = Math.max(1, parseInt(rule.INTERVAL || "1", 10) || 1);
-  const count = Math.min(500, Math.max(1, parseInt(rule.COUNT || "500", 10) || 500));
-  const start = new Date(event.start);
-  if (Number.isNaN(start.getTime())) return [event];
-  const end = new Date(event.end);
-  const duration = Number.isNaN(end.getTime()) ? 0 : end.getTime() - start.getTime();
-  const untilRaw = rule.UNTIL ? parseDate(rule.UNTIL, "") : null;
-  const until = untilRaw ? new Date(untilRaw.value) : maxDate;
-  const byday = rule.BYDAY ? rule.BYDAY.split(",").map(x => x.slice(-2)) : null;
-  const weekdays = ["SU", "MO", "TU", "WE", "TH", "FR", "SA"];
-  const out = [];
-  let cursor = new Date(start);
-  let emitted = 0;
-  let guard = 0;
-  while (cursor <= maxDate && cursor <= until && emitted < count && guard++ < 2000) {
-    let matches = false;
-    const dayDiff = Math.floor((Date.UTC(cursor.getUTCFullYear(), cursor.getUTCMonth(), cursor.getUTCDate()) -
-      Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate())) / DAY);
-    if (freq === "DAILY") matches = dayDiff >= 0 && dayDiff % interval === 0;
-    if (freq === "WEEKLY") {
-      const week = Math.floor(dayDiff / 7);
-      const wanted = byday || [weekdays[start.getUTCDay()]];
-      matches = dayDiff >= 0 && week % interval === 0 && wanted.includes(weekdays[cursor.getUTCDay()]);
-    }
-    if (freq === "MONTHLY") {
-      const months = (cursor.getUTCFullYear() - start.getUTCFullYear()) * 12 + cursor.getUTCMonth() - start.getUTCMonth();
-      matches = months >= 0 && months % interval === 0 && cursor.getUTCDate() === start.getUTCDate();
-    }
-    if (freq === "YEARLY") {
-      const years = cursor.getUTCFullYear() - start.getUTCFullYear();
-      matches = years >= 0 && years % interval === 0 && cursor.getUTCMonth() === start.getUTCMonth() &&
-        cursor.getUTCDate() === start.getUTCDate();
-    }
-    if (matches) {
-      const offset = cursor.getTime() - start.getTime();
-      const copy = { ...event, id: event.id + (out.length ? "-" + out.length : ""), start: localStamp(cursor),
-        end: localStamp(new Date(cursor.getTime() + duration)) };
-      out.push(copy);
-      emitted++;
-    }
-    cursor = addDays(cursor, 1);
-  }
-  return out.length ? out : [event];
-}
-
-function parseEvents(ics) {
-  const unfolded = unfoldICS(ics);
-  const blocks = unfolded.match(/BEGIN:VEVENT[\s\S]*?END:VEVENT/g) || [];
-  const now = new Date();
-  const maxDate = new Date(now.getTime() + 400 * DAY);
-  const minDate = new Date(now.getTime() - 400 * DAY);
-  const events = [];
-  for (const block of blocks) {
-    const p = parseProperties(block);
-    const s = first(p, "DTSTART");
-    const e = first(p, "DTEND");
-    const start = parseDate(s.value, s.params);
-    if (!start) continue;
-    const end = parseDate(e.value, e.params) || start;
-    const event = {
-      id: unescapeICS(first(p, "UID").value) || "evt-" + events.length,
-      title: unescapeICS(first(p, "SUMMARY").value) || "Compromiso sin título",
-      start: start.value,
-      end: end.value,
-      allDay: start.allDay,
-      location: unescapeICS(first(p, "LOCATION").value),
-      description: unescapeICS(first(p, "DESCRIPTION").value),
-      status: first(p, "STATUS").value || "CONFIRMED"
-    };
-    if (event.status === "CANCELLED") continue;
-    const rule = first(p, "RRULE").value;
-    const expanded = rule ? expandSimpleRule(event, rule, maxDate) : [event];
-    for (const item of expanded) {
-      const d = new Date(item.start);
-      if (d >= minDate && d <= maxDate) events.push(item);
-    }
-  }
-  events.sort((a, b) => new Date(a.start) - new Date(b.start));
-  return events.slice(0, 1000);
-}
-
 module.exports = async function handler(req, res) {
-  res.setHeader("Content-Type", "application/json; charset=utf-8");
-  res.setHeader("Cache-Control", "s-maxage=300, stale-while-revalidate=600");
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
-    return res.status(405).json({ error: "Método no permitido." });
+    return send(res, 405, { error: "Método no permitido." });
   }
+
   const feedUrl = process.env.OUTLOOK_ICS_URL;
-  if (!feedUrl) return res.status(503).json({ error: "Falta configurar OUTLOOK_ICS_URL en Vercel." });
+  if (!feedUrl) return send(res, 503, {
+    error: "El calendario todavía no está conectado. Falta configurar OUTLOOK_ICS_URL en Vercel."
+  });
+
+  let url;
+  try { url = new URL(feedUrl); }
+  catch { return send(res, 500, { error: "La dirección del calendario configurada no es válida." }); }
+
+  if (url.protocol !== "https:" || url.hostname !== "outlook.live.com") {
+    return send(res, 500, { error: "La dirección configurada no corresponde al feed seguro de Outlook." });
+  }
+
+  const requested = parseMonth(String(req.query.month || ""));
+  if (req.query.month && !requested) {
+    return send(res, 400, { error: "El mes solicitado debe tener formato AAAA-MM." });
+  }
+
+  const now = new Date();
+  const localParts = new Intl.DateTimeFormat("en", {
+    timeZone: TIME_ZONE_FALLBACK, year: "numeric", month: "2-digit"
+  }).formatToParts(now);
+  const year = requested ? requested.year : Number(localParts.find((p) => p.type === "year").value);
+  const month = requested ? requested.month : Number(localParts.find((p) => p.type === "month").value);
+  const from = new Date(Date.UTC(year, month - 1, 1) - 3 * 86400000);
+  const to = new Date(Date.UTC(year, month, 1) + 3 * 86400000);
+
   try {
-    const response = await fetch(feedUrl, { headers: { "Accept": "text/calendar,text/plain,*/*" } });
-    if (!response.ok) throw new Error("Outlook respondió HTTP " + response.status);
-    const ics = await response.text();
-    if (!ics.includes("BEGIN:VCALENDAR")) throw new Error("La respuesta no parece ser un calendario ICS válido.");
-    const events = parseEvents(ics);
-    return res.status(200).json({ events, count: events.length, updatedAt: new Date().toISOString() });
+    const response = await fetch(url.toString(), {
+      headers: { Accept: "text/calendar, text/plain;q=0.9, */*;q=0.8" },
+      signal: AbortSignal.timeout(12000),
+      redirect: "follow"
+    });
+    if (!response.ok) throw new Error("Outlook respondió con HTTP " + response.status);
+    const declaredLength = Number(response.headers.get("content-length") || 0);
+    if (declaredLength > MAX_ICS_BYTES) throw new Error("El archivo ICS supera el tamaño permitido.");
+    const icsText = await response.text();
+    if (Buffer.byteLength(icsText, "utf8") > MAX_ICS_BYTES) throw new Error("El archivo ICS supera el tamaño permitido.");
+    if (!icsText.includes("BEGIN:VCALENDAR")) throw new Error("La respuesta de Outlook no contiene un calendario ICS válido.");
+
+    const parsed = await ical.async.parseICS(icsText);
+    const events = [];
+    for (const item of Object.values(parsed)) {
+      if (!item || item.type !== "VEVENT" || !item.start) continue;
+      if (String(item.status || "").toUpperCase() === "CANCELLED") continue;
+      let instances = [];
+      if (item.rrule) {
+        instances = ical.expandRecurringEvent(item, {
+          from, to, includeOverrides: true, excludeExdates: true, expandOngoing: true
+        });
+      } else {
+        const start = item.start;
+        const end = item.end || start;
+        if (end >= from && start <= to) instances = [{ start, end }];
+      }
+      for (const instance of instances) {
+        const normalized = normalizeEvent(item, instance);
+        if (!normalized) continue;
+        const eventStart = new Date(normalized.start);
+        const eventEnd = new Date(normalized.end);
+        if (eventEnd < from || eventStart > to) continue;
+        events.push(normalized);
+      }
+    }
+    const unique = Array.from(new Map(events.map((event) => [event.id, event])).values());
+    unique.sort((a, b) => a.start.localeCompare(b.start));
+    return send(res, 200, {
+      month: year + "-" + String(month).padStart(2, "0"),
+      timeZone: TIME_ZONE_FALLBACK,
+      count: unique.length,
+      events: unique,
+      updatedAt: new Date().toISOString()
+    });
   } catch (error) {
     console.error("Error al consultar el calendario Outlook:", error);
-    return res.status(502).json({ error: "No fue posible consultar el calendario de Outlook. Verifica el vínculo ICS y vuelve a intentarlo." });
+    return send(res, 502, {
+      error: "No fue posible consultar el calendario de Outlook. Verifica que el vínculo ICS siga publicado y disponible."
+    });
   }
 };
