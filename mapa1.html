@@ -72,6 +72,19 @@
     }
     @media(prefers-reduced-motion:reduce){.mapa-link,.mapa-home{transition:none}.mapa-link:hover,.mapa-home:hover{transform:none}}
 
+
+    /* === ENCABEZADO DEL MAPA === */
+    .mapa-page-title{margin:0 0 .45rem;padding:0 .15rem;color:#85acbd;font-size:1rem;font-weight:650;letter-spacing:.045em;text-transform:uppercase}
+    #header .mapa-intro{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;padding:.85rem 0 1rem;margin-top:.6rem;border-top:1px solid var(--map-line);border-bottom:1px solid var(--map-line)}
+    #header .mapa-intro>div:first-child{flex:1 1 320px;min-width:0}
+    #header .mapa-intro p{margin:0;max-width:680px;font-size:.92rem;line-height:1.55;color:rgba(255,255,255,.76)}
+    #header .mapa-tools{flex:0 1 470px}
+    @media(max-width:650px){
+      .mapa-page-title{font-size:.9rem;margin-bottom:.35rem}
+      #header .mapa-intro{align-items:stretch;padding:.7rem 0 .85rem}
+      #header .mapa-tools{width:100%;flex-basis:100%}
+    }
+
     /* === REDISEÑO DE TILES · MAPA DEL SITIO === */
     #mapa-sitio{padding:0 clamp(.8rem,1.6vw,1.5rem) 1.2rem;scrollbar-gutter:stable}
     .mapa-intro{padding:1.35rem 0 1.5rem;gap:1.25rem}
@@ -145,12 +158,11 @@
 </head>
 <body>
   <div class="glass" id="dashboard">
+    <h5 class="mapa-page-title">Mapa del sitio</h5>
     <div id="header"></div>
     <main id="mapa-sitio">
-      <section class="mapa-intro">
+      <section class="mapa-intro" id="mapaIntro">
         <div>
-          <p class="mapa-kicker">HRPV · Estadísticas y Archivo Clínico</p>
-          <h1><i class="fa-solid fa-sitemap" style="color:var(--map-accent);margin-right:.35rem"></i> Mapa del sitio</h1>
           <p>Directorio de navegación del portal. Los accesos se agrupan por área para localizar rápidamente módulos, herramientas y documentos de consulta.</p>
         </div>
         <div class="mapa-tools">
@@ -338,7 +350,10 @@
     fetch('/comun/header.html')
       .then(r => { if (!r.ok) throw new Error('No se pudo cargar el encabezado'); return r.text(); })
       .then(html => {
-        document.getElementById('header').innerHTML = html;
+        const header = document.getElementById('header');
+        header.innerHTML = html;
+        const intro = document.getElementById('mapaIntro');
+        if (intro) header.appendChild(intro);
         const script = document.createElement('script');
         script.src = '/comun/sesion_bk.js';
         script.onload = () => {
