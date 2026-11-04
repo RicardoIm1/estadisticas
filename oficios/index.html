@@ -2320,6 +2320,55 @@
         text-underline-offset: 3px;
       }
 
+
+      /* Jerarquía compacta y ordenada del formulario */
+      .col-formulario .fila-meta-documento,
+      .col-formulario .fila-destinatario,
+      .col-formulario .fila-remitente {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px 16px;
+        min-width: 0;
+      }
+      .col-formulario .fila-meta-documento {
+        grid-template-columns: minmax(1.35fr, 1.7fr) repeat(4, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .col-formulario .fila-meta-documento .form-group,
+      .col-formulario .fila-destinatario .form-group,
+      .col-formulario .fila-remitente .form-group { min-width: 0; }
+      .col-formulario .fila-asunto,
+      .col-formulario .fila-departamento { grid-column: 1 / -1; }
+      .col-formulario .fila-meta-documento input,
+      .col-formulario .fila-meta-documento select { min-width: 0; width: 100%; }
+      .col-formulario .grupo-responsables {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        align-items: end;
+      }
+      .col-formulario .grupo-responsables .etiqueta-confidencial {
+        align-self: end;
+        justify-self: stretch;
+        min-height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+      }
+      @media (max-width: 1100px) and (min-width: 769px) {
+        .col-formulario .fila-meta-documento { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
+        .col-formulario .fila-meta-documento label { font-size: 10px; }
+        .col-formulario .fila-meta-documento input,
+        .col-formulario .fila-meta-documento select { padding: 8px 6px; font-size: 12px; }
+      }
+      @media (max-width: 768px) {
+        .col-formulario .fila-meta-documento,
+        .col-formulario .fila-destinatario,
+        .col-formulario .fila-remitente { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+        .col-formulario .grupo-responsables { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .col-formulario .grupo-responsables .etiqueta-confidencial { justify-content: flex-start; white-space: normal; }
+      }
+
       /* Proporción de paneles en escritorio: formulario 3/5, vista previa 2/5 */
       @media (min-width: 1025px) {
         .modo-edicion {
@@ -2353,7 +2402,7 @@
         </div>
         <div class="header-actions" id="headerActions">
           <button class="btn-success" onclick="cargarDatos()">
-            🔄 Actualizar
+            🔄 Recargar datos
           </button>
           <button type="submit" form="oficioForm" class="btn-primary" id="btnGuardar">
             📤 Guardar
@@ -2409,109 +2458,67 @@
                 <input type="hidden" id="editId" value="" />
 
                 <div class="form-grid">
-                  <div class="form-group">
-                    <label>Clave OPDSSJ <span class="required">*</span></label>
-                    <input
-                      type="text"
-                      id="clave_opdssj"
-                      placeholder="OPDSSJ.SDGM/000/2026"
-                      required
-                    />
-                    <small
-                      style="color: rgba(255, 255, 255, 0.12); font-size: 7px"
-                      >OPDSSJ.[AREA]/[CONSECUTIVO]/[AÑO]</small
-                    >
+                  <div class="fila-meta-documento">
+                    <div class="form-group">
+                      <label>Folio del documento <span class="required">*</span></label>
+                      <input type="text" id="clave_opdssj" placeholder="OPDSSJ.SDGM/000/2026" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Tipo <span class="required">*</span></label>
+                      <select id="tipo_documento" required>
+                        <option value="Oficio">Oficio</option>
+                        <option value="Circular">Circular</option>
+                        <option value="Memorándum">Memorándum</option>
+                        <option value="Comunicado">Comunicado</option>
+                        <option value="Resolución">Resolución</option>
+                        <option value="Acta">Acta</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Fecha de emisión <span class="required">*</span></label>
+                      <input type="date" id="fecha_emision" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Prioridad <span class="required">*</span></label>
+                      <select id="prioridad" required>
+                        <option value="Alta">🔴 Alta</option>
+                        <option value="Media" selected>🟡 Media</option>
+                        <option value="Baja">🟢 Baja</option>
+                      </select>
+                    </div>
+                    <div class="form-group">
+                      <label>Plazo (días)</label>
+                      <input type="number" id="plazo_respuesta" value="5" min="1" max="60" />
+                    </div>
                   </div>
-
-                  <div class="form-group">
-                    <label>Tipo <span class="required">*</span></label>
-                    <select id="tipo_documento" required>
-                      <option value="Oficio">Oficio</option>
-                      <option value="Circular">Circular</option>
-                      <option value="Memorándum">Memorándum</option>
-                      <option value="Comunicado">Comunicado</option>
-                      <option value="Resolución">Resolución</option>
-                      <option value="Acta">Acta</option>
-                    </select>
-                  </div>
-
-                  <div class="form-group">
+                  <div class="form-group full-width fila-asunto">
                     <label>Asunto <span class="required">*</span></label>
-                    <input
-                      type="text"
-                      id="asunto"
-                      placeholder="Breve y preciso"
-                      required
-                    />
+                    <input type="text" id="asunto" placeholder="Breve y preciso" required />
                   </div>
-
-                  <div class="form-group">
-                    <label>Remitente <span class="required">*</span></label>
-                    <input
-                      type="text"
-                      id="remitente"
-                      placeholder="Nombre completo"
-                      required
-                    />
+                  <div class="fila-destinatario">
+                    <div class="form-group">
+                      <label>Destinatario <span class="required">*</span></label>
+                      <input type="text" id="destinatario" placeholder="Nombre completo" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Cargo del destinatario</label>
+                      <input type="text" id="cargo_destinatario" placeholder="Cargo o puesto" />
+                    </div>
                   </div>
-
-                  <div class="form-group">
-                    <label
-                      >Cargo del Remitente
-                      <span class="required">*</span></label
-                    >
-                    <input
-                      type="text"
-                      id="cargo_remitente"
-                      placeholder="Director, Jefe, Coordinador..."
-                      required
-                    />
+                  <div class="form-group full-width fila-departamento">
+                    <label>Departamento del destinatario</label>
+                    <input type="text" id="departamento_destino" placeholder="Área receptora" />
                   </div>
-
-                  <div class="form-group">
-                    <label>Destinatario <span class="required">*</span></label>
-                    <input
-                      type="text"
-                      id="destinatario"
-                      placeholder="Nombre completo y cargo"
-                      required
-                    />
+                  <div class="fila-remitente">
+                    <div class="form-group">
+                      <label>Remitente <span class="required">*</span></label>
+                      <input type="text" id="remitente" placeholder="Nombre completo" required />
+                    </div>
+                    <div class="form-group">
+                      <label>Cargo del remitente <span class="required">*</span></label>
+                      <input type="text" id="cargo_remitente" placeholder="Director, Jefe, Coordinador..." required />
+                    </div>
                   </div>
-
-                  <div class="form-group">
-                    <label>Departamento Destino</label>
-                    <input
-                      type="text"
-                      id="departamento_destino"
-                      placeholder="Área receptora"
-                    />
-                  </div>
-
-                  <div class="form-group">
-                    <label>Fecha Emisión <span class="required">*</span></label>
-                    <input type="date" id="fecha_emision" required />
-                  </div>
-
-                  <div class="form-group">
-                    <label>Prioridad <span class="required">*</span></label>
-                    <select id="prioridad" required>
-                      <option value="Alta">🔴 Alta</option>
-                      <option value="Media" selected>🟡 Media</option>
-                      <option value="Baja">🟢 Baja</option>
-                    </select>
-                  </div>
-
-                  <div class="form-group">
-                    <label>Plazo Respuesta (días)</label>
-                    <input
-                      type="number"
-                      id="plazo_respuesta"
-                      value="5"
-                      min="1"
-                      max="60"
-                    />
-                  </div>
-
                   <div class="form-group full-width">
                     <label>Contenido <span class="required">*</span></label>
                     <div class="editor-toolbar">
@@ -2756,13 +2763,7 @@
 
                   <div class="full-width">
                     <div class="responsables-header">
-                      <label class="label-responsables">
-                        📋 Responsables del documento
-                      </label>
-                      <div class="etiqueta-confidencial">
-                        <input type="checkbox" id="confidencial" />
-                        <label for="confidencial">🔒 Contiene datos personales</label>
-                      </div>
+                      <label class="label-responsables">📋 Responsables del documento</label>
                     </div>
                     <div class="grupo-responsables">
                       <div class="form-group">
@@ -2776,6 +2777,10 @@
                       <div class="form-group">
                         <label>Autorizó</label>
                         <input type="text" id="autorizo" placeholder="Nombre" />
+                      </div>
+                      <div class="etiqueta-confidencial">
+                        <input type="checkbox" id="confidencial" />
+                        <label for="confidencial">🔒 Contiene datos personales</label>
                       </div>
                     </div>
                   </div>
@@ -3437,6 +3442,7 @@
           remitente: valor("remitente", "Nombre del remitente"),
           cargo_remitente: valor("cargo_remitente", "Cargo del remitente"),
           destinatario: valor("destinatario", "Nombre del destinatario"),
+          cargo_destinatario: valor("cargo_destinatario", ""),
           departamento_destino: valor("departamento_destino", ""),
           fecha_emision: valor(
             "fecha_emision",
@@ -3502,6 +3508,7 @@
           </div>
           <div class="destinatario">
             <div class="destinatario-nombre">C. ${oficio.destinatario || "Nombre del destinatario"}</div>
+            ${oficio.cargo_destinatario ? `<div class="cargo-destino">${oficio.cargo_destinatario}</div>` : ""}
             ${oficio.departamento_destino ? `<div class="cargo-destino">${oficio.departamento_destino}</div>` : ""}
             <div class="presente">P&nbsp;&nbsp;R&nbsp;&nbsp;E&nbsp;&nbsp;S&nbsp;&nbsp;E&nbsp;&nbsp;N&nbsp;&nbsp;T&nbsp;&nbsp;E</div>
           </div>
@@ -3639,7 +3646,7 @@
             const result = await supabaseClient
               .from("oficios")
               .select(
-                "id, clave_opdssj, tipo_documento, asunto, contenido, remitente, destinatario, fecha_emision, estado, prioridad, created_at, archivos, links",
+                "id, clave_opdssj, tipo_documento, asunto, contenido, remitente, destinatario, cargo_destinatario, fecha_emision, estado, prioridad, created_at, archivos, links",
               )
               .order("created_at", { ascending: false });
 
@@ -3748,6 +3755,7 @@
           remitente: document.getElementById("remitente").value,
           cargo_remitente: document.getElementById("cargo_remitente").value,
           destinatario: document.getElementById("destinatario").value,
+          cargo_destinatario: document.getElementById("cargo_destinatario").value,
           departamento_destino: document.getElementById("departamento_destino")
             .value,
           fecha_emision: document.getElementById("fecha_emision").value,
@@ -4215,6 +4223,8 @@
           oficio.cargo_remitente || "";
         document.getElementById("destinatario").value =
           oficio.destinatario || "";
+        document.getElementById("cargo_destinatario").value =
+          oficio.cargo_destinatario || "";
         document.getElementById("departamento_destino").value =
           oficio.departamento_destino || "";
         document.getElementById("fecha_emision").value =
