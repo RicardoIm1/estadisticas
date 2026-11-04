@@ -300,6 +300,9 @@
         min-height: 0;
         min-width: 0;
         overflow: auto;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
         background: #e9ecef;
         border-radius: 6px;
         padding: 12px;
@@ -3320,10 +3323,27 @@
           </div>`;
       }
 
+      function ajustarEscalaVistaPrevia() {
+        const marco = document.getElementById("vistaPapel");
+        const preview = document.getElementById("previewDocumento");
+        if (!marco || !preview) return;
+
+        const esA4 = obtenerFormatoPapel() === "a4";
+        const anchoMm = esA4 ? 210 : 216;
+        const anchoHojaPx = (anchoMm / 25.4) * 96;
+        const anchoDisponible = Math.max(120, marco.clientWidth - 24);
+        const escala = Math.min(1, anchoDisponible / anchoHojaPx);
+
+        preview.style.zoom = escala.toFixed(4);
+        preview.style.marginLeft = "0";
+        preview.style.marginRight = "0";
+      }
+
       function aplicarFormatoPapel() {
         const preview = document.getElementById("previewDocumento");
         if (!preview) return;
         preview.classList.toggle("formato-a4", obtenerFormatoPapel() === "a4");
+        ajustarEscalaVistaPrevia();
       }
 
       function actualizarVistaPrevia() {
@@ -3743,6 +3763,9 @@
             zIndex: "2147483647",
             pointerEvents: "none",
             overflow: "visible",
+            display: "block",
+            transform: "none",
+            zoom: "1",
           });
           const element = document.createElement("div");
           element.className = `documento-preview ${esA4 ? "formato-a4" : ""}`;
@@ -3753,6 +3776,13 @@
             padding: "20mm 22mm 17mm",
             background: "#fff",
             color: "#1a1a1a",
+            position: "relative",
+            left: "0",
+            top: "0",
+            display: "block",
+            boxSizing: "border-box",
+            transform: "none",
+            zoom: "1",
           });
           element.innerHTML = normalizarColoresContenido(
             construirDocumentoHTML(oficio, "1 de 1"),
@@ -3777,7 +3807,12 @@
                 logging: false,
                 scrollX: 0,
                 scrollY: 0,
-                windowWidth: Math.ceil(element.getBoundingClientRect().width),
+                x: 0,
+                y: 0,
+                width: Math.ceil(element.offsetWidth),
+                height: Math.ceil(element.scrollHeight),
+                windowWidth: Math.max(1200, Math.ceil(element.offsetWidth) + 100),
+                windowHeight: Math.max(1600, Math.ceil(element.scrollHeight) + 100),
               },
               jsPDF: {
                 unit: "mm",
