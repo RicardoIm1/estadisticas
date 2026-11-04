@@ -428,7 +428,15 @@
         text-align: center;
       }
       .vista-papel .contenido tr,
-      .documento-preview .contenido tr {
+      .documento-preview .contenido tr,
+      .documento-preview .contenido p,
+      .documento-preview .contenido li,
+      .documento-preview .fundamentacion,
+      .documento-preview .archivos-links,
+      .documento-preview .confidencial,
+      .documento-preview .responsables,
+      .documento-preview .cierre {
+        break-inside: avoid;
         page-break-inside: avoid;
       }
       .preview-paginado {
@@ -4034,7 +4042,15 @@
               crearContenedorContenido().appendChild(tablaPagina);
             }
 
+            const contenedorPrevio = crearContenedorContenido();
+            const yaHabiaBloques = contenedorPrevio.children.length > 0;
             iniciarTabla();
+            if (desborda() && yaHabiaBloques) {
+              tablaPagina.remove();
+              nuevaPagina();
+              iniciarTabla();
+            }
+
             filas.forEach((fila) => {
               const copiaFila = fila.cloneNode(true);
               cuerpoTabla.appendChild(copiaFila);
@@ -4061,11 +4077,10 @@
                 const envolturaContenido = crearContenedorContenido();
                 const copia = bloque.cloneNode(true);
                 envolturaContenido.appendChild(copia);
-                if (desborda() && envolturaContenido.children.length > 1) {
-                  copia.remove();
-                  nuevaPagina();
-                  crearContenedorContenido().appendChild(copia);
-                } else if (desborda() && envolturaContenido.children.length === 1 && paginas.length > 1) {
+                if (
+                  desborda() &&
+                  (envolturaContenido.children.length > 1 || cuerpoActual.children.length > 1)
+                ) {
                   copia.remove();
                   nuevaPagina();
                   crearContenedorContenido().appendChild(copia);
