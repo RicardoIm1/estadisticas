@@ -2845,6 +2845,7 @@
                 <button type="button" id="btnRegistroAnterior" onclick="navegarRegistro(-1)" aria-label="Registro anterior">‹ Anterior</button>
                 <span id="contadorRegistros">0 de 0</span>
                 <button type="button" id="btnRegistroSiguiente" onclick="navegarRegistro(1)" aria-label="Registro siguiente">Siguiente ›</button>
+                <button type="button" id="btnVerFichaEdicion" onclick="verFichaEdicionActual()" title="Consultar ficha completa del oficio"><i data-lucide="eye" class="ui-icon" aria-hidden="true"></i> Ver ficha</button>
               </div>
 
               <form id="oficioForm" onsubmit="return guardarOficio(event);">
@@ -4411,7 +4412,7 @@
                             </td>
                             <td>
                                 <div class="acciones-oficio" style="display:flex;flex-wrap:wrap;gap:5px;align-items:center;">
-                                    <button class="btn-accion btn-accion-ver" onclick="verDetalle(${oficio.id})" title="Ver detalle del oficio" aria-label="Ver detalle del oficio"><i data-lucide="eye" class="ui-icon" aria-hidden="true"></i></button>
+                                    <button class="btn-accion btn-accion-ver" onclick="editarOficio(${oficio.id})" title="Abrir edición del oficio" aria-label="Abrir edición del oficio"><i data-lucide="eye" class="ui-icon" aria-hidden="true"></i></button>
                                     <button class="btn-accion btn-accion-imprimir" onclick="imprimirOficio(${oficio.id})" title="Imprimir oficio" aria-label="Imprimir oficio"><i data-lucide="printer" class="ui-icon" aria-hidden="true"></i></button>
                                     <button class="btn-accion btn-accion-pdf" onclick="descargarPDF(${oficio.id})" title="Descargar oficio en PDF" aria-label="Descargar oficio en PDF"><i data-lucide="file-text" class="ui-icon" aria-hidden="true"></i></button>
                                     <button class="btn-accion btn-accion-estado" onclick="cambiarEstado(${oficio.id}, '${oficio.estado || "Borrador"}')" title="Cambiar estado del oficio" aria-label="Cambiar estado del oficio"><i data-lucide="refresh-cw" class="ui-icon" aria-hidden="true"></i></button>
@@ -4958,6 +4959,13 @@
           " Editando oficio: " + (oficio.clave_opdssj || ""),
           "info",
         );
+      }
+
+      function verFichaEdicionActual() {
+        const idActual = document.getElementById("editId").value;
+        if (!idActual) return;
+        const oficio = todosLosOficios.find((o) => String(o.id) === String(idActual));
+        if (oficio) verDetalle(oficio.id);
       }
 
       function actualizarNavegacionRegistros() {
