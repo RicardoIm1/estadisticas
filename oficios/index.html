@@ -3424,8 +3424,8 @@
       let estadoGlassTimer = null;
       let solicitudDatosToken = 0;
 
-      // Los iconos nunca deben bloquear la carga de datos.
-      let observadorIconosLucide = null;
+      // Renderizado único de iconos estáticos. Sin observadores globales:
+      // la iconografía nunca debe recorrer el documento ante cada cambio del DOM.
       function renderizarIconosLucide(raiz = document) {
         try {
           const api = window.lucide;
@@ -3438,27 +3438,12 @@
         }
       }
 
-      function iniciarIconosLucide() {
-        renderizarIconosLucide();
-        if (observadorIconosLucide || !("MutationObserver" in window)) return;
-        observadorIconosLucide = new MutationObserver((cambios) => {
-          const hayIconosNuevos = cambios.some((cambio) =>
-            [...cambio.addedNodes].some((nodo) =>
-              nodo.nodeType === 1 &&
-              (nodo.matches?.("[data-lucide]") || nodo.querySelector?.("[data-lucide]"))
-            )
-          );
-          if (hayIconosNuevos) renderizarIconosLucide();
-        });
-        observadorIconosLucide.observe(document.body, { childList: true, subtree: true });
-      }
-
       // ==================== INICIALIZACIÓN ====================
       document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("fecha_emision").value = new Date()
           .toISOString()
           .split("T")[0];
-        iniciarIconosLucide();
+        renderizarIconosLucide();
         mostrarModoTabla();
         setInterval(verificarVencimientos, 300000);
         renderizarArchivos();
