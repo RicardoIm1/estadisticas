@@ -4075,13 +4075,23 @@
           if (destinatario) agregarBloque(destinatario);
 
           if (cuerpo) {
-            const bloques = Array.from(cuerpo.children);
+            const bloques = Array.from(cuerpo.childNodes).filter(
+              (nodo) =>
+                nodo.nodeType === Node.ELEMENT_NODE ||
+                (nodo.nodeType === Node.TEXT_NODE && nodo.textContent.trim()),
+            );
             bloques.forEach((bloque) => {
-              if (bloque.tagName === "TABLE") {
+              if (bloque.nodeType === Node.ELEMENT_NODE && bloque.tagName === "TABLE") {
                 agregarTablaPaginada(bloque);
               } else {
                 const envolturaContenido = crearContenedorContenido();
-                const copia = bloque.cloneNode(true);
+                const copia =
+                  bloque.nodeType === Node.TEXT_NODE
+                    ? document.createElement("p")
+                    : bloque.cloneNode(true);
+                if (bloque.nodeType === Node.TEXT_NODE) {
+                  copia.textContent = bloque.textContent.trim();
+                }
                 envolturaContenido.appendChild(copia);
                 if (
                   desborda() &&
