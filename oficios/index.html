@@ -130,8 +130,19 @@
 
       .header-actions {
         display: flex;
+        align-items: center;
+        justify-content: flex-end;
         gap: 6px;
         flex-wrap: wrap;
+      }
+
+      .header-actions [hidden] {
+        display: none !important;
+      }
+
+      .header-actions button {
+        padding: 6px 11px;
+        font-size: 11px;
       }
 
       button {
@@ -2504,22 +2515,22 @@
           </div>
         </div>
         <div class="header-actions" id="headerActions">
-          <button class="btn-success" onclick="cargarDatos()">
+          <button id="btnRecargar" class="btn-success" onclick="cargarDatos()">
             🔄 Recargar datos
           </button>
           <button type="submit" form="oficioForm" class="btn-primary" id="btnGuardar">
             📤 Guardar
           </button>
-          <button type="button" class="btn-outline" onclick="limpiarFormulario()">
+          <button type="button" id="btnLimpiar" class="btn-outline" onclick="limpiarFormulario()">
             🗑️ Limpiar
           </button>
           <button type="button" class="btn-danger" id="btnCancelar" style="display:none" onclick="cancelarEdicion()">
             ❌ Cancelar
           </button>
-          <button type="button" class="btn-ver-tabla" onclick="mostrarModoTabla()">
+          <button type="button" id="btnVerListado" class="btn-ver-tabla" onclick="mostrarModoTabla()">
             📋 Ver listado
           </button>
-          <button class="btn-outline" onclick="verAlertasVencimiento()">
+          <button id="btnAlertas" class="btn-outline" onclick="verAlertasVencimiento()">
             🔔 Alertas
           </button>
           <button
@@ -2530,6 +2541,7 @@
             ✏️ Nuevo Oficio
           </button>
           <button
+            id="btnSalir"
             class="btn-salir-ultra"
             onclick="
               if (confirm('¿Cerrar sesión?')) {
@@ -3323,10 +3335,32 @@
       }
 
       // ==================== MODOS ====================
+      function actualizarAccionesHeader() {
+        const enEdicion = document.getElementById("modoEdicion").style.display !== "none";
+        const editandoExistente = !!document.getElementById("editId").value;
+
+        const visibilidad = {
+          btnRecargar: !enEdicion,
+          btnGuardar: enEdicion,
+          btnLimpiar: enEdicion,
+          btnCancelar: enEdicion && editandoExistente,
+          btnVerListado: enEdicion,
+          btnAlertas: !enEdicion,
+          btnNuevoOficio: !enEdicion,
+          btnSalir: true
+        };
+
+        Object.entries(visibilidad).forEach(([id, visible]) => {
+          const boton = document.getElementById(id);
+          if (boton) boton.hidden = !visible;
+        });
+      }
+
       function mostrarModoEdicion() {
         document.getElementById("modoEdicion").style.display = "flex";
         document.getElementById("modoTabla").classList.remove("active");
         document.getElementById("modoTabla").style.display = "none";
+        actualizarAccionesHeader();
         if (!document.getElementById("editId").value) {
           generarClaveOPDSSJ();
         }
@@ -3337,6 +3371,7 @@
         document.getElementById("modoEdicion").style.display = "none";
         document.getElementById("modoTabla").style.display = "flex";
         document.getElementById("modoTabla").classList.add("active");
+        actualizarAccionesHeader();
         cargarDatos();
       }
 
@@ -4319,6 +4354,7 @@
         mostrarModoEdicion();
 
         document.getElementById("editId").value = oficio.id;
+        actualizarAccionesHeader();
         document.getElementById("clave_opdssj").value =
           oficio.clave_opdssj || "";
         document.getElementById("tipo_documento").value =
@@ -4381,6 +4417,7 @@
       function limpiarFormulario() {
         document.getElementById("oficioForm").reset();
         document.getElementById("editId").value = "";
+        actualizarAccionesHeader();
         document.getElementById("fecha_emision").value = new Date()
           .toISOString()
           .split("T")[0];
@@ -4664,6 +4701,8 @@
             cerrarModal();
           }
         });
+
+      actualizarAccionesHeader();
 
       console.log(
         "🏥 OPDSSJ - Sistema de Control de Oficios cargado correctamente",
