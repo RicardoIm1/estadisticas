@@ -3424,11 +3424,41 @@
       let estadoGlassTimer = null;
       let solicitudDatosToken = 0;
 
+      // Los iconos nunca deben bloquear la carga de datos.
+      let observadorIconosLucide = null;
+      function renderizarIconosLucide(raiz = document) {
+        try {
+          const api = window.lucide;
+          if (!api || typeof api.createIcons !== "function") return false;
+          api.createIcons({ root: raiz, attrs: { class: "ui-icon" } });
+          return true;
+        } catch (error) {
+          console.warn("No fue posible renderizar los iconos; la aplicación continuará normalmente.", error);
+          return false;
+        }
+      }
+
+      function iniciarIconosLucide() {
+        renderizarIconosLucide();
+        if (observadorIconosLucide || !("MutationObserver" in window)) return;
+        observadorIconosLucide = new MutationObserver((cambios) => {
+          const hayIconosNuevos = cambios.some((cambio) =>
+            [...cambio.addedNodes].some((nodo) =>
+              nodo.nodeType === 1 &&
+              (nodo.matches?.("[data-lucide]") || nodo.querySelector?.("[data-lucide]"))
+            )
+          );
+          if (hayIconosNuevos) renderizarIconosLucide();
+        });
+        observadorIconosLucide.observe(document.body, { childList: true, subtree: true });
+      }
+
       // ==================== INICIALIZACIÓN ====================
       document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("fecha_emision").value = new Date()
           .toISOString()
           .split("T")[0];
+        iniciarIconosLucide();
         mostrarModoTabla();
         setInterval(verificarVencimientos, 300000);
         renderizarArchivos();
@@ -3620,17 +3650,7 @@
           modoTabla.style.display = mostrarEdicion ? "none" : "flex";
           modoTabla.classList.toggle("active", !mostrarEdicion);
 
-          // Convierte los iconos declarativos en SVG Lucide, incluidos los elementos dinámicos.
-      if (window.lucide) {
-        const renderizarIconos = (raiz = document) => lucide.createIcons({ root: raiz, attrs: { class: "ui-icon" } });
-        renderizarIconos();
-        const observadorIconos = new MutationObserver((cambios) => {
-          if (cambios.some((cambio) => [...cambio.addedNodes].some((nodo) => nodo.nodeType === 1 && (nodo.matches?.("[data-lucide]") || nodo.querySelector?.("[data-lucide]"))))) renderizarIconos();
-        });
-        observadorIconos.observe(document.body, { childList: true, subtree: true });
-      }
-
-      actualizarAccionesHeader();
+          actualizarAccionesHeader();
           contenedor.classList.remove("transicionando");
 
           if (mostrarEdicion) {
