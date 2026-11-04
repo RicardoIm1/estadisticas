@@ -431,6 +431,33 @@
       .documento-preview .contenido tr {
         page-break-inside: avoid;
       }
+      .preview-page-break {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 12px;
+        background: #e9ecef;
+        border-top: 1px solid #c5cbd1;
+        border-bottom: 1px solid #c5cbd1;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.16);
+        z-index: 20;
+        pointer-events: none;
+      }
+
+      .contador-hojas-preview {
+        display: inline-block;
+        margin-left: 7px;
+        padding: 2px 7px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.12);
+        color: rgba(255, 255, 255, 0.82);
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        text-transform: none;
+        vertical-align: middle;
+      }
+
       .vista-papel::-webkit-scrollbar {
         width: 5px;
       }
@@ -2993,7 +3020,7 @@
           <!-- COLUMNA DERECHA: VISTA PREVIA -->
           <div class="col-vista-previa">
             <div class="label-vista">
-              <span>📄 Vista previa · Documento oficial</span>
+              <span>📄 Vista previa · Documento oficial <small id="contadorHojasPreview" class="contador-hojas-preview">1 hoja</small></span>
               <label
                 class="formato-papel-control"
                 title="Formato para vista previa, impresión y PDF"
@@ -3803,12 +3830,9 @@
           marco.clientHeight - espacioVertical - 16,
         );
 
-        // Ajustar por ancho y alto para mostrar la hoja completa en el panel.
-        const escala = Math.min(
-          1,
-          anchoDisponible / anchoHojaPx,
-          altoDisponible / altoHojaPx,
-        );
+        // Mantener legible el ancho de la hoja. Los documentos extensos
+        // conservan su altura y se recorren verticalmente, página por página.
+        const escala = Math.min(1, anchoDisponible / anchoHojaPx);
 
         preview.style.position = "absolute";
         preview.style.left = "0";
@@ -3854,16 +3878,39 @@
       function calcularPaginasPreview() {
         setTimeout(() => {
           const previewContent = document.getElementById("previewDocumento");
-          if (!previewContent) return;
+          const envoltura = document.getElementById("previewScaleWrap");
+          if (!previewContent || !envoltura) return;
+
+          previewContent.querySelectorAll(".preview-page-break").forEach((n) => n.remove());
+
           const alturaMm = obtenerFormatoPapel() === "a4" ? 297 : 279;
           const alturaPx = alturaMm * 3.779527559;
-          const paginas = Math.max(
-            1,
-            Math.ceil(previewContent.scrollHeight / alturaPx),
+          const alturaContenido = Math.max(
+            previewContent.scrollHeight,
+            previewContent.offsetHeight,
           );
+          const paginas = Math.max(1, Math.ceil(alturaContenido / alturaPx));
+
+          // Separadores visuales entre hojas. Solo existen en la vista previa;
+          // el HTML que se entrega al generador PDF permanece intacto.
+          for (let pagina = 1; pagina < paginas; pagina++) {
+            const corte = document.createElement("div");
+            corte.className = "preview-page-break";
+            corte.setAttribute("aria-hidden", "true");
+            corte.style.top = `${pagina * alturaPx - 6}px`;
+            previewContent.appendChild(corte);
+          }
+
           const pageNumber = previewContent.querySelector(".page-number");
           if (pageNumber) pageNumber.textContent = `Pág. 1 de ${paginas}`;
-        }, 150);
+
+          const indicador = document.getElementById("contadorHojasPreview");
+          if (indicador) {
+            indicador.textContent = paginas === 1 ? "1 hoja" : `${paginas} hojas`;
+          }
+
+          ajustarEscalaVistaPrevia();
+        }, 180);
       }
 
       // ==================== ESTADO VISUAL DE CONEXIÓN ====================
