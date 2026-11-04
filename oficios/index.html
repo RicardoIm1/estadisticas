@@ -431,6 +431,42 @@
       .documento-preview .contenido tr {
         page-break-inside: avoid;
       }
+      .preview-paginado {
+        overflow: visible;
+      }
+
+      .preview-hoja-body {
+        position: absolute;
+        top: 6mm;
+        left: 22mm;
+        right: 22mm;
+        bottom: 25mm;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      .preview-hoja .footer-doc {
+        position: absolute;
+        left: 22mm;
+        right: 22mm;
+        bottom: 6mm;
+        width: auto;
+        margin: 0;
+        background: #fff;
+      }
+
+      .preview-hoja .contenido p,
+      .preview-hoja .contenido li,
+      .preview-hoja .contenido tr,
+      .preview-hoja .cierre,
+      .preview-hoja .fundamentacion,
+      .preview-hoja .archivos-links,
+      .preview-hoja .confidencial,
+      .preview-hoja .responsables {
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+
       .preview-page-break {
         position: absolute;
         left: 0;
@@ -3853,7 +3889,15 @@
       function aplicarFormatoPapel() {
         const preview = document.getElementById("previewDocumento");
         if (!preview) return;
-        preview.classList.toggle("formato-a4", obtenerFormatoPapel() === "a4");
+        const esA4 = obtenerFormatoPapel() === "a4";
+        preview.classList.toggle("formato-a4", esA4);
+        preview.querySelectorAll(".preview-hoja").forEach((hoja) => {
+          hoja.classList.toggle("formato-a4", esA4);
+          hoja.style.width = esA4 ? "210mm" : "216mm";
+          hoja.style.height = esA4 ? "297mm" : "279mm";
+          hoja.style.minHeight = hoja.style.height;
+          hoja.style.maxHeight = hoja.style.height;
+        });
         ajustarEscalaVistaPrevia();
       }
 
@@ -3877,40 +3921,181 @@
 
       function calcularPaginasPreview() {
         setTimeout(() => {
-          const previewContent = document.getElementById("previewDocumento");
-          const envoltura = document.getElementById("previewScaleWrap");
-          if (!previewContent || !envoltura) return;
+          const raiz = document.getElementById("previewDocumento");
+          if (!raiz) return;
 
-          previewContent.querySelectorAll(".preview-page-break").forEach((n) => n.remove());
+          const formatoA4 = obtenerFormatoPapel() === "a4";
+          const ancho = formatoA4 ? "210mm" : "216mm";
+          const alto = formatoA4 ? "297mm" : "279mm";
+          const contenidoOriginal = Array.from(raiz.children);
+          const pieOriginal = raiz.querySelector(".footer-doc");
+          const encabezado = contenidoOriginal.find((n) => n.classList.contains("header-doc"));
+          const destinatario = contenidoOriginal.find((n) => n.classList.contains("destinatario"));
+          const cuerpo = contenidoOriginal.find((n) => n.classList.contains("contenido"));
 
-          const alturaMm = obtenerFormatoPapel() === "a4" ? 297 : 279;
-          const alturaPx = alturaMm * 3.779527559;
-          const alturaContenido = Math.max(
-            previewContent.scrollHeight,
-            previewContent.offsetHeight,
-          );
-          const paginas = Math.max(1, Math.ceil(alturaContenido / alturaPx));
+          raiz.innerHTML = "";
+          raiz.classList.add("preview-paginado");
+          Object.assign(raiz.style, {
+            width: ancho,
+            minHeight: "0",
+            height: "auto",
+            padding: "0",
+            margin: "0",
+            background: "transparent",
+            boxShadow: "none",
+            display: "flex",
+            flexDirection: "column",
+            gap: "8mm",
+            position: "relative",
+            transformOrigin: "top left",
+          });
 
-          // Separadores visuales entre hojas. Solo existen en la vista previa;
-          // el HTML que se entrega al generador PDF permanece intacto.
-          for (let pagina = 1; pagina < paginas; pagina++) {
-            const corte = document.createElement("div");
-            corte.className = "preview-page-break";
-            corte.setAttribute("aria-hidden", "true");
-            corte.style.top = `${pagina * alturaPx - 6}px`;
-            previewContent.appendChild(corte);
+          const paginas = [];
+          let paginaActual = null;
+          let cuerpoActual = null;
+
+          function nuevaPagina() {
+            const hoja = document.createElement("div");
+            hoja.className = `documento-preview preview-hoja ${formatoA4 ? "formato-a4" : ""}`;
+            Object.assign(hoja.style, {
+              width: ancho,
+              height: alto,
+              minHeight: alto,
+              maxHeight: alto,
+              padding: "0",
+              margin: "0",
+              position: "relative",
+              overflow: "hidden",
+              boxSizing: "border-box",
+              flex: "0 0 auto",
+              transform: "none",
+              boxShadow: "0 2px 12px rgba(0,0,0,.16)",
+              background: "#fff",
+            });
+            const cuerpoHoja = document.createElement("div");
+            cuerpoHoja.className = "preview-hoja-body";
+            hoja.appendChild(cuerpoHoja);
+            raiz.appendChild(hoja);
+            paginas.push(hoja);
+            paginaActual = hoja;
+            cuerpoActual = cuerpoHoja;
+            return hoja;
           }
 
-          const pageNumber = previewContent.querySelector(".page-number");
-          if (pageNumber) pageNumber.textContent = `Pág. 1 de ${paginas}`;
+          function crearContenedorContenido() {
+            let contenedor = cuerpoActual.querySelector(".contenido");
+            if (!contenedor) {
+              contenedor = document.createElement("div");
+              contenedor.className = "contenido";
+              cuerpoActual.appendChild(contenedor);
+            }
+            return contenedor;
+          }
+
+          function desborda() {
+            return cuerpoActual.scrollHeight > cuerpoActual.clientHeight + 2;
+          }
+
+          function agregarBloque(nodo) {
+            const destino = nodo.classList?.contains("contenido")
+              ? crearContenedorContenido()
+              : cuerpoActual;
+            const copia = nodo.cloneNode(true);
+            destino.appendChild(copia);
+
+            if (desborda() && destino.children.length > 1) {
+              copia.remove();
+              nuevaPagina();
+              const nuevoDestino = nodo.classList?.contains("contenido")
+                ? crearContenedorContenido()
+                : cuerpoActual;
+              nuevoDestino.appendChild(copia);
+            }
+          }
+
+          function agregarTablaPaginada(tabla) {
+            const filas = Array.from(tabla.querySelectorAll("tbody tr"));
+            if (!filas.length) {
+              agregarBloque(tabla);
+              return;
+            }
+
+            let tablaPagina = null;
+            let cuerpoTabla = null;
+
+            function iniciarTabla() {
+              tablaPagina = tabla.cloneNode(true);
+              tablaPagina.querySelectorAll("tbody").forEach((tb) => tb.replaceChildren());
+              cuerpoTabla = tablaPagina.querySelector("tbody");
+              if (!cuerpoTabla) {
+                cuerpoTabla = document.createElement("tbody");
+                tablaPagina.appendChild(cuerpoTabla);
+              }
+              crearContenedorContenido().appendChild(tablaPagina);
+            }
+
+            iniciarTabla();
+            filas.forEach((fila) => {
+              const copiaFila = fila.cloneNode(true);
+              cuerpoTabla.appendChild(copiaFila);
+              if (desborda() && cuerpoTabla.children.length > 1) {
+                copiaFila.remove();
+                nuevaPagina();
+                iniciarTabla();
+                cuerpoTabla.appendChild(copiaFila);
+              }
+            });
+          }
+
+          nuevaPagina();
+
+          if (encabezado) agregarBloque(encabezado);
+          if (destinatario) agregarBloque(destinatario);
+
+          if (cuerpo) {
+            const bloques = Array.from(cuerpo.children);
+            bloques.forEach((bloque) => {
+              if (bloque.tagName === "TABLE") {
+                agregarTablaPaginada(bloque);
+              } else {
+                const envolturaContenido = crearContenedorContenido();
+                const copia = bloque.cloneNode(true);
+                envolturaContenido.appendChild(copia);
+                if (desborda() && envolturaContenido.children.length > 1) {
+                  copia.remove();
+                  nuevaPagina();
+                  crearContenedorContenido().appendChild(copia);
+                } else if (desborda() && envolturaContenido.children.length === 1 && paginas.length > 1) {
+                  copia.remove();
+                  nuevaPagina();
+                  crearContenedorContenido().appendChild(copia);
+                }
+              }
+            });
+          }
+
+          contenidoOriginal
+            .filter((n) => n !== encabezado && n !== destinatario && n !== cuerpo && n !== pieOriginal)
+            .forEach((bloque) => agregarBloque(bloque));
+
+          if (paginas.length === 0) nuevaPagina();
+
+          paginas.forEach((hoja, indice) => {
+            if (pieOriginal) {
+              const pie = pieOriginal.cloneNode(true);
+              const numero = pie.querySelector(".page-number");
+              if (numero) numero.textContent = `Pág. ${indice + 1} de ${paginas.length}`;
+              hoja.appendChild(pie);
+            }
+          });
 
           const indicador = document.getElementById("contadorHojasPreview");
           if (indicador) {
-            indicador.textContent = paginas === 1 ? "1 hoja" : `${paginas} hojas`;
+            indicador.textContent = paginas.length === 1 ? "1 hoja" : `${paginas.length} hojas`;
           }
 
           ajustarEscalaVistaPrevia();
-        }, 180);
+        }, 260);
       }
 
       // ==================== ESTADO VISUAL DE CONEXIÓN ====================
@@ -4303,7 +4488,7 @@
             .fecha{font-size:10.5pt;margin-bottom:2mm}.folio{font-size:11pt;font-weight:700;color:#0f1a2e;margin-bottom:2mm}.asunto-meta{font-size:10.5pt;font-weight:700;text-transform:uppercase;max-width:155mm;margin-left:auto}
             .destinatario{margin-bottom:10mm;font-size:11pt;text-align:left;line-height:1.35}.destinatario-nombre{font-weight:700;text-transform:uppercase}.cargo-destino{display:block;font-size:10.5pt;color:#222}.presente{margin-top:4mm;font-weight:700;letter-spacing:2.5px}
             .contenido{line-height:1.6;font-size:11pt;text-align:justify;margin:0}.contenido p{margin:0 0 6px}.contenido ul,.contenido ol{padding-left:25px;margin:6px 0}.contenido li{margin-bottom:3px}
-            .contenido table{width:100%;border-collapse:collapse;border-spacing:0;color:#1a1a1a;margin:12px 0;font-size:10pt;line-height:1.25}.contenido th,.contenido td{border:1px solid #777;padding:4px 6px;color:#1a1a1a;vertical-align:middle}.contenido th{font-weight:700;text-align:center}.contenido tr{break-inside:avoid;page-break-inside:avoid}
+            .contenido table{width:100%;border-collapse:collapse;border-spacing:0;color:#1a1a1a;margin:12px 0;font-size:10pt;line-height:1.25}.contenido th,.contenido td{border:1px solid #777;padding:4px 6px;color:#1a1a1a;vertical-align:middle}.contenido th{font-weight:700;text-align:center}.contenido tr{break-inside:avoid;page-break-inside:avoid}.contenido p,.contenido li,.cierre,.fundamentacion,.archivos-links,.confidencial,.responsables{break-inside:avoid;page-break-inside:avoid}
             .cierre{margin-top:12mm;text-align:left;break-inside:avoid;page-break-inside:avoid}.atentamente{font-size:11pt;margin-bottom:9mm}.firma{text-align:left;width:95mm}.linea{width:70mm;border-top:1px solid #000;margin:0 0 2mm}.nombre{font-weight:700;font-size:11pt;text-transform:uppercase}.cargo{font-size:10pt;color:#333}.leyenda{margin:7mm 0 0;font-style:italic;font-size:8.5pt;color:#555}
             .fundamentacion{margin:9mm 0 0;padding:6px 10px;background:#f8f9fa;border-left:3px solid #0f1a2e;font-style:italic;font-size:9.5pt}.archivos-links{margin:7mm 0 0;padding:7px 9px;background:#f8f9fa;border:1px solid #e1e4e8}.archivos-links .titulo{font-size:8pt;font-weight:700;color:#333}.archivos-links .item{font-size:8pt;padding:2px 0;color:#555}.archivos-links a{color:#0066cc;text-decoration:underline}
             .confidencial{margin-top:7mm;padding:5px 9px;background:#fff5f5;border:1px solid #ffcdd2;color:#c62828;font-size:8pt;text-align:center}.responsables{margin-top:7mm;font-size:7pt;color:#666;text-align:right;border-top:1px solid #ddd;padding-top:5px}
