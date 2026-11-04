@@ -248,6 +248,23 @@
         gap: 20px;
         margin: 6px 0;
         overflow: hidden;
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 180ms ease, transform 180ms ease;
+        will-change: opacity, transform;
+      }
+
+      .contenido-principal.transicionando {
+        opacity: 0;
+        transform: translateY(7px);
+        pointer-events: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .contenido-principal {
+          transition: none;
+          transform: none;
+        }
       }
 
       .modo-edicion {
@@ -3356,23 +3373,45 @@
         });
       }
 
+      function cambiarPantalla(destino) {
+        const contenedor = document.querySelector(".contenido-principal");
+        const modoEdicion = document.getElementById("modoEdicion");
+        const modoTabla = document.getElementById("modoTabla");
+        if (!contenedor || contenedor.classList.contains("transicionando")) return;
+
+        const mostrarEdicion = destino === "edicion";
+        const yaEstaVisible = mostrarEdicion
+          ? modoEdicion.style.display !== "none"
+          : modoTabla.style.display !== "none";
+        if (yaEstaVisible) return;
+
+        contenedor.classList.add("transicionando");
+
+        setTimeout(() => {
+          modoEdicion.style.display = mostrarEdicion ? "flex" : "none";
+          modoTabla.style.display = mostrarEdicion ? "none" : "flex";
+          modoTabla.classList.toggle("active", !mostrarEdicion);
+
+          actualizarAccionesHeader();
+          contenedor.classList.remove("transicionando");
+
+          if (mostrarEdicion) {
+            if (!document.getElementById("editId").value) {
+              generarClaveOPDSSJ();
+            }
+            actualizarVistaPrevia();
+          } else {
+            cargarDatos();
+          }
+        }, 180);
+      }
+
       function mostrarModoEdicion() {
-        document.getElementById("modoEdicion").style.display = "flex";
-        document.getElementById("modoTabla").classList.remove("active");
-        document.getElementById("modoTabla").style.display = "none";
-        actualizarAccionesHeader();
-        if (!document.getElementById("editId").value) {
-          generarClaveOPDSSJ();
-        }
-        actualizarVistaPrevia();
+        cambiarPantalla("edicion");
       }
 
       function mostrarModoTabla() {
-        document.getElementById("modoEdicion").style.display = "none";
-        document.getElementById("modoTabla").style.display = "flex";
-        document.getElementById("modoTabla").classList.add("active");
-        actualizarAccionesHeader();
-        cargarDatos();
+        cambiarPantalla("tabla");
       }
 
       // ==================== GENERAR CLAVE ====================
