@@ -338,6 +338,8 @@
         display: flex;
         justify-content: center;
         align-items: flex-start;
+        overflow: visible;
+        box-sizing: content-box;
       }
 
       .vista-papel .documento-preview {
@@ -613,7 +615,7 @@
         color: #1a1a1a;
         font-size: 11pt;
         line-height: 1.5;
-        padding: 20mm 22mm 17mm;
+        padding: 12mm 22mm 17mm;
         min-height: 279mm;
         box-sizing: border-box;
         box-shadow: 0 2px 12px rgba(0, 0, 0, 0.12);
@@ -625,20 +627,20 @@
       }
 
       .documento-preview .header-doc {
-        margin-bottom: 17mm;
+        margin-bottom: 10mm;
       }
       .documento-preview .header-doc .logo-container {
         display: flex;
         align-items: center;
         justify-content: flex-end;
         width: 100%;
-        min-height: 28mm;
-        padding: 0 0 5mm;
+        min-height: 34mm;
+        padding: 0 0 3mm;
       }
       .documento-preview .header-doc .logo-img-left,
       .documento-preview .header-doc .logo-img-right {
-        max-height: 28mm;
-        max-width: 72mm;
+        max-height: 35mm;
+        max-width: 85mm;
         width: auto;
         object-fit: contain;
       }
@@ -2930,6 +2932,8 @@
             ajustarEscalaVistaPrevia();
           });
           observadorVista.observe(marcoVista);
+          const previewObservado = document.getElementById("previewDocumento");
+          if (previewObservado) observadorVista.observe(previewObservado);
         }
         window.addEventListener("resize", ajustarEscalaVistaPrevia);
 
@@ -3309,6 +3313,7 @@
           <div class="header-doc">
             <div class="logo-container">
               <img src="${logoHospital}" alt="Hospital Regional Puerto Vallarta" class="logo-img-left" />
+              <img src="${logoJalisco}" alt="Gobierno de Jalisco" class="logo-img-right" />
             </div>
             <div class="bloque-meta">
               <div class="fecha">${fecha}</div>
@@ -3348,10 +3353,18 @@
         const preview = document.getElementById("previewDocumento");
         if (!marco || !envoltura || !preview) return;
 
-        const esA4 = obtenerFormatoPapel() === "a4";
-        const anchoMm = esA4 ? 210 : 216;
-        const anchoHojaPx = (anchoMm / 25.4) * 96;
-        const anchoDisponible = Math.max(120, marco.clientWidth - 24);
+        const anchoHojaPx = preview.offsetWidth;
+        const altoHojaPx = Math.max(preview.offsetHeight, preview.scrollHeight);
+        if (!anchoHojaPx || !altoHojaPx) return;
+
+        const estilosMarco = getComputedStyle(marco);
+        const espacioHorizontal =
+          (parseFloat(estilosMarco.paddingLeft) || 0) +
+          (parseFloat(estilosMarco.paddingRight) || 0);
+        const anchoDisponible = Math.max(
+          120,
+          marco.clientWidth - espacioHorizontal - 8,
+        );
         const escala = Math.min(1, anchoDisponible / anchoHojaPx);
 
         preview.style.zoom = "1";
@@ -3360,7 +3373,8 @@
         preview.style.margin = "0";
 
         envoltura.style.width = `${anchoHojaPx * escala}px`;
-        envoltura.style.height = `${preview.offsetHeight * escala}px`;
+        envoltura.style.height = `${altoHojaPx * escala}px`;
+        envoltura.style.flex = "0 0 auto";
       }
 
       function aplicarFormatoPapel() {
@@ -3746,9 +3760,9 @@
             @page{size:${esA4 ? "A4" : "letter"} portrait;margin:0}
             *{box-sizing:border-box} html,body{margin:0;padding:0;background:#fff;color:#1a1a1a}
             body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;line-height:1.5}
-            .documento-preview{width:${ancho};min-height:${alto};margin:0 auto;padding:20mm 22mm 17mm;background:#fff;color:#1a1a1a}
-            .header-doc{margin-bottom:17mm}.logo-container{display:flex;align-items:center;justify-content:flex-end;width:100%;min-height:28mm;padding-bottom:5mm}
-            .logo-img-left,.logo-img-right{max-height:28mm;max-width:72mm;width:auto;object-fit:contain}.bloque-meta{width:100%;text-align:right;line-height:1.35}
+            .documento-preview{width:${ancho};min-height:${alto};margin:0 auto;padding:12mm 22mm 17mm;background:#fff;color:#1a1a1a}
+            .header-doc{margin-bottom:10mm}.logo-container{display:flex;align-items:center;justify-content:flex-end;gap:8mm;width:100%;min-height:34mm;padding-bottom:3mm}
+            .logo-img-left,.logo-img-right{max-height:35mm;max-width:85mm;width:auto;object-fit:contain}.bloque-meta{width:100%;text-align:right;line-height:1.35}
             .fecha{font-size:10.5pt;margin-bottom:2mm}.folio{font-size:11pt;font-weight:700;color:#0f1a2e;margin-bottom:2mm}.asunto-meta{font-size:10.5pt;font-weight:700;text-transform:uppercase;max-width:155mm;margin-left:auto}
             .destinatario{margin-bottom:10mm;font-size:11pt;text-align:left;line-height:1.35}.destinatario-nombre{font-weight:700;text-transform:uppercase}.cargo-destino{display:block;font-size:10.5pt;color:#222}.presente{margin-top:4mm;font-weight:700;letter-spacing:2.5px}
             .contenido{line-height:1.6;font-size:11pt;text-align:justify;margin:0}.contenido p{margin:0 0 6px}.contenido ul,.contenido ol{padding-left:25px;margin:6px 0}.contenido li{margin-bottom:3px}
@@ -3797,7 +3811,7 @@
             width: ancho,
             minHeight: alto,
             margin: "0",
-            padding: "20mm 22mm 17mm",
+            padding: "12mm 22mm 17mm",
             background: "#fff",
             color: "#1a1a1a",
             position: "relative",
