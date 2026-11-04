@@ -332,12 +332,21 @@
         background: #fff;
       }
 
+      .preview-scale-wrap {
+        position: relative;
+        flex: 0 0 auto;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+      }
+
       .vista-papel .documento-preview {
         width: 216mm;
         min-height: 279mm;
         box-sizing: border-box;
-        margin: 0 auto;
-        flex-shrink: 0;
+        margin: 0;
+        flex: 0 0 auto;
+        transform-origin: top left;
       }
 
       .vista-papel .documento-preview.formato-a4 {
@@ -2616,7 +2625,8 @@
               </label>
             </div>
             <div class="vista-papel" id="vistaPapel">
-              <div class="documento-preview" id="previewDocumento">
+              <div class="preview-scale-wrap" id="previewScaleWrap">
+                <div class="documento-preview" id="previewDocumento">
                 <div class="empty-message">
                   <span class="icono">📝</span>
                   Completa el formulario<br />
@@ -3334,8 +3344,9 @@
 
       function ajustarEscalaVistaPrevia() {
         const marco = document.getElementById("vistaPapel");
+        const envoltura = document.getElementById("previewScaleWrap");
         const preview = document.getElementById("previewDocumento");
-        if (!marco || !preview) return;
+        if (!marco || !envoltura || !preview) return;
 
         const esA4 = obtenerFormatoPapel() === "a4";
         const anchoMm = esA4 ? 210 : 216;
@@ -3343,9 +3354,13 @@
         const anchoDisponible = Math.max(120, marco.clientWidth - 24);
         const escala = Math.min(1, anchoDisponible / anchoHojaPx);
 
-        preview.style.zoom = escala.toFixed(4);
-        preview.style.marginLeft = "0";
-        preview.style.marginRight = "0";
+        preview.style.zoom = "1";
+        preview.style.transform = `scale(${escala})`;
+        preview.style.transformOrigin = "top left";
+        preview.style.margin = "0";
+
+        envoltura.style.width = `${anchoHojaPx * escala}px`;
+        envoltura.style.height = `${preview.offsetHeight * escala}px`;
       }
 
       function aplicarFormatoPapel() {
@@ -3763,8 +3778,8 @@
           mostrarToast("⏳ Generando PDF...", "info");
           contenedor = document.createElement("div");
           Object.assign(contenedor.style, {
-            position: "fixed",
-            left: "0",
+            position: "absolute",
+            left: "-10000px",
             top: "0",
             width: ancho,
             minHeight: alto,
@@ -3816,12 +3831,7 @@
                 logging: false,
                 scrollX: 0,
                 scrollY: 0,
-                x: 0,
-                y: 0,
-                width: Math.ceil(element.offsetWidth),
-                height: Math.ceil(element.scrollHeight),
-                windowWidth: Math.max(1200, Math.ceil(element.offsetWidth) + 100),
-                windowHeight: Math.max(1600, Math.ceil(element.scrollHeight) + 100),
+
               },
               jsPDF: {
                 unit: "mm",
