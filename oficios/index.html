@@ -71,11 +71,27 @@
         border-radius: 16px;
         background: rgba(255, 255, 255, 0.05);
         border: 1px solid rgba(255, 255, 255, 0.08);
+        transition: background-color 1.8s ease, border-color 1.8s ease;
         backdrop-filter: blur(14px);
         -webkit-backdrop-filter: blur(14px);
         padding: 12px 18px;
         width: min(98%, 1600px);
         overflow: hidden;
+      }
+
+      .glass.estado-cargando {
+        background: rgba(55, 145, 235, 0.22);
+        border-color: rgba(110, 185, 255, 0.34);
+      }
+
+      .glass.estado-exito {
+        background: rgba(45, 170, 105, 0.22);
+        border-color: rgba(100, 220, 155, 0.34);
+      }
+
+      .glass.estado-error {
+        background: rgba(205, 55, 65, 0.24);
+        border-color: rgba(255, 115, 125, 0.38);
       }
 
       .header {
@@ -885,6 +901,47 @@
       /* ============================================
        MODO TABLA
        ============================================ */
+      .navegacion-registros {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        margin: 0 0 10px;
+        padding: 6px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+      }
+
+      .navegacion-registros[hidden] { display: none !important; }
+
+      .navegacion-registros button {
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 7px;
+        background: rgba(255, 255, 255, 0.06);
+        color: rgba(255, 255, 255, 0.9);
+        padding: 5px 10px;
+        font: 500 11px "Poppins", sans-serif;
+        cursor: pointer;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+      }
+
+      .navegacion-registros button:hover:not(:disabled) {
+        background: rgba(255, 255, 255, 0.13);
+        border-color: rgba(255, 255, 255, 0.25);
+      }
+
+      .navegacion-registros button:disabled {
+        opacity: 0.3;
+        cursor: default;
+      }
+
+      .navegacion-registros span {
+        min-width: 48px;
+        text-align: center;
+        color: rgba(255, 255, 255, 0.68);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+      }
+
       .modo-tabla {
         display: none;
         flex: 1;
@@ -984,17 +1041,6 @@
       }
       .stat-card.urgentes .number {
         color: #ff6b6b;
-        animation: pulse 2s infinite;
-      }
-
-      @keyframes pulse {
-        0%,
-        100% {
-          opacity: 1;
-        }
-        50% {
-          opacity: 0.5;
-        }
       }
 
       .table-section {
@@ -1168,7 +1214,6 @@
       .prioridad-alta {
         background: rgba(220, 53, 69, 0.15);
         color: #ff6b6b;
-        animation: pulse 2s infinite;
       }
       .prioridad-media {
         background: rgba(255, 193, 7, 0.12);
@@ -2591,6 +2636,11 @@
                 ✏️ <span id="formTitle">Nuevo Oficio</span>
                 <small>Instructivo SDGM/198/2026</small>
               </h2>
+              <div class="navegacion-registros" id="navegacionRegistros" hidden>
+                <button type="button" id="btnRegistroAnterior" onclick="navegarRegistro(-1)" aria-label="Registro anterior">‹ Anterior</button>
+                <span id="contadorRegistros">0 de 0</span>
+                <button type="button" id="btnRegistroSiguiente" onclick="navegarRegistro(1)" aria-label="Registro siguiente">Siguiente ›</button>
+              </div>
 
               <form id="oficioForm" onsubmit="return guardarOficio(event);">
                 <input type="hidden" id="editId" value="" />
@@ -3201,6 +3251,8 @@
       let todosLosOficios = [];
       let archivosSubidos = [];
       let linksAgregados = [];
+      let estadoGlassTimer = null;
+      let solicitudDatosToken = 0;
 
       // ==================== INICIALIZACIÓN ====================
       document.addEventListener("DOMContentLoaded", function () {
@@ -3814,8 +3866,28 @@
         }, 150);
       }
 
+      // ==================== ESTADO VISUAL DE CONEXIÓN ====================
+      function marcarEstadoGlass(estado, token = solicitudDatosToken) {
+        const glass = document.getElementById("appGlass");
+        if (!glass) return;
+
+        glass.classList.remove("estado-cargando", "estado-exito", "estado-error");
+        if (estado) glass.classList.add(`estado-${estado}`);
+
+        if (estadoGlassTimer) clearTimeout(estadoGlassTimer);
+        if (estado && estado !== "cargando") {
+          estadoGlassTimer = setTimeout(() => {
+            if (token === solicitudDatosToken) {
+              glass.classList.remove("estado-exito", "estado-error", "estado-cargando");
+            }
+          }, 2200);
+        }
+      }
+
       // ==================== CRUD ====================
       async function cargarDatos() {
+        const tokenCarga = ++solicitudDatosToken;
+        marcarEstadoGlass("cargando", tokenCarga);
         try {
           let data = [];
           let error = null;
@@ -3863,8 +3935,10 @@
           renderizarTabla(todosLosOficios);
           actualizarEstadisticas(todosLosOficios);
           verificarVencimientos();
+          marcarEstadoGlass("exito", tokenCarga);
           await generarClaveOPDSSJ();
         } catch (error) {
+          marcarEstadoGlass("error", tokenCarga);
           console.error("Error:", error);
           mostrarToast(
             "❌ Error al cargar: " + (error.message || "Error desconocido"),
@@ -4400,6 +4474,7 @@
 
         document.getElementById("editId").value = oficio.id;
         actualizarAccionesHeader();
+        actualizarNavegacionRegistros();
         document.getElementById("clave_opdssj").value =
           oficio.clave_opdssj || "";
         document.getElementById("tipo_documento").value =
@@ -4453,6 +4528,35 @@
         );
       }
 
+      function actualizarNavegacionRegistros() {
+        const contenedor = document.getElementById("navegacionRegistros");
+        const idActual = document.getElementById("editId").value;
+        const indice = todosLosOficios.findIndex((o) => String(o.id) === String(idActual));
+        const anterior = document.getElementById("btnRegistroAnterior");
+        const siguiente = document.getElementById("btnRegistroSiguiente");
+        const contador = document.getElementById("contadorRegistros");
+
+        if (!contenedor || !anterior || !siguiente || !contador) return;
+        const visible = !!idActual && indice >= 0 && todosLosOficios.length > 0;
+        contenedor.hidden = !visible;
+        if (!visible) return;
+
+        anterior.disabled = indice <= 0;
+        siguiente.disabled = indice >= todosLosOficios.length - 1;
+        contador.textContent = `${indice + 1} de ${todosLosOficios.length}`;
+      }
+
+      function navegarRegistro(direccion) {
+        const idActual = document.getElementById("editId").value;
+        const indiceActual = todosLosOficios.findIndex((o) => String(o.id) === String(idActual));
+        if (indiceActual < 0) return;
+
+        const nuevoIndice = indiceActual + direccion;
+        if (nuevoIndice < 0 || nuevoIndice >= todosLosOficios.length) return;
+
+        editarOficio(todosLosOficios[nuevoIndice].id);
+      }
+
       function cancelarEdicion() {
         limpiarFormulario();
         mostrarModoTabla();
@@ -4463,6 +4567,7 @@
         document.getElementById("oficioForm").reset();
         document.getElementById("editId").value = "";
         actualizarAccionesHeader();
+        actualizarNavegacionRegistros();
         document.getElementById("fecha_emision").value = new Date()
           .toISOString()
           .split("T")[0];
