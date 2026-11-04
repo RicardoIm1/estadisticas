@@ -3894,7 +3894,7 @@
                             <td>${oficio.remitente || ""}</td>
                             <td>${oficio.cargo_remitente || ""}</td>
                             <td>${oficio.destinatario || ""}</td>
-                            <td>${formatearFecha(oficio.fecha_emision)}</td>
+                            <td>${formatearFechaTabla(oficio.fecha_emision)}</td>
                             <td>
                                 <span class="estado-badge estado-${(oficio.estado || "Borrador").toLowerCase().replace(" ", "-")}">
                                     ${oficio.estado || "Borrador"}
@@ -4682,6 +4682,26 @@
       }
 
       // ==================== UTILIDADES ====================
+      function formatearFechaTabla(fecha) {
+        if (!fecha) return "-";
+
+        // Las fechas tipo YYYY-MM-DD se separan directamente para evitar
+        // desfases de día por la conversión UTC/local del navegador.
+        const texto = String(fecha).trim();
+        const fechaISO = texto.match(/^(\d{4})-(\d{2})-(\d{2})/);
+
+        if (fechaISO) {
+          return `${fechaISO[3]}/${fechaISO[2]}/${fechaISO[1]}`;
+        }
+
+        const d = new Date(texto);
+        if (isNaN(d.getTime())) return texto;
+
+        const dia = String(d.getDate()).padStart(2, "0");
+        const mes = String(d.getMonth() + 1).padStart(2, "0");
+        return `${dia}/${mes}/${d.getFullYear()}`;
+      }
+
       function formatearFecha(fecha) {
         if (!fecha) return "-";
         const d = new Date(fecha);
